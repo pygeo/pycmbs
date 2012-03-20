@@ -13,6 +13,10 @@ import numpy as np
 
 from matplotlib import pylab as plt
 
+from statistic import get_significance
+
+
+
 class Data():
     '''
     generic data handling class for pyCMBS
@@ -23,6 +27,7 @@ class Data():
         self.scale_factor = scale_factor
         self.lat_name = lat_name
         self.lon_name = lon_name
+        
         
         self._lon360 = True #assume that coordinates are always in 0 < lon < 360
         
@@ -95,7 +100,10 @@ class Data():
         self.set_time()
         
         #- lat lon to 2D matrix
-        self._mesh_lat_lon()
+        try:
+            self._mesh_lat_lon()
+        except:
+            print 'No lat/lon mesh was generated!'
         
         if self.time != None:
             #- now perform temporal subsetting
@@ -214,6 +222,7 @@ class Data():
         var = F.variables[varname]
         
         data = var.get_value().astype('float').copy()
+        
 
         self.fill_value = None
         if hasattr(var,'_FillValue'):
@@ -254,10 +263,15 @@ class Data():
         return data
         
     def timmean(self):
-        if self.data.ndim != 3:
+        if self.data.ndim == 3:
+            return self.data.mean(axis=0)
+        if self.data.ndim == 2:
+            #no temporal averaging
+            return self.data.copy()
+        else:
             sys.exit('Temporal mean can not be calculated as dimensions do not match!')
     
-        return self.data.mean(axis=0)
+        
         
     def timsum(self):
         if self.data.ndim != 3:
@@ -368,11 +382,17 @@ class Data():
             
             
         msk = msk_lat & msk_lon & msk_region  # valid area
-        print '   Number of pixels for region ', R.label.upper(), ' in dataset ', self.label.upper(), ' :', sum(msk)
         
         self._apply_mask(msk)
         
     def _apply_mask(self,msk):
+        '''
+        apply a mask to C{Data}. All data where mask==True
+        will be masked. Former data and mask will be stored
+        
+        @param msk: mask
+        @type msk : numpy boolean array
+        '''
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()     
         
@@ -433,8 +453,17 @@ class Data():
         
         
         for attr, value in self.__dict__.iteritems():
-            cmd = "d." + attr + " = self." + attr
-            exec(cmd)
+            try:
+                #-copy (needed for arrays)
+                cmd = "d." + attr + " = self." + attr + '.copy()'
+                exec(cmd)
+            except:
+                #-copy
+                cmd = "d." + attr + " = self." + attr 
+                exec(cmd)
+            
+        
+        
             
         
         return d
@@ -442,7 +471,11 @@ class Data():
         
     def sub(self,x,copy=True):
         '''
-        substract variable x from current field
+        
+        @param x: A C{Data} object which will be substracted
+        @type  x: Data object
+        
+        Substract variable x from current field
         '''
         
         if np.shape(self.data) != np.shape(x.data):
@@ -457,6 +490,85 @@ class Data():
         d.label = self.label + ' - ' + x.label
         
         return d
+        
+    def _sub_sample(self,step):
+        '''
+        subsample data
+        '''
+        self.data = self.data[:,::step,::step]
+        self.lat  = self.lat [::step,::step]
+        self.lon  = self.lon [::step,::step]
+        
+        
+        
+    def corr_single(self,x,pthres=1.01):
+        '''
+        The routine correlates a data vector with
+        all data of the current object.
+        
+        @param x: the data vector correlations should be calculated with
+        @type  x: numpy array [time]
+        
+        For efficiency reasons, the calculations are
+        performed rowwise for all grid cells using
+        corrcoef()
+        
+        Output: correlation coefficient for each grid point
+        
+        @todo significance of correlation
+        
+        '''
+
+        if self.data.ndim != 3:
+            raise ValueError, 'Invalid geometry!'
+        
+        nt,ny,nx = sz = np.shape(self.data)
+        
+        if nt != len(x):
+            raise ValueError, 'Inconsistent geometries'
+
+        R=np.ones((ny,nx))*np.nan #output matrix for correlation
+        S=np.ones((ny,nx))*np.nan #output matrix for slope
+        I=np.ones((ny,nx))*np.nan #output matrix for intercept
+        
+        print 'Calculating correlation ...'
+        for i in range(ny): #todo how to further increase efficiency?
+            if i % 25 == 0:
+                print i, '/', ny
+            c = np.vstack((self.data[:,i,:].T,x))
+            r=np.corrcoef(c)
+            
+            poly = np.polyfit(x,self.data[:,i,:],1  ) #self.data is dependent variable
+            
+            R[i,:] = r[0:-1,-1]
+            S[i,:] = poly[0,:]
+            I[i,:] = poly[1,:]
+        
+        
+        #--- calculate significance (assuming no gaps in the timeseries)
+        p_value = get_significance(R,len(x))
+        
+        
+        #--- prepare output data objects
+        Rout = self.copy() #copy obkect to get coordinates
+        Rout.label = 'correlation'
+        Rout.data = np.ma.array(R,mask=p_value>pthres).copy()
+        
+        Sout = self.copy() #copy object to get coordinates
+        Sout.label = 'slope'
+        Sout.data = np.ma.array(S,mask=p_value>pthres).copy()
+        
+        Iout = self.copy() #copy object to get coordinates
+        Iout.label = 'intercept'
+        Iout.data = np.ma.array(I,mask=p_value>pthres).copy()
+        
+        Pout = self.copy() #copy object to get coordinates
+        Pout.label = 'p-value'
+        Pout.data = np.ma.array(p_value).copy()
+
+            
+            
+        return Rout,Sout,Iout,Pout
         
         
         

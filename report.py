@@ -42,7 +42,7 @@ class Report():
         self.write('\usepackage{todonotes}')
 
         self.write('\\begin{document}')
-        self.write('\\title{' + self.title + '}')
+        self.write('\\title{' + self.title.replace('_',' ') + '}')
         self.write('\\author{' + self.author +'}')
 
         self.write('\maketitle')
@@ -71,13 +71,13 @@ class Report():
         self._write_separator()
         self.write('\\begin{figure}[htp]')
         self.write('   \centering')
-        self.write('   \includegraphics[width=8cm]{' + figname + '} \\\ ')
+        self.write('   \includegraphics[width=12cm]{' + figname + '} \\\ ')
         self.write('   \caption{' + caption + '}')
         self.write('   \label{fig:' + str(f.number) + '}')
         self.write('\\end{figure}')
         self._write_separator()
         
-        f.savefig(self.outdir + figname)
+        f.savefig(self.outdir + figname, bbox_inches='tight')
         
     def section(self,s):
         self.write('\section{' + s + '}')
@@ -89,10 +89,15 @@ class Report():
         stores them in the report
         '''
         
+        print 'Capturing figures and writing to report ...'
         for i in pl.get_fignums():
             f=pl.figure(i)
             self.figure(f)
-        
+            self.newpage()
+    
+    def newpage(self):
+        self.write('\clearpage')
+        self.write('\\newpage')
         
     def write(self,s):
         '''
