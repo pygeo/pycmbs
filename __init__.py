@@ -55,10 +55,13 @@ import os
 import sys
 
 #- classes specific to pyCMBS
+from statistic import *
 from data   import *
 from report import *
 from region import *
+
 from plots  import *
+
 
 
 
