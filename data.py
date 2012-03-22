@@ -22,12 +22,11 @@ class Data():
     generic data handling class for pyCMBS
     '''
     def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None):
-        self.filename = filename
-        self.varname  = varname
+        self.filename     = filename
+        self.varname      = varname
         self.scale_factor = scale_factor
-        self.lat_name = lat_name
-        self.lon_name = lon_name
-        
+        self.lat_name     = lat_name
+        self.lon_name     = lon_name
         
         self._lon360 = True #assume that coordinates are always in 0 < lon < 360
         
@@ -372,7 +371,7 @@ class Data():
         msk_lat = (self.lat >= R.latmin) & (self.lat <= R.latmax)
         msk_lon = (LON      >= R.lonmin) & (LON      <= R.lonmax)
         if R.mask == None: #additional mask in Region object
-            msk_region = ones(shape(msk_lat)).astype('bool')
+            msk_region = np.ones(np.shape(msk_lat)).astype('bool')
         else:
             if np.shape(msk_lat) != np.shape(R.mask):
                 print np.shape(msk_lat), np.shape(R.mask)
@@ -384,6 +383,36 @@ class Data():
         msk = msk_lat & msk_lon & msk_region  # valid area
         
         self._apply_mask(msk)
+        
+    def get_valid_data(self):
+        '''
+        this routine calculates from the masked array
+        only the valid data and returns it together with its
+        coordinate as vector
+        '''
+        
+        n = len(self.time)
+        
+        #- vectorize the data
+        lon  = self.lon.reshape(-1)
+        lat  = self.lat.reshape(-1)
+        data = self.data.reshape(n,-1)
+        
+        #- extract only valid (not masked data)
+        msk = np.sum(~data.mask,axis=0) == n #identify all ngrid cells where all timesteps are valid
+        data = data[:,msk]
+        lon  = lon[msk]
+        lat  = lat[msk]
+        del msk
+        
+        msk = np.sum(~np.isnan(data),axis=0) == n
+        
+        data = data[:,msk]
+        lon  = lon[msk]
+        lat  = lat[msk]
+        
+        return lon,lat,data
+        
         
     def _apply_mask(self,msk):
         '''
