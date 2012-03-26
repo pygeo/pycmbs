@@ -21,7 +21,7 @@ class Data():
     '''
     generic data handling class for pyCMBS
     '''
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None):
         self.filename     = filename
         self.varname      = varname
         self.scale_factor = scale_factor
@@ -41,6 +41,9 @@ class Data():
             self.unit = None
         else:
             self.unit = unit
+            
+        if time_cycle != None:
+            self.time_cycle = time_cycle
         
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time)
@@ -104,13 +107,97 @@ class Data():
         except:
             print 'No lat/lon mesh was generated!'
         
+        #- calculate climatology from ORIGINAL (full dataset)
+        if hasattr(self,'time_cycle'):
+            self._climatology_raw = self.get_climatology()
+        
+
+        
+        #- perform temporal subsetting
         if self.time != None:
             #- now perform temporal subsetting
             # BEFORE the conversion to the right time is required!
             m1,m2 = self._get_time_indices(start_time,stop_time)
             #~ print 'found indices: ', m1,m2
             self._temporal_subsetting(m1,m2)
-            #~ print np.shape(self.data)
+            #~ print 'After temporal subsetting', np.shape(self.data), m1,m2
+        
+        
+    def get_climatology(self):
+        '''
+        calculate climatological mean for a timeincrement
+        specified by self.time_cycle
+        '''
+        if hasattr(self,'time_cycle'):
+            pass
+        else:
+            raise ValueError, 'Climatology can not be calculated without a valid time_cycle'
+        
+        clim = np.ones(np.shape(self.data[0:self.time_cycle,:])) * np.nan #output grid
+        
+        if clim.ndim == 2:
+            for i in xrange(self.time_cycle):
+                clim[i::self.time_cycle,:] = self.data[i::self.time_cycle,:].mean(axis=0)
+        elif clim.ndim ==3:
+            for i in xrange(self.time_cycle):
+                clim[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:].mean(axis=0)
+        else:
+            raise ValueError, 'Invalid dimension when calculating climatology'
+            
+        clim = np.ma.array(clim,mask=np.isnan(clim))
+
+        return clim
+        
+        
+    def get_deseasonalized_anomaly(self,base=None):
+        '''
+        calculate deseasonalized anomalies
+        
+        base:  all --> use WHOLE original dataset as a reference
+            current --> use current dataset as a reference
+        '''
+        
+        if base == 'current':
+            clim = self.get_climatology()
+        elif base == 'all':
+            clim = self._climatology_raw
+        else:
+            raise ValueError, 'Anomalies can not be calculated'
+            
+        
+        
+        
+        if hasattr(self,'time_cycle'):
+            pass
+        else:
+            raise ValueError, 'Anomalies can not be calculated without a valid time_cycle'
+            
+        ret = np.ones(np.shape(self.data)) * np.nan 
+        
+        
+        if ret.ndim == 2:
+            for i in xrange(self.time_cycle):
+                ret[i::self.time_cycle,:]   = self.data[i::self.time_cycle,:] - clim[i,:]
+        elif ret.ndim ==3:
+            for i in xrange(self.time_cycle):
+                print np.shape(self.data[i::self.time_cycle,:,:])
+                print np.shape(clim)
+                print np.shape(ret)
+                
+                ret[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:] - clim[i,:,:]
+        else:
+            raise ValueError, 'Invalid dimension when calculating anomalies'
+            
+        ret = np.ma.array(ret,mask=np.isnan(ret))
+
+        #return a data object
+        res = self.copy()
+        res.data = ret.copy()
+        res.label = self.label + ' anomaly'
+
+        return res
+        
+
         
         
     def set_time(self):
@@ -161,7 +248,7 @@ class Data():
         
         #- no subsetting
         if (start == None or stop == None):
-            return 0, len(self.time)-1
+            return 0, len(self.time)
         
         
         if stop < start:
@@ -177,6 +264,7 @@ class Data():
         #- determine indices
         m1 = abs(self.time - s1).argmin()
         m2 = abs(self.time - s2).argmin()
+        
         
         if m2 < m1:
             sys.exit('Something went wrong _get_time_indices')
@@ -330,6 +418,9 @@ class Data():
         
         d.data = region.get_subset(d.data)
         
+        if hasattr(d,'_climatology_raw'):
+            d._climatology_raw = region.get_subset(d._climatology_raw)
+        
         if plt.isvector(d.lat):
             d.lat = d.lat[region.y1:region.y2]
         else:
@@ -414,13 +505,16 @@ class Data():
         return lon,lat,data
         
         
-    def _apply_mask(self,msk):
+    def _apply_mask(self,msk,keep_mask=True):
         '''
         apply a mask to C{Data}. All data where mask==True
         will be masked. Former data and mask will be stored
         
         @param msk: mask
         @type msk : numpy boolean array
+        
+        @param keep_mask: keep old masked
+        @type keep_mask : boolean
         '''
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()     
@@ -428,17 +522,35 @@ class Data():
         if self.data.ndim == 2:
             tmp = self.data.copy()
             tmp[~msk] = np.nan
+            if keep_mask:
+                tmp[self.__oldmask] = np.nan
             self.data = np.ma.array(tmp,mask=np.isnan(tmp))
+                
         elif self.data.ndim == 3:
             for i in range(len(self.data)):
                 tmp = self.data[i,:,:].copy()
                 tmp[~msk] = np.nan
                 self.data[i,:,:] = tmp[:,:]
                 del tmp
+                
+            if keep_mask:
+                self.data.data[self.__oldmask] = np.nan
+                
             self.data = np.ma.array(self.data.data,mask=np.isnan(self.data.data))
+                
+            #self._climatology_raw = np.ma.array(self._climatology_raw,mask=np.isnan(self._climatology_raw))
         else:
             sys.exit('unsupported geometry _apply_mask')
-        
+            
+            
+        if hasattr(self,'_climatology_raw'):
+            for i in range(len(self._climatology_raw)):
+                tmp = self._climatology_raw[i,:,:].copy()
+                tmp[~msk] = np.nan
+                self._climatology_raw[i,:,:] = tmp[:,:]
+                del tmp
+            
+
         
 
     def shift_x(self,nx):
@@ -530,7 +642,7 @@ class Data():
         
         
         
-    def corr_single(self,x,pthres=1.01):
+    def corr_single(self,x,pthres=1.01,mask=None):
         '''
         The routine correlates a data vector with
         all data of the current object.
@@ -594,6 +706,13 @@ class Data():
         Pout = self.copy() #copy object to get coordinates
         Pout.label = 'p-value'
         Pout.data = np.ma.array(p_value).copy()
+        
+        if mask != None:
+            #apply a mask
+            Rout._apply_mask(mask)
+            Sout._apply_mask(mask)
+            Iout._apply_mask(mask)
+            Pout._apply_mask(mask)
 
             
             
