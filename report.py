@@ -39,7 +39,8 @@ class Report():
         
     def _write_header(self):
         self.write('\documentclass{article}')
-        self.write('\usepackage{todonotes}')
+        self.write('\usepackage{graphicx}')
+        #self.write('\usepackage{todonotes}')
 
         self.write('\\begin{document}')
         self.write('\\title{' + self.title.replace('_',' ') + '}')
