@@ -133,9 +133,15 @@ class Data():
         else:
             raise ValueError, 'Climatology can not be calculated without a valid time_cycle'
         
-        clim = np.ones(np.shape(self.data[0:self.time_cycle,:])) * np.nan #output grid
+        if self.data.ndim > 1:
+            clim = np.ones(np.shape(self.data[0:self.time_cycle,:])) * np.nan #output grid
+        else:
+            clim = np.ones(np.shape(self.data[0:self.time_cycle])) * np.nan #output grid
         
-        if clim.ndim == 2:
+        if clim.ndim == 1:
+            for i in xrange(self.time_cycle):
+                clim[i::self.time_cycle] = self.data[i::self.time_cycle].mean(axis=0)
+        elif clim.ndim == 2:
             for i in xrange(self.time_cycle):
                 clim[i::self.time_cycle,:] = self.data[i::self.time_cycle,:].mean(axis=0)
         elif clim.ndim ==3:
@@ -174,16 +180,14 @@ class Data():
             
         ret = np.ones(np.shape(self.data)) * np.nan 
         
-        
-        if ret.ndim == 2:
+        if ret.ndim == 1:
+            for i in xrange(self.time_cycle):
+                ret[i::self.time_cycle]   = self.data[i::self.time_cycle] - clim[i]
+        elif ret.ndim == 2:
             for i in xrange(self.time_cycle):
                 ret[i::self.time_cycle,:]   = self.data[i::self.time_cycle,:] - clim[i,:]
         elif ret.ndim ==3:
             for i in xrange(self.time_cycle):
-                print np.shape(self.data[i::self.time_cycle,:,:])
-                print np.shape(clim)
-                print np.shape(ret)
-                
                 ret[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:] - clim[i,:,:]
         else:
             raise ValueError, 'Invalid dimension when calculating anomalies'
