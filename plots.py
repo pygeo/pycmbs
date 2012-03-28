@@ -16,6 +16,57 @@ import numpy as np
 
 #~ from python.hov import *
 
+
+class ReichlerPlot():
+    def __init__(self,ax=None):
+        '''
+        plotting Reichler index
+        '''
+        if ax == None:
+            f = plt.figure()
+            self.ax = f.add_subplot(111)
+        else:
+            self.ax = ax
+            
+        self.e2 = [] #list to store RMS error results
+        self.labels = []
+            
+    def add(self,e2,label):
+        self.e2.append(e2)
+        self.labels.append(label)
+        
+    def bar(self,**kwargs):
+        '''
+        generate barplot
+        '''
+        self._normalize()
+        x = np.arange(len(self.e2_norm))
+        self.ax.bar(x,self.e2_norm*100.,**kwargs)
+        self.ax.set_xticks(x+0.5)
+        self.ax.set_xticklabels(self.labels)
+        self.ax.set_ylabel('relative error to multimodel mean [%]')
+        
+    def _normalize(self):
+        '''
+        normalize results from different models
+        Glecker et al, eq. 2
+        '''
+        
+        n  = len(self.e2[0])
+        E2 = []
+        
+        for e in self.e2:
+            if len(e) != n:
+                print 'WARNING: non consistent length in error statistics!!!'
+            E2.append(np.nansum(e)) #temporal aggregation
+        
+        E2 = np.asarray(E2);  EM = E2.mean()
+        self.e2_norm =  (E2 - EM) / EM #see Glecker et al, eq.2
+        
+        
+########################################################################        
+
+
 class LinePlot():
     '''
     class for a pyCMBS Line Plot
