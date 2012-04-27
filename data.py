@@ -48,6 +48,8 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time)
         
+        
+        
             
     def _shift_lon(self):
         #~ for i in range(len(self.data)):
@@ -70,8 +72,12 @@ class Data():
         #due to data compression
         self.data = self.data * self.scale_factor 
         
+          
+        
+        
         #--- mask data when desired ---
         if self.inmask != None:
+            
             self._apply_mask(self.inmask)
             
 
@@ -258,7 +264,7 @@ class Data():
         if stop < start:
             sys.exit('Error: startdate > stopdate')
         
-        print start,stop
+        #print start,stop
         s1 = plt.date2num(start); s2=plt.date2num(stop)
         
         #- check that time is increasing only
@@ -306,7 +312,7 @@ class Data():
         print 'Reading file ', self.filename
         if not varname in F.variables.keys():
             print 'Error: data can not be read. Variable not existing! ', varname
-            print F
+            #print F
             F.close()
             return None
         #print F
@@ -323,7 +329,7 @@ class Data():
             data = np.ma.array(data,mask=np.isnan(data))
         else:
             data = np.ma.array(data)
-        print '    FillValue: ', self.fill_value
+        #print '    FillValue: ', self.fill_value
         
         
         #scale factor
@@ -333,11 +339,9 @@ class Data():
             scal = 1.
             #todo add_offset
         
-        print '    scale_factor: ', scal
+        #print '    scale_factor: ', scal
         data = data * scal
         
-        
-        print F
         if 'time' in F.variables.keys():
             tvar = F.variables['time']
             if hasattr(tvar,'units'):
