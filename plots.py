@@ -14,6 +14,8 @@ from scipy import stats
 
 import numpy as np
 
+from matplotlib.patches import Circle
+
 #~ from python.hov import *
 
 
@@ -30,21 +32,65 @@ class ReichlerPlot():
             
         self.e2 = [] #list to store RMS error results
         self.labels = []
+        self.colors=[]
             
-    def add(self,e2,label):
+    def add(self,e2,label,color=None):
         self.e2.append(e2)
         self.labels.append(label)
+        self.colors.append(color)
         
-    def bar(self,**kwargs):
+    def bar(self,vmin=None,vmax=None,**kwargs):
         '''
         generate barplot
         '''
+        print 'Doing Reichler plot as barplot ...'
         self._normalize()
         x = np.arange(len(self.e2_norm))
         self.ax.bar(x,self.e2_norm*100.,**kwargs)
         self.ax.set_xticks(x+0.5)
         self.ax.set_xticklabels(self.labels)
+        if (vmin !=None) & (vmax != None):
+            self.ax.set_ylim(vmin,vmax)
         self.ax.set_ylabel('relative error to multimodel mean [%]')
+        self.ax.grid()
+        
+        
+    def circle_plot(self):
+        print 'Doing Reichler plot as circle plot ...'
+        self._normalize()
+        
+        dx=0.
+        tsize=10.
+        for i in np.arange(len(self.e2)):
+            print i, self.labels[i], self.e2_norm[i]*100.
+            #~ print self.e2_norm
+            circle = Circle( (self.e2_norm[i],0.), 0.1)
+
+            circle.set_color(self.colors[i])
+            circle.set_alpha(0.4)
+            circle.set_label(self.labels[i])
+            circle.set_edgecolor('k')
+            self.ax.add_artist(circle)
+            
+            self.ax.text(0.1+dx, 0.5, self.labels[i], size=tsize, rotation=0.,
+             ha="center", va="center",
+             bbox = dict(boxstyle="round",
+                         ec=self.colors[i],
+                         fc=self.colors[i],
+                         alpha = 0.4,
+                         ))
+            dx += 0.15
+            
+            
+            
+            
+        self.ax.set_ylim(-1.,1.)
+        self.ax.set_xlim(-1.,1.)
+        self.ax.set_xlabel('relative error to multimodel mean')
+        self.ax.legend()
+        
+
+        
         
     def _normalize(self):
         '''
@@ -134,7 +180,7 @@ def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
     
     
     
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None,region=None,**kwargs):
+def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,**kwargs):
     '''
     produce a plot with
     values for each dataset
@@ -201,7 +247,9 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
             #plot 2
             m3=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax3,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
             xmap, ymap = m3(y.lon,y.lat)
-            im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=plt.cm.RdBu) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+            cmap = plt.cm.get_cmap('RdBu_r', nclasses)    # discrete colors
+            #im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=plt.cm.RdBu) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+            im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=cmap) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
             __basemap_ancillary(m3)
             plt.colorbar(im3,ax=ax3)
             
@@ -213,16 +261,17 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
                  verticalalignment='center') #,
 
         
-    else:
+    else: #use_basemap
         #- normal plots
+        cmap = plt.cm.get_cmap('RdBu_r', nclasses)    # discrete colors
         im1=ax1.imshow(xm,**kwargs); plt.colorbar(im1,ax=ax1,ticks=cticks)
         im2=ax2.imshow(ym,**kwargs); plt.colorbar(im2,ax=ax2,ticks=cticks)
         
         if xm.shape == ym.shape:
             if (dmin != None) & (dmax != None):
-                im3=ax3.imshow(xm - ym,cmap='RdBu_r',vmin=dmin,vmax=dmax); plt.colorbar(im3,ax=ax3)
+                im3=ax3.imshow(xm - ym,cmap=cmap,vmin=dmin,vmax=dmax); plt.colorbar(im3,ax=ax3)
             else:
-                im3=ax3.imshow(xm - ym,cmap='RdBu_r'); plt.colorbar(im3,ax=ax3)
+                im3=ax3.imshow(xm - ym,cmap=cmap); plt.colorbar(im3,ax=ax3)
             ax3.set_title(x._get_label() + ' - ' + y._get_label() )
         else:
             msg = 'Difference plot not possible as data has different shape'

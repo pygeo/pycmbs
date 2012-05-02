@@ -15,6 +15,12 @@ DESCRIPTION
 #- implement different options for temporal aggregation/plotting of map differences
 #- make routines for access of JSBACH output more flexible; what about required data pre-processing?
 
+#- pool SEP locally
+
+#- how to deal with inconsistent times
+#- significance tests of differences
+#- pre-processing scripts from external configuration file
+#- regional subsetting options ??
 
 __author__ = "Alexander Loew"
 __version__ = "0.0"
@@ -24,7 +30,17 @@ __date__ = "0000/00/00"
 from pyCMBS import *
 
 #--- global variables 
-data_pool_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
+#data_pool_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
+if 'SEP' in os.environ.keys():
+    data_pool_directory = os.environ['SEP'] #get directory of pool/SEP
+else:
+    data_pool_directory = '/pool/SEP/'
+    
+print 'SEP directory: ' + data_pool_directory
+
+model_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
+
+
 f_fast=True
 shift_lon = use_basemap = not f_fast
 
@@ -105,6 +121,8 @@ class JSBACH(Model):
         
         returns Data object
         '''
+        
+        #todo: implement preprocessing here
 
         v = 'var176'
         filename = self.data_dir + 'data/model/tra0072_echam6_BOT_mm_1983-2006_albedo_JAS.nc' #todo: proper files
@@ -120,15 +138,21 @@ class JSBACH(Model):
 
         
         
-    def get_rainfall_data(self):
+    def get_rainfall_data(self,interval='season'):
         '''
         get rainfall data for JSBACH
         
         returns Data object
         '''
         
+        #todo: implement preprocessing here
+        
         v = 'var4'
-        filename = self.data_dir + 'data/model/tra0072_echam6_BOT_mm_1983-2006_4_JAS.nc'
+        if interval == 'season':
+            filename = self.data_dir + 'data/model/tra0072_echam6_BOT_mm_1979-2006_4_yseasmean.nc'
+        else:
+            raise ValueError, 'Invalid value for interval: ' + interval
+            
         ls_mask = get_T63_landseamask()
         
         rain = Data(filename,v,read=True,scale_factor = 86400.,
@@ -153,33 +177,91 @@ def get_script_names():
 
 def get_T63_landseamask():
     '''
-    get JSBACH T63 land sea mask as a DATA object
+    get JSBACH T63 land sea mask 
+    the LS mask is read from the JSBACH init file
     '''
-    ls_file = data_pool_directory + 'data/model/jsbach_T63_GR15_4tiles_1992.nc'
+    ls_file = data_pool_directory + 'variables/land/land_sea_mask/jsbach_T63_GR15_4tiles_1992.nc'
     ls_mask = Data(ls_file,'slm',read=True,label='T63 land-sea mask',lat_name='lat',lon_name='lon',shift_lon=shift_lon)
     msk=ls_mask.data>0.; ls_mask.data[~msk] = 0.; ls_mask.data[msk] = 1.
     ls_mask.data = ls_mask.data.astype('bool') #convert to bool
 
     return ls_mask
 
-def rainfall_analysis(model):
+def get_T63_weights():
+    '''
+    get JSBACH T63 cell weights
+    '''
+    w_file = data_pool_directory + 'variables/land/land_sea_mask/t63_weights.nc'
+    weight = Data(w_file,'cell_weights',read=True,label='T63 cell weights',lat_name='lat',lon_name='lon',shift_lon=shift_lon)
+
+    return weight.data
+
+
+def rainfall_analysis(model,interval='season'):
     print 'Doing rainfall analysis ...'
+    
+    #--- T63 weights
+    t63_weights = get_T63_weights()
+    
     #--- get land sea mask
     ls_mask = get_T63_landseamask()
+    
 
+
+
+
+    #todo: what is the unit of the precipitation? a) mm/day, b) mm/season ??? in the latter case, one needs to do yseassum instead of yseasmean, but then the calculation of STD is not possible
     #--- load GPCP data
-    gpcp_file  = data_pool_directory + 'data/gpcp/GPCP__V2_1dm__PRECIP__2.5x2.5__198301-200612_T63_JAS.nc'
+    if interval == 'season': #seasonal comparison
+        gpcp_file  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_yseasmean.nc'
+        gpcp_file_std  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_yseasstd.nc'
+    else:
+        sys.exit('Unknown interval for rainfall_analyis()')
+    
+    print 'GPCP data'
     gpcp = Data(gpcp_file,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,start_time=model.start_time,stop_time=model.stop_time,mask=ls_mask.data.data)
+    
+    
+    for some reasons, no data is returned here !!!
+    
+    print gpcp.data
+    stop
+    
+    gpcp_std = Data(gpcp_file_std,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,start_time=model.start_time,stop_time=model.stop_time,mask=ls_mask.data.data)
+    gpcp.std = gpcp_std.data
 
+    #--- get model field of precipitation
     model_data = model.variables['rainfall']
 
+    print gpcp.data
+    print model_data.data.shape
+    
+    
+    
+
+
+
+
+
     if model_data.data.shape != gpcp.data.shape:
-        print 'Inconsistent geometries for GPCP'
+        print 'WARNING Inconsistent geometries for GPCP'
         print model_data.data.shape
         print gpcp.data.shape
 
     dmin=-1.;dmax=1.
     dif = map_difference(model_data ,gpcp,vmin=0.,vmax=10.,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10])
+
+    #--- calculate Reichler diagnostic for preciptation
+    
+    prec_reichler = ReichlerPlot()
+
+    print 'Generating Reichler diagnostic ...'
+
+
+
+    D = Diagnostic(gpcp,model_data)
+    prec_reichler.add(D.calc_reichler_index(t63_weights),'gpcp')
+    prec_reichler.bar() #generate BARPLOT
 
 
 def albedo_analysis(model):
@@ -200,7 +282,7 @@ def albedo_analysis(model):
         print albedo.data.shape
 
     dmin = -0.01; dmax = 0.01
-    dif  = map_difference(model_data ,albedo,vmin=0.,vmax=0.6,dmin=dmin,dmax=dmax,use_basemap=use_basemap)
+    dif  = map_difference(model_data ,albedo,vmin=0.,vmax=0.6,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
 
 
 #one class that implements models and contains routines to extract data
@@ -235,7 +317,7 @@ def main():
     jsbach_variables.update({'rainfall' : 'get_rainfall_data()'})
     jsbach_variables.update({'albedo' : 'get_albedo_data()'})
 
-    jsbach = JSBACH(data_pool_directory,jsbach_variables,start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+    jsbach = JSBACH(model_directory,jsbach_variables,start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
     jsbach.get_data()
 
     for variable in variables:

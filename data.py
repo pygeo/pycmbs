@@ -88,11 +88,9 @@ class Data():
             self.lat = None
         if self.lon_name != None:
             self.lon = self.read_netcdf(self.lon_name)
-            
             #- shift longitudes such that -180 < lon < 180
             if shift_lon:
                 self._shift_lon()
-            
         else:
             self.lon = None
             
@@ -102,7 +100,6 @@ class Data():
             self.time = self.time.data
         else:
             self.time = None
-        
         
         #- determine time
         self.set_time()
@@ -116,8 +113,6 @@ class Data():
         #- calculate climatology from ORIGINAL (full dataset)
         if hasattr(self,'time_cycle'):
             self._climatology_raw = self.get_climatology()
-        
-
         
         #- perform temporal subsetting
         if self.time != None:
@@ -320,7 +315,6 @@ class Data():
         
         data = var.get_value().astype('float').copy()
         
-
         self.fill_value = None
         if hasattr(var,'_FillValue'):
             self.fill_value = float(var._FillValue)
@@ -352,8 +346,11 @@ class Data():
             self.time = None
             self.time_str = None
         
-        
         F.close()
+        
+        
+        print 'data'
+        print data
         
         return data
         
