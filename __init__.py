@@ -61,6 +61,7 @@ from report import *
 from region import *
 from diagnostic import *
 from plots  import *
+from pyCDO  import *
 
 
 

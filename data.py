@@ -15,6 +15,8 @@ from matplotlib import pylab as plt
 
 from statistic import get_significance
 
+import matplotlib.pylab as pl
+
 
 
 class Data():
@@ -48,6 +50,70 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time)
         
+    def get_zonal_statistics(self,weights,method='mean'):
+        '''
+        returns zonal statistics
+        weights: Data object
+        '''
+        
+        print '... calculating zonal averages'
+        
+        if weights != None:
+            method = 'sum' #perform weighted sum in case that weights are provided
+
+        dat = self._get_weighted_data(weights)
+
+        #~ if dat.ndim > 2:
+            #~ for i in range(len(dat)):
+                #~ pl.figure()
+                #~ pl.imshow(dat[i,:,:])
+        #~ pl.figure()
+        
+        if method == 'mean':
+            r = dat.mean(axis=self.data.ndim-1)
+        elif method == 'sum':
+            r = dat.sum(axis=self.data.ndim-1)
+        else:
+            raise ValueError, 'Invalid option: ' + method
+
+        return r
+        
+        
+    def _get_weighted_data(self,weights):
+        '''
+        calculate area weighted data
+        
+        weights are only applied to VALID data
+        thus, the weights are renormalized, thus that
+        sum(weights_of_valid_data) = 1
+        '''
+        
+        dat = self.data.copy()
+        
+        if weights != None:
+            if dat.ndim == 2:
+                weights[dat.mask] = 0. #set weights to zero where the data is masked
+                sw = weights.sum(); print 'Sum of weights: ', sw
+                weights = weights / sw #normalize thus the sum is one
+                dat = dat*weights.data
+            elif dat.ndim == 3:
+                for i in range(len(dat)): #for all timesteps set mask
+                    nweights = weights.copy()
+                    nweights[dat[i,:,:].mask] = 0. #set weights to zero where the data is masked
+                    sw = nweights.sum(); print 'Sum of weights: ', sw
+                    nweights = nweights / sw #normalize thus the sum is one
+                    print nweights.sum()
+                    dat[i,:,:] = dat[i,:,:]*nweights.data
+
+
+            else:
+                raise ValueError, 'Invalid dimensions: not supported yet'
+    
+
+
+
+        return dat
+        
         
         
             
@@ -67,19 +133,33 @@ class Data():
             
             
         #read data
-        self.data = self.read_netcdf(self.varname)
+        self.data = self.read_netcdf(self.varname) #o.k.
         #this scaling is related to unit conversion and NOT
         #due to data compression
         self.data = self.data * self.scale_factor 
         
-          
+        #~ if 'albedo' in self.varname:
+            #~ 
+            #~ print 'After reading', self.varname
+            #~ print self.data
+#~ 
+            #~ pl.figure()
+            #~ pl.imshow(self.data[0,:,:])
+#~ 
+            #~ o.k. up to here
+#~ 
+            #~ stop
         
         
         #--- mask data when desired ---
         if self.inmask != None:
-            
             self._apply_mask(self.inmask)
-            
+
+        #~ print 'After LSMASK'
+        #~ print self.data
+
+
+
 
         #read lat/lon
         if self.lat_name != None:
@@ -114,14 +194,167 @@ class Data():
         if hasattr(self,'time_cycle'):
             self._climatology_raw = self.get_climatology()
         
+        
+        #~ print 'BEFORE time'
+        #~ print self.data
+        #~ if 'albedo' in self.varname:
+            #~ 
+            #~ print 'BEFORE TIME', self.varname
+            #~ print self.data
+#~ 
+            #~ pl.figure()
+            #~ pl.imshow(self.data[0,:,:])
+            #~ pl.figure()
+            #~ pl.plot(self.time)
+            #~ print self.time
+            
+            
+
+        
+        
         #- perform temporal subsetting
         if self.time != None:
             #- now perform temporal subsetting
             # BEFORE the conversion to the right time is required!
             m1,m2 = self._get_time_indices(start_time,stop_time)
-            #~ print 'found indices: ', m1,m2
+            print 'found indices: ', m1,m2
             self._temporal_subsetting(m1,m2)
             #~ print 'After temporal subsetting', np.shape(self.data), m1,m2
+        
+        #~ print 'Data in read(): ', self.data
+        
+        
+        
+        #~ if 'albedo' in self.varname:
+            #~ 
+            #~ print 'After reading', self.varname
+            #~ print self.data
+#~ 
+            #~ pl.figure()
+            #~ pl.imshow(self.data[0,:,:])
+            
+            #~ stop
+        
+        
+    def get_yearmean(self,mask=None):
+        '''
+        This routine calculate the yearly mean of the data field
+        A vector with a mask can be provided for further filtering
+        
+        e.g. if all the months from JAN-March are masked as TRUE, the
+        result will correspnd to the JFM mean for each year
+        
+        @param mask: mask [time]
+        @type mask : numpy boolean array
+        
+        '''
+        
+        if mask == None:
+            #if not maks is provided, take everything
+            mask = np.ones(len(self.time)).astype('bool')
+        else:
+            if mask.ndim != 1:
+                raise ValueError, 'Mask needs to be 1-D of length of time!'
+            if len(mask) != len(self.time):
+                raise ValueError, 'Mask needs to be 1-D of length of time!'
+    
+        #/// get data
+        ye = pl.asarray(self._get_years())
+        years = pl.unique(ye)
+        dat = self.data
+        
+        #/// calculate mean
+        res = []
+        for y in years:
+            hlp = (ye == y) & mask
+            if self.data.ndim == 1:
+                res.append( dat[hlp].mean() )
+            else:
+                res.append( dat[hlp,:].mean(axis=0) )
+        res = pl.asarray(res)
+        
+        return years, res
+        
+    def get_yearsum(self,mask=None):
+        '''
+        This routine calculate the yearly sum of the data field
+        A vector with a mask can be provided for further filtering
+        
+        e.g. if all the months from JAN-March are masked as TRUE, the
+        result will correspnd to the JFM sum for each year
+        
+        @param mask: mask [time]
+        @type mask : numpy boolean array
+        
+        '''
+        
+        if mask == None:
+            #if not maks is provided, take everything
+            mask = np.ones(len(self.time)).astype('bool')
+        else:
+            if mask.ndim != 1:
+                raise ValueError, 'Mask needs to be 1-D of length of time!'
+            if len(mask) != len(self.time):
+                raise ValueError, 'Mask needs to be 1-D of length of time!'
+    
+        #/// get data
+        ye = pl.asarray(self._get_years())
+        years = pl.unique(ye)
+        dat = self.data
+        
+        #/// calculate mean
+        res = []
+        for y in years:
+            hlp = (ye == y) & mask
+            if self.data.ndim == 1:
+                res.append( dat[hlp].sum() )
+            else:
+                res.append( dat[hlp,:].sum(axis=0) )
+        res = pl.asarray(res)
+        
+        return years, res        
+        
+        
+        
+        
+    def get_temporal_mask(self,v,mtype='monthly'):
+        '''
+        return a temporal mask
+        
+        @param v: list of values to be analyzed
+        @type v : list of numerical values
+        
+        @param mtype: specifies which mask should be applied (valid values: monthly)
+        @type mytpe : string
+        
+        Example:
+        get_mask([1,2,3],mtype='monthly')
+        will return a mask, where the months of Jan-Mar are set top True
+        this can be used e.g. further with the routine get_yearmean()
+        
+        '''
+        
+        valid_types = ['monthly']
+        if mtype in valid_types:
+            pass
+        else:
+            raise ValueError, 'Invalid type for mask generation ' + mtype
+        
+        #--- get months
+        if mtype == 'monthly':
+            vals = pl.asarray(self._get_months())
+        else:
+            raise ValueError, 'Invalid type for mask generation ' + mtype
+
+        #--- generate mask with all months
+        mask = pl.zeros(len(self.time)).astype('bool')
+        
+        for m in v:
+            hlp = vals == m
+            mask[hlp] = True
+            
+        return pl.asarray(mask)
+        
         
         
     def get_climatology(self):
@@ -218,6 +451,7 @@ class Data():
             self._set_date(basedate,unit='hour')
         elif 'days since' in self.time_str:
             basedate = self.time_str.split('since')[1].lstrip()
+            print 'BASEDATE: ', basedate
             self._set_date(basedate,unit='day')
         else:
             print self.filename
@@ -290,6 +524,19 @@ class Data():
             
         return years
         
+    def _get_months(self):
+        '''
+        get months from timestamp
+        '''
+        
+        d = plt.num2date(self.time)
+        months = []
+        
+        for x in d:
+            months.append(x.month)
+            
+        return months        
+        
         
         
     def _mesh_lat_lon(self):
@@ -315,6 +562,30 @@ class Data():
         
         data = var.get_value().astype('float').copy()
         
+        if 'albedo' in varname:
+            print 'Data in read_netcdf', varname
+            print F
+            #~ print data
+            print data.data
+            print varname
+            print self.filename
+            
+            #~ pl.figure()
+            #~ pl.imshow(data[0,:,:])
+            
+            
+            #~ stop
+            
+            #~ problem is, that here already a masked array is returned and 
+            #~ this is masked somehow everywhere !!!
+        
+        
+        #~ if 'albedo' in varname:
+            #~ pl.figure()
+            #~ pl.imshow(data[0,:,:])
+        
+        
+        
         self.fill_value = None
         if hasattr(var,'_FillValue'):
             self.fill_value = float(var._FillValue)
@@ -324,6 +595,12 @@ class Data():
         else:
             data = np.ma.array(data)
         #print '    FillValue: ', self.fill_value
+
+
+        #~ if 'albedo' in varname:
+            #~ pl.figure()
+            #~ pl.imshow(data[0,:,:])
+
         
         
         #scale factor
@@ -335,6 +612,7 @@ class Data():
         
         #print '    scale_factor: ', scal
         data = data * scal
+        
         
         if 'time' in F.variables.keys():
             tvar = F.variables['time']
@@ -348,9 +626,13 @@ class Data():
         
         F.close()
         
+        #~ print data
         
-        print 'data'
-        print data
+        #~ if 'albedo' in varname:
+            #~ pl.figure()
+            #~ pl.imshow(data[0,:,:])
+            #~ stop
+        
         
         return data
         
@@ -363,10 +645,14 @@ class Data():
         else:
             sys.exit('Temporal mean can not be calculated as dimensions do not match!')
     
-        
+    
         
     def timsum(self):
-        if self.data.ndim != 3:
+        if self.data.ndim == 3:
+            pass
+        elif self.data.ndim == 1:            
+            pass
+        else:
             sys.exit('Temporal sum can not be calculated as dimensions do not match!')
     
         return self.data.sum(axis=0)        
@@ -411,7 +697,15 @@ class Data():
         else:
             raise ValueError, 'Unsupported unit value'
         
-        self.time = plt.datestr2num(basedate) + self.time/scal
+        #convert to a relative time axis in days and then to python timestamp
+        #
+        # e.g. days since 2000
+        #      01.01.2000 ...
+        # ->   0 ...... x
+        # ->   -70000
+        #~ ??????
+        #~ self.time = (self.time/scal - plt.datestr2num(basedate) ) +  plt.datestr2num('0001-01-01 00:00:00') #substract basetime of python
+        self.time = (self.time/scal + plt.datestr2num(basedate) ) #+  plt.datestr2num('0001-01-01 00:00:00') #substract basetime of python
         
     def get_aoi(self,region):
         '''

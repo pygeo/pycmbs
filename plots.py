@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/pythonl
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -16,7 +16,10 @@ import numpy as np
 
 from matplotlib.patches import Circle
 
-#~ from python.hov import *
+
+#todo:
+# - implement Glecker plots
+
 
 
 class ReichlerPlot():
@@ -55,13 +58,17 @@ class ReichlerPlot():
         self.ax.grid()
         
         
+    def simple_plot(self):
+        for i in np.arange(len(self.e2)):
+            self.ax.plot(self.e2[i],'o',label=self.labels[i])
+        
     def circle_plot(self):
         print 'Doing Reichler plot as circle plot ...'
         self._normalize()
         
         dx=0.
         tsize=10.
-        for i in np.arange(len(self.e2)):
+        for i in np.arange(len(self.e2)): #over all timestamps
             print i, self.labels[i], self.e2_norm[i]*100.
             #~ print self.e2_norm
             circle = Circle( (self.e2_norm[i],0.), 0.1)
@@ -129,6 +136,100 @@ class LinePlot():
         if len(x.time) > 0:
             self.ax.plot(plt.num2date(x.time), x.fldmean(), label=x.label,**kwargs)
             
+            
+
+class ZonalPlot():
+    def __init__(self,ax=None,dir='y'):
+        '''
+        constructor for zonal plot
+        
+        dir - specifies direction for aggregation: y = zonal, x = meridional aggregation
+        
+        CAUTION: the class simply aggregates x/y. Thus the user needs to ensure, that the data is projected
+        in a way that all lon/lat are on the same row/col
+        '''
+        
+        #--- directionalities
+        if dir == 'y': #zonal plot
+            self.dir = 'y'
+        elif dir == 'x':
+            self.dir = 'x'
+        else:
+            raise ValueError, 'Invalid value for agregation direction (ZonalPlot): ', dir
+        
+        #--- set axis
+        if ax == None:
+            f = plt.figure()
+            self.ax = f.add_subplot(111)
+        else:
+            self.ax = ax
+
+    def plot(self,x,areaweights,xlim=None):
+        '''
+        plot zonal plot
+        x : data object
+        '''
+        
+        #check if all latitudes are the same
+        lu = x.lat.mean(axis=1)
+        if any( abs(lu - x.lat[:,0]) > 1.E-5):
+            print 'WARNING: latitudes are not unique!!!'
+            print lu.shape,x.lat.shape
+            print lu
+            
+            print x.lat[:,0]
+            print x.lat[:,0] - lu
+            
+            stop
+        
+        if self.dir == 'y':
+            dat = x.get_zonal_statistics(areaweights) #no area weighting performed
+        else:
+            raise ValueError, 'Invalid option'
+        
+        #~ plt.figure()
+        #~ plt.plot(dat[0,:])
+        #~ plt.plot(dat[2,:])
+        
+        if dat.shape[x.data.ndim-2] != x.lat.shape[0]:
+            print 'Inconsistent shapes!'
+            print dat.shape
+            print x.lat.shape
+            sys.exit()
+        
+        #~ print dat
+        
+        #--- plot zonal statistics
+        if dat.ndim == 1:
+            self.ax.plot(dat)
+        elif dat.ndim == 2:
+            for i in range(len(dat)):
+                print 'Time in zonal: ', i
+                print dat[i,:]
+                #~ self.ax.plot(dat[i,:],label='time='+str(i))
+                self.ax.plot(dat[i,:],x.lat[:,0],label='time='+str(i))
+        
+        self.ax.set_ylabel('latitude [deg]')
+        self.ax.set_ylim(-90.,90.)
+        
+        if xlim != None:
+            self.ax.set_xlim(xlim)
+        
+        self.ax.grid()
+        
+        #~ fig = self.ax.figure
+        #~ fig.legend()
+        
+        
+        
+        
+        
+
+
+
+#=======================================================================
+
+
             
 def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
     '''
