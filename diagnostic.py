@@ -67,6 +67,9 @@ class Diagnostic():
 
             e2 = np.asarray(e2)
 
+        print 'CALCULATED REICHLER INDEX: ', e2
+
+
         return e2
     
     
