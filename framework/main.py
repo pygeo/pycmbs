@@ -14,7 +14,17 @@ DESCRIPTION
 #todo
 #- implement different options for temporal aggregation/plotting of map differences
 #- make routines for access of JSBACH output more flexible; what about required data pre-processing?
-# - units precipitation analysis
+# why is SIS model too low ???? --> wrong data! CMIP5 seems o.k.
+#
+# implement interface for reading CMOR data
+#
+# - regional analysis based on an input mask
+# - correlation and RMSE analysis and Taylor plotting
+#
+# other colorbar for vegetation fraction analysis
+# implement grass cover fraction analysis
+#
+# documentation!
 
 # - significance tests of differences
 # - pre-processing scripts from external configuration file
@@ -149,6 +159,55 @@ class JSBACH(Model):
         mask=ls_mask.data.data)
 
         return albedo
+        
+        
+        
+    def get_tree_fraction(self):
+        '''
+        todo implement this for data from a real run !!!
+        '''
+        
+        ls_mask = get_T63_landseamask()
+        
+        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_forest_shrub.nc'
+        v = 'var12'
+        tree = Data(filename,v,read=True,
+        label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
+        shift_lon=shift_lon,
+        mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')))
+        
+        return tree
+        
+        
+        
+
+        
+    def get_grass_fraction(self):
+        #todo put file to SEP pool
+        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/grass_05.dat'
+        #save 0.5 degree data to netCDF file
+        t=pl.loadtxt(filename)
+        outname = filename[:-4] + '.nc'
+        if os.path.exists(outname):
+            os.remove(outname) #todo: really desired?
+        F = Nio.open_file(outname,'w')
+        F.create_dimension('lat',t.shape[0])
+        F.create_dimension('lon',t.shape[1])
+        var = F.create_variable('grass_fraction','d',('lat','lon'))
+        lat = F.create_variable('lat','d',('lat',))
+        lon = F.create_variable('lon','d',('lon',))
+        var._FillValue = -99.
+        var.assign_value(t)
+        lat.assign_value(np.linspace(90.-0.25,-90.+0.25,t.shape[0])) #todo: center coordinates or corner coordinates?
+        lon.assign_value(np.linspace(-180.+0.25,180.-0.25,t.shape[1]))
+        
+        #todo: lon 0 ... 360 ****
+        
+        
+        #~ print t.shape
+        F.close()        
+        
+        
 
 
 
@@ -227,10 +286,11 @@ def get_script_names():
     in general, these names can be also read from an ASCII file
     '''
     d={}
-    d.update({'rain':'rainfall_analysis'})
+    d.update({'rain':'rainfall_analysis'}) #todo groups of analysis with different data e.g. SIS
     d.update({'albedo':'albedo_analysis'})
-    d.update({'sis':'cmsaf_sis_analysis'})
+    d.update({'sis11':'cmsaf_sis_analysis'})
     d.update({'sis':'ceres_sis_analysis'})
+    d.update({'tree':'tree_fraction_analysis'})
 
     return d
 
@@ -261,7 +321,6 @@ def get_T63_weights():
 
 
 def rainfall_analysis(model_list,interval='season'):
-    
     '''
     units: mm/day
     '''
@@ -331,6 +390,103 @@ def rainfall_analysis(model_list,interval='season'):
         Rplot.add(e2,model_data.label,color='red')
         
     Rplot.bar()
+
+
+
+def tree_fraction_analysis(model_list):
+    '''
+    '''
+    
+    def tree_fraction2netcdf():
+        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/tree_05.dat'
+        #save 0.5 degree data to netCDF file
+        t=pl.loadtxt(filename)
+        outname = filename[:-4] + '.nc'
+        if os.path.exists(outname):
+            os.remove(outname) #todo: really desired?
+        F = Nio.open_file(outname,'w')
+        F.create_dimension('lat',t.shape[0])
+        F.create_dimension('lon',t.shape[1])
+        var = F.create_variable('tree_fraction','d',('lat','lon'))
+        lat = F.create_variable('lat','d',('lat',))
+        lon = F.create_variable('lon','d',('lon',))
+        lon.standard_name = "grid_longitude" 
+        lon.units = "degrees" 
+        lon.axis = "X" 
+        lat.standard_name = "grid_latitude" 
+        lat.units = "degrees" 
+        lat.axis = "Y" 
+        var._FillValue = -99.
+        var.assign_value(t)
+        lat.assign_value(np.linspace(90.-0.25,-90.+0.25,t.shape[0])) #todo: center coordinates or corner coordinates?
+        lon.assign_value(np.linspace(-180.+0.25,180.-0.25,t.shape[1]))
+        
+        #todo: lon 0 ... 360 ****
+        
+        
+        #~ print t.shape
+        F.close()
+        
+        return outname
+            
+           
+    #//// load tree fraction observations ////
+    #1) convert to netCDF
+    tree_file = tree_fraction2netcdf() 
+    #2) remap to T63
+    y1 = '2001-01-01'; y2='2001-12-31'
+    cdo = pyCDO(tree_file,y1,y2)
+    t63_file = cdo.remap(method='remapcon')
+    
+    #3) load data
+    ls_mask = get_T63_landseamask()
+    tree_hansen = Data(t63_file,'tree_fraction',read=True,label='MODIS VCF tree fraction',unit='-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    
+    #~ todo now remap to T63 grid; which remapping is the most useful ???
+    
+    
+    #//// PERFORM ANALYSIS ///
+
+    vmin = 0.; vmax = 1.
+    for model in model_list:
+        
+        model_data = model.variables['tree']
+
+        if model_data.data.shape != tree_hansen.data.shape:
+            print 'WARNING Inconsistent geometries for GPCP'
+            print model_data.data.shape; print tree_hansen.data.shape
+
+        dmin=-1;dmax=1.
+        dif = map_difference(model_data,tree_hansen,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0.,0.25,0.5,0.75,1.])
+
+        #/// ZONAL STATISTICS
+        #--- append zonal plot to difference map
+        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
+
+        #create net axis for zonal plot
+        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
+        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax1) 
+
+        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax2) 
+
+        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax3) 
+
+        #--- calculate zonal statistics and plot
+        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax])  #None == no area weighting performed
+        zon2 = ZonalPlot(ax=zax2); zon2.plot(tree_hansen,None,xlim=[vmin,vmax]) #None == no area weighting performed
+        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(tree_hansen),None)  #None == no area weighting performed
+        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
+
+######### END TREE COVER ANALYSIS ##############
+    
+    
+    
+
+
+
 
 
 
@@ -504,8 +660,9 @@ def ceres_sis_analysis(model_list,interval = 'season'):
     t63_weights = get_T63_weights()
 
     #--- load CMSAF-SIS data
-    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/ceres/monthly2/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000mm-2003mm.nc'
-    y1 = '2000-01-01'; y2='2004-12-31'
+    
+    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
+    y1 = '2001-01-01'; y2='2003-12-31'
     
     if interval == 'season':
         #aggregate to seasons
@@ -519,9 +676,10 @@ def ceres_sis_analysis(model_list,interval = 'season'):
         else:
             raise ValueError, 'Invalid interval option ', interval
     
-    ceres_sis     = Data(ceres_sis_file,'BfCER4e',read=True,label='ceres-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    ceres_sis_std = Data(ceres_sis_std_file,'BfCER4e',read=True,label='ceres-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    ceres_sis     = Data(ceres_sis_file,'BfCER00',read=True,label='ceres-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    ceres_sis_std = Data(ceres_sis_std_file,'BfCER00',read=True,label='ceres-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     ceres_sis.std = ceres_sis_std.data.copy(); del ceres_sis_std
+
 
     #--- initailize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -561,6 +719,8 @@ def ceres_sis_analysis(model_list,interval = 'season'):
         #/// Reichler statistics ///
         Diag = Diagnostic(ceres_sis,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
+        
+        
         Rplot.add(e2,model_data.label,color='red')
         
     #~ Rplot.simple_plot()
@@ -614,8 +774,8 @@ def main():
     scripts = get_script_names()
 
     #--- specify variables to analyze
-    #~ variables = ['rain','albedo']
-    variables = ['sis']
+    #~ variables = ['rain','albedo','sis']
+    variables = ['tree']
 
 
 
@@ -624,20 +784,23 @@ def main():
     jsbach_variables.update({'rainfall' : 'get_rainfall_data()'})
     jsbach_variables.update({'albedo' : 'get_albedo_data()'})
     jsbach_variables.update({'sis' : 'get_surface_shortwave_radiation()'})
+    jsbach_variables.update({'tree' : 'get_tree_fraction()'})
+    #~ jsbach_variables.update({'grass' : 'get_grass_fraction()'})
 
     jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
     jsbach72.get_data()
     
-    jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-    jsbach73.get_data()
-#~ 
-    jsbach74 = JSBACH(model_directory,jsbach_variables,'tra0074',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-    jsbach74.get_data()
+    #~ jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+    #~ jsbach73.get_data()
+
+    #~ jsbach74 = JSBACH(model_directory,jsbach_variables,'tra0074',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+    #~ jsbach74.get_data()
+
 
     skeys = scripts.keys()
     print skeys
     print variables
-    stop
+    
     for variable in variables:
         #--- call analysis scripts for each variable
         for k in range(len(skeys)):
@@ -646,7 +809,7 @@ def main():
                 print 'Doing analysis for variable ... ', variable
                 print scripts[variable]
                 #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
-                eval(scripts[variable]+'([jsbach72,jsbach73,jsbach74])') #here one can put a multitude of model output for comparison in the end
+                eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
 
 
 if __name__ == '__main__':

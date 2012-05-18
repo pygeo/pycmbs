@@ -186,6 +186,11 @@ class ZonalPlot():
             dat = x.get_zonal_statistics(areaweights) #no area weighting performed
         else:
             raise ValueError, 'Invalid option'
+            
+        #~ print dat
+        #~ print dat.shape
+        #~ print x.lat.shape
+        #~ stop
         
         #~ plt.figure()
         #~ plt.plot(dat[0,:])
@@ -201,7 +206,7 @@ class ZonalPlot():
         
         #--- plot zonal statistics
         if dat.ndim == 1:
-            self.ax.plot(dat)
+            self.ax.plot(dat,x.lat[:,0])
         elif dat.ndim == 2:
             for i in range(len(dat)):
                 print 'Time in zonal: ', i

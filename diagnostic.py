@@ -48,10 +48,7 @@ class Diagnostic():
         if x.ndim == 1: #only timeseries
             e2 = sum(weights * (x-y)**2 / std_x)
         else:
-            #~ if x.ndim !=3:
-                #~ sys.exit('Reichler diagnostic: not 3D data!')
             n = len(x)
-            #~ print 'Timesteps in Reichler: ', n
             x.shape = (n,-1) #[time,index]
             y.shape = (n,-1)
             std_x.shape = (n,-1)
@@ -63,12 +60,18 @@ class Diagnostic():
             e2 = []
             for i in range(n):
                 d = weights * ( (x[i,:]-y[i,:])**2)   / std_x[i,:]
+                #~ print std_x[i,:]
+                #~ print '*** ', i
+                #~ print min(x[i,:]),max(x[i,:])
+                #~ print min(y[i,:]),max(y[i,:])
+                #~ print ''
                 e2.append(np.sum(d)) #sum at end to avoid nan's   #it is important to use np.sum() !!
 
             e2 = np.asarray(e2)
 
         print 'CALCULATED REICHLER INDEX: ', e2
-
+        if np.any(np.isnan(e2)):
+            raise ValueError, 'Reichler: e2 contains NAN, this happens most likely if STDV == 0'
 
         return e2
     

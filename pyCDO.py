@@ -35,6 +35,21 @@ class pyCDO():
         
         return oname
         
+    def remap(self,method='remapcon',force=False,target_grid='t63grid'):
+        
+        if method == 'remapcon':
+            remap_str = 'remapcon'
+        elif method == 'remapnn':
+            remap_str = 'remapnn'
+        else:
+            raise ValueError, 'Unknown remapping method'
+            
+        oname = self.filename[:-3] + '_'  + remap_str + '.nc'
+        cmd = 'cdo ' + self.options + ' ' + remap_str + ',' + target_grid +  ' ' + self.filename + ' ' + oname
+        self.run(cmd,oname,force)
+
+        return oname
+        
         
     def yearmean(self,force=False):
         oname = self.filename[:-3] + '_'  + 'yearmean' + '.nc'
