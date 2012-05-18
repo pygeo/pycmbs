@@ -138,6 +138,17 @@ class Data():
         #due to data compression
         self.data = self.data * self.scale_factor 
         
+
+        #~ if self.varname == 'BfCER4e':
+            #~ for i in range(4):
+                #~ pl.figure()
+                #~ pl.imshow(self.data[i,:,:])
+            #~ stop
+
+        #bis hierher kein Problem
+        
+        
+        
         #~ if 'albedo' in self.varname:
             #~ 
             #~ print 'After reading', self.varname
@@ -157,6 +168,14 @@ class Data():
 
         #~ print 'After LSMASK'
         #~ print self.data
+
+
+        #~ if self.varname == 'BfCER4e':
+            #~ for i in range(4):
+                #~ pl.figure()
+                #~ pl.imshow(self.data[i,:,:])
+            #~ 
+            #~ stop
 
 
 
@@ -208,6 +227,15 @@ class Data():
             #~ pl.plot(self.time)
             #~ print self.time
             
+
+        #~ if self.varname == 'BfCER4e':
+            #~ for i in range(4):
+                #~ pl.figure()
+                #~ pl.imshow(self.data[i,:,:])
+            #~ 
+            #~ stop
+
+
             
 
         
@@ -822,18 +850,27 @@ class Data():
             tmp = self.data.copy()
             tmp[~msk] = np.nan
             if keep_mask:
+                
                 tmp[self.__oldmask] = np.nan
             self.data = np.ma.array(tmp,mask=np.isnan(tmp))
-                
+            del tmp
+            
         elif self.data.ndim == 3:
             for i in range(len(self.data)):
-                tmp = self.data[i,:,:].copy()
-                tmp[~msk] = np.nan
+                tmp              = self.data[i,:,:].copy()
+                tmp[~msk]        = np.nan
                 self.data[i,:,:] = tmp[:,:]
                 del tmp
                 
+                
+                #bis hierher auch o.k.
+
+                
+                
+                
             if keep_mask:
-                self.data.data[self.__oldmask] = np.nan
+                if self.__oldmask.ndim > 0:
+                    self.data.data[self.__oldmask] = np.nan
                 
             self.data = np.ma.array(self.data.data,mask=np.isnan(self.data.data))
                 
@@ -848,6 +885,29 @@ class Data():
                 tmp[~msk] = np.nan
                 self._climatology_raw[i,:,:] = tmp[:,:]
                 del tmp
+
+        #.... und hier gehts nicht MEHR!
+
+
+
+        #~ if self.varname == 'BfCER4e':
+            #~ 
+            #~ for i in range(4):
+                #~ pl.figure()
+                #~ pl.imshow(self.data[i,:,:])
+                #~ pl.title('in maskingxxx ' + str(i))
+                #~ 
+            #~ print self.__oldmask.shape
+            #~ print self.__oldmask.ndim
+            #~ print self.__olddata.shape
+            
+            #~ for i in range(4):
+                #~ pl.figure()
+                #~ pl.imshow(self.__oldmask[i,:,:])
+                #~ 
+            #~ stop
+
+
             
 
         
