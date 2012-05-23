@@ -7,6 +7,10 @@ __date__ = "0000/00/00"
 
 import numpy as np
 
+import scipy as sci
+
+from matplotlib import pylab as plt
+
 
 class Diagnostic():
     def __init__(self,x,y=None):
@@ -19,6 +23,70 @@ class Diagnostic():
         self.x = x
         if y != None:
             self.y = y
+    
+    def get_n(self):
+        '''
+        return the number of valid samples
+        '''
+        
+        xm = ~self.xvec.mask #vector with valid sample
+        ym = ~self.yvec.mask
+        m = xm & ym
+        return sum(m)
+        
+    
+    
+    def get_rmse_value(self):
+        '''
+        calculate root-mean-squared error
+        
+        @param self: Diagnostic object
+        @type self : Diagnostic object        
+        '''
+        return np.sqrt(np.mean((self.xvec - self.yvec)**2))
+        
+        
+    def get_correlation_value(self):
+        c = np.ma.corrcoef(self.xvec,self.yvec)[0][1]
+        return c #correlation coefficient 
+
+    def _mat2vec(self,mask = None):
+        '''
+        concatenate all information into
+        a vector and apply a given
+        mask if desired
+        '''
+        
+        #--- generated copies and mask data if desired
+        X = self.x.copy()
+        if mask != None:
+            X._apply_mask(mask,keep_mask=False)
+        if self.y != None:
+            Y = self.y.copy()
+            if mask != None:
+                Y._apply_mask(mask,keep_mask=False)
+        else:
+            Y = None
+                    
+        #--- vectorize the data (concatenate in space and time)
+        xvec = X.data.copy()
+        xvec.shape = (-1)
+        if self.y != None:
+            yvec = Y.data.copy()
+            yvec.shape = (-1)
+            
+        self.xvec = xvec
+        self.yvec = yvec
+        
+        
+        
+        
+
+
+        
+        
+            
+            
     
     def calc_reichler_index(self,weights):
         '''
@@ -81,7 +149,7 @@ class Diagnostic():
         calculate correlation between two data sets
         '''
         
-        print 'Calculating correlation with lag=', lag
+        print 'Calculating correlation with lag=', lag, nlags
         
         def NormCrossCorrSlow(x1, x2,
                   nlags=400):
@@ -103,6 +171,7 @@ class Diagnostic():
                 xx2 = xx2 - xx2.mean()
                     
                 res.append( (xx1*xx2).sum() /( (xx1**2).sum() *(xx2**2).sum() )**0.5)
+
             return np.array(res), np.array(lags)
 
         
@@ -121,33 +190,44 @@ class Diagnostic():
         
         n = np.shape(x)[0]
         #~ print n
-        x.shape = (n,-1)
-        y.shape = (n,-1)
+        x.shape = (n,-1); y.shape = (n,-1)
     
 
         
 
         #~ print s1
         print x.shape
-        R=np.zeros(s1[1]*s1[2])*np.nan
-        for i in range(s1[1]*s1[2]):
+        print s1
+        print x.ndim
+        print len(s1)
+        if len(s1) ==2:
+            ndata = s1[1]*s1[2]
+        elif len(s1) == 1:
+            ndata = 1 #vector
+        else:
+            raise ValueError, 'Invalid shape!'
+            
+        R=np.zeros(ndata)*np.nan
+            
+        for i in range(ndata):
             xx=x[:,i]
             yy=y[:,i]
             msk = (~np.isnan(xx) & ~np.isnan(yy))
             if sum(msk) > 3:
                 
                 if lag == 0:
-                    slope, intercept, r_value, p_value, std_err = stats.linregress(xx[msk],yy[msk])
+                    slope, intercept, r_value, p_value, std_err = sci.stats.linregress(xx[msk],yy[msk])
                 else:
                     
-                    
+                    print nlags
                     if nlags == None:
                         nlags = len(xx[msk])
-                        if mod(nlags,2) == 0:
+                        if np.mod(nlags,2) == 0:
                             nlags = nlags + 1
+                    print nlags
                     
                     r1,lags = NormCrossCorrSlow(xx[msk],yy[msk],nlags=nlags)
-                    idx = nlags/2+lag
+                    idx = nlags/2+lag #todo something does not work with the indices !!!
                     print idx, nlags, len(r1)
                     r_value = r1[idx]
                     #~ print r_value, r1
@@ -159,7 +239,13 @@ class Diagnostic():
 
         #~ print np.shape(self.x.data[0,:])
         #~ print np.shape(R)
-        R = np.reshape(R,np.shape(self.x.data[0,:]))
+        print x.ndim
+        
+        print self.x.data.ndim
+        if len(s1) == 2:
+            R = np.reshape(R,np.shape(self.x.data[0,:]))
+        else:
+            R = R
         
         return R
         
@@ -180,6 +266,8 @@ class Diagnostic():
         '''
         
         x=self.x.data.copy()
+        print x
+        
         if not hasattr(self,'y'):
             raise KeyError, 'No y-value specified. Processing not possible!'
         else:
@@ -194,6 +282,11 @@ class Diagnostic():
         x.shape = (n,-1) #size [time,ngridcells]
         y.shape = (n,-1)
         
+        print 'x2'
+        print x, type(x)
+        print x[10:20]
+        
+      
 
         R=np.ones((n,n))*np.nan
         P=np.ones((n,n))*np.nan
@@ -240,17 +333,29 @@ class Diagnostic():
                     xdata = x.data[i1:i2,:]; ydata = y.data[i1:i2,:]
                     xmsk  = x.mask[i1:i2,:]; ymsk  = y.mask[i1:i2,:]
                     msk   = xmsk | ymsk
-                    
+                
+                
+                print x
+                print x.data
+                stop
+                print 'x1', xdata, i1, i2, x.data
+                print 'y1', ydata
+            
+            
                 xdata = xdata[~msk].flatten()
                 ydata = ydata[~msk].flatten()
                 
                 #print 'Final data',len(xdata),len(ydata)
                 
-                slope, intercept, r, p, stderr = stats.linregress(xdata,ydata)
+                slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
                 R[length,i1] = r
                 P[length,i1] = p   
                 L[length,i1] = length
                 S[length,i1] = slope
+                
+                print 'r: ', r
+                print 'x', xdata
+                print 'y', ydata
                
                 i2 += 1
             i1 += 1
