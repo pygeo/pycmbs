@@ -23,12 +23,14 @@ class Data():
     '''
     generic data handling class for pyCMBS
     '''
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False):
         self.filename     = filename
         self.varname      = varname
         self.scale_factor = scale_factor
         self.lat_name     = lat_name
         self.lon_name     = lon_name
+        self.squeeze      = squeeze
+        self.squeezed     = False
         
         self._lon360 = True #assume that coordinates are always in 0 < lon < 360
         
@@ -49,6 +51,19 @@ class Data():
         
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time)
+        
+    def _squeeze(self):
+        '''
+        remove singletone dimensions in data variable
+        '''
+        
+        print 'SQUEEZING data ... ', self.data.ndim, self.data.shape
+        
+        if self.data.ndim > 2:
+            self.data = self.data.squeeze()
+            self.squeezed = True
+            
+        print 'AFTER SQUEEZING data ... ', self.data.ndim, self.data.shape
         
     def get_zonal_statistics(self,weights,method='mean'):
         '''
@@ -138,6 +153,11 @@ class Data():
         #due to data compression
         self.data = self.data * self.scale_factor 
         
+        
+        #--- squeeze data to singletone
+        if self.squeeze:
+            self._squeeze()
+        
 
         #~ if self.varname == 'BfCER4e':
             #~ for i in range(4):
@@ -162,9 +182,13 @@ class Data():
             #~ stop
         
         
+        
+        
         #--- mask data when desired ---
         if self.inmask != None:
             self._apply_mask(self.inmask)
+            
+        
 
         #~ print 'After LSMASK'
         #~ print self.data
@@ -200,8 +224,12 @@ class Data():
         else:
             self.time = None
         
+        print 'Vor settime(): ', self.data.ndim, self.data.shape
+        
         #- determine time
         self.set_time()
+        
+        
         
         #- lat lon to 2D matrix
         try:
@@ -238,7 +266,7 @@ class Data():
 
             
 
-        
+        print 'Vor temporal subsetting(): ', self.data.ndim, self.data.shape
         
         #- perform temporal subsetting
         if self.time != None:
@@ -248,6 +276,9 @@ class Data():
             print 'found indices: ', m1,m2
             self._temporal_subsetting(m1,m2)
             #~ print 'After temporal subsetting', np.shape(self.data), m1,m2
+        
+        
+        print 'Nach temporal subsetting(): ', self.data.ndim, self.data.shape
         
         #~ print 'Data in read(): ', self.data
         
@@ -497,9 +528,15 @@ class Data():
         
         self.time = self.time[i1:i2]
         if self.data.ndim == 3:
+            print 'Temporal subsetting for 3D variable ...'
             self.data = self.data[i1:i2,:,:]
         elif self.data.ndim == 2:
-            self.data = self.data[i1:i2,:]
+            if self.squeezed: #data has already been squeezed and result was 2D (thus without time!)
+                print 'Data was already squeezed: not temporal subsetting is performed'
+                pass
+            else:
+                print 'Temporal subsetting for 2D variable ...', self.squeezed
+                self.data = self.data[i1:i2,:]
         else:
             sys.exit('Error temporal subsetting')
             
@@ -674,6 +711,15 @@ class Data():
             sys.exit('Temporal mean can not be calculated as dimensions do not match!')
     
     
+    def timstd(self):
+        if self.data.ndim == 3:
+            return self.data.std(axis=0)
+        if self.data.ndim == 2:
+            #no temporal averaging
+            return None
+        else:
+            sys.exit('Temporal standard deviation can not be calculated as dimensions do not match!')
+    
         
     def timsum(self):
         if self.data.ndim == 3:
@@ -846,12 +892,15 @@ class Data():
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()     
         
+        
+        print 'Geometry in masking: ', self.data.ndim, self.data.shape
+        
         if self.data.ndim == 2:
             tmp = self.data.copy()
             tmp[~msk] = np.nan
             if keep_mask:
-                
-                tmp[self.__oldmask] = np.nan
+                if self.__oldmask.ndim > 0:
+                    tmp[self.__oldmask] = np.nan
             self.data = np.ma.array(tmp,mask=np.isnan(tmp))
             del tmp
             
@@ -862,12 +911,6 @@ class Data():
                 self.data[i,:,:] = tmp[:,:]
                 del tmp
                 
-                
-                #bis hierher auch o.k.
-
-                
-                
-                
             if keep_mask:
                 if self.__oldmask.ndim > 0:
                     self.data.data[self.__oldmask] = np.nan
@@ -876,6 +919,7 @@ class Data():
                 
             #self._climatology_raw = np.ma.array(self._climatology_raw,mask=np.isnan(self._climatology_raw))
         else:
+            print np.shape(self.data)
             sys.exit('unsupported geometry _apply_mask')
             
             
@@ -906,6 +950,8 @@ class Data():
                 #~ pl.imshow(self.__oldmask[i,:,:])
                 #~ 
             #~ stop
+            
+        
 
 
             

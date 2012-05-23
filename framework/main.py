@@ -12,6 +12,9 @@ DESCRIPTION
 '''
 
 #todo
+#
+# implement temperature analysis
+
 #- implement different options for temporal aggregation/plotting of map differences
 #- make routines for access of JSBACH output more flexible; what about required data pre-processing?
 # why is SIS model too low ???? --> wrong data! CMIP5 seems o.k.
@@ -25,6 +28,9 @@ DESCRIPTION
 # implement grass cover fraction analysis
 #
 # documentation!
+#
+# todo: interpolation method for fractional coverage !!!
+# area weighting for correlation analysis
 
 # - significance tests of differences
 # - pre-processing scripts from external configuration file
@@ -178,34 +184,26 @@ class JSBACH(Model):
         
         return tree
         
-        
-        
-
-        
     def get_grass_fraction(self):
-        #todo put file to SEP pool
-        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/grass_05.dat'
-        #save 0.5 degree data to netCDF file
-        t=pl.loadtxt(filename)
-        outname = filename[:-4] + '.nc'
-        if os.path.exists(outname):
-            os.remove(outname) #todo: really desired?
-        F = Nio.open_file(outname,'w')
-        F.create_dimension('lat',t.shape[0])
-        F.create_dimension('lon',t.shape[1])
-        var = F.create_variable('grass_fraction','d',('lat','lon'))
-        lat = F.create_variable('lat','d',('lat',))
-        lon = F.create_variable('lon','d',('lon',))
-        var._FillValue = -99.
-        var.assign_value(t)
-        lat.assign_value(np.linspace(90.-0.25,-90.+0.25,t.shape[0])) #todo: center coordinates or corner coordinates?
-        lon.assign_value(np.linspace(-180.+0.25,180.-0.25,t.shape[1]))
+        '''
+        todo implement this for data from a real run !!!
+        '''
         
-        #todo: lon 0 ... 360 ****
+        ls_mask = get_T63_landseamask()
+        
+        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_grass_crop_pasture_2001.nc'
+        v = 'var12'
+        grass = Data(filename,v,read=True,
+        label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
+        shift_lon=shift_lon,
+        mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')) , squeeze=True  )
         
         
-        #~ print t.shape
-        F.close()        
+        return grass        
+        
+        
+        
+     
         
         
 
@@ -291,6 +289,7 @@ def get_script_names():
     d.update({'sis11':'cmsaf_sis_analysis'})
     d.update({'sis':'ceres_sis_analysis'})
     d.update({'tree':'tree_fraction_analysis'})
+    d.update({'grass':'grass_fraction_analysis'})
 
     return d
 
@@ -392,13 +391,19 @@ def rainfall_analysis(model_list,interval='season'):
     Rplot.bar()
 
 
+def grass_fraction_analysis(model_list):
+    #use same analysis script as for trees, but with different argument
+    tree_fraction_analysis(model_list,pft='grass')
 
-def tree_fraction_analysis(model_list):
+
+
+def tree_fraction_analysis(model_list,pft='tree'):
     '''
     '''
     
-    def tree_fraction2netcdf():
-        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/tree_05.dat'
+    
+    def fraction2netcdf(pft):
+        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/' + pft + '_05.dat'
         #save 0.5 degree data to netCDF file
         t=pl.loadtxt(filename)
         outname = filename[:-4] + '.nc'
@@ -407,7 +412,7 @@ def tree_fraction_analysis(model_list):
         F = Nio.open_file(outname,'w')
         F.create_dimension('lat',t.shape[0])
         F.create_dimension('lon',t.shape[1])
-        var = F.create_variable('tree_fraction','d',('lat','lon'))
+        var = F.create_variable(pft + '_fraction','d',('lat','lon'))
         lat = F.create_variable('lat','d',('lat',))
         lon = F.create_variable('lon','d',('lon',))
         lon.standard_name = "grid_longitude" 
@@ -432,15 +437,15 @@ def tree_fraction_analysis(model_list):
            
     #//// load tree fraction observations ////
     #1) convert to netCDF
-    tree_file = tree_fraction2netcdf() 
+    fraction_file = fraction2netcdf(pft) 
     #2) remap to T63
     y1 = '2001-01-01'; y2='2001-12-31'
-    cdo = pyCDO(tree_file,y1,y2)
+    cdo = pyCDO(fraction_file,y1,y2)
     t63_file = cdo.remap(method='remapcon')
     
     #3) load data
     ls_mask = get_T63_landseamask()
-    tree_hansen = Data(t63_file,'tree_fraction',read=True,label='MODIS VCF tree fraction',unit='-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    hansen  = Data(t63_file,pft + '_fraction',read=True,label='MODIS VCF ' + pft + ' fraction',unit='-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     
     #~ todo now remap to T63 grid; which remapping is the most useful ???
     
@@ -450,14 +455,14 @@ def tree_fraction_analysis(model_list):
     vmin = 0.; vmax = 1.
     for model in model_list:
         
-        model_data = model.variables['tree']
+        model_data = model.variables[pft]
 
-        if model_data.data.shape != tree_hansen.data.shape:
+        if model_data.data.shape != hansen.data.shape:
             print 'WARNING Inconsistent geometries for GPCP'
-            print model_data.data.shape; print tree_hansen.data.shape
+            print model_data.data.shape; print hansen.data.shape
 
         dmin=-1;dmax=1.
-        dif = map_difference(model_data,tree_hansen,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0.,0.25,0.5,0.75,1.])
+        dif = map_difference(model_data,hansen,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0.,0.25,0.5,0.75,1.])
 
         #/// ZONAL STATISTICS
         #--- append zonal plot to difference map
@@ -476,9 +481,15 @@ def tree_fraction_analysis(model_list):
 
         #--- calculate zonal statistics and plot
         zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax])  #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(tree_hansen,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(tree_hansen),None)  #None == no area weighting performed
+        zon2 = ZonalPlot(ax=zax2); zon2.plot(hansen,None,xlim=[vmin,vmax]) #None == no area weighting performed
+        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(hansen),None)  #None == no area weighting performed
         zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
+        
+        
+        #--- calculate RMSE statistics etc.
+        ES = CorrelationAnalysis(model_data,hansen)
+        ES.do_analysis()
+        
 
 ######### END TREE COVER ANALYSIS ##############
     
@@ -764,28 +775,39 @@ def main():
 
     s_start_time = '1983-01-01' #todo where is this used ?
     s_stop_time  = '2005-12-31'
-
-
+    
+    #--- specify variables to analyze
+    #~ variables = ['rain','albedo','sis']
+    variables = ['tree','albedo']
+    
+        #--- specify mapping of variable to analysis script name
+    scripts = get_script_names()
+    
+    
+    #################################################
+    
+    #----- 
     start_time = plt.num2date(plt.datestr2num(s_start_time))
     stop_time  = plt.num2date(plt.datestr2num(s_stop_time ))
 
-
-    #--- specify mapping of variable to analysis script name
-    scripts = get_script_names()
-
-    #--- specify variables to analyze
-    #~ variables = ['rain','albedo','sis']
-    variables = ['tree']
-
-
-
     #--- get model results (needs to be already pre-processed)
     jsbach_variables={}
-    jsbach_variables.update({'rainfall' : 'get_rainfall_data()'})
-    jsbach_variables.update({'albedo' : 'get_albedo_data()'})
-    jsbach_variables.update({'sis' : 'get_surface_shortwave_radiation()'})
-    jsbach_variables.update({'tree' : 'get_tree_fraction()'})
-    #~ jsbach_variables.update({'grass' : 'get_grass_fraction()'})
+    hlp={}
+    hlp.update({'rainfall' : 'get_rainfall_data()'})
+    hlp.update({'albedo' : 'get_albedo_data()'})
+    hlp.update({'sis' : 'get_surface_shortwave_radiation()'})
+    hlp.update({'tree' : 'get_tree_fraction()'})
+    hlp.update({'grass' : 'get_grass_fraction()'})
+    
+    for k in hlp.keys(): #only use the variables that should be analyzed!
+        print k, hlp[k]
+        if k in variables:
+            jsbach_variables.update({k:hlp[k]})
+    
+    stop
+    
+    
+    
 
     jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
     jsbach72.get_data()
