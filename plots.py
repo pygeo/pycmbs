@@ -5,6 +5,11 @@ __author__ = "Alexander Loew"
 __version__ = "0.0"
 __date__ = "0000/00/00"
 
+#TODO
+#- analyze only dry/wet years
+
+
+
 
 from matplotlib import pylab as plt
 
@@ -16,9 +21,53 @@ import numpy as np
 
 from matplotlib.patches import Circle
 
+import sys
+
+from diagnostic import *
+
 
 #todo:
 # - implement Glecker plots
+#- implement writing of statistics to an ASCII file as export
+
+
+class CorrelationAnalysis():
+        '''
+        perform correlation analysis
+        and plot results
+        '''
+        
+        def __init__(self,X,Y,mask=None,ax=None):
+            self.x = X
+            self.y = Y
+            self.mask = mask
+            
+            if ax == None:
+                f = plt.figure()
+                self.ax = f.add_subplot(111)
+            else:
+                self.ax = ax
+            
+        def do_analysis(self):
+            '''
+            perform correlation analysis
+            '''
+            
+            #todo: implement area weighting
+            
+            
+            #--- calculate diagnostics
+            D = Diagnostic(self.x,y=self.y)
+            D._mat2vec(mask = self.mask) #here is the point fo rregional statistics
+            rmse = D.get_rmse_value()
+            r    = D.get_correlation_value()
+            n    = D. get_n()
+            
+            print 'RMSE: ', rmse
+            print 'R   : ', r
+            print 'N   : ', n
+        
+
 
 
 
@@ -124,17 +173,46 @@ class LinePlot():
     '''
     class for a pyCMBS Line Plot
     '''
-    def __init__(self,ax):
-        self.ax = ax
+    def __init__(self,ax=None,regress=False,title=None):
+        if ax == None:
+            f = plt.figure()
+            self.ax = f.add_subplot(111)
+        else:
+            self.ax = ax
+        self.regress = regress
+        self.title = title
         
         
-    def plot(self,x,**kwargs):
+    def plot(self,x,ax=None,**kwargs):
         '''
         x: object of Data class
         '''
         
         if len(x.time) > 0:
-            self.ax.plot(plt.num2date(x.time), x.fldmean(), label=x.label,**kwargs)
+            
+            if ax == None:
+                ax = self.ax
+            else:
+                ax = ax
+            
+            y = x.fldmean()
+            label = x.label
+            
+            if self.regress: #calculate linear regression
+                slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
+                label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+                
+
+            p = ax.plot(plt.num2date(x.time), y , label=label,**kwargs)[0]
+            if self.regress:
+                ax.plot(x.time,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
+
+            ax.set_ylabel(x.unit)
+            
+            if self.title != None:
+                ax.set_title(self.title)
+            
+
             
             
 
@@ -286,7 +364,7 @@ def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
     
     
     
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,**kwargs):
+def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r', **kwargs):
     '''
     produce a plot with
     values for each dataset
@@ -298,6 +376,9 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
     ax1 = fig.add_subplot(311)
     ax2 = fig.add_subplot(312)
     ax3 = fig.add_subplot(313)
+    
+    #--- get colormap
+    cmap = plt.cm.get_cmap(cmap_data, nclasses)   
     
     #- temporal mean fields
     xm = x.timmean(); ym = y.timmean()
@@ -335,17 +416,19 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
             m.drawparallels(latvalues,labels=[1, 0, 0, 0])
             m.drawmeridians(lonvalues,labels=[0, 0, 0, 1]) # draw meridians
             
+            
+        
         #plot 1
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax1,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
         xmap, ymap = m1(x.lon,x.lat)
-        im1=m1.pcolormesh(xmap,ymap,xm,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
         __basemap_ancillary(m1)
         plt.colorbar(im1,ax=ax1,ticks=cticks)
         
         #plot 2
         m2=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax2,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
         xmap, ymap = m2(y.lon,y.lat)
-        im2=m2.pcolormesh(xmap,ymap,ym,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        im2=m2.pcolormesh(xmap,ymap,ym,cmap=cmap**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
         __basemap_ancillary(m2)
         plt.colorbar(im2,ax=ax2,ticks=cticks)
         
@@ -353,9 +436,9 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
             #plot 2
             m3=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax3,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
             xmap, ymap = m3(y.lon,y.lat)
-            cmap = plt.cm.get_cmap('RdBu_r', nclasses)    # discrete colors
+            cmap_diff = plt.cm.get_cmap(cmap_difference, nclasses)    # discrete colors
             #im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=plt.cm.RdBu) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-            im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=cmap) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+            im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=cmap_diff) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
             __basemap_ancillary(m3)
             plt.colorbar(im3,ax=ax3)
             
@@ -369,15 +452,15 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
         
     else: #use_basemap
         #- normal plots
-        cmap = plt.cm.get_cmap('RdBu_r', nclasses)    # discrete colors
-        im1=ax1.imshow(xm,**kwargs); plt.colorbar(im1,ax=ax1,ticks=cticks)
-        im2=ax2.imshow(ym,**kwargs); plt.colorbar(im2,ax=ax2,ticks=cticks)
+        cmap_diff = plt.cm.get_cmap(cmap_difference, nclasses)    # discrete colors
+        im1=ax1.imshow(xm,cmap=cmap,**kwargs); plt.colorbar(im1,ax=ax1,ticks=cticks)
+        im2=ax2.imshow(ym,cmap=cmap,**kwargs); plt.colorbar(im2,ax=ax2,ticks=cticks)
         
         if xm.shape == ym.shape:
             if (dmin != None) & (dmax != None):
-                im3=ax3.imshow(xm - ym,cmap=cmap,vmin=dmin,vmax=dmax); plt.colorbar(im3,ax=ax3)
+                im3=ax3.imshow(xm - ym,cmap=cmap_diff,vmin=dmin,vmax=dmax); plt.colorbar(im3,ax=ax3)
             else:
-                im3=ax3.imshow(xm - ym,cmap=cmap); plt.colorbar(im3,ax=ax3)
+                im3=ax3.imshow(xm - ym,cmap=cmap_diff); plt.colorbar(im3,ax=ax3)
             ax3.set_title(x._get_label() + ' - ' + y._get_label() )
         else:
             msg = 'Difference plot not possible as data has different shape'

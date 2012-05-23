@@ -13,12 +13,16 @@ class pyCDO():
     alternative to cdo class provided by MPI-M
     '''
     
-    def __init__(self,filename,date1,date2):
+    def __init__(self,filename,date1,date2,force=False):
+        '''
+        force: ALWAYS force calculation
+        '''
         self.filename = filename
         if not os.path.exists(self.filename):
             print 'WARNING: file not existing ', self.filename
         self.date1=date1; self.date2=date2
         self.options = '-f nc'
+        self.force = force
     
     def seasmean(self,force=False):
         '''
@@ -28,12 +32,57 @@ class pyCDO():
         '''
         
         oname = self.filename[:-3] + '_' + self.date1 + '_' + self.date2 + '_' + 'seasmean' + '.nc'
-        cmd2  = self.__seldate(oname)
         cmd1   = 'seasmean'
-        cmd = 'cdo ' + self.options + ' ' +  cmd1 + ' -' + cmd2
+        cmd = 'cdo ' + self.options + ' ' + 'seasmean' + ' '  + self.filename + ' ' + oname
         self.run(cmd,oname,force)
-        
         return oname
+        
+        
+    def selmon(self,months,force=False):
+        '''
+        select months
+        
+        input: List with months 
+        e.g. [1,2,3,4] for JFMA
+        '''
+        
+        s=''
+        if 1 in months:
+            s=s+'J'
+        if 2 in months:
+            s=s+'F'
+        if 3 in months:
+            s=s+'M'
+        if 4 in months:
+            s=s+'A'
+        if 5 in months:
+            s=s+'M'
+        if 6 in months:
+            s=s+'J'
+        if 7 in months:
+            s=s+'J'
+        if 8 in months:
+            s=s+'A'
+        if 9 in months:
+            s=s+'S'
+        if 10 in months:
+            s=s+'O'
+        if 11 in months:
+            s=s+'N'
+        if 12 in months:
+            s=s+'D'
+        
+        arg = str(months).replace('[','').replace(']','').replace(' ','')
+        
+        oname = self.filename[:-3] + '_'  + s + '.nc'
+        cmd = 'cdo ' + self.options + ' ' + 'selmon,' + arg + ' ' + self.filename + ' ' + oname
+        self.run(cmd,oname,force)
+
+        return oname
+
+        
+        
+        
         
     def remap(self,method='remapcon',force=False,target_grid='t63grid'):
         
@@ -83,6 +132,8 @@ class pyCDO():
         if os.path.exists(oname):
             if force:
                 f_calc = True
+            if self.force:
+                f_calc = True
         else:
             f_calc = True
         
@@ -93,9 +144,12 @@ class pyCDO():
         
         
     
-    def __seldate(self,oname):
+    def seldate(self,force=False):
         ''' returns a string for seldate command '''
-        return 'seldate,' + str(self.date1) + ',' + str(self.date2) + ' ' + self.filename + ' ' + oname
+        oname = self.filename[:-3] + '_' + self.date1 + '_' + self.date2 + '.nc'
+        cmd = 'cdo ' + self.options + ' ' + 'seldate,' + str(self.date1) + ',' + str(self.date2) + ' ' + self.filename + ' ' + oname
+        self.run(cmd,oname,force)
+        return oname
     
         
         
