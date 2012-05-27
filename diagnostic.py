@@ -11,6 +11,281 @@ import scipy as sci
 
 from matplotlib import pylab as plt
 
+from mpl_toolkits.axes_grid import make_axes_locatable
+import  matplotlib.axes as maxes 
+import matplotlib as  mpl
+
+
+from scipy import linalg, dot;
+
+
+class SVD():
+    '''
+    class to perform singular value decomposition analysis
+    also known as Maximum covariance analysis (MCA)
+    
+    REFERENCES
+    Björnsson and Venegas: A manual for EOF and SVD analyses of Climate Data, McGill University, available online
+    '''
+    
+    def __init__(self,X,Y,scf_threshold = 0.01,label=''):
+        '''
+        x,y Data objects
+        '''
+        
+        x = X.data.copy(); y = Y.data.copy()
+        
+        n = len(x)
+        if n != len(y):
+            raise ValueError, 'Datasets need to have same timelength!'
+
+
+        x.shape = (n,-1) #[time,position]
+        y.shape = (n,-1) 
+        
+        self.x = x
+        self.y = y
+        self.X = X
+        self.Y = Y
+        
+        self.label = label
+        
+        self.scf_threshold = scf_threshold #threshold for explained variance until which result maps are plotted
+        
+    def __get_valid_timeseries(self,x):
+        '''
+        get only points where all
+        timeseries are valid
+        
+        x: masked array [time,position]
+        
+        '''
+        sx = x.sum(axis=0) #calculate sum. If all values are valid, then no a float should be there, else Nan
+        mx = ~np.isnan(sx) #masked array
+        m1 = mx.data; m1[mx.mask]=False #apply also mask of masked array
+        
+        return x[:,m1],m1
+        
+    
+    def __detrend_time(self,x):
+        '''
+        given a variable x[time,position]
+        the data is linear detrended
+        '''
+        
+        if x.ndim !=2:
+            raise ValueError, 'Invalid shape for detrending'
+        
+        n,m = x.shape
+        
+        for i in range(m):
+            h = x[:,i].copy()
+            h = plt.detrend_linear(h)
+            x[:,i] = h.copy()
+        
+        return x
+        
+        
+    def svd_analysis(self):
+        
+        #/// perform SVN only for data points which are valid throughout entire time series ///
+        x,mskx = self.__get_valid_timeseries(self.x)
+        y,mxky = self.__get_valid_timeseries(self.y)
+        
+        print 'Dimensions for x in SVN: ', x.shape
+        print 'Dimensions for y in SVN: ', y.shape
+        
+        #/// detrend the data for each grid point ///
+        x = self.__detrend_time(x)
+        y = self.__detrend_time(y)
+        
+        #calculate covariance matrix
+        C = dot(x.T,y)
+        
+        #singular value decomposition
+        print '   Doing singular value decomposition ...'
+        U, s, V = linalg.svd( C )
+        L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is somewhat python specific
+
+        #expansion coefficients (time series)
+        A = dot(x,U); B = dot(y,V)
+        
+        #/// store results
+        self.U = U
+        self.V = V
+        self.L = L
+        self.A = A
+        self.B = B
+        self.scf = s / sum(s) #fractions of variance explained
+        
+    def plot_var(self,ax=None):
+        '''
+        plot explained variance
+        
+        ax (optional) specifies axis to plot to
+        '''
+        
+        if ax == None:
+            fig=plt.figure()
+            ax = fig.add_subplot(111)
+        else:
+            ax = ax
+            
+        ax1 = ax.twinx()
+        
+        n = len(self.scf)
+        ax.step(np.arange(n),self.scf*100.)
+        ax.set_ylabel('variance explained [%]')
+        ax.set_xlabel('mode')
+        ax.grid()
+        
+        ax1.plot(np.cumsum(self.scf*100.),color='red')
+        ax1.set_ylabel('cumulated variance [%]')
+        ax1.set_ylim(0.,100.)
+
+    def plot_correlation_map(self,mode,ctype='hetero',ax1in=None,ax2in=None,pthres=1.01):
+        '''
+        plot correlation map of an SVN mode
+        with original data
+        
+        mode specifies the number of the mode that should be correlated
+        
+        ctype specifies if homogeneous (homo) or heterogeneous (hetero)
+        correlations shall be calculated. Homogeneous, means correlation
+        of expansion coefficients with the same geophysical field, while
+        heterogeneous means correlation with the other geophysical field
+        
+        pthres specifies the significance level. Values > pthres will be masked
+        if you want to plot e.g only points with significant correlation at p < 0.05, then
+        set pthres = 0.05
+        '''
+        
+        
+
+        
+        types = ['homo','hetero']
+        if ctype in types:
+            pass
+        else:
+            raise ValueError, 'Invalid ctype'
+            
+        n1,m1 = self.A.shape
+        n2,m2 = self.B.shape
+        
+        if mode != None:
+            if mode > m1-1:
+                raise ValueError, 'Mode > A'
+            if mode > m2-1:
+                raise ValueError, 'Mode > B'
+        
+        if mode == None: #plot all modes with variance contained
+            mode_list = []
+            for i in range(len(self.scf)):
+                if self.scf[i] > self.scf_threshold:
+                    mode_list.append(i)
+        else:
+            mode_list = [mode]
+        
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.):
+            '''
+            R data object
+            '''
+            
+            cmap = mpl.cm.get_cmap('RdBu_r',10)
+            ax.imshow(R.data,interpolation='nearest',vmin=vmin,vmax=vmax,cmap=cmap)
+            ax.set_title(title)
+            
+            #colorbar setup
+            
+            divider = make_axes_locatable(ax)
+            cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+            ax.figure.add_axes(cax) 
+        
+            norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+            cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
+        
+        
+        
+        
+        print 'Mode list for correlatio maps: ', mode_list
+        #/// calculate correlations and do plotting
+        for i in mode_list:
+            
+            if ax1in == None:
+                fig=plt.figure()
+                ax1 = fig.add_subplot(221)
+                ax2 = fig.add_subplot(222)
+                ax3 = fig.add_subplot(212)
+            else:
+                ax1 = ax1in
+                ax2 = ax2in
+                ax3 = ax1in.figure.add_subplot(313)
+            
+            
+            if ctype == 'homo':
+                Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.A[:,i],pthres=pthres)
+                Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.B[:,i],pthres=pthres)
+            
+            if ctype == 'hetero':
+                Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.B[:,i],pthres=pthres)
+                Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.A[:,i],pthres=pthres)
+            
+            plot_cmap(Rout1,ax1,ctype)
+            plot_cmap(Rout2,ax2,ctype)
+            
+            ax1.figure.suptitle(self.label + ': Mode: #' + str(i))
+            
+            self.plot_expansion_correlation(i,ax=ax3)
+        
+        
+    def print_mode_statistic(self):
+        '''
+        print statistic of modes
+        '''
+        
+        for i in np.arange(len(self.scf)):
+            if self.scf[i] > self.scf_threshold:
+                print i, self.scf[i], np.corrcoef(self.A[:,i],self.B[:,i])[0][1]
+    
+    def plot_expansion_correlation(self,mode,ax=None):
+        '''
+        plot correlation and time series of expansion coeffcients
+        '''
+        if ax == None:
+            fig=plt.figure()
+            ax = fig.add_subplot(111)
+        else:
+            ax = ax
+        
+        ax.plot(self.A[:,mode]/np.std(self.A[:,mode]),label='A')
+        ax.plot(self.B[:,mode]/np.std(self.B[:,mode]),label='B')
+        c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
+        plt.legend()
+        ax.set_title('expansion coefficient #' + str(mode) + ' (r=' + str(c) + ')')
+        ax.set_xlabel('time')
+        ax.set_ylabel('normalized expansion coefficient')
+        
+        
+    def reconstruct_x(self,truncate = None):
+        '''
+        reconstruct X data
+        '''
+        
+    def _reconstruct_data(self,opt,truncate=None):
+        l = np.diag(self.L)
+        
+
+            
+        
+        
+        
+
+
+
+
+
+
+
 
 class Diagnostic():
     def __init__(self,x,y=None):
@@ -266,10 +541,14 @@ class Diagnostic():
         '''
         
         x=self.x.data.copy()
-        print x
         
         if not hasattr(self,'y'):
-            raise KeyError, 'No y-value specified. Processing not possible!'
+            #if no y value is given, then time is used as independent variable
+            print 'No y-value specified. Use time as indpendent variable!'
+            
+            y = x.copy()
+            x = np.ma.array(self.x.time.copy(),mask = self.x.time < 0. )
+            
         else:
             y = self.y.data.copy()
             
@@ -281,12 +560,6 @@ class Diagnostic():
         n = len(x) #timesteps
         x.shape = (n,-1) #size [time,ngridcells]
         y.shape = (n,-1)
-        
-        print 'x2'
-        print x, type(x)
-        print x[10:20]
-        
-      
 
         R=np.ones((n,n))*np.nan
         P=np.ones((n,n))*np.nan
@@ -330,17 +603,28 @@ class Diagnostic():
                     #print 'MASK: ', sum(msk), sum(xmsk),sum(ymsk)
                 else:
                     ''' all grid cells at all times '''
+                    #~ print i1,i2
+                    #~ print x.data.shape, y.data.shape, type(x.data)
                     xdata = x.data[i1:i2,:]; ydata = y.data[i1:i2,:]
-                    xmsk  = x.mask[i1:i2,:]; ymsk  = y.mask[i1:i2,:]
+                    xmsk  = x.mask[i1:i2,:]
+                    ymsk  = y.mask[i1:i2,:]
                     msk   = xmsk | ymsk
+                    
+                    #~ print 'xdata: ', xdata
+                    #~ print x.data
+                    #~ print i1,i2
+                    #~ print x.data[i1:i2,:]
+                    #~ stop
                 
                 
-                print x
-                print x.data
-                stop
-                print 'x1', xdata, i1, i2, x.data
-                print 'y1', ydata
-            
+                #~ print x
+                #~ print x.data
+                
+                #~ print 'x1', xdata, i1, i2, x.data
+                #~ print x.data.shape
+                #~ print 'y1', ydata
+                #~ print xdata.flatten()
+                #~ stop
             
                 xdata = xdata[~msk].flatten()
                 ydata = ydata[~msk].flatten()
@@ -353,9 +637,9 @@ class Diagnostic():
                 L[length,i1] = length
                 S[length,i1] = slope
                 
-                print 'r: ', r
-                print 'x', xdata
-                print 'y', ydata
+                #~ print 'r: ', r
+                #~ print 'x', xdata
+                #~ print 'y', ydata
                
                 i2 += 1
             i1 += 1
@@ -367,7 +651,7 @@ class Diagnostic():
     
 
 
-    def __set_year_ticks(self,years,ax,axis='x'):
+    def _set_year_ticks(self,years,ax,axis='x'):
         '''
         set ticks of timeline with
         yearly ticks
@@ -399,6 +683,10 @@ class Diagnostic():
         plot slice correlation results
         '''
         
+        
+        cmap1 = plt.cm.get_cmap('RdBu_r', 10)   
+        cmap2 = plt.cm.get_cmap('jet', 10)   
+        
         if not hasattr(self,'slice_r'):
             raise ValueError, 'perform slice_corr() before plotting!'
 
@@ -428,14 +716,14 @@ class Diagnostic():
         slope_data[msk]  = np.nan
         
         #- correlation
-        imr=ax1.imshow(r_data,interpolation='nearest',cmap='RdBu_r')
+        imr=ax1.imshow(r_data,interpolation='nearest',cmap=cmap1)
         ax1.set_title('correlation')
         plt.colorbar(imr,ax=ax1,shrink=0.8)
         ax1.set_xlabel('start year')
         ax1.set_ylabel('correlation period [years]')
         
         #- significance
-        imp=ax2.imshow(p_data,interpolation='nearest',cmap='RdBu_r')
+        imp=ax2.imshow(p_data,interpolation='nearest',cmap=cmap2)
         ax2.set_title('p-value')
         plt.colorbar(imp,ax=ax2,shrink=0.8)
         ax2.set_xlabel('start year')
@@ -449,17 +737,17 @@ class Diagnostic():
         ax3.set_ylabel('correlation period [years]')        
         
         #- slope
-        ims=ax4.imshow(slope_data,interpolation='nearest',cmap='RdBu_r')
+        ims=ax4.imshow(slope_data,interpolation='nearest',cmap=cmap2)
         ax4.set_title('slope')
         plt.colorbar(ims,ax=ax4,shrink=0.8)
         ax4.set_xlabel('start year')
         ax4.set_ylabel('correlation period [years]')        
         
         #/// set tick labels ///
-        self.__set_year_ticks(years,ax1,axis='x')
-        self.__set_year_ticks(years,ax2,axis='x')
-        self.__set_year_ticks(years,ax3,axis='x')
-        self.__set_year_ticks(years,ax4,axis='x')
+        self._set_year_ticks(years,ax1,axis='x')
+        self._set_year_ticks(years,ax2,axis='x')
+        self._set_year_ticks(years,ax3,axis='x')
+        self._set_year_ticks(years,ax4,axis='x')
         
         #- contour plots
         CP1 = ax1.contour(p_data,[0.01,0.05,0.1],linewidths=2) 
