@@ -173,7 +173,7 @@ class LinePlot():
     '''
     class for a pyCMBS Line Plot
     '''
-    def __init__(self,ax=None,regress=False,title=None):
+    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True):
         if ax == None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
@@ -181,9 +181,11 @@ class LinePlot():
             self.ax = ax
         self.regress = regress
         self.title = title
+        self.show_xlabel = show_xlabel
+        self.show_ylabel = show_ylabel
         
         
-    def plot(self,x,ax=None,**kwargs):
+    def plot(self,x,ax=None,vmin=None,vmax=None,**kwargs):
         '''
         x: object of Data class
         '''
@@ -201,16 +203,22 @@ class LinePlot():
             if self.regress: #calculate linear regression
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
                 label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
-                
 
             p = ax.plot(plt.num2date(x.time), y , label=label,**kwargs)[0]
             if self.regress:
                 ax.plot(x.time,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
 
-            ax.set_ylabel(x.unit)
+            if self.show_ylabel:
+                ax.set_ylabel(x.unit)
+            if self.show_xlabel:
+                ax.set_xlabel('time')
             
             if self.title != None:
                 ax.set_title(self.title)
+                
+            if vmin != None:
+                if vmax != None:
+                    ax.set_ylim(vmin,vmax)
             
 
             
