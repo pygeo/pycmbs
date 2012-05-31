@@ -51,6 +51,8 @@ class SVD():
         self.label = label
         
         self.scf_threshold = scf_threshold #threshold for explained variance until which result maps are plotted
+        self.dpi  = 150 #output dpi for plotting
+        self.ext = 'pdf' #file extension for plotting
         
     def __get_valid_timeseries(self,x):
         '''
@@ -143,7 +145,7 @@ class SVD():
         ax1.set_ylabel('cumulated variance [%]')
         ax1.set_ylim(0.,100.)
 
-    def plot_correlation_map(self,mode,ctype='hetero',ax1in=None,ax2in=None,pthres=1.01):
+    def plot_correlation_map(self,mode,ctype='hetero',ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None):
         '''
         plot correlation map of an SVN mode
         with original data
@@ -158,6 +160,8 @@ class SVD():
         pthres specifies the significance level. Values > pthres will be masked
         if you want to plot e.g only points with significant correlation at p < 0.05, then
         set pthres = 0.05
+        
+        plot_var: plot variance instead of correlation
         '''
         
         
@@ -186,13 +190,18 @@ class SVD():
         else:
             mode_list = [mode]
         
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.):
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False):
             '''
             R data object
             '''
             
+            if plot_var:
+                O = R.data * R.data
+            else:
+                O = R.data
+            
             cmap = mpl.cm.get_cmap('RdBu_r',10)
-            ax.imshow(R.data,interpolation='nearest',vmin=vmin,vmax=vmax,cmap=cmap)
+            ax.imshow(O,interpolation='nearest',vmin=vmin,vmax=vmax,cmap=cmap)
             ax.set_title(title)
             
             #colorbar setup
@@ -230,22 +239,41 @@ class SVD():
                 Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.B[:,i],pthres=pthres)
                 Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.A[:,i],pthres=pthres)
             
-            plot_cmap(Rout1,ax1,ctype)
-            plot_cmap(Rout2,ax2,ctype)
+            plot_cmap(Rout1,ax1,ctype,plot_var=plot_var)
+            plot_cmap(Rout2,ax2,ctype,plot_var=plot_var)
             
             ax1.figure.suptitle(self.label + ': Mode: #' + str(i))
             
             self.plot_expansion_correlation(i,ax=ax3)
+            
+            #--- save figure
+            if filename != None:
+                oname = filename + '_' + ctype + '_mode_' + str(i) + '.' + self.ext
+                ax1.figure.savefig(oname,dpi=self.dpi)
         
         
-    def print_mode_statistic(self):
+    def print_mode_statistic(self,filename=None):
         '''
         print statistic of modes
         '''
         
+        sep = ' & '
+        rnd = 2
+        
+        if filename != None:
+            o = open(filename,'w')
+            o.write('mode' + sep + 'scf' + sep + 'r' + ' \\\ ' + '\n')
+        
         for i in np.arange(len(self.scf)):
             if self.scf[i] > self.scf_threshold:
                 print i, self.scf[i], np.corrcoef(self.A[:,i],self.B[:,i])[0][1]
+                if filename != None:
+                    s = str(i) + sep + str(np.round(self.scf[i],rnd)) + sep +  str(np.round(np.corrcoef(self.A[:,i],self.B[:,i])[0][1],rnd)) + ' \\\ ' +  '\n'
+                    o.write(s)
+        
+        if filename != None:
+            o.close()
+                    
     
     def plot_expansion_correlation(self,mode,ax=None):
         '''
