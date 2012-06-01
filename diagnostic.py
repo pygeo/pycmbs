@@ -94,15 +94,16 @@ class SVD():
         x,mskx = self.__get_valid_timeseries(self.x)
         y,mxky = self.__get_valid_timeseries(self.y)
         
-        print 'Dimensions for x in SVN: ', x.shape
-        print 'Dimensions for y in SVN: ', y.shape
+        print ' Dimensions for x in SVN: ', x.shape
+        print ' Dimensions for y in SVN: ', y.shape
         
         #/// detrend the data for each grid point ///
         x = self.__detrend_time(x)
         y = self.__detrend_time(y)
         
         #calculate covariance matrix
-        C = dot(x.T,y)
+        C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual grid points, but only the covariance terms!
+        self.C = C
         
         #singular value decomposition
         print '   Doing singular value decomposition ...'
@@ -118,32 +119,91 @@ class SVD():
         self.L = L
         self.A = A
         self.B = B
-        self.scf = s / sum(s) #fractions of variance explained
+        self.scf = (s*s) / sum(s*s) #fractions of variance explained CAUTION: not properly described in manual if squared or not!
         
-    def plot_var(self,ax=None):
+        self.__get_mode_correlation() #calculate correlation between modes
+        
+        
+    def __get_mode_correlation(self):
+        '''
+        calculate correlations between expansion modes
+        of the two fields
+        '''
+        self.mcorr = []
+        for i in range(len(self.scf)):
+            c = np.corrcoef(self.A[:,i],self.B[:,i])[0][1]
+            self.mcorr.append(c)
+        self.mcorr = np.asarray(self.mcorr)
+        
+        
+
+        
+        
+    def plot_var(self,ax=None,filename=None,maxvar=0.5):
         '''
         plot explained variance
         
         ax (optional) specifies axis to plot to
         '''
         
+        def make_patch_spines_invisible(ax):
+            #http://matplotlib.sourceforge.net/examples/pylab_examples/multiple_yaxis_with_spines.html
+            ax.set_frame_on(True)
+            ax.patch.set_visible(False)
+            for sp in ax.spines.itervalues():
+                sp.set_visible(False)
+        
+        
+        
+        
+        
         if ax == None:
             fig=plt.figure()
             ax = fig.add_subplot(111)
         else:
             ax = ax
+            fig = ax.figure
             
-        ax1 = ax.twinx()
+        fig.subplots_adjust(right=0.75)
+            
+        ax1 = ax.twinx() #axis for cumulated variance
+        ax2 = ax.twinx()
+        
+        ax2.spines["right"].set_position(("axes", 1.2))
+        make_patch_spines_invisible(ax2)
+        ax2.spines["right"].set_visible(True)
         
         n = len(self.scf)
-        ax.step(np.arange(n),self.scf*100.)
-        ax.set_ylabel('variance explained [%]')
+        ax.step(np.arange(n),self.scf)
+        ax.set_ylabel('fraction of variance explained',color='blue')
         ax.set_xlabel('mode')
+        ax.set_ylim(0.,maxvar)
         ax.grid()
         
-        ax1.plot(np.cumsum(self.scf*100.),color='red')
-        ax1.set_ylabel('cumulated variance [%]')
-        ax1.set_ylim(0.,100.)
+        ax1.plot(np.cumsum(self.scf),color='red')
+        ax1.set_ylabel('cumulated variance [-]',color='red')
+        ax1.set_ylim(0.,1.)
+
+        ax2.plot(np.arange(n),self.mcorr,color='green')
+        ax2.set_ylabel('mode correlation [-]',color='green')
+        ax2.set_ylim(-1,1.)
+        ax2.grid(color='green')
+        
+        
+        #~ ax.yaxis.label.set_color('blue')
+        #~ ax1.yaxis.label.set_color('red')
+        #~ ax2.yaxis.label.set_color('green')
+        
+        
+        ax.tick_params(axis='y', colors='blue')
+        ax1.tick_params(axis='y', colors='red')
+        ax2.tick_params(axis='y', colors='green')
+        
+        if filename != None:
+            oname = filename + '_mode_var.' + self.ext
+            ax.figure.savefig(oname,dpi=self.dpi)
+            
+            
 
     def plot_correlation_map(self,mode,ctype='hetero',ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None):
         '''
@@ -251,6 +311,51 @@ class SVD():
                 oname = filename + '_' + ctype + '_mode_' + str(i) + '.' + self.ext
                 ax1.figure.savefig(oname,dpi=self.dpi)
         
+    def _get_variance_field(self,X,E,mode,pthres=1.01):
+        '''
+        calculate variance field for a particular mode
+        
+        X: Data object of field X
+        E: expansion cofficient to be used for correlation calculation
+        '''
+    
+        Rout,Sout,Iout,Pout = X.corr_single(E[:,mode],pthres=pthres)
+        
+        Rout.data = Rout.data*Rout.data
+        
+        
+        return Rout #return squared correlation to get variance
+        
+    def reconstruct_variance_fraction(self,X,E,mode_list,pthres=1.01):
+        '''
+        reconstruct variance of data based on
+        a list of modes that should be used
+        for that purpose.
+        
+        The variances of the different modes are added
+        assuming that they are indpendent of each other
+        
+        mode_list : list with up to N modes
+        
+        X Data object
+        E expansion coefficients (data object)
+        
+        returns:
+        array with variance
+        '''
+        
+        O = None
+        for mode in mode_list:
+            V = self._get_variance_field(X,E,mode,pthres=pthres)
+            if O == None:
+                O = V.data
+            else:
+                O = O + V.data #add variances
+        
+        O = np.ma.array(O,mask=np.isnan(O))
+        
+        return O
+        
         
     def print_mode_statistic(self,filename=None):
         '''
@@ -260,15 +365,17 @@ class SVD():
         sep = ' & '
         rnd = 2
         
+        self.__get_mode_correlation() #calculate mode correlations
+        
         if filename != None:
             o = open(filename,'w')
             o.write('mode' + sep + 'scf' + sep + 'r' + ' \\\ ' + '\n')
         
         for i in np.arange(len(self.scf)):
             if self.scf[i] > self.scf_threshold:
-                print i, self.scf[i], np.corrcoef(self.A[:,i],self.B[:,i])[0][1]
+                print i, self.scf[i], self.mcorr[i]
                 if filename != None:
-                    s = str(i) + sep + str(np.round(self.scf[i],rnd)) + sep +  str(np.round(np.corrcoef(self.A[:,i],self.B[:,i])[0][1],rnd)) + ' \\\ ' +  '\n'
+                    s = str(i) + sep + str(np.round(self.scf[i],rnd)) + sep +  str(np.round(self.mcorr[i],rnd)) + ' \\\ ' +  '\n'
                     o.write(s)
         
         if filename != None:
@@ -294,13 +401,7 @@ class SVD():
         ax.set_ylabel('normalized expansion coefficient')
         
         
-    def reconstruct_x(self,truncate = None):
-        '''
-        reconstruct X data
-        '''
-        
-    def _reconstruct_data(self,opt,truncate=None):
-        l = np.diag(self.L)
+
         
 
             
@@ -347,6 +448,49 @@ class Diagnostic():
         @type self : Diagnostic object        
         '''
         return np.sqrt(np.mean((self.xvec - self.yvec)**2))
+        
+    def lagged_correlation_vec(self,lags,pthres=1.01):
+        '''
+        lagged correlation for two vectors
+        
+        x,y Data objects, where data needs to have been pre-processed
+        to be a single vector
+        
+        lags: list of lags
+        '''
+        
+        if self.x.data.shape != self.y.data.shape:
+            raise ValueError, 'Invalid geometries!'
+        
+        if any(lags < 0.):
+            raise ValueError, 'Negative lags currently not supported yet!'
+        
+        CO = []
+        for lag in lags:
+            hlpx = self.x.copy(); hlpy = self.y.copy()
+            
+            if lag > 0:
+                #temporal subset data
+                hlpx.data = hlpx.data[lag:]; hlpy.data = hlpy.data[:-lag]
+            slope, intercept, r_value, p_value, std_err = sci.stats.linregress(hlpx.data,hlpy.data)
+            
+            if p_value < pthres:
+                CO.append(r_value)
+            else:
+                CO.append(np.nan)
+
+        #~ #-- find best lag
+        #~ best_lag=abs(np.asarray(CO)).argmax(axis=0).astype('float')
+        #~ print 'BEST LAG: ', best_lag
+        
+        CO = np.asarray(CO)
+        
+        return CO
+        
+        
+        
+        
+        
         
         
     def get_correlation_value(self):
