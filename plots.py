@@ -313,14 +313,79 @@ class ZonalPlot():
         
         
         
-        
+     
         
 
 
 
 #=======================================================================
 
+def __basemap_ancillary(m):
+    latvalues=np.arange(-90.,120.,10.)
+    lonvalues= np.arange(-200.,200.,10.)
+    m.drawcountries(); m.drawcoastlines()
+    m.drawlsmask(lakes=True)
+    m.drawmapboundary() # draw a line around the map region
+    m.drawparallels(latvalues,labels=[1, 0, 0, 0])
+    m.drawmeridians(lonvalues,labels=[0, 0, 0, 1]) # draw meridians
 
+#=======================================================================
+
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None, **kwargs):
+    '''
+    produce a plot with
+    values for each dataset
+    and the difference between the two
+    '''
+    
+    #--- create new figure
+    if ax == None:
+        fig = plt.figure(); ax = fig.add_subplot(111)
+    else:
+        fig = ax.figure
+    
+    #--- create colormap
+    cmap = plt.cm.get_cmap(cmap_data, nclasses)   
+    
+    #--- temporal mean fields
+    xm = x.timmean()
+    
+    #--- set projection parameters
+    proj='robin'; lon_0=0.; lat_0=0.
+    
+    #--- plot using basemap
+    if use_basemap:
+        llcrnrlon=None; llcrnrlat=None; urcrnrlon=None; urcrnrlat=None
+        if region !=None:
+            if not hasattr(region,'lonmin'):
+                print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
+            else:
+                dlat = (region.latmax-region.latmin)*0.25; dlon = (region.lonmax-region.lonmin)*0.25
+                di = max(dlat,dlon)
+                llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
+                urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
+                proj='tmerc'
+        #generate map
+        m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
+        xmap, ymap = m1(x.lon,x.lat)
+        im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        __basemap_ancillary(m1); plt.colorbar(im1,ax=ax,ticks=cticks)
+
+    else: #use_basemap = False
+        #- normal plots
+        im1=ax.imshow(xm,cmap=cmap,**kwargs); plt.colorbar(im1,ax=ax,ticks=cticks)
+        ax.set_xticks([]); ax.set_yticks([])
+
+    #--- set title
+    if title == None:
+        ax.set_title(x._get_label())
+    else:
+        ax.set_title(title)
+    
+    return fig
+
+
+#=======================================================================
             
 def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
     '''
@@ -404,7 +469,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
             else:
                 dlat = (region.latmax-region.latmin)*0.25
                 dlon = (region.lonmax-region.lonmin)*0.25
-                di = max(dlat,dmin)
+                di = max(dlat,dlon)
                 llcrnrlon=region.lonmin - di
                 llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di
@@ -415,14 +480,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
             
         
         
-        def __basemap_ancillary(m):
-            latvalues=np.arange(-90.,120.,10.)
-            lonvalues= np.arange(-200.,200.,10.)
-            m.drawcountries(); m.drawcoastlines()
-            m.drawlsmask(lakes=True)
-            m.drawmapboundary() # draw a line around the map region
-            m.drawparallels(latvalues,labels=[1, 0, 0, 0])
-            m.drawmeridians(lonvalues,labels=[0, 0, 0, 1]) # draw meridians
+
             
             
         
