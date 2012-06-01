@@ -15,6 +15,8 @@ from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes 
 import matplotlib as  mpl
 
+from pyCMBS.plots import map_plot
+
 
 from scipy import linalg, dot;
 
@@ -53,6 +55,7 @@ class SVD():
         self.scf_threshold = scf_threshold #threshold for explained variance until which result maps are plotted
         self.dpi  = 150 #output dpi for plotting
         self.ext = 'pdf' #file extension for plotting
+        self.use_basemap = True
         
     def __get_valid_timeseries(self,x):
         '''
@@ -250,7 +253,7 @@ class SVD():
         else:
             mode_list = [mode]
         
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False):
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False):
             '''
             R data object
             '''
@@ -260,18 +263,21 @@ class SVD():
             else:
                 O = R.data
             
-            cmap = mpl.cm.get_cmap('RdBu_r',10)
-            ax.imshow(O,interpolation='nearest',vmin=vmin,vmax=vmax,cmap=cmap)
-            ax.set_title(title)
+            map_plot(R,use_basemap=use_basemap,ax=ax)
+            
+            
+            #~ cmap = mpl.cm.get_cmap('RdBu_r',10)
+            #~ ax.imshow(O,interpolation='nearest',vmin=vmin,vmax=vmax,cmap=cmap)
+            #~ ax.set_title(title)
             
             #colorbar setup
             
-            divider = make_axes_locatable(ax)
-            cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
-            ax.figure.add_axes(cax) 
+            #~ divider = make_axes_locatable(ax)
+            #~ cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+            #~ ax.figure.add_axes(cax) 
         
-            norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-            cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
+            #~ norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+            #~ cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
         
         
         
@@ -299,8 +305,8 @@ class SVD():
                 Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.B[:,i],pthres=pthres)
                 Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.A[:,i],pthres=pthres)
             
-            plot_cmap(Rout1,ax1,ctype,plot_var=plot_var)
-            plot_cmap(Rout2,ax2,ctype,plot_var=plot_var)
+            plot_cmap(Rout1,ax1,ctype,plot_var=plot_var,use_basemap=self.use_basemap)
+            plot_cmap(Rout2,ax2,ctype,plot_var=plot_var,use_basemap=self.use_basemap)
             
             ax1.figure.suptitle(self.label + ': Mode: #' + str(i))
             
