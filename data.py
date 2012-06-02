@@ -1098,15 +1098,16 @@ class Data():
         #--- prepare output data objects
         Rout = self.copy() #copy obkect to get coordinates
         Rout.label = 'correlation'
-        Rout.data = np.ma.array(R,mask=p_value>pthres).copy()
+        msk = (p_value > pthres) | np.isnan(R)
+        Rout.data = np.ma.array(R,mask=msk).copy()
         
         Sout = self.copy() #copy object to get coordinates
         Sout.label = 'slope'
-        Sout.data = np.ma.array(S,mask=p_value>pthres).copy()
+        Sout.data = np.ma.array(S,mask=msk).copy()
         
         Iout = self.copy() #copy object to get coordinates
         Iout.label = 'intercept'
-        Iout.data = np.ma.array(I,mask=p_value>pthres).copy()
+        Iout.data = np.ma.array(I,mask=msk).copy()
         
         Pout = self.copy() #copy object to get coordinates
         Pout.label = 'p-value'

@@ -55,7 +55,7 @@ class SVD():
         self.scf_threshold = scf_threshold #threshold for explained variance until which result maps are plotted
         self.dpi  = 150 #output dpi for plotting
         self.ext = 'pdf' #file extension for plotting
-        self.use_basemap = True
+        self.use_basemap = False
         
     def __get_valid_timeseries(self,x):
         '''
@@ -208,7 +208,7 @@ class SVD():
             
             
 
-    def plot_correlation_map(self,mode,ctype='hetero',ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None):
+    def plot_correlation_map(self,mode,ctype='hetero',ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,region1=None,region2=None):
         '''
         plot correlation map of an SVN mode
         with original data
@@ -253,7 +253,7 @@ class SVD():
         else:
             mode_list = [mode]
         
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False):
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None):
             '''
             R data object
             '''
@@ -263,7 +263,7 @@ class SVD():
             else:
                 O = R.data
             
-            map_plot(R,use_basemap=use_basemap,ax=ax)
+            map_plot(R,use_basemap=use_basemap,ax=ax,region=region,cmap_data='RdBu_r')
             
             
             #~ cmap = mpl.cm.get_cmap('RdBu_r',10)
@@ -305,10 +305,13 @@ class SVD():
                 Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.B[:,i],pthres=pthres)
                 Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.A[:,i],pthres=pthres)
             
-            plot_cmap(Rout1,ax1,ctype,plot_var=plot_var,use_basemap=self.use_basemap)
-            plot_cmap(Rout2,ax2,ctype,plot_var=plot_var,use_basemap=self.use_basemap)
+
             
-            ax1.figure.suptitle(self.label + ': Mode: #' + str(i))
+            plot_cmap(Rout1,ax1,ctype,plot_var=plot_var,use_basemap=self.use_basemap,region=region1)
+            plot_cmap(Rout2,ax2,ctype,plot_var=plot_var,use_basemap=self.use_basemap,region=region2)
+            
+            
+            ax1.figure.suptitle(self.label + ': Mode: #' + str(i) + ' - ' + ctype)
             
             self.plot_expansion_correlation(i,ax=ax3)
             

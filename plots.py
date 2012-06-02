@@ -321,8 +321,8 @@ class ZonalPlot():
 #=======================================================================
 
 def __basemap_ancillary(m):
-    latvalues=np.arange(-90.,120.,10.)
-    lonvalues= np.arange(-200.,200.,10.)
+    latvalues=np.arange(-90.,120.,30.)
+    lonvalues= np.arange(-200.,200.,30.)
     m.drawcountries(); m.drawcoastlines()
     m.drawlsmask(lakes=True)
     m.drawmapboundary() # draw a line around the map region
@@ -362,14 +362,31 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             else:
                 dlat = (region.latmax-region.latmin)*0.25; dlon = (region.lonmax-region.lonmin)*0.25
                 di = max(dlat,dlon)
+                di = 0. #with 0 it works; for other values problems may occur for negative lon!
                 llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
+                
+                #~ print llcrnrlon, urcrnrlon, llcrnrlat,urcrnrlat
+                #~ stop
+                
+                
                 proj='tmerc'
         #generate map
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
         xmap, ymap = m1(x.lon,x.lat)
+        
+        #~ plt.figure(); plt.imshow(xmap);
+        #~ plt.figure(); plt.imshow(ymap);
+        #~ stop
+        
+        #~ plt.figure()
+        #~ plt.imshow(xm)
+        #~ stop
+        
+        
         im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-        __basemap_ancillary(m1); plt.colorbar(im1,ax=ax,ticks=cticks)
+        __basemap_ancillary(m1)
+        #~ plt.colorbar(im1,ax=ax,ticks=cticks)
 
     else: #use_basemap = False
         #- normal plots
