@@ -142,7 +142,7 @@ class SVD():
 
         
         
-    def plot_var(self,ax=None,filename=None,maxvar=0.5):
+    def plot_var(self,ax=None,filename=None,maxvar=1.):
         '''
         plot explained variance
         
@@ -155,10 +155,6 @@ class SVD():
             ax.patch.set_visible(False)
             for sp in ax.spines.itervalues():
                 sp.set_visible(False)
-        
-        
-        
-        
         
         if ax == None:
             fig=plt.figure()
@@ -177,7 +173,7 @@ class SVD():
         ax2.spines["right"].set_visible(True)
         
         n = len(self.scf)
-        ax.step(np.arange(n),self.scf)
+        ax.step(np.arange(n),self.scf,where='post')
         ax.set_ylabel('fraction of variance explained',color='blue')
         ax.set_xlabel('mode')
         ax.set_ylim(0.,maxvar)
@@ -198,7 +194,7 @@ class SVD():
         #~ ax2.yaxis.label.set_color('green')
         
         
-        ax.tick_params(axis='y', colors='blue')
+        ax .tick_params(axis='y', colors='blue')
         ax1.tick_params(axis='y', colors='red')
         ax2.tick_params(axis='y', colors='green')
         
@@ -263,7 +259,7 @@ class SVD():
             else:
                 O = R.data
             
-            map_plot(R,use_basemap=use_basemap,ax=ax,region=region,cmap_data='RdBu_r')
+            map_plot(R,use_basemap=use_basemap,ax=ax,region=region,cmap_data='RdBu_r',shift=True)
             
             
             #~ cmap = mpl.cm.get_cmap('RdBu_r',10)
@@ -311,7 +307,7 @@ class SVD():
             plot_cmap(Rout2,ax2,ctype,plot_var=plot_var,use_basemap=self.use_basemap,region=region2)
             
             
-            ax1.figure.suptitle(self.label + ': Mode: #' + str(i) + ' - ' + ctype)
+            ax1.figure.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i],2)) + ')' +   ' - ' + ctype)
             
             self.plot_expansion_correlation(i,ax=ax3)
             
