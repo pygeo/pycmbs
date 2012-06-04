@@ -5,11 +5,6 @@ __author__ = "Alexander Loew"
 __version__ = "0.0"
 __date__ = "0000/00/00"
 
-#TODO
-#- analyze only dry/wet years
-
-
-
 
 from matplotlib import pylab as plt
 
@@ -25,10 +20,12 @@ import sys
 
 from diagnostic import *
 
+from scipy.spatial import cKDTree as KDTree #import the C version of KDTree (faster)
+
 
 #todo:
 # - implement Glecker plots
-#- implement writing of statistics to an ASCII file as export
+# - implement writing of statistics to an ASCII file as export
 
 
 class CorrelationAnalysis():
@@ -273,22 +270,12 @@ class ZonalPlot():
         else:
             raise ValueError, 'Invalid option'
             
-        #~ print dat
-        #~ print dat.shape
-        #~ print x.lat.shape
-        #~ stop
-        
-        #~ plt.figure()
-        #~ plt.plot(dat[0,:])
-        #~ plt.plot(dat[2,:])
-        
         if dat.shape[x.data.ndim-2] != x.lat.shape[0]:
             print 'Inconsistent shapes!'
             print dat.shape
             print x.lat.shape
             sys.exit()
         
-        #~ print dat
         
         #--- plot zonal statistics
         if dat.ndim == 1:
@@ -308,21 +295,13 @@ class ZonalPlot():
         
         self.ax.grid()
         
-        #~ fig = self.ax.figure
-        #~ fig.legend()
-        
-        
-        
-     
-        
-
 
 
 #=======================================================================
 
 def __basemap_ancillary(m):
     latvalues=np.arange(-90.,120.,30.)
-    lonvalues= np.arange(-200.,200.,30.)
+    lonvalues= np.arange(-180.,180.,90.)
     m.drawcountries(); m.drawcoastlines()
     m.drawlsmask(lakes=True)
     m.drawmapboundary() # draw a line around the map region
@@ -331,7 +310,7 @@ def __basemap_ancillary(m):
 
 #=======================================================================
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None, shift=False, **kwargs):
     '''
     produce a plot with
     values for each dataset
@@ -349,6 +328,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     
     #--- temporal mean fields
     xm = x.timmean()
+    
     
     #--- set projection parameters
     proj='robin'; lon_0=0.; lat_0=0.
@@ -373,25 +353,88 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 proj='tmerc'
         #generate map
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
-        xmap, ymap = m1(x.lon,x.lat)
         
-        #~ plt.figure(); plt.imshow(xmap);
-        #~ plt.figure(); plt.imshow(ymap);
-        #~ stop
+        #use KDTRee nearest neighbor resampling to avoid stripes in plotting
+        lons = np.unique(x.lon); lats = np.unique(x.lat)
+        lons.sort(); lats.sort()
+        TLON,TLAT = np.meshgrid(lons,lats)  #generate target coordinates
+        XT,YT = m1(TLON,TLAT)
+        X=XT.copy(); Y=YT.copy()
+        shape0 = np.shape(XT) 
+        XT.shape = (-1); YT.shape = (-1) #... vectorize them for inertpolation
+        tree = KDTree(zip(XT,YT)) #generate tree from TARGET coordinates
         
-        #~ plt.figure()
-        #~ plt.imshow(xm)
-        #~ stop
+        #prepare data and interpolate
+        xmap,ymap = m1(x.lon,x.lat)
+        xmap.shape = (-1); ymap.shape = (-1)
+        pts  = zip(xmap,ymap) #generate points to interpolate from source data
+        dist,idx = tree.query(pts,k=1)     #perform nearest neighbor interpolation (returns distance and indices)
+                
+        #- map data to output matrix for plotting
+        Z = np.ones(shape0)*np.nan; Z.shape = (-1) #generate target vector
+        omask = np.ones(shape0).astype('bool'); omask.shape = (-1) 
         
+        msk1 = xm.mask.copy(); msk1.shape = (-1); omask[idx] = msk1
+
+        xm1 = xm.copy(); xm1.shape = (-1)
+        Z[idx]   = xm1 #assign data and reshape it and set generate masked array
+
+        #~ print Z.shape, omask.shape
+        Z[omask] = np.nan
+        Z = np.reshape(Z,shape0); Z = np.ma.array(Z,mask=np.isnan(Z))
         
-        im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        #~ def _unique_lon(lon):
+            #~ ''' check if all longitudes are the same '''
+            #~ if lon.ndim == 1:
+                #~ return lon.copy()
+            #~ elif lon.ndim == 2:
+                #~ if (np.any(abs(lon - lon[0,:]) > 0.) )   :
+                    #~ raise ValueError, 'No unique longitudes given!'
+                #~ else:
+                    #~ return lon[0,:].copy()
+            #~ else:
+                #~ raise ValueError, 'Can not determine unique longitudes!'
+            
+
+        #~ if shift: #shift grid
+            #~ thelon = x.lon.copy()
+            #~ msk = thelon < 0.
+            #~ thelon[msk] = thelon[msk] + 360. #0...360
+            #~ 
+            #~ thelon = _unique_lon(thelon)
+            #~ 
+            #~ #if masked array then keep mask
+            #~ if hasattr(xm,'mask'):
+                #~ orgmask = xm.mask.copy()
+            #~ else:
+                #~ orgmask = np.ones(xm.shape).astype('bool')
+            #~ xm,thelon1  = shiftgrid(180.,xm,thelon)
+            #~ orgmask,xxx = shiftgrid(180.,orgmask,thelon)
+            #~ 
+            #~ tmp = x.lat[:,0].copy()
+            #~ THELON,TMP = np.meshgrid(thelon1,tmp) #generate 2D field of lon again
+            #~ 
+            #~ xm = np.ma.array(xm,mask=orgmask)
+#~ 
+            #~ 
+        #~ else:
+            #~ THELON = x.lon
+        
+        #here is still a problem in the plotting over land; masking does not work properly,
+        #while the data as such is o.k.!
+        #~ im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
         __basemap_ancillary(m1)
-        #~ plt.colorbar(im1,ax=ax,ticks=cticks)
 
     else: #use_basemap = False
         #- normal plots
-        im1=ax.imshow(xm,cmap=cmap,**kwargs); plt.colorbar(im1,ax=ax,ticks=cticks)
+        im1=ax.imshow(xm,cmap=cmap,**kwargs)
         ax.set_xticks([]); ax.set_yticks([])
+        
+    plt.colorbar(im1,ax=ax,ticks=cticks)
+    
+    #~ plt.figure()
+    #~ plt.imshow(Z.mask)
 
     #--- set title
     if title == None:
@@ -504,14 +547,14 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
         #plot 1
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax1,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
         xmap, ymap = m1(x.lon,x.lat)
-        im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
         __basemap_ancillary(m1)
         plt.colorbar(im1,ax=ax1,ticks=cticks)
         
         #plot 2
         m2=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax2,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
         xmap, ymap = m2(y.lon,y.lat)
-        im2=m2.pcolormesh(xmap,ymap,ym,cmap=cmap**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        im2=m2.pcolormesh(xmap,ymap,ym,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
         __basemap_ancillary(m2)
         plt.colorbar(im2,ax=ax2,ticks=cticks)
         
