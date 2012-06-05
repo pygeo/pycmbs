@@ -104,7 +104,7 @@ class ReichlerPlot():
         self.ax.set_xticklabels(self.labels)
         if (vmin !=None) & (vmax != None):
             self.ax.set_ylim(vmin,vmax)
-        self.ax.set_ylabel('relative error to multimodel mean [%]')
+        self.ax.set_ylabel('relative error \n to multimodel \n mean [%]')
         self.ax.grid()
         self.ax.set_title(title)
         
@@ -186,6 +186,16 @@ class LinePlot():
         self.show_xlabel = show_xlabel
         self.show_ylabel = show_ylabel
         
+        self.lines = []
+        self.labels = []
+        
+    def legend(self):
+        '''
+        plot legend
+        '''
+        self.ax.legend(self.lines,self.labels,prop={'size':8})
+        
+        
         
     def plot(self,x,ax=None,vmin=None,vmax=None,**kwargs):
         '''
@@ -205,8 +215,11 @@ class LinePlot():
             if self.regress: #calculate linear regression
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
                 label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+                
+            self.labels.append(label)
 
-            p = ax.plot(plt.num2date(x.time), y , label=label,**kwargs)[0]
+            p = ax.plot(plt.num2date(x.time), y , label=label, **kwargs)[0]
+            self.lines.append(p)
             if self.regress:
                 ax.plot(x.time,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
 
