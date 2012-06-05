@@ -249,7 +249,7 @@ class SVD():
         else:
             mode_list = [mode]
         
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,cmap='RdBu_r'):
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,cmap='RdBu_r',cticks=None):
             '''
             R data object
             '''
@@ -262,7 +262,7 @@ class SVD():
                 O = R.copy()
                 O.label = 'correlation'
             
-            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,shift=True,vmin=vmin,vmax=vmax)
+            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,shift=True,vmin=vmin,vmax=vmax,cticks=cticks,title=title)
             
         
         
@@ -291,12 +291,11 @@ class SVD():
             if ctype == 'hetero':
                 Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.B[:,i],pthres=pthres)
                 Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.A[:,i],pthres=pthres)
-            
 
-            
-            plot_cmap(Rout1,ax1,ctype,plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r') #correlation field 1
-            plot_cmap(Rout2,ax2,ctype,plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r') #correlation field 2
-            plot_cmap(Rout2,ax3,ctype,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd')  #explained variance field 2
+
+            plot_cmap(Rout1,ax1,'correlation',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 1
+            plot_cmap(Rout2,ax2,'correlation',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 2
+            plot_cmap(Rout2,ax3,'variance',plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0])  #explained variance field 2
             
             ax1.figure.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i],2)) + ')' +   ' - ' + ctype)
             
@@ -798,6 +797,7 @@ class Diagnostic():
                 ydata = ydata[~msk].flatten()
                 
                 #print 'Final data',len(xdata),len(ydata)
+                
                 
                 slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
                 R[length,i1] = r
