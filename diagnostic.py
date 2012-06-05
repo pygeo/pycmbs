@@ -249,31 +249,21 @@ class SVD():
         else:
             mode_list = [mode]
         
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None):
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,cmap='RdBu_r'):
             '''
             R data object
             '''
             
             if plot_var:
-                O = R.data * R.data
+                O = R.copy()
+                O.data = O.data*O.data
+                O.label = 'variance'
             else:
-                O = R.data
+                O = R.copy()
+                O.label = 'correlation'
             
-            map_plot(R,use_basemap=use_basemap,ax=ax,region=region,cmap_data='RdBu_r',shift=True)
+            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,shift=True,vmin=vmin,vmax=vmax)
             
-            
-            #~ cmap = mpl.cm.get_cmap('RdBu_r',10)
-            #~ ax.imshow(O,interpolation='nearest',vmin=vmin,vmax=vmax,cmap=cmap)
-            #~ ax.set_title(title)
-            
-            #colorbar setup
-            
-            #~ divider = make_axes_locatable(ax)
-            #~ cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
-            #~ ax.figure.add_axes(cax) 
-        
-            #~ norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-            #~ cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
         
         
         
@@ -284,13 +274,14 @@ class SVD():
             
             if ax1in == None:
                 fig=plt.figure()
-                ax1 = fig.add_subplot(221)
-                ax2 = fig.add_subplot(222)
-                ax3 = fig.add_subplot(212)
+                ax1 = fig.add_subplot(231)
+                ax2 = fig.add_subplot(232)
+                ax3 = fig.add_subplot(233)
+                ax4 = fig.add_subplot(212)
             else:
                 ax1 = ax1in
                 ax2 = ax2in
-                ax3 = ax1in.figure.add_subplot(313)
+                ax4 = ax1in.figure.add_subplot(313)
             
             
             if ctype == 'homo':
@@ -303,13 +294,13 @@ class SVD():
             
 
             
-            plot_cmap(Rout1,ax1,ctype,plot_var=plot_var,use_basemap=self.use_basemap,region=region1)
-            plot_cmap(Rout2,ax2,ctype,plot_var=plot_var,use_basemap=self.use_basemap,region=region2)
-            
+            plot_cmap(Rout1,ax1,ctype,plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r') #correlation field 1
+            plot_cmap(Rout2,ax2,ctype,plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r') #correlation field 2
+            plot_cmap(Rout2,ax3,ctype,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd')  #explained variance field 2
             
             ax1.figure.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i],2)) + ')' +   ' - ' + ctype)
             
-            self.plot_expansion_correlation(i,ax=ax3)
+            self.plot_expansion_correlation(i,ax=ax4)
             
             #--- save figure
             if filename != None:
@@ -401,7 +392,7 @@ class SVD():
         ax.plot(self.B[:,mode]/np.std(self.B[:,mode]),label='B')
         c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
         plt.legend()
-        ax.set_title('expansion coefficient #' + str(mode) + ' (r=' + str(c) + ')')
+        ax.set_title('expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')')
         ax.set_xlabel('time')
         ax.set_ylabel('normalized expansion coefficient')
         
