@@ -224,7 +224,7 @@ class Data():
         else:
             self.time = None
         
-        print 'Vor settime(): ', self.data.ndim, self.data.shape
+        #~ print 'Vor settime(): ', self.data.ndim, self.data.shape
         
         #- determine time
         self.set_time()
@@ -266,19 +266,19 @@ class Data():
 
             
 
-        print 'Vor temporal subsetting(): ', self.data.ndim, self.data.shape
+        #~ print 'Vor temporal subsetting(): ', self.data.ndim, self.data.shape
         
         #- perform temporal subsetting
         if self.time != None:
             #- now perform temporal subsetting
             # BEFORE the conversion to the right time is required!
             m1,m2 = self._get_time_indices(start_time,stop_time)
-            print 'found indices: ', m1,m2
+            #~ print 'found indices: ', m1,m2
             self._temporal_subsetting(m1,m2)
             #~ print 'After temporal subsetting', np.shape(self.data), m1,m2
         
         
-        print 'Nach temporal subsetting(): ', self.data.ndim, self.data.shape
+        #~ print 'Nach temporal subsetting(): ', self.data.ndim, self.data.shape
         
         #~ print 'Data in read(): ', self.data
         
@@ -1036,6 +1036,45 @@ class Data():
         d.label = self.label + ' - ' + x.label
         
         return d
+
+    def subc(self,x,copy=True):
+        '''
+        @param x: number to be substracted
+        @type  x: float
+        Substract constant x from current field
+        '''
+
+        if copy:
+            d = self.copy()
+        else:
+            d = self
+        d.data -= x
+        return d
+
+        
+        
+    def div(self,x,copy=True):
+        '''
+        division
+        
+        @param x: A C{Data} object in the dominator
+        @type  x: Data object
+        
+        Divide current field by variable x
+        '''
+        
+        if np.shape(self.data) != np.shape(x.data):
+            print 'Inconsistent geometry (sub): can not calculate!'
+        
+        if copy:
+            d = self.copy()
+        else:
+            d = self
+            
+        d.data = d.data / x.data
+        d.label = self.label + ' / ' + x.label
+        
+        return d        
         
     def _sub_sample(self,step):
         '''
