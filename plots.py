@@ -22,6 +22,10 @@ from diagnostic import *
 
 from scipy.spatial import cKDTree as KDTree #import the C version of KDTree (faster)
 
+#http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
+from mpl_toolkits.axes_grid import make_axes_locatable
+import  matplotlib.axes as maxes 
+
 
 #todo:
 # - implement Glecker plots
@@ -88,7 +92,7 @@ class ReichlerPlot():
         self.labels.append(label)
         self.colors.append(color)
         
-    def bar(self,vmin=None,vmax=None,**kwargs):
+    def bar(self,vmin=None,vmax=None,title='',**kwargs):
         '''
         generate barplot
         '''
@@ -102,6 +106,7 @@ class ReichlerPlot():
             self.ax.set_ylim(vmin,vmax)
         self.ax.set_ylabel('relative error to multimodel mean [%]')
         self.ax.grid()
+        self.ax.set_title(title)
         
         
     def simple_plot(self):
@@ -341,7 +346,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
             else:
                 dlat = (region.latmax-region.latmin)*0.25; dlon = (region.lonmax-region.lonmin)*0.25
-                di = max(dlat,dlon)
+                #~ di = max(dlat,dlon)
                 di = 0. #with 0 it works; for other values problems may occur for negative lon!
                 llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
@@ -430,8 +435,15 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #- normal plots
         im1=ax.imshow(xm,cmap=cmap,**kwargs)
         ax.set_xticks([]); ax.set_yticks([])
+
         
-    plt.colorbar(im1,ax=ax,ticks=cticks)
+    #set legend aligned with plot (nice looking)
+    divider = make_axes_locatable(ax)
+    cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+    ax.figure.add_axes(cax) 
+    norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
+    cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+
     
     #~ plt.figure()
     #~ plt.imshow(Z.mask)
@@ -497,7 +509,7 @@ def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
     
     
     
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r', **kwargs):
+def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,shift=False,title=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,rmax=1., **kwargs):
     '''
     produce a plot with
     values for each dataset
@@ -506,9 +518,10 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
     
     fig = plt.figure()
     
-    ax1 = fig.add_subplot(311)
-    ax2 = fig.add_subplot(312)
-    ax3 = fig.add_subplot(313)
+    ax1 = fig.add_subplot(221)
+    ax2 = fig.add_subplot(222)
+    ax3 = fig.add_subplot(223)
+    ax4 = fig.add_subplot(224)
     
     #--- get colormap
     cmap = plt.cm.get_cmap(cmap_data, nclasses)   
@@ -518,88 +531,17 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,cticks=None
     
     proj='robin'; lon_0=0.; lat_0=0.
     
-    if use_basemap:
-        #draw_map(x.lat,x.lon,xm,'none.png',vmin=-2.,vmax=2.,show_grids=False,show_colorbar=True,tit=x.label,resolution='l',proj=proj,save=False,outdpi=300.,ax=ax1,ccmap=plt.cm.jet)
-        
-        #set map boundaries by region
-        llcrnrlon=None; llcrnrlat=None; urcrnrlon=None; urcrnrlat=None
-        if region !=None:
-            if not hasattr(region,'lonmin'):
-                print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
-            else:
-                dlat = (region.latmax-region.latmin)*0.25
-                dlon = (region.lonmax-region.lonmin)*0.25
-                di = max(dlat,dlon)
-                llcrnrlon=region.lonmin - di
-                llcrnrlat=region.latmin - di
-                urcrnrlon=region.lonmax + di
-                urcrnrlat=region.latmax + di
-                
-                proj='tmerc'
-
-            
-        
-        
-
-            
-            
-        
-        #plot 1
-        m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax1,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
-        xmap, ymap = m1(x.lon,x.lat)
-        im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-        __basemap_ancillary(m1)
-        plt.colorbar(im1,ax=ax1,ticks=cticks)
-        
-        #plot 2
-        m2=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax2,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
-        xmap, ymap = m2(y.lon,y.lat)
-        im2=m2.pcolormesh(xmap,ymap,ym,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-        __basemap_ancillary(m2)
-        plt.colorbar(im2,ax=ax2,ticks=cticks)
-        
-        if xm.shape == ym.shape:
-            #plot 2
-            m3=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax3,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
-            xmap, ymap = m3(y.lon,y.lat)
-            cmap_diff = plt.cm.get_cmap(cmap_difference, nclasses)    # discrete colors
-            #im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=plt.cm.RdBu) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-            im3=m3.pcolormesh(xmap,ymap,xm-ym,vmin=dmin,vmax=dmax,cmap=cmap_diff) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-            __basemap_ancillary(m3)
-            plt.colorbar(im3,ax=ax3)
-            
-            
-        else:
-            msg = 'Difference plot not possible as data has different shape'
-            ax3.text(0.5, 0.5,msg,
-                 horizontalalignment='center',
-                 verticalalignment='center') #,
-
-        
-    else: #use_basemap
-        #- normal plots
-        cmap_diff = plt.cm.get_cmap(cmap_difference, nclasses)    # discrete colors
-        im1=ax1.imshow(xm,cmap=cmap,**kwargs); plt.colorbar(im1,ax=ax1,ticks=cticks)
-        im2=ax2.imshow(ym,cmap=cmap,**kwargs); plt.colorbar(im2,ax=ax2,ticks=cticks)
-        
-        if xm.shape == ym.shape:
-            if (dmin != None) & (dmax != None):
-                im3=ax3.imshow(xm - ym,cmap=cmap_diff,vmin=dmin,vmax=dmax); plt.colorbar(im3,ax=ax3)
-            else:
-                im3=ax3.imshow(xm - ym,cmap=cmap_diff); plt.colorbar(im3,ax=ax3)
-            ax3.set_title(x._get_label() + ' - ' + y._get_label() )
-        else:
-            msg = 'Difference plot not possible as data has different shape'
-            ax3.text(0.5, 0.5,msg,
-                 horizontalalignment='center',
-                 verticalalignment='center') #,
-                 #transform = ax.transAxes)
-        
-        ax1.set_xticks([]); ax1.set_yticks([])
-        ax2.set_xticks([]); ax2.set_yticks([])
-        ax3.set_xticks([]); ax3.set_yticks([])
-        
-    ax1.set_title(x._get_label())
-    ax2.set_title(y._get_label())
+    #- plot first dataset
+    map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title, shift=shift, **kwargs)
     
+    #- plot second dataset
+    map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title, shift=shift, **kwargs)
+    
+    #-first minus second dataset
+    map_plot(x.sub(y),use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']', shift=shift)
+    
+    #- relative error
+    map_plot(y.div(x).subc(1.),use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=None,region=region ,nclasses=nclasses,cmap_data=cmap_difference, shift=shift)
+    
+
     return fig
