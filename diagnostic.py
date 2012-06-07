@@ -204,7 +204,7 @@ class SVD():
             
             
 
-    def plot_correlation_map(self,mode,ctype='hetero',ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,region1=None,region2=None):
+    def plot_correlation_map(self,mode,ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,region1=None,region2=None):
         '''
         plot correlation map of an SVN mode
         with original data
@@ -222,15 +222,7 @@ class SVD():
         
         plot_var: plot variance instead of correlation
         '''
-        
-        
 
-        
-        types = ['homo','hetero']
-        if ctype in types:
-            pass
-        else:
-            raise ValueError, 'Invalid ctype'
             
         n1,m1 = self.A.shape
         n2,m2 = self.B.shape
@@ -268,43 +260,57 @@ class SVD():
         
         
         
-        print 'Mode list for correlatio maps: ', mode_list
+        
         #/// calculate correlations and do plotting
+
+        
+        
         for i in mode_list:
+            fig=plt.figure()
+            ax1a = fig.add_subplot(331) #homogeneous plots
+            ax1b = fig.add_subplot(332)
+            ax1c = fig.add_subplot(333)
             
-            if ax1in == None:
-                fig=plt.figure()
-                ax1 = fig.add_subplot(231)
-                ax2 = fig.add_subplot(232)
-                ax3 = fig.add_subplot(233)
-                ax4 = fig.add_subplot(212)
-            else:
-                ax1 = ax1in
-                ax2 = ax2in
-                ax4 = ax1in.figure.add_subplot(313)
+            ax2a = fig.add_subplot(334) #homogeneous plots
+            ax2b = fig.add_subplot(335)
+            ax2c = fig.add_subplot(336)   
+            
+            ax3  = fig.add_subplot(313)   
             
             
-            if ctype == 'homo':
-                Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.A[:,i],pthres=pthres)
-                Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.B[:,i],pthres=pthres)
+                     
             
-            if ctype == 'hetero':
-                Rout1,Sout1,Iout1,Pout1 = self.X.corr_single(self.B[:,i],pthres=pthres)
-                Rout2,Sout2,Iout2,Pout2 = self.Y.corr_single(self.A[:,i],pthres=pthres)
+            #homogeneous correlations
+            Rout1_ho,Sout1_ho,Iout1_ho,Pout1_ho = self.X.corr_single(self.A[:,i],pthres=pthres)
+            Rout2_ho,Sout2_ho,Iout2_ho,Pout2_ho = self.Y.corr_single(self.B[:,i],pthres=pthres)
 
-
-            plot_cmap(Rout1,ax1,'correlation',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 1
-            plot_cmap(Rout2,ax2,'correlation',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 2
-            plot_cmap(Rout2,ax3,'variance',plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0])  #explained variance field 2
+            #heterogeneous correlations
+            Rout1_he,Sout1_he,Iout1_he,Pout1_he = self.X.corr_single(self.B[:,i],pthres=pthres)
+            Rout2_he,Sout2_he,Iout2_he,Pout2_he = self.Y.corr_single(self.A[:,i],pthres=pthres)
             
-            ax1.figure.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i],2)) + ')' +   ' - ' + ctype)
+            #--- plot maps
+            #homogeneous
+            plot_cmap(Rout1_ho,ax1a,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 1
+            plot_cmap(Rout2_ho,ax1b,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 2
+            plot_cmap(Rout2_ho,ax1c,'variance (homo)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0])  #explained variance field 2
             
-            self.plot_expansion_correlation(i,ax=ax4)
+            #heterogeneous
+            plot_cmap(Rout1_he,ax2a,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 1
+            plot_cmap(Rout2_he,ax2b,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 2
+            plot_cmap(Rout2_he,ax2c,'variance (hetero)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0])  #explained variance field 2
+            
+            #expansion coefficients
+            self.plot_expansion_correlation(i,ax=ax3)
+            
+            #figure title
+            fig.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i],2)) + ')',size=14)
+            fig.subplots_adjust(wspace=0.5)
+            
             
             #--- save figure
             if filename != None:
-                oname = filename + '_' + ctype + '_mode_' + str(i) + '.' + self.ext
-                ax1.figure.savefig(oname,dpi=self.dpi)
+                oname = filename + '_mode_' + str(i) + '.' + self.ext
+                ax1a.figure.savefig(oname,dpi=self.dpi)
         
     def _get_variance_field(self,X,E,mode,pthres=1.01):
         '''
@@ -391,9 +397,9 @@ class SVD():
         ax.plot(self.B[:,mode]/np.std(self.B[:,mode]),label='B')
         c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
         plt.legend()
-        ax.set_title('expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')')
+        ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')',size=10)
         ax.set_xlabel('time')
-        ax.set_ylabel('normalized expansion coefficient')
+        #~ ax.set_ylabel('normalized expansion coefficient')
         
         
 

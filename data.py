@@ -444,6 +444,7 @@ class Data():
             raise ValueError, 'Invalid dimension when calculating climatology'
             
         clim = np.ma.array(clim,mask=np.isnan(clim))
+        #todo take also into account the mask from the original data set
 
         return clim
         
