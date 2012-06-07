@@ -170,6 +170,33 @@ class ReichlerPlot():
         
 ########################################################################        
 
+class ScatterPlot():
+    
+    def __init__(self,x,ax=None):
+        '''
+        x data object
+        '''
+        
+        
+        if ax == None:
+            f = plt.figure()
+            self.ax = f.add_subplot(111)
+        else:
+            self.ax = ax
+        
+        self.figure = self.ax.figure
+        self.x = x
+        self.lines = []
+        self.labels = []
+        
+    def plot(self,x):
+        label=x.label
+        l = self.ax.plot(self.x.fldmean(),x.fldmean())
+        self.lines.append(l)
+        self.labels.append(label)
+        
+        
+
 
 class LinePlot():
     '''
@@ -181,6 +208,8 @@ class LinePlot():
             self.ax = f.add_subplot(111)
         else:
             self.ax = ax
+        
+        self.figure = self.ax.figure
         self.regress = regress
         self.title = title
         self.show_xlabel = show_xlabel
@@ -463,9 +492,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- set title
     if title == None:
-        ax.set_title(x._get_label())
+        ax.set_title(x._get_label(),size=10)
     else:
-        ax.set_title(title)
+        ax.set_title(title,size=10)
     
     return fig
 
