@@ -26,6 +26,29 @@ class Region():
         self.label=label
         self.type = type
         self.mask = mask
+    
+    def get_corners(self):
+        '''
+        return a list of corner coordinates
+        '''
+        if self.type == 'latlon':
+            return self._get_corners_latlon()
+        else:
+            return self._get_corners_index()
+    
+    def _get_corners_latlon(self):
+        l = []
+        l.append( (self.lonmin,self.latmin)   )
+        l.append( (self.lonmin,self.latmax)   )
+        l.append( (self.lonmax,self.latmax)   )
+        l.append( (self.lonmax,self.latmin)   )
+        return l
+        
+    def _get_corners_index(self):
+        sys.exit('Routine for corner indices not implemented yet!')
+        
+        
+        
         
     def get_subset(self,x):
         '''

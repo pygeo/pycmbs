@@ -17,8 +17,6 @@ from statistic import get_significance
 
 import matplotlib.pylab as pl
 
-
-
 class Data():
     '''
     generic data handling class for pyCMBS
@@ -93,6 +91,9 @@ class Data():
 
         return r
         
+    def _get_unit(self):
+        return '[' + self.unit + ']'
+        
         
     def _get_weighted_data(self,weights):
         '''
@@ -151,6 +152,7 @@ class Data():
         self.data = self.read_netcdf(self.varname) #o.k.
         #this scaling is related to unit conversion and NOT
         #due to data compression
+        print 'scale_factor : ', self.scale_factor
         self.data = self.data * self.scale_factor 
         
         
@@ -388,7 +390,7 @@ class Data():
         
         Example:
         get_mask([1,2,3],mtype='monthly')
-        will return a mask, where the months of Jan-Mar are set top True
+        will return a mask, where the months of Jan-Mar are set to True
         this can be used e.g. further with the routine get_yearmean()
         
         '''
@@ -628,13 +630,13 @@ class Data():
         
         data = var.get_value().astype('float').copy()
         
-        if 'albedo' in varname:
-            print 'Data in read_netcdf', varname
-            print F
+        #~ if 'albedo' in varname:
+            #~ print 'Data in read_netcdf', varname
+            #~ print F
             #~ print data
-            print data.data
-            print varname
-            print self.filename
+            #~ print data.data
+            #~ print varname
+            #~ print self.filename
             
             #~ pl.figure()
             #~ pl.imshow(data[0,:,:])
@@ -676,8 +678,14 @@ class Data():
             scal = 1.
             #todo add_offset
         
+        if hasattr(var,'add_offset'):
+            offset = var.add_offset
+        else:
+            offset = 0.
+        
+        
         #print '    scale_factor: ', scal
-        data = data * scal
+        data = data * scal + offset
         
         
         if 'time' in F.variables.keys():
@@ -848,6 +856,23 @@ class Data():
         msk = msk_lat & msk_lon & msk_region  # valid area
         
         self._apply_mask(msk)
+        
+    def get_valid_mask(self):
+        '''
+        calculate a mask which is True, when all timestamps
+        of the field are valid
+        '''
+        
+        if self.data.ndim == 2:
+            return np.ones(self.data.shape).astype('bool')
+        elif self.data.ndim == 3:
+            n = len(self.data)
+            msk = np.sum(~np.isnan(self.data),axis=0) == n
+            return msk
+        else:
+            raise ValueError, 'unsupported dimension!'
+        
+        
         
     def get_valid_data(self):
         '''
@@ -1096,7 +1121,7 @@ class Data():
         @type  x: numpy array [time]
         
         For efficiency reasons, the calculations are
-        performed rowwise for all grid cells using
+        performed row-wise for all grid cells using
         corrcoef()
         
         Output: correlation coefficient for each grid point

@@ -8,6 +8,8 @@ __date__ = "0000/00/00"
 
 from matplotlib import pylab as plt
 
+from matplotlib.patches import Polygon
+
 from mpl_toolkits.basemap import Basemap,shiftgrid
 
 from scipy import stats
@@ -174,7 +176,7 @@ class ScatterPlot():
     
     def __init__(self,x,ax=None):
         '''
-        x data object
+        x data object. This will be used for the x-variable
         '''
         
         
@@ -189,13 +191,30 @@ class ScatterPlot():
         self.lines = []
         self.labels = []
         
-    def plot(self,x):
-        label=x.label
-        l = self.ax.plot(self.x.fldmean(),x.fldmean())
-        self.lines.append(l)
-        self.labels.append(label)
+
         
+    def plot(self,y,regress=True,**kwargs):
+        label=y.label
         
+        xdat = self.x.fldmean(); ydat = y.fldmean()
+        
+        if regress: #calculate linear regression
+            slope, intercept, r_value, p_value, std_err = stats.linregress(xdat,ydat)
+            label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+
+        l = self.ax.plot(xdat,ydat,'.',label=label,**kwargs)[0]
+        if regress:
+            self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color()) 
+        self.lines.append(l); self.labels.append(label)
+        
+        self.ax.set_xlabel(self.x._get_label() )
+        self.ax.set_ylabel(y._get_unit())
+        
+    def legend(self):
+        '''
+        plot legend
+        '''
+        self.ax.legend(self.lines,self.labels,prop={'size':8})
 
 
 class LinePlot():
@@ -226,7 +245,7 @@ class LinePlot():
         
         
         
-    def plot(self,x,ax=None,vmin=None,vmax=None,**kwargs):
+    def plot(self,x,ax=None,vmin=None,vmax=None,label = None, **kwargs):
         '''
         x: object of Data class
         '''
@@ -239,7 +258,8 @@ class LinePlot():
                 ax = ax
             
             y = x.fldmean()
-            label = x.label
+            if label == None:
+                label = x.label
             
             if self.regress: #calculate linear regression
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
@@ -253,7 +273,7 @@ class LinePlot():
                 ax.plot(x.time,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
 
             if self.show_ylabel:
-                ax.set_ylabel(x.unit)
+                ax.set_ylabel(x._get_unit())
             if self.show_xlabel:
                 ax.set_xlabel('time')
             
@@ -357,11 +377,14 @@ def __basemap_ancillary(m):
 
 #=======================================================================
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None, shift=False, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None, **kwargs):
     '''
     produce a plot with
     values for each dataset
     and the difference between the two
+    
+    
+    regions_to_plot (list): list of Region objects. If this argument is given, then the boundaries of each region is plotted in the map together with its label
     '''
     
     #--- create new figure
@@ -376,6 +399,19 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #--- temporal mean fields
     xm = x.timmean()
     
+    #--- logscale plot ?
+    if logplot:
+        if logoffset == None:
+            if xm.min() < 0.:
+                logoffset = abs(xm.min())*1.01
+            else:
+                logoffset = 0.
+        else:
+            logoffset = logoffset
+        
+        print 'logoffset: ', logoffset
+        
+        xm = np.log10( xm + logoffset )
     
     #--- set projection parameters
     proj='robin'; lon_0=0.; lat_0=0.
@@ -486,15 +522,32 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
     cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
-    
-    #~ plt.figure()
-    #~ plt.imshow(Z.mask)
+    def _add_region(m,r,color='red'):
+        '''
+        plot region r on top of basemap map m
+        '''
+        corners = r.get_corners() #get list of corner coordinates
+        corners = np.asarray(corners)
+        lons = corners[:,0]; lats=corners[:,1]
+        x,y = m(lons,lats)
+        xy = list(zip(x,y))
+        mapboundary = Polygon(xy,edgecolor=color,linewidth=1,fill=False,linestyle='dashed')
+        m.ax.add_patch(mapboundary)
 
+    #--- plot regions in the map ---
+    if regions_to_plot != None:
+        if use_basemap:
+            for region in regions_to_plot:
+                if region.type=='latlon':
+                    _add_region(m1,region)
+
+    
+    
     #--- set title
     if title == None:
-        ax.set_title(x._get_label(),size=10)
+        ax.set_title(x._get_label(),size=8)
     else:
-        ax.set_title(title,size=10)
+        ax.set_title(title,size=8)
     
     return fig
 
