@@ -17,6 +17,8 @@ import matplotlib as  mpl
 
 from pyCMBS.plots import map_plot
 
+from pyCMBS.data import Data
+
 
 from scipy import linalg, dot;
 
@@ -41,7 +43,6 @@ class SVD():
         if n != len(y):
             raise ValueError, 'Datasets need to have same timelength!'
 
-
         x.shape = (n,-1) #[time,position]
         y.shape = (n,-1) 
         
@@ -57,7 +58,7 @@ class SVD():
         self.ext = 'pdf' #file extension for plotting
         self.use_basemap = False
         
-    def __get_valid_timeseries(self,x):
+    def _get_valid_timeseries(self,x):
         '''
         get only points where all
         timeseries are valid
@@ -94,8 +95,10 @@ class SVD():
     def svd_analysis(self):
         
         #/// perform SVN only for data points which are valid throughout entire time series ///
-        x,mskx = self.__get_valid_timeseries(self.x)
-        y,mxky = self.__get_valid_timeseries(self.y)
+        x,mskx = self._get_valid_timeseries(self.x)
+        y,msky = self._get_valid_timeseries(self.y)
+        
+        self.mskx = mskx; self.msky = msky
         
         print ' Dimensions for x in SVN: ', x.shape
         print ' Dimensions for y in SVN: ', y.shape
@@ -104,9 +107,14 @@ class SVD():
         x = self.__detrend_time(x)
         y = self.__detrend_time(y)
         
+
+        
         #calculate covariance matrix
         C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual grid points, but only the covariance terms!
         self.C = C
+        
+        self.x_used = x.copy() #store vectors like they are used for SVD calculations
+        self.y_used = y.copy()
         
         #singular value decomposition
         print '   Doing singular value decomposition ...'
@@ -138,7 +146,62 @@ class SVD():
             self.mcorr.append(c)
         self.mcorr = np.asarray(self.mcorr)
         
+    def get_singular_vectors(self,mode):
+        '''
+        return the singular vectors of both fields for a specific mode
+        as a spatial (2D) field
         
+        both, U and V are calculated and returned
+        '''
+        
+        
+        #x_used is a vector that only contains the valid values that were used for caluclation of covariance matrix C
+        #mskx is the corresponding mask that maps x_used to the original geometry (both are estimated with _get_valid_timeseries()  )
+        
+        u = self.U[:,mode]; v = self.V[:,mode] #get singular vectors
+        
+        #map singular vectors to 2D
+        udat = self._map_valid2org(u,self.mskx,self.X.data[0,:,:].shape)
+        vdat = self._map_valid2org(v,self.msky,self.Y.data[0,:,:].shape)
+        
+        U = self.X.copy(); U.label = 'U(' + str(mode) + ')'
+        U.data = udat.copy()
+        
+        V = self.Y.copy(); V.label = 'V(' + str(mode) + ')'
+        V.data = vdat.copy()
+        
+        return U,V
+        
+        
+        
+        
+    def _map_valid2org(self,data,mask,target_shape):
+        '''
+        map valid data vector back to
+        original data shape
+        
+        data: data vector that was used for SVD calculations (1D)
+        mask: 1 D mask 
+        '''
+        
+
+        sz = np.shape(data)
+        if sz[0] != mask.sum():
+            print sz[1]; print mask.sum()
+            raise ValueError, 'Inconsistent mask and data'
+        
+        
+        res = np.ones(target_shape)*np.nan; res.shape = (-1)
+        res[mask] = data.copy()
+        
+        res = np.ma.array(res,mask=np.isnan(res))
+        res = np.reshape(res,target_shape)
+        
+        return res
+        
+        
+        
+
 
         
         
@@ -202,9 +265,55 @@ class SVD():
             oname = filename + '_mode_var.' + self.ext
             ax.figure.savefig(oname,dpi=self.dpi)
             
+
+    def plot_singular_vectors(self,mode,use_basemap=False,logplot=False,filename=None):
+        '''
+        generate maps of singular vectors U and V
+        
+        mode (list) : list of modes to be plotted
+        '''
+        
+        #--- mode list
+        if mode == None: #plot all modes with variance contained
+            mode_list = []
+            for i in range(len(self.scf)):
+                if self.scf[i] > self.scf_threshold:
+                    mode_list.append(i)
+        else:
+            mode_list = [mode]
+            
+        #--- generate plots
+        for i in mode_list:
+            fig=plt.figure()
+            ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122)
+            
+            U,V = self.get_singular_vectors(i) #get singular vector fields
+            
+            #--- determine min/max values
+            mu = U.data.mean(); su = U.data.std()
+            mv = V.data.mean(); sv = V.data.std()
+            
+            su = 1.96*su; sv = 1.96*sv #not used at the moment
+            
+            if logplot:
+                umin=None;umax=None
+                vmin=None;vmax=None
+            else:
+                umin=mu-su;umax=mu+su
+                vmin=mv-sv;vmax=mv+sv
+            
+            map_plot(U,use_basemap=use_basemap,ax=ax1,logplot=logplot,vmin=umin,vmax=umax)
+            map_plot(V,use_basemap=use_basemap,ax=ax2,logplot=logplot,vmin=vmin,vmax=vmax)
+            
+            fig.suptitle('Mode: #' + str(i) + ' scf: ' + str(round(self.scf[i]*100.,1) ) + '%', size=14)
+
+            if filename != None:
+                fig.savefig(filename + '_singular_vectors_mode_' + str(i).zfill(5) + '.pdf' )
+
+
             
 
-    def plot_correlation_map(self,mode,ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,region1=None,region2=None):
+    def plot_correlation_map(self,mode,ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,region1=None,region2=None,regions_to_plot=None):
         '''
         plot correlation map of an SVN mode
         with original data
@@ -241,7 +350,7 @@ class SVD():
         else:
             mode_list = [mode]
         
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,cmap='RdBu_r',cticks=None):
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,cmap='RdBu_r',cticks=None,regions_to_plot=None):
             '''
             R data object
             '''
@@ -249,12 +358,15 @@ class SVD():
             if plot_var:
                 O = R.copy()
                 O.data = O.data*O.data
-                O.label = 'variance'
+                O.label = 'exp.frac.var.'
             else:
                 O = R.copy()
                 O.label = 'correlation'
             
-            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,shift=True,vmin=vmin,vmax=vmax,cticks=cticks,title=title)
+            #calculate mean and stdv
+            O.label = O.label + ' (' + str(round(O.data.mean(),2)) + ' ' + str(round(O.data.std(),2)) + ')'
+            
+            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,vmin=vmin,vmax=vmax,cticks=cticks,title=title,regions_to_plot=regions_to_plot)
             
         
         
@@ -289,15 +401,16 @@ class SVD():
             Rout2_he,Sout2_he,Iout2_he,Pout2_he = self.Y.corr_single(self.A[:,i],pthres=pthres)
             
             #--- plot maps
+            print 'Starting map plotting'
             #homogeneous
-            plot_cmap(Rout1_ho,ax1a,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 1
-            plot_cmap(Rout2_ho,ax1b,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 2
-            plot_cmap(Rout2_ho,ax1c,'variance (homo)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0])  #explained variance field 2
+            plot_cmap(Rout1_ho,ax1a,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
+            plot_cmap(Rout2_ho,ax1b,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
+            plot_cmap(Rout2_ho,ax1c,'variance (homo)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0],regions_to_plot=regions_to_plot)  #explained variance field 2
             
             #heterogeneous
-            plot_cmap(Rout1_he,ax2a,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 1
-            plot_cmap(Rout2_he,ax2b,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.]) #correlation field 2
-            plot_cmap(Rout2_he,ax2c,'variance (hetero)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0])  #explained variance field 2
+            plot_cmap(Rout1_he,ax2a,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
+            plot_cmap(Rout2_he,ax2b,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
+            plot_cmap(Rout2_he,ax2c,'variance (hetero)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=1.,cmap='YlOrRd',cticks=[0.,0.5,1.0],regions_to_plot=regions_to_plot)  #explained variance field 2
             
             #expansion coefficients
             self.plot_expansion_correlation(i,ax=ax3)
@@ -399,7 +512,7 @@ class SVD():
         plt.legend()
         ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')',size=10)
         ax.set_xlabel('time')
-        #~ ax.set_ylabel('normalized expansion coefficient')
+        ax.set_ylim(-3.,3.)
         
         
 
