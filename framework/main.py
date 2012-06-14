@@ -7,7 +7,7 @@ USAGE:
     main.py [-h, --help]
 
 DESCRIPTION
-    
+
     programm to plot difference in rainfall between two data sets
 '''
 
@@ -55,19 +55,19 @@ import matplotlib.pylab as pl
 
 #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
 from mpl_toolkits.axes_grid import make_axes_locatable
-import  matplotlib.axes as maxes 
+import  matplotlib.axes as maxes
 
 
 
 
 
-#--- global variables 
+#--- global variables
 #data_pool_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
 if 'SEP' in os.environ.keys():
     data_pool_directory = os.environ['SEP'] #get directory of pool/SEP
 else:
     data_pool_directory = '/pool/SEP/'
-    
+
 print 'SEP directory: ' + data_pool_directory
 
 model_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
@@ -75,6 +75,12 @@ model_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
 
 f_fast=True
 shift_lon = use_basemap = not f_fast
+
+
+
+
+
+
 
 
 class Model(Data):
@@ -85,23 +91,23 @@ class Model(Data):
     def __init__(self,data_dir,dic_variables,name='',**kwargs):
         '''
         constructor for Model class
-        
+
         INPUT
         -----
         filename: name of the file to read data from (single file currently)
         could be improved later by more abstract class definitions
-        
+
         dic_variables: dictionary specifiying variable names for a model
         e.g. 'rainfall','var4'
         '''
 
         #--- set a list with different datasets for different models
         self.dic_vars = dic_variables
-        
+
         #--- set some metadata
         self.name = name
         self.data_dir = data_dir
-        
+
         if 'start_time' in kwargs.keys():
             self.start_time = kwargs['start_time']
         else:
@@ -110,14 +116,14 @@ class Model(Data):
             self.stop_time = kwargs['stop_time']
         else:
             self.stop_time = None
-        
-        
+
+
     def get_data(self):
         '''
         central routine to extract data for all variables
         using functions specified in derived class
         '''
-        
+
         self.variables={}
         for k in self.dic_vars.keys():
             routine = self.dic_vars[k] #get name of routine to perform data extraction
@@ -130,97 +136,121 @@ class Model(Data):
             else:
                 print 'WARNING: unknown function to read data (skip!) ', routine
                 sys.exit()
-           
-            
-            
+
+
+
+
+class CMIP5Data(Model):
+    def __init__(self,data_dir,model,experiment,dic_variables,name='',**kwargs):
+        Model.__init__(self,None,dic_variables,name=model,**kwargs)
+
+        self.model = model
+        self.experiment = experiment
+        self.data_dir = data_dir
+
+
+    def get_surface_shortwave_radiation(self):
+        filename = self.data_dir +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean_seasmean_yseasmean.nc'
+
+        sis = Data(filename,'rsds',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
+        print 'Data read!'
+
+        return sis
+
+
+
+
+#####################################################
+
+
 
 
 class JSBACH(Model):
     '''
     '''
-    
+
     def __init__(self,filename,dic_variables,experiment,name='',**kwargs):
-        
+
         Model.__init__(self,filename,dic_variables,name=name,**kwargs)
         self.experiment = experiment
         self.get_data()
-        
-        
+
+
 
     def get_albedo_data(self):
         '''
         get albedo data for JSBACH
-        
+
         returns Data object
         '''
 
         v = 'var176'
-        
+
         filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_albedo_yseasmean.nc' #todo: proper files
         ls_mask = get_T63_landseamask()
-        
+
         albedo = Data(filename,v,read=True,
         label='MPI-ESM albedo ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
         shift_lon=shift_lon,
         mask=ls_mask.data.data)
 
         return albedo
-        
-        
-        
+
+
+
     def get_tree_fraction(self):
         '''
         todo implement this for data from a real run !!!
         '''
-        
+
         ls_mask = get_T63_landseamask()
-        
+
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_forest_shrub.nc'
         v = 'var12'
         tree = Data(filename,v,read=True,
         label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
         shift_lon=shift_lon,
         mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')))
-        
+
         return tree
-        
+
     def get_grass_fraction(self):
         '''
         todo implement this for data from a real run !!!
         '''
-        
+
         ls_mask = get_T63_landseamask()
-        
+
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_grass_crop_pasture_2001.nc'
         v = 'var12'
         grass = Data(filename,v,read=True,
         label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
         shift_lon=shift_lon,
         mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')) , squeeze=True  )
-        
-        
-        return grass        
-        
-        
-        
-     
-        
-        
+
+
+        return grass
+
+
+
+
+
+
 
 
 
     def get_surface_shortwave_radiation(self,interval = 'season'):
         '''
         get surface shortwave incoming radiation data for JSBACH
-        
+
         returns Data object
         '''
 
         v = 'var176'
-        
+
         y1 = '1979-01-01'; y2 = '2006-12-31'
-        rawfilename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_srads.nc' 
-        
+        rawfilename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_srads.nc'
+
         #--- read data
         cdo = pyCDO(rawfilename,y1,y2)
         if interval == 'season':
@@ -230,10 +260,10 @@ class JSBACH(Model):
             filename = cdo.yseasmean()
         else:
             raise ValueError, 'Invalid interval option ', interval
-        
+
         #--- read land-sea mask
         ls_mask = get_T63_landseamask()
-        
+
         #--- read SIS data
         sis = Data(filename,v,read=True,
         label='MPI-ESM SIS ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
@@ -241,25 +271,25 @@ class JSBACH(Model):
         mask=ls_mask.data.data)
 
         return sis
-        
-        
+
+
     def get_rainfall_data(self,interval='season'):
         '''
         get rainfall data for JSBACH
-        
+
         returns Data object
         '''
-        
+
         #todo: implement preprocessing here
-        
+
         v = 'var4' #todo is this really precip ???
         if interval == 'season':
             filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_precip_yseasmean.nc'
         else:
             raise ValueError, 'Invalid value for interval: ' + interval
-            
+
         ls_mask = get_T63_landseamask()
-        
+
         try: #todo this is silly
             rain = Data(filename,v,read=True,scale_factor = 86400.,
             label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
@@ -275,7 +305,7 @@ class JSBACH(Model):
 
 
         return rain
-        
+
 
 
 def get_script_names():
@@ -286,8 +316,8 @@ def get_script_names():
     d={}
     d.update({'rain':'rainfall_analysis'}) #todo groups of analysis with different data e.g. SIS
     d.update({'albedo':'albedo_analysis'})
-    d.update({'sis11':'cmsaf_sis_analysis'})
-    d.update({'sis':'ceres_sis_analysis'})
+    d.update({'sis':'cmsaf_sis_analysis'})
+    d.update({'sisxx':'ceres_sis_analysis'})
     d.update({'tree':'tree_fraction_analysis'})
     d.update({'grass':'grass_fraction_analysis'})
 
@@ -295,9 +325,9 @@ def get_script_names():
 
 def get_T63_landseamask():
     '''
-    get JSBACH T63 land sea mask 
+    get JSBACH T63 land sea mask
     the LS mask is read from the JSBACH init file
-    
+
     todo put this to the JSBACH model class
     '''
     ls_file = data_pool_directory + 'variables/land/land_sea_mask/jsbach_T63_GR15_4tiles_1992.nc'
@@ -310,7 +340,7 @@ def get_T63_landseamask():
 def get_T63_weights():
     '''
     get JSBACH T63 cell weights
-    
+
     todo put this to the JSBACH model class
     '''
     w_file = data_pool_directory + 'variables/land/land_sea_mask/t63_weights.nc'
@@ -323,16 +353,16 @@ def rainfall_analysis(model_list,interval='season'):
     '''
     units: mm/day
     '''
-    
-    
+
+
     print 'Doing rainfall analysis ...'
-    
+
     vmin = 0.; vmax = 10.
-    
-    
+
+
     #--- T63 weights
     t63_weights = get_T63_weights()
-    
+
     #--- get land sea mask
     ls_mask = get_T63_landseamask()
 
@@ -342,7 +372,7 @@ def rainfall_analysis(model_list,interval='season'):
         gpcp_file_std  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasstd.nc'
     else:
         sys.exit('Unknown interval for rainfall_analyis()')
-    
+
     print 'GPCP data'
     gpcp = Data(gpcp_file,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     gpcp_std = Data(gpcp_file_std,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
@@ -353,7 +383,7 @@ def rainfall_analysis(model_list,interval='season'):
 
     #--- get model field of precipitation
     for model in model_list:
-        
+
         model_data = model.variables['rainfall']
 
         if model_data.data.shape != gpcp.data.shape:
@@ -370,13 +400,13 @@ def rainfall_analysis(model_list,interval='season'):
         #create net axis for zonal plot
         #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
         divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1) 
+        dif.add_axes(zax1)
 
         divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2) 
+        dif.add_axes(zax2)
 
         divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3) 
+        dif.add_axes(zax3)
 
         #--- calculate zonal statistics and plot
         zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
@@ -387,7 +417,7 @@ def rainfall_analysis(model_list,interval='season'):
         #--- calculate Reichler diagnostic for preciptation
         Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
-        
+
     Rplot.bar()
 
 
@@ -400,8 +430,8 @@ def grass_fraction_analysis(model_list):
 def tree_fraction_analysis(model_list,pft='tree'):
     '''
     '''
-    
-    
+
+
     def fraction2netcdf(pft):
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/' + pft + '_05.dat'
         #save 0.5 degree data to netCDF file
@@ -415,46 +445,46 @@ def tree_fraction_analysis(model_list,pft='tree'):
         var = F.create_variable(pft + '_fraction','d',('lat','lon'))
         lat = F.create_variable('lat','d',('lat',))
         lon = F.create_variable('lon','d',('lon',))
-        lon.standard_name = "grid_longitude" 
-        lon.units = "degrees" 
-        lon.axis = "X" 
-        lat.standard_name = "grid_latitude" 
-        lat.units = "degrees" 
-        lat.axis = "Y" 
+        lon.standard_name = "grid_longitude"
+        lon.units = "degrees"
+        lon.axis = "X"
+        lat.standard_name = "grid_latitude"
+        lat.units = "degrees"
+        lat.axis = "Y"
         var._FillValue = -99.
         var.assign_value(t)
         lat.assign_value(np.linspace(90.-0.25,-90.+0.25,t.shape[0])) #todo: center coordinates or corner coordinates?
         lon.assign_value(np.linspace(-180.+0.25,180.-0.25,t.shape[1]))
-        
+
         #todo: lon 0 ... 360 ****
-        
-        
+
+
         #~ print t.shape
         F.close()
-        
+
         return outname
-            
-           
+
+
     #//// load tree fraction observations ////
     #1) convert to netCDF
-    fraction_file = fraction2netcdf(pft) 
+    fraction_file = fraction2netcdf(pft)
     #2) remap to T63
     y1 = '2001-01-01'; y2='2001-12-31'
     cdo = pyCDO(fraction_file,y1,y2)
     t63_file = cdo.remap(method='remapcon')
-    
+
     #3) load data
     ls_mask = get_T63_landseamask()
     hansen  = Data(t63_file,pft + '_fraction',read=True,label='MODIS VCF ' + pft + ' fraction',unit='-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    
+
     #~ todo now remap to T63 grid; which remapping is the most useful ???
-    
-    
+
+
     #//// PERFORM ANALYSIS ///
 
     vmin = 0.; vmax = 1.
     for model in model_list:
-        
+
         model_data = model.variables[pft]
 
         if model_data.data.shape != hansen.data.shape:
@@ -471,30 +501,30 @@ def tree_fraction_analysis(model_list,pft='tree'):
         #create net axis for zonal plot
         #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
         divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1) 
+        dif.add_axes(zax1)
 
         divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2) 
+        dif.add_axes(zax2)
 
         divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3) 
+        dif.add_axes(zax3)
 
         #--- calculate zonal statistics and plot
         zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax])  #None == no area weighting performed
         zon2 = ZonalPlot(ax=zax2); zon2.plot(hansen,None,xlim=[vmin,vmax]) #None == no area weighting performed
         zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(hansen),None)  #None == no area weighting performed
         zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-        
-        
+
+
         #--- calculate RMSE statistics etc.
         ES = CorrelationAnalysis(model_data,hansen)
         ES.do_analysis()
-        
+
 
 ######### END TREE COVER ANALYSIS ##############
-    
-    
-    
+
+
+
 
 
 
@@ -509,7 +539,7 @@ def albedo_analysis(model_list):
     vmin = 0.; vmax = 0.6
 
     print 'Doing albedo analysis ...'
-    
+
     #--- get land sea mask
     ls_mask = get_T63_landseamask()
 
@@ -518,7 +548,7 @@ def albedo_analysis(model_list):
 
     #--- load MODIS data
     modis_file     = '/home/m300028/shared/data/SEP/variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_mean.nc'
-    modis_file_std = '/home/m300028/shared/data/SEP/variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_std.nc'    
+    modis_file_std = '/home/m300028/shared/data/SEP/variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_std.nc'
     albedo=Data(modis_file,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     albedo_std=Data(modis_file_std,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     albedo.std = albedo_std.data.copy(); del albedo_std
@@ -546,13 +576,13 @@ def albedo_analysis(model_list):
         #create net axis for zonal plot
         #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
         divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1) 
+        dif.add_axes(zax1)
 
         divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2) 
+        dif.add_axes(zax2)
 
         divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3) 
+        dif.add_axes(zax3)
 
         #calculate zonal statistics and plot
         zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
@@ -564,11 +594,11 @@ def albedo_analysis(model_list):
         Diag = Diagnostic(albedo,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
-        
+
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
     Rplot.bar()
-    
+
 
 
 
@@ -582,7 +612,7 @@ def cmsaf_sis_analysis(model_list,interval = 'season'):
     vmin = 0.; vmax = 300
 
     print 'Doing SIS analysis ...'
-    
+
     #--- get land sea mask
     ls_mask = get_T63_landseamask()
 
@@ -592,7 +622,7 @@ def cmsaf_sis_analysis(model_list,interval = 'season'):
     #--- load CMSAF-SIS data
     raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc'
     y1 = '1984-01-01'; y2='2005-12-31'
-    
+
     if interval == 'season':
         #aggregate to seasons
         cdo = pyCDO(raw_sis,y1,y2)
@@ -604,7 +634,7 @@ def cmsaf_sis_analysis(model_list,interval = 'season'):
             cmsaf_sis_std_file  = cdo.yseasstd()
         else:
             raise ValueError, 'Invalid interval option ', interval
-    
+
     cmsaf_sis     = Data(cmsaf_sis_file,'SIS',read=True,label='cmsaf-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     cmsaf_sis_std = Data(cmsaf_sis_std_file,'SIS',read=True,label='cmsaf-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     cmsaf_sis.std = cmsaf_sis_std.data.copy(); del cmsaf_sis_std
@@ -630,13 +660,13 @@ def cmsaf_sis_analysis(model_list,interval = 'season'):
         #create net axis for zonal plot
         #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
         divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1) 
+        dif.add_axes(zax1)
 
         divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2) 
+        dif.add_axes(zax2)
 
         divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3) 
+        dif.add_axes(zax3)
 
         #calculate zonal statistics and plot
         zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
@@ -648,11 +678,11 @@ def cmsaf_sis_analysis(model_list,interval = 'season'):
         Diag = Diagnostic(cmsaf_sis,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
-        
+
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
     Rplot.bar()
-    
+
 
 
 def ceres_sis_analysis(model_list,interval = 'season'):
@@ -663,7 +693,7 @@ def ceres_sis_analysis(model_list,interval = 'season'):
     vmin = 0.; vmax = 300
 
     print 'Doing CERES SIS analysis ...'
-    
+
     #--- get land sea mask
     ls_mask = get_T63_landseamask()
 
@@ -671,10 +701,10 @@ def ceres_sis_analysis(model_list,interval = 'season'):
     t63_weights = get_T63_weights()
 
     #--- load CMSAF-SIS data
-    
+
     raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
     y1 = '2001-01-01'; y2='2003-12-31'
-    
+
     if interval == 'season':
         #aggregate to seasons
         cdo = pyCDO(raw_sis,y1,y2)
@@ -686,7 +716,7 @@ def ceres_sis_analysis(model_list,interval = 'season'):
             ceres_sis_std_file  = cdo.yseasstd()
         else:
             raise ValueError, 'Invalid interval option ', interval
-    
+
     ceres_sis     = Data(ceres_sis_file,'BfCER00',read=True,label='ceres-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     ceres_sis_std = Data(ceres_sis_std_file,'BfCER00',read=True,label='ceres-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     ceres_sis.std = ceres_sis_std.data.copy(); del ceres_sis_std
@@ -713,13 +743,13 @@ def ceres_sis_analysis(model_list,interval = 'season'):
         #create net axis for zonal plot
         #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
         divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1) 
+        dif.add_axes(zax1)
 
         divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2) 
+        dif.add_axes(zax2)
 
         divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3) 
+        dif.add_axes(zax3)
 
         #calculate zonal statistics and plot
         zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
@@ -730,10 +760,10 @@ def ceres_sis_analysis(model_list,interval = 'season'):
         #/// Reichler statistics ///
         Diag = Diagnostic(ceres_sis,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
-        
-        
+
+
         Rplot.add(e2,model_data.label,color='red')
-        
+
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
     Rplot.bar()
@@ -768,74 +798,118 @@ from pyCMBS import *
 
 
 
-def main():
-    
-    pl.close('all')
+#~ def main():
+
+data_dir = '/home/m300028/shared/data/CMIP5/EvaCliMod/rsds/' #CMIP5 data directory
 
 
-    s_start_time = '1983-01-01' #todo where is this used ?
-    s_stop_time  = '2005-12-31'
-    
-    #--- specify variables to analyze
-    #~ variables = ['rain','albedo','sis']
-    variables = ['tree','albedo']
-    
-        #--- specify mapping of variable to analysis script name
-    scripts = get_script_names()
-    
-    
-    #################################################
-    
-    #----- 
-    start_time = plt.num2date(plt.datestr2num(s_start_time))
-    stop_time  = plt.num2date(plt.datestr2num(s_stop_time ))
-
-    #--- get model results (needs to be already pre-processed)
-    jsbach_variables={}
-    hlp={}
-    hlp.update({'rainfall' : 'get_rainfall_data()'})
-    hlp.update({'albedo' : 'get_albedo_data()'})
-    hlp.update({'sis' : 'get_surface_shortwave_radiation()'})
-    hlp.update({'tree' : 'get_tree_fraction()'})
-    hlp.update({'grass' : 'get_grass_fraction()'})
-    
-    for k in hlp.keys(): #only use the variables that should be analyzed!
-        print k, hlp[k]
-        if k in variables:
-            jsbach_variables.update({k:hlp[k]})
-    
-    stop
-    
-    
-    
-
-    jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-    jsbach72.get_data()
-    
-    #~ jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-    #~ jsbach73.get_data()
-
-    #~ jsbach74 = JSBACH(model_directory,jsbach_variables,'tra0074',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-    #~ jsbach74.get_data()
+pl.close('all')
 
 
-    skeys = scripts.keys()
-    print skeys
-    print variables
-    
-    for variable in variables:
-        #--- call analysis scripts for each variable
-        for k in range(len(skeys)):
-            if variable == skeys[k]:
-                
-                print 'Doing analysis for variable ... ', variable
-                print scripts[variable]
-                #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
-                eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
+s_start_time = '1983-01-01' #todo where is this used ?
+s_stop_time  = '2005-12-31'
+
+#--- specify variables to analyze
+#~ variables = ['rain','albedo','sis']
+#variables = ['tree','albedo']
+variables = ['sis']
+
+    #--- specify mapping of variable to analysis script name
+scripts = get_script_names()
 
 
-if __name__ == '__main__':
-    main()
+#################################################
+
+#-----
+start_time = plt.num2date(plt.datestr2num(s_start_time))
+stop_time  = plt.num2date(plt.datestr2num(s_stop_time ))
+
+#--- get model results (needs to be already pre-processed)
+jsbach_variables={}
+hlp={}
+hlp.update({'rainfall' : 'get_rainfall_data()'})
+hlp.update({'albedo' : 'get_albedo_data()'})
+hlp.update({'sis' : 'get_surface_shortwave_radiation()'})
+hlp.update({'tree' : 'get_tree_fraction()'})
+hlp.update({'grass' : 'get_grass_fraction()'})
+
+
+cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A']
+cmip_models = []
+
+
+
+
+for k in hlp.keys(): #only use the variables that should be analyzed!
+    print k, hlp[k]
+    if k in variables:
+        jsbach_variables.update({k:hlp[k]})
+
+experiment = 'amip'
+cmip_cnt = 1
+for model in cmip_model_list:
+    cmip = CMIP5Data(data_dir,model,experiment,jsbach_variables,unit='W/m**2',lat_name='lat',lon_name='lon',label=model)
+    cmip.get_data()
+
+
+
+    cmd = 'cmip' + str(cmip_cnt).zfill(4) + ' = ' + 'cmip.copy(); del cmip'
+    exec(cmd) #store copy of cmip5 model in separate variable
+    cmip_models.append('cmip' + str(cmip_cnt).zfill(4))
+
+
+    cmip_cnt += 1
+
+print str(cmip_models)
+
+
+
+
+
+# TODO CMIP5:
+# - seldate appropriately
+# - check timestamp!
+# seasmean calculations automatically!!
+
+#todo check datetime; something is wrong! as data starts in Dcember 1978!
+# do maps per season ???
+
+# TODO: zonal means ??
+# area weigting of zonal means and also area weighting of RMS errors etc.
+
+#
+# TODO seasmean yseasmean !!!!
+
+
+
+
+#~ jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+#~ jsbach72.get_data()
+
+#~ jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+#~ jsbach73.get_data()
+
+#~ jsbach74 = JSBACH(model_directory,jsbach_variables,'tra0074',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+#~ jsbach74.get_data()
+
+
+skeys = scripts.keys()
+print skeys
+print variables
+
+for variable in variables:
+    #--- call analysis scripts for each variable
+    for k in range(len(skeys)):
+        if variable == skeys[k]:
+
+            print 'Doing analysis for variable ... ', variable
+            print scripts[variable]
+            #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
+            #~ eval(scripts[variable]+'([cmip,jsbach72])') #here one can put a multitude of model output for comparison in the end
+            eval(scripts[variable]+'(' + str(cmip_models).replace("'","") + ')') #here one can put a multitude of model output for comparison in the end
+
+#~ if __name__ == '__main__':
+    #~ main()
 
 
 
