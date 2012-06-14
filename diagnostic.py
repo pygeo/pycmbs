@@ -4,6 +4,7 @@
 __author__ = "Alexander Loew"
 __version__ = "0.0"
 __date__ = "0000/00/00"
+__email__ = "alexander.loew@zmaw.de"
 
 import numpy as np
 
@@ -16,12 +17,11 @@ import  matplotlib.axes as maxes
 import matplotlib as  mpl
 
 from pyCMBS.plots import map_plot
-
 from pyCMBS.data import Data
-
 
 from scipy import linalg, dot;
 
+#-----------------------------------------------------------------------
 
 class SVD():
     '''
@@ -29,7 +29,9 @@ class SVD():
     also known as Maximum covariance analysis (MCA)
 
     REFERENCES
-    Björnsson and Venegas: A manual for EOF and SVD analyses of Climate Data, McGill University, available online
+    ==========
+    1. Bjoernsson and Venegas: A manual for EOF and SVD analyses of Climate Data,
+                           McGill University, available online
     '''
 
     def __init__(self,X,Y,scf_threshold = 0.01,label=''):
@@ -58,6 +60,8 @@ class SVD():
         self.ext = 'pdf' #file extension for plotting
         self.use_basemap = False
 
+#-----------------------------------------------------------------------
+
     def _get_valid_timeseries(self,x):
         '''
         get only points where all
@@ -72,6 +76,7 @@ class SVD():
 
         return x[:,m1],m1
 
+#-----------------------------------------------------------------------
 
     def __detrend_time(self,x):
         '''
@@ -91,8 +96,33 @@ class SVD():
 
         return x
 
+#-----------------------------------------------------------------------
 
-    def svd_analysis(self):
+    def __time_normalization(self,x):
+        '''
+        normalize timeseries x [time,position]
+        by dividiing by the standard deviation
+        '''
+
+        nt,nx = np.shape(x)
+        s = x.std(axis=0) #temporal standard deviation
+
+        S = np.repeat(s,nt).reshape(nx,nt).T #generate array with all same std
+
+        x = x / S
+
+        return x
+
+
+        #~ print S.shape
+        #~ print S
+        #~ print x.std(axis=0)
+
+        #~ stop
+
+#-----------------------------------------------------------------------
+
+    def svd_analysis(self,detrend=True,varnorm=False):
 
         #/// perform SVN only for data points which are valid throughout entire time series ///
         x,mskx = self._get_valid_timeseries(self.x)
@@ -104,12 +134,16 @@ class SVD():
         print ' Dimensions for y in SVN: ', y.shape
 
         #/// detrend the data for each grid point ///
-        x = self.__detrend_time(x)
-        y = self.__detrend_time(y)
+        if detrend:
+            x = self.__detrend_time(x)
+            y = self.__detrend_time(y)
 
+        #/// normalized each timeseries by its variance
+        if varnorm:
+            x = self.__time_normalization(x)
+            y = self.__time_normalization(y)
 
-
-        #calculate covariance matrix
+        #/// calculate covariance matrix
         C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual grid points, but only the covariance terms!
         self.C = C
 
@@ -134,6 +168,7 @@ class SVD():
 
         self.__get_mode_correlation() #calculate correlation between modes
 
+#-----------------------------------------------------------------------
 
     def __get_mode_correlation(self):
         '''
@@ -145,6 +180,8 @@ class SVD():
             c = np.corrcoef(self.A[:,i],self.B[:,i])[0][1]
             self.mcorr.append(c)
         self.mcorr = np.asarray(self.mcorr)
+
+#-----------------------------------------------------------------------
 
     def get_singular_vectors(self,mode):
         '''
@@ -172,8 +209,7 @@ class SVD():
 
         return U,V
 
-
-
+#-----------------------------------------------------------------------
 
     def _map_valid2org(self,data,mask,target_shape):
         '''
@@ -199,11 +235,7 @@ class SVD():
 
         return res
 
-
-
-
-
-
+#-----------------------------------------------------------------------
 
     def plot_var(self,ax=None,filename=None,maxvar=1.):
         '''
@@ -265,6 +297,7 @@ class SVD():
             oname = filename + '_mode_var.' + self.ext
             ax.figure.savefig(oname,dpi=self.dpi)
 
+#-----------------------------------------------------------------------
 
     def plot_singular_vectors(self,mode,use_basemap=False,logplot=False,filename=None):
         '''
@@ -310,8 +343,7 @@ class SVD():
             if filename != None:
                 fig.savefig(filename + '_singular_vectors_mode_' + str(i).zfill(5) + '.pdf' )
 
-
-
+#-----------------------------------------------------------------------
 
     def plot_correlation_map(self,mode,ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,region1=None,region2=None,regions_to_plot=None):
         '''
@@ -423,13 +455,15 @@ class SVD():
 
             #figure title
             fig.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i],2)) + ')',size=14)
-            fig.subplots_adjust(wspace=0.5)
-
+            fig.subplots_adjust(wspace=0.0,hspace=0.5)
+            fig.set_figheight(10.)
 
             #--- save figure
             if filename != None:
                 oname = filename + '_mode_' + str(i) + '.' + self.ext
                 ax1a.figure.savefig(oname,dpi=self.dpi)
+
+#-----------------------------------------------------------------------
 
     def _get_variance_field(self,X,E,mode,pthres=1.01):
         '''
@@ -445,6 +479,8 @@ class SVD():
 
 
         return Rout #return squared correlation to get variance
+
+#-----------------------------------------------------------------------
 
     def reconstruct_variance_fraction(self,X,E,mode_list,pthres=1.01):
         '''
@@ -476,6 +512,7 @@ class SVD():
 
         return O
 
+#-----------------------------------------------------------------------
 
     def print_mode_statistic(self,filename=None):
         '''
@@ -501,6 +538,7 @@ class SVD():
         if filename != None:
             o.close()
 
+#-----------------------------------------------------------------------
 
     def plot_expansion_correlation(self,mode,ax=None):
         '''
@@ -520,21 +558,8 @@ class SVD():
         ax.set_xlabel('time')
         ax.set_ylim(-3.,3.)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
 class Diagnostic():
     def __init__(self,x,y=None):
@@ -548,6 +573,8 @@ class Diagnostic():
         if y != None:
             self.y = y
 
+#-----------------------------------------------------------------------
+
     def get_n(self):
         '''
         return the number of valid samples
@@ -558,7 +585,7 @@ class Diagnostic():
         m = xm & ym
         return sum(m)
 
-
+#-----------------------------------------------------------------------
 
     def get_rmse_value(self):
         '''
@@ -568,6 +595,8 @@ class Diagnostic():
         @type self : Diagnostic object
         '''
         return np.sqrt(np.mean((self.xvec - self.yvec)**2))
+
+#-----------------------------------------------------------------------
 
     def lagged_correlation_vec(self,lags,pthres=1.01):
         '''
@@ -612,15 +641,13 @@ class Diagnostic():
 
         return CO
 
-
-
-
-
-
+#-----------------------------------------------------------------------
 
     def get_correlation_value(self):
         c = np.ma.corrcoef(self.xvec,self.yvec)[0][1]
         return c #correlation coefficient
+
+#-----------------------------------------------------------------------
 
     def _mat2vec(self,mask = None):
         '''
@@ -650,15 +677,7 @@ class Diagnostic():
         self.xvec = xvec
         self.yvec = yvec
 
-
-
-
-
-
-
-
-
-
+#-----------------------------------------------------------------------
 
     def calc_reichler_index(self,weights):
         '''
@@ -715,6 +734,7 @@ class Diagnostic():
 
         return e2
 
+#-----------------------------------------------------------------------
 
     def get_correlation(self,lag=0,nlags=None):
         '''
@@ -821,9 +841,7 @@ class Diagnostic():
 
         return R
 
-
-
-
+#-----------------------------------------------------------------------
 
     def slice_corr(self,timmean=True):
         '''
@@ -868,22 +886,9 @@ class Diagnostic():
         i1 = 0
         while i1 < n-1: #loop over starting year
             i2 = i1 + 2
-            #print i1
             #- loop over different lengths
             while i2 < len(x)-1:
                 length = i2-i1
-                #print length
-                #print 'timmean',timmean
-                #~ print i1,i2
-                #~ print x[i1:i2,:]
-                #~ print y[i1:i2,:]
-
-                #- reshape data to valid vector
-
-                #todo
-                #~ it makes a considerable differencec if
-                #~ timmean is applied or not !!!
-
 
                 if timmean:
                     ''' temporal mean -> all grid cells only (temporal mean) '''
@@ -894,50 +899,21 @@ class Diagnostic():
                     xmsk  = xdata.mask; ymsk = ydata.mask
                     msk = xmsk | ymsk
 
-                    #~ print 'shapex: ', np.shape(xdata)
-                    #~ print 'shapey: ', np.shape(ydata)
-
-                    #print 'MASK: ', sum(msk), sum(xmsk),sum(ymsk)
                 else:
                     ''' all grid cells at all times '''
-                    #~ print i1,i2
-                    #~ print x.data.shape, y.data.shape, type(x.data)
                     xdata = x.data[i1:i2,:]; ydata = y.data[i1:i2,:]
                     xmsk  = x.mask[i1:i2,:]
                     ymsk  = y.mask[i1:i2,:]
                     msk   = xmsk | ymsk
 
-                    #~ print 'xdata: ', xdata
-                    #~ print x.data
-                    #~ print i1,i2
-                    #~ print x.data[i1:i2,:]
-                    #~ stop
-
-
-                #~ print x
-                #~ print x.data
-
-                #~ print 'x1', xdata, i1, i2, x.data
-                #~ print x.data.shape
-                #~ print 'y1', ydata
-                #~ print xdata.flatten()
-                #~ stop
-
                 xdata = xdata[~msk].flatten()
                 ydata = ydata[~msk].flatten()
-
-                #print 'Final data',len(xdata),len(ydata)
-
 
                 slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
                 R[length,i1] = r
                 P[length,i1] = p
                 L[length,i1] = length
                 S[length,i1] = slope
-
-                #~ print 'r: ', r
-                #~ print 'x', xdata
-                #~ print 'y', ydata
 
                 i2 += 1
             i1 += 1
@@ -947,7 +923,7 @@ class Diagnostic():
         self.slice_length = L
         self.slice_slope = S
 
-
+#-----------------------------------------------------------------------
 
     def _set_year_ticks(self,years,ax,axis='x'):
         '''
@@ -975,6 +951,7 @@ class Diagnostic():
         else:
             raise ValueError, 'Invalid axis (set_year_ticks)'
 
+#-----------------------------------------------------------------------
 
     def plot_slice_correlation(self,pthres = 1.01):
         '''

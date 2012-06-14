@@ -1,14 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# pyCMBS -- Pythonic Climate Model Suite
+# pyCMBS -- Pythonic Climate Model Benchmarking Suite
 #
-#
-# Copyright (C) 2011-2012 Alexander Loew 
+# Copyright (C) 2011-2012 Alexander Loew
 # Authors: Alexander Loew <alexander.loew@zmaw.de.de>,
-#          Michael Borsche,
-#          Mikhail Itkin,
-#          Gernot Geppert
 #
 # Max-Planck-Institute for Meteorology, Hamburg, Germany
 #
@@ -18,6 +14,8 @@ __name__ = "pyCMBS"
 
 __author__ = "Alexander Loew <alexander.loew@zmaw.de>"
 """The primary author of pyCMBS."""
+
+__institute__="Max-Planck-Institute for Meteorology (MPI-M)"
 
 __copyright__ = "Copyright (c) 2011-2012 Alexander Loew"
 """The copyright holder of pyCMBS."""
@@ -31,11 +29,13 @@ __url__ = "http://www.mpimet.mpg.de/en/science/the-land-in-the-earth-system/terr
 __version__ = 0.1
 """Version number of pyCMBS."""
 
-__date__ = "2012-03-14"
+__date__ = "2012-06-14"
 """The release date of this version of pyCMBS."""
 
 __docformat__ = "epytext en"
 """The epydoc documentation format for this file."""
+
+__email__ = "alexander.loew@zmaw.de"
 
 #------------------------------
 #--- Import classes
@@ -62,9 +62,6 @@ from region import *
 from diagnostic import *
 from plots  import *
 from pyCDO  import *
-
-
-
 
 
 #------------------------------
