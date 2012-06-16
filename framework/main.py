@@ -128,14 +128,15 @@ class Model(Data):
         for k in self.dic_vars.keys():
             routine = self.dic_vars[k] #get name of routine to perform data extraction
             cmd = 'dat = self.' + routine
-            print cmd
+            #~ print cmd
             #~ if hasattr(self,routine):
             if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
                 exec(cmd)
                 self.variables.update({ k : dat })
             else:
                 print 'WARNING: unknown function to read data (skip!) ', routine
-                sys.exit()
+                self.variables.update({ k : None })
+                #~ sys.exit()
 
 
 
@@ -151,6 +152,9 @@ class CMIP5Data(Model):
 
     def get_surface_shortwave_radiation(self):
         filename = self.data_dir +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean_seasmean_yseasmean.nc'
+
+        if not os.path.exists(filename):
+            return None
 
         sis = Data(filename,'rsds',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
         print 'Data read!'
@@ -251,6 +255,10 @@ class JSBACH(Model):
         y1 = '1979-01-01'; y2 = '2006-12-31'
         rawfilename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_srads.nc'
 
+        if not os.path.exists(rawfilename):
+            return None
+
+
         #--- read data
         cdo = pyCDO(rawfilename,y1,y2)
         if interval == 'season':
@@ -284,11 +292,15 @@ class JSBACH(Model):
 
         v = 'var4' #todo is this really precip ???
         if interval == 'season':
-            filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_precip_yseasmean.nc'
+            filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1982-2006_sel_yseasmean.nc'
         else:
             raise ValueError, 'Invalid value for interval: ' + interval
 
         ls_mask = get_T63_landseamask()
+
+        if not os.path.exists(filename):
+            stop
+            return None
 
         try: #todo this is silly
             rain = Data(filename,v,read=True,scale_factor = 86400.,
@@ -314,10 +326,9 @@ def get_script_names():
     in general, these names can be also read from an ASCII file
     '''
     d={}
-    d.update({'rain':'rainfall_analysis'}) #todo groups of analysis with different data e.g. SIS
+    d.update({'rain':'rainfall_analysis'})
     d.update({'albedo':'albedo_analysis'})
-    d.update({'sis':'cmsaf_sis_analysis'})
-    d.update({'sisxx':'ceres_sis_analysis'})
+    d.update({'sis':'sis_analysis'})
     d.update({'tree':'tree_fraction_analysis'})
     d.update({'grass':'grass_fraction_analysis'})
 
@@ -359,6 +370,10 @@ def rainfall_analysis(model_list,interval='season'):
 
     vmin = 0.; vmax = 10.
 
+    #--- Glecker plot
+    GP = global_glecker
+    model_names = []
+
 
     #--- T63 weights
     t63_weights = get_T63_weights()
@@ -384,7 +399,17 @@ def rainfall_analysis(model_list,interval='season'):
     #--- get model field of precipitation
     for model in model_list:
 
-        model_data = model.variables['rainfall']
+        model_data = model.variables['rain']
+
+        GP.add_model(model.name)
+
+
+        if model_data == None:
+            continue
+
+        model_names.append(model.name)
+
+
 
         if model_data.data.shape != gpcp.data.shape:
             print 'WARNING Inconsistent geometries for GPCP'
@@ -419,6 +444,10 @@ def rainfall_analysis(model_list,interval='season'):
         Rplot.add(e2,model_data.label,color='red')
 
     Rplot.bar()
+
+
+    for i in range(len(Rplot.e2_norm)):
+            GP.add_data('rain',model_names[i],Rplot.e2_norm[i],pos=1)
 
 
 def grass_fraction_analysis(model_list):
@@ -600,18 +629,28 @@ def albedo_analysis(model_list):
     Rplot.bar()
 
 
+def sis_analysis(model_list,interval = 'season', GP=None):
+    cmsaf_sis_analysis(model_list,interval=interval,GP=GP)
+    ceres_sis_analysis(model_list,interval=interval,GP=GP)
 
 
 
-
-def cmsaf_sis_analysis(model_list,interval = 'season'):
+def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
     '''
     model_list = list which contains objects of data type MODEL
     '''
 
     vmin = 0.; vmax = 300
 
+    model_names = []
+
     print 'Doing SIS analysis ...'
+
+    GP = global_glecker
+
+    #--- GleckerPlot
+    if GP == None:
+        GP = GleckerPlot()
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask()
@@ -643,8 +682,19 @@ def cmsaf_sis_analysis(model_list,interval = 'season'):
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     for model in model_list:
+
+        GP.add_model(model.name)
+
+        model_names.append(model.name)
+
+        #~ if model.name == None:
+            #~ raise ValueError, 'Model needs to have a name attribute!'
+        #~ GP.add_model(model.name)
+
         #--- get model data
         model_data = model.variables['sis']
+        if model_data == None: #data file was not existing
+            continue
 
         if model_data.data.shape != cmsaf_sis.data.shape:
             print 'Inconsistent geometries for SIS'
@@ -678,19 +728,31 @@ def cmsaf_sis_analysis(model_list,interval = 'season'):
         Diag = Diagnostic(cmsaf_sis,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
+        #~ print e2
+
 
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
     Rplot.bar()
+    #print Rplot.e2_norm #the normalized Recihler index contains temporal aggregated and relative results
+    for i in range(len(Rplot.e2_norm)):
+        GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=1)
 
 
-
-def ceres_sis_analysis(model_list,interval = 'season'):
+def ceres_sis_analysis(model_list,interval = 'season',GP=None):
     '''
     model_list = list which contains objects of data type MODEL
     '''
 
+    GP = global_glecker
+
+    #--- GleckerPlot
+    if GP == None:
+        GP = GleckerPlot()
+
     vmin = 0.; vmax = 300
+
+    model_names = []
 
     print 'Doing CERES SIS analysis ...'
 
@@ -726,8 +788,18 @@ def ceres_sis_analysis(model_list,interval = 'season'):
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     for model in model_list:
+
+
+        GP.add_model(model.name)
+
+        model_names.append(model.name)
+
+
         #--- get model data
         model_data = model.variables['sis']
+
+        if model_data == None:
+            continue
 
         if model_data.data.shape != ceres_sis.data.shape:
             print 'Inconsistent geometries for SIS'
@@ -767,6 +839,9 @@ def ceres_sis_analysis(model_list,interval = 'season'):
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
     Rplot.bar()
+
+    for i in range(len(Rplot.e2_norm)):
+            GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=2)
 
 
 
@@ -812,9 +887,9 @@ s_stop_time  = '2005-12-31'
 #--- specify variables to analyze
 #~ variables = ['rain','albedo','sis']
 #variables = ['tree','albedo']
-variables = ['sis']
+variables = ['rain','sis'] #sis
 
-    #--- specify mapping of variable to analysis script name
+#--- specify mapping of variable to analysis script name
 scripts = get_script_names()
 
 
@@ -827,7 +902,7 @@ stop_time  = plt.num2date(plt.datestr2num(s_stop_time ))
 #--- get model results (needs to be already pre-processed)
 jsbach_variables={}
 hlp={}
-hlp.update({'rainfall' : 'get_rainfall_data()'})
+hlp.update({'rain' : 'get_rainfall_data()'})
 hlp.update({'albedo' : 'get_albedo_data()'})
 hlp.update({'sis' : 'get_surface_shortwave_radiation()'})
 hlp.update({'tree' : 'get_tree_fraction()'})
@@ -850,8 +925,6 @@ cmip_cnt = 1
 for model in cmip_model_list:
     cmip = CMIP5Data(data_dir,model,experiment,jsbach_variables,unit='W/m**2',lat_name='lat',lon_name='lon',label=model)
     cmip.get_data()
-
-
 
     cmd = 'cmip' + str(cmip_cnt).zfill(4) + ' = ' + 'cmip.copy(); del cmip'
     exec(cmd) #store copy of cmip5 model in separate variable
@@ -883,8 +956,8 @@ print str(cmip_models)
 
 
 
-#~ jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-#~ jsbach72.get_data()
+jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+jsbach72.get_data()
 
 #~ jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
 #~ jsbach73.get_data()
@@ -894,10 +967,15 @@ print str(cmip_models)
 
 
 skeys = scripts.keys()
-print skeys
-print variables
+
+#generate a global variable for glecker plot!
+global global_glecker
+global_glecker = GleckerPlot()
 
 for variable in variables:
+
+    global_glecker.add_variable(variable) #register current variable in Glecker Plot
+
     #--- call analysis scripts for each variable
     for k in range(len(skeys)):
         if variable == skeys[k]:
@@ -906,11 +984,13 @@ for variable in variables:
             print scripts[variable]
             #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
             #~ eval(scripts[variable]+'([cmip,jsbach72])') #here one can put a multitude of model output for comparison in the end
-            eval(scripts[variable]+'(' + str(cmip_models).replace("'","") + ')') #here one can put a multitude of model output for comparison in the end
+            model_list = str(cmip_models).replace("'","") #cmip5 model list
+            model_list = model_list.replace(']',', ') + 'jsbach72' + ']'
+            eval(scripts[variable]+'(' + model_list + ')') #here one can put a multitude of model output for comparison in the end
 
 #~ if __name__ == '__main__':
     #~ main()
 
-
+global_glecker.plot(vmin=-0.2,vmax=0.2)
 
 
