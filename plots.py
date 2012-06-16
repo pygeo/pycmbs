@@ -32,6 +32,8 @@ from scipy.spatial import cKDTree as KDTree #import the C version of KDTree (fas
 
 from matplotlib.ticker import MaxNLocator
 
+import matplotlib.gridspec as gridspec
+
 #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
 from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes
@@ -514,6 +516,189 @@ class ZonalPlot():
 
         self.ax.grid()
 
+#-----------------------------------------------------------------------
+
+class GleckerPlot():
+    '''
+    Class to generate a plot that to illustrate multi-model, multi-variable scores
+
+    It was introdcued by Glecker et al (2008)
+
+    REFERENCES:
+    * ﻿Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008. Performance metrics for climate models. Journal of Geophysical Research, 113(D6). Available at: http://www.agu.org/pubs/crossref/2008/2007JD008972.shtml [Accessed February 29, 2012].
+
+    EXAMPLE:
+    G = GleckerPlot()
+    #register first models
+    G.add_model('echam5'); G.add_model('mpi-esm')
+    #then register variables
+    G.add_variable('ta'); G.add_variable('P')
+    #after that you can add values to be plotted; pos=1 mean that result is plotted in upper triangle
+    G.add_data('ta','echam5',0.5,pos=1)
+    G.add_data('P','echam5',0.25,pos=1)
+    G.add_data('P','echam5',-0.25,pos=2)
+    G.add_data('P','mpi-esm',-0.25,pos=1)
+    G.plot() #do plot
+    '''
+
+    def __init__(self,fig=None):
+        '''
+        constructor of C{GleckerPlot}
+
+        @param fig: figure to which to plot to. If None, then a new figure will be generated
+        @type fig: matplotlib figure
+        '''
+        if fig == None:
+            color='grey'
+            fig = plt.figure(facecolor=color,edgecolor=color)
+        self.fig = fig
+
+        self.models = []
+        self.variables   = []
+        self.data = {} #store data for plot
+        self.pos = {} #store position of plot
+
+    def add_model(self,label):
+        '''
+        register a model in the class
+        @param label: string of the model
+        @type label: str
+        '''
+        s = label.replace(' ','_')
+        if s not in self.models:
+            self.models.append(s)
+
+    def add_variable(self,label):
+        '''
+        register a variable in the class
+        @param label: string of variable
+        @type label: str
+        '''
+        self.variables.append(label)
+
+    def __set_ax_prop(self,ax):
+        '''
+        set axis properties of a subplot
+        @param ax: subplot axis
+        @type ax: matplotlib axis
+        '''
+        ax.set_xticks([]); ax.set_yticks([])
+
+    def __value2color(self,v):
+        '''
+        return a color based on the value given
+        the information on the colormap and its
+        normalization is used for that purpose
+
+        @param v: value of data
+        @type v: float
+        '''
+        return self.cmap(self.norm(v))
+
+    def __plot_triangle(self,ax,value,pos='top'):
+        '''
+
+        '''
+        if value == None:
+            return
+
+        color = self.__value2color(value)
+
+        if pos == 'top':
+            x = [0.,0.,1.]
+            y = [0.,1.,1.]
+        else:
+            x = [1.,1.,0.]
+            y = [1.,0.,0.]
+
+        xy = list(zip(x,y))
+        p = Polygon(xy,edgecolor='white',linewidth=1,fill=True,linestyle='solid',facecolor=color)
+        ax.add_patch(p)
+
+    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.):
+
+        nm = len(self.models); nv = len(self.variables)
+
+        #- colormap
+        self.cmap = plt.cm.get_cmap(cmap_name, 10)
+        self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+
+        gs = gridspec.GridSpec(nm, nv, wspace=0.05,hspace=0.05,bottom=0.2) #generate grid for subplots
+
+        cnt = 0
+        cnt_m = 0
+
+        model_list = self.models.sort()
+
+        for model in self.models:
+            cnt_m += 1
+            cnt_v  = 0
+            for variable in self.variables:
+                ax = self.fig.add_subplot(gs[cnt],frameon=True,aspect='equal',axisbg='grey')
+                self.__set_ax_prop(ax)
+
+                #labels
+                if cnt_v == 0:
+                    ax.set_ylabel(model,size=8)
+                if cnt_m == nm:
+                    ax.set_xlabel(variable,size=8)
+
+                self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top') #upper triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle
+
+                cnt += 1
+                cnt_v += 1
+        #--- legend
+        #- get positions of subplots to determine optimal position for legend
+        def get_subplot_boundaries(g,f):
+            x = g.get_grid_positions(f)
+            b = x[0]; t = x[1]
+            l = x[2]; r = x[3]
+            return l[0], r[-1], b[-1], t[0]
+
+        left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
+        #draw legend
+        self._draw_legend(left,right-left)
+
+
+
+    def get_data(self,v,m,p):
+        r = None
+        k = self.__gen_key(m,v,p)
+        if k in self.data.keys():
+            r = self.data[k]
+        return r
+
+    def get_pos(self,v,m):
+        r = None
+        k = self.__gen_key(m,v)
+        if k in self.pos.keys():
+            r = self.pos[k]
+        return r
+
+    def __gen_key(self,m,v,p):
+        if m == None:
+            return None
+        if v == None:
+            return None
+        return m.replace(' ','_')+'_'+v.replace(' ','_')+'_'+str(p)
+
+    def add_data(self,v,m,x,pos=1):
+        if v in self.variables:
+            if m in self.models:
+                self.data.update({ self.__gen_key(m,v,pos) :x})
+                self.pos.update({ self.__gen_key(m,v,pos) : pos})
+
+    def _draw_legend(self,left,width):
+        cax = self.fig.add_axes([left,0.05,width,0.05]) #left, bottom, width, height
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
+                                   norm=self.norm,
+                                   orientation='horizontal')
+
+
+
+
+
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -760,7 +945,7 @@ def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
 #-----------------------------------------------------------------------
 
 
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,rmax=1., **kwargs):
+def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,rmax=1., absthres=None, **kwargs):
     '''
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets
@@ -806,6 +991,11 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     @param rmax: maximum value for data plot
     @type rmax: float
+
+    @param absthres: threshold that will be estimated based on
+                     absolute difference and will be applied to
+                     relative difference maps
+    @type absthres: float
     '''
 
     fig = plt.figure()
@@ -830,10 +1020,30 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title,  **kwargs)
 
     #-first minus second dataset
-    map_plot(x.sub(y),use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
+    adif = x.sub(y) #absolute difference
+    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
 
     #- relative error
-    map_plot(y.div(x).subc(1.),use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=None,region=region ,nclasses=nclasses,cmap_data=cmap_difference)
+    rdat = y.div(x).subc(1.) #relative data
+    if absthres != None:
+        mask = abs(x.timmean()) < absthres
+
+        #~ plt.figure()
+        #~ plt.imshow(abs(adif.timmean()))
+#~
+        #~ plt.figure()
+        #~ plt.imshow(mask)
+#~
+#~
+        rdat._apply_mask(~mask)
+#~
+        #~ plt.figure()
+        #~ plt.imshow(rdat.timmean())
+#~
+        #~ stop
+
+
+    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=None,region=region ,nclasses=nclasses,cmap_data=cmap_difference)
 
 
     return fig
