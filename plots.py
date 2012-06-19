@@ -8,7 +8,6 @@ __date__ = "0000/00/00"
 '''
 Module that contains relevant classes for diagnostic plots
 
-
 @todo: implement writing of statistics to an ASCII file as export
 @todo: implement taylor plots
 '''
@@ -598,7 +597,19 @@ class GleckerPlot():
 
     def __plot_triangle(self,ax,value,pos='top'):
         '''
+        Plot a triangle and fill its color in accordance
+        with the value given. Information on colormap
+        will be obtained from class information
 
+        @param ax: axis to plot to
+        @type ax:  matplotlib axis object
+
+        @param value: value to plot
+        @type value: float
+
+        @param pos: position of the triangle which will be plotted
+                    top = plot an upper triangle, else = plot a lower triangle
+        @type pos: str
         '''
         if value == None:
             return
@@ -624,7 +635,11 @@ class GleckerPlot():
         the relative deviation from the average
         '''
         pos = np.unique(self.pos.values())
-        self._raw_data = self.data.copy() #preserve original calculated data
+        if hasattr(self,'_raw_data'):
+            #data has been already normalized; take original data
+            self.data = self._raw_data.copy()
+        else:
+            self._raw_data = self.data.copy() #preserve original calculated data
         for p in pos:
             xm = self._get_mean_value(p) #calculate multimodel mean
             for k in self.data:
@@ -636,6 +651,9 @@ class GleckerPlot():
     def _get_mean_value(self,pos):
         '''
         calculate mean value for a given observational dataset
+
+        @param pos: position marker
+        @type pos: int
         '''
         x = []
         for k in self.pos:
@@ -648,11 +666,24 @@ class GleckerPlot():
 
 #-----------------------------------------------------------------------
 
-
-
-    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=10,normalize=True):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True):
         '''
-        normalize data relative to multimodel mean
+        plot Glecker diagram
+
+        @param cmap_name: name of the colormap to be used
+        @type cmap_name: str
+
+        @param vmin: lower boundary for plotting
+        @type vmin: float
+
+        @param vmax: upper boundary for plotting
+        @type vmax: flaot
+
+        @param nclasses: number of classes for colormap
+        @type nclasses: int
+
+        @param normalize: normalize data relative to multimodel mean (affects self.data)
+        @type normalize: bool
         '''
 
         #~ todo implement normalization here per position
@@ -690,6 +721,7 @@ class GleckerPlot():
                 cnt += 1
                 cnt_v += 1
         #--- legend
+
         #- get positions of subplots to determine optimal position for legend
         def get_subplot_boundaries(g,f):
             x = g.get_grid_positions(f)
@@ -703,19 +735,26 @@ class GleckerPlot():
 
 #-----------------------------------------------------------------------
 
-
-
-
-
-
-
-
     def get_data(self,v,m,p):
+        '''
+        return data for a particular model and variable
+
+        @param v: name of variable
+        @type v: str
+
+        @param m: model name
+        @type m: str
+
+        @param p: position
+        @type p: int
+        '''
         r = None
         k = self.__gen_key(m,v,p)
         if k in self.data.keys():
             r = self.data[k]
         return r
+
+#-----------------------------------------------------------------------
 
     def get_pos(self,v,m):
         r = None
@@ -724,22 +763,53 @@ class GleckerPlot():
             r = self.pos[k]
         return r
 
+#-----------------------------------------------------------------------
+
     def __gen_key(self,m,v,p):
+        '''
+        generate a unique key for dictionaries
+        comprised of model name, variable name and position
+
+        @param v: name of variable
+        @type v: str
+
+        @param m: model name
+        @type m: str
+
+        @param p: position
+        @type p: int
+        '''
         if m == None:
             return None
         if v == None:
             return None
         return m.replace(' ','_')+'_'+v.replace(' ','_')+'_'+str(p)
 
+#-----------------------------------------------------------------------
+
     def add_data(self,v,m,x,pos=1):
         '''
-        add a final data for plotting
+        add a data for plotting
+
+        @param v: name of variable
+        @type v: str
+
+        @param m: model name
+        @type m: str
+
+        @param x: value
+        @type x: float
+
+        @param pos: position where to plot data 1=top triangle, 2=lower triangle
+        @type pos: int
         '''
 
         if v in self.variables:
             if m in self.models:
                 self.data.update({ self.__gen_key(m,v,pos) :x})
                 self.pos.update({ self.__gen_key(m,v,pos) : pos})
+
+#-----------------------------------------------------------------------
 
     def calc_index(self,x,y,model,variable,weights=None):
         '''
@@ -761,7 +831,6 @@ class GleckerPlot():
 
         @return: returns performance index aggregated over time
         @rtype float
-
         '''
 
         if weights == None:
@@ -776,24 +845,25 @@ class GleckerPlot():
 
         return r
 
-
-            #~ E2.append(np.nansum(e)) #temporal aggregation
-#~
-        #~ E2 = np.asarray(E2);  EM = E2.mean()
-        #~ self.e2_norm =  (E2 - EM) / EM #see Glecker et al, eq.2
-
-
+#-----------------------------------------------------------------------
 
     def _draw_legend(self,left,width):
+        '''
+        draw legend for Glecker plot. Requires information on
+        the positioning of the colormap axis which can be obtained from
+
+        left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
+
+        @param left: left position of axis
+        @type left: float
+
+        @param width: width of the axis to plot colorbar
+        @type width: float
+        '''
         cax = self.fig.add_axes([left,0.05,width,0.05]) #left, bottom, width, height
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
                                    norm=self.norm,
                                    orientation='horizontal')
-
-
-
-
-
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -1134,21 +1204,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     rdat = y.div(x).subc(1.) #relative data
     if absthres != None:
         mask = abs(x.timmean()) < absthres
-
-        #~ plt.figure()
-        #~ plt.imshow(abs(adif.timmean()))
-#~
-        #~ plt.figure()
-        #~ plt.imshow(mask)
-#~
-#~
         rdat._apply_mask(~mask)
-#~
-        #~ plt.figure()
-        #~ plt.imshow(rdat.timmean())
-#~
-        #~ stop
-
 
     map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=None,region=region ,nclasses=nclasses,cmap_data=cmap_difference)
 

@@ -41,7 +41,19 @@ class SVD():
 
     def __init__(self,X,Y,scf_threshold = 0.01,label=''):
         '''
-        x,y Data objects
+        constructor for SVD class
+
+        @param X: x-variable field
+        @type X: C{Data} object
+
+        @param Y: y-variable field
+        @type Y: C{Data} object
+
+        @param scf_threshold: threshold for explained variance until which result maps are plotted
+        @type scf_threshold: float
+
+        @param label: label for labeling figures
+        @type label: str
         '''
 
         x = X.data.copy(); y = Y.data.copy()
@@ -53,10 +65,8 @@ class SVD():
         x.shape = (n,-1) #[time,position]
         y.shape = (n,-1)
 
-        self.x = x
-        self.y = y
-        self.X = X
-        self.Y = Y
+        self.x = x; self.y = y
+        self.X = X; self.Y = Y
 
         self.label = label
 
@@ -72,13 +82,14 @@ class SVD():
         get only points where all
         timeseries are valid
 
-        x: masked array [time,position]
+        @param x: array [time,position]
+        @type x: numpy masked array
 
+        @return: masked array and mask
         '''
         sx = x.sum(axis=0) #calculate sum. If all values are valid, then no a float should be there, else Nan
         mx = ~np.isnan(sx) #masked array
         m1 = mx.data; m1[mx.mask]=False #apply also mask of masked array
-
         return x[:,m1],m1
 
 #-----------------------------------------------------------------------
@@ -86,19 +97,19 @@ class SVD():
     def __detrend_time(self,x):
         '''
         given a variable x[time,position]
-        the data is linear detrended
+        the data is linear detrended individually for each position
+
+        @param x: data array [time,position]
+        @type x: numpy array
+        @return: return detrended array [time,position]
         '''
 
         if x.ndim !=2:
             raise ValueError, 'Invalid shape for detrending'
-
         n,m = x.shape
-
         for i in range(m):
-            h = x[:,i].copy()
-            h = plt.detrend_linear(h)
+            h = x[:,i].copy(); h = plt.detrend_linear(h)
             x[:,i] = h.copy()
-
         return x
 
 #-----------------------------------------------------------------------
@@ -107,36 +118,35 @@ class SVD():
         '''
         normalize timeseries x [time,position]
         by dividiing by the standard deviation
-        '''
 
+        @param x: data array [time,position]
+        @type x: numpy array
+
+        @return: normalized timeseries numpy array
+        '''
         nt,nx = np.shape(x)
         s = x.std(axis=0) #temporal standard deviation
-
         S = np.repeat(s,nt).reshape(nx,nt).T #generate array with all same std
-
         x = x / S
-
         return x
-
-
-        #~ print S.shape
-        #~ print S
-        #~ print x.std(axis=0)
-
-        #~ stop
 
 #-----------------------------------------------------------------------
 
     def svd_analysis(self,detrend=True,varnorm=False):
+        '''
+        perform SVD analysis
+
+        @param detrend: detrend data
+        @type detrend: bool
+
+        @param varnorm: normalize variance of time series
+        @type varnorm: bool
+        '''
 
         #/// perform SVN only for data points which are valid throughout entire time series ///
         x,mskx = self._get_valid_timeseries(self.x)
         y,msky = self._get_valid_timeseries(self.y)
-
         self.mskx = mskx; self.msky = msky
-
-        print ' Dimensions for x in SVN: ', x.shape
-        print ' Dimensions for y in SVN: ', y.shape
 
         #/// detrend the data for each grid point ///
         if detrend:
@@ -151,26 +161,21 @@ class SVD():
         #/// calculate covariance matrix
         C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual grid points, but only the covariance terms!
         self.C = C
-
         self.x_used = x.copy() #store vectors like they are used for SVD calculations
         self.y_used = y.copy()
 
-        #singular value decomposition
+        #/// singular value decomposition
         print '   Doing singular value decomposition ...'
         U, s, V = linalg.svd( C )
         L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is somewhat python specific
 
-        #expansion coefficients (time series)
+        #/// expansion coefficients (time series)
         A = dot(x,U); B = dot(y,V)
 
         #/// store results
-        self.U = U
-        self.V = V
-        self.L = L
-        self.A = A
-        self.B = B
+        self.U = U; self.V = V
+        self.L = L; self.A = A; self.B = B
         self.scf = (s*s) / sum(s*s) #fractions of variance explained CAUTION: not properly described in manual if squared or not!
-
         self.__get_mode_correlation() #calculate correlation between modes
 
 #-----------------------------------------------------------------------
@@ -193,13 +198,14 @@ class SVD():
         return the singular vectors of both fields for a specific mode
         as a spatial (2D) field
 
-        both, U and V are calculated and returned
-        '''
+        @param mode: mode to be shown
+        @type mode: int
 
+        @return: numpy arrays for U and V
+        '''
 
         #x_used is a vector that only contains the valid values that were used for caluclation of covariance matrix C
         #mskx is the corresponding mask that maps x_used to the original geometry (both are estimated with _get_valid_timeseries()  )
-
         u = self.U[:,mode]; v = self.V[:,mode] #get singular vectors
 
         #map singular vectors to 2D
@@ -221,16 +227,19 @@ class SVD():
         map valid data vector back to
         original data shape
 
-        data: data vector that was used for SVD calculations (1D)
-        mask: 1 D mask
+        @param data: data vector that was used for SVD calculations (1D)
+        @type data: numpy array vector
+
+        @param mask: 1D data mask
+        @type mask: numpy data (1D)
+
+        @param target_shape: shape to map to
+        @type target_shape: geometry tuple
         '''
-
-
         sz = np.shape(data)
         if sz[0] != mask.sum():
             print sz[1]; print mask.sum()
             raise ValueError, 'Inconsistent mask and data'
-
 
         res = np.ones(target_shape)*np.nan; res.shape = (-1)
         res[mask] = data.copy()
@@ -246,7 +255,14 @@ class SVD():
         '''
         plot explained variance
 
-        ax (optional) specifies axis to plot to
+        @param ax: axis to put plot in. If None, then a new figure is generated
+        @type ax: matplotlib axis
+
+        @param filename: name of the file to store figure to (if None, then no file is saved)
+        @type filename: str
+
+        @param maxvar: upper limit of variance plot
+        @type maxvar: float
         '''
 
         def make_patch_spines_invisible(ax):
@@ -287,12 +303,6 @@ class SVD():
         ax2.set_ylabel('mode correlation [-]',color='green')
         ax2.set_ylim(-1,1.)
         ax2.grid(color='green')
-
-
-        #~ ax.yaxis.label.set_color('blue')
-        #~ ax1.yaxis.label.set_color('red')
-        #~ ax2.yaxis.label.set_color('green')
-
 
         ax .tick_params(axis='y', colors='blue')
         ax1.tick_params(axis='y', colors='red')
@@ -473,16 +483,20 @@ class SVD():
     def _get_variance_field(self,X,E,mode,pthres=1.01):
         '''
         calculate variance field for a particular mode
+        (explained variance by a particular expansion mode)
+        This is obtained by correlating an expansion mode to
+        a particular data field
 
-        X: Data object of field X
-        E: expansion cofficient to be used for correlation calculation
+        @param X: data field that should be explained by expansion coefficient
+        @type X: C{Data} object
+
+        @param E: expansion cofficient to be used for correlation calculation
+        @type E: numpy array
+
+        @return: squared correlation as C{Data} object
         '''
-
         Rout,Sout,Iout,Pout = X.corr_single(E[:,mode],pthres=pthres)
-
         Rout.data = Rout.data*Rout.data
-
-
         return Rout #return squared correlation to get variance
 
 #-----------------------------------------------------------------------
@@ -522,11 +536,11 @@ class SVD():
     def print_mode_statistic(self,filename=None):
         '''
         print statistic of modes
+
+        @param filename: filename to save table to
+        @type filename: str
         '''
-
-        sep = ' & '
-        rnd = 2
-
+        sep = ' & '; rnd = 2
         self.__get_mode_correlation() #calculate mode correlations
 
         if filename != None:

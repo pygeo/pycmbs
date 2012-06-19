@@ -693,7 +693,6 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
     for model in model_list:
 
         GP.add_model(model.name)
-
         #~ model_names.append(model.name)
 
         #~ if model.name == None:
@@ -703,6 +702,8 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
         #--- get model data
         model_data = model.variables['sis']
         if model_data == None: #data file was not existing
+            print 'Data not existing for model: ', model.name
+            stop
             continue
 
         if model_data.data.shape != cmsaf_sis.data.shape:
@@ -929,10 +930,11 @@ hlp.update({'tree' : 'get_tree_fraction()'})
 hlp.update({'grass' : 'get_grass_fraction()'})
 
 
-cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A','AGCM3-2H','AGCM3-2S','bcc-csm1-1','CGCM3','CNRM-CM5','GFDL-HIRAM-C180','GFDL-HIRAM-C360','GISS-E2-R','inmcm4','IPSL-CM5A-LR','MIROC5','NorESM1-M']
+cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A','MRI-AGCM3-2H','MRI-AGCM3-2S','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GFDL-HIRAM-C180','GFDL-HIRAM-C360','GISS-E2-R','inmcm4','IPSL-CM5A-LR','MIROC5','NorESM1-M']
 
 
-cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MIROC5']
+#~ cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MIROC5']
+#~ cmip_model_list = ['MRI-AGCM3-2H']
 cmip_models = []
 
 
