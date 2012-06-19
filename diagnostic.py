@@ -6,6 +6,11 @@ __version__ = "0.0"
 __date__ = "0000/00/00"
 __email__ = "alexander.loew@zmaw.de"
 
+'''
+main module for diagnostic routines
+@todo: check routine performances e.g. Reichler based on reference data solutions
+'''
+
 import numpy as np
 
 import scipy as sci
@@ -598,7 +603,7 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
-    def lagged_correlation_vec(self,lags,pthres=1.01):
+    def lagged_correlation_vec(self,lags,pthres=1.01,detrend_linear=False,detrend_mean=False):
         '''
         lagged correlation for two vectors
 
@@ -611,20 +616,31 @@ class Diagnostic():
         if self.x.data.shape != self.y.data.shape:
             raise ValueError, 'Invalid geometries!'
 
+        if not plt.isvector(self.x.data):
+            raise ValueError, 'Routine works only with vectorized data!'
+
         if any(lags < 0.):
             raise ValueError, 'Negative lags currently not supported yet!'
 
         CO = []
         for lag in lags:
-            hlpx = self.x.copy(); hlpy = self.y.copy()
+            hlpx = self.x.data.copy(); hlpy = self.y.data.copy()
 
+            if detrend_linear:
+                hlpx = plt.detrend_linear(hlpx);
+                hlpy = plt.detrend_linear(hlpy);
+            if detrend_mean:
+                hlpx = plt.detrend_mean(hlpx);
+                hlpy = plt.detrend_mean(hlpy);
+
+            #1) temporal subsetting of data
             if lag > 0:
                 #temporal subset data
-                hlpx.data = hlpx.data[lag:]; hlpy.data = hlpy.data[:-lag]
-            #~ print lag
-            #~ print hlpx.data,hlpy.data
-            if len(hlpx.data) > 1:
-                slope, intercept, r_value, p_value, std_err = sci.stats.linregress(hlpx.data,hlpy.data)
+                hlpx = hlpx[lag:]; hlpy = hlpy[:-lag]
+
+            #2) calculation of lagged correlation
+            if len(hlpx) > 1:
+                slope, intercept, r_value, p_value, std_err = sci.stats.linregress(hlpx,hlpy)
             else:
                 r_value = np.nan; p_value =2.
 
@@ -736,7 +752,7 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
-    def get_correlation(self,lag=0,nlags=None):
+    def get_correlationxxxxx(self,lag=0,nlags=None):
         '''
         calculate correlation between two data sets
         '''
@@ -1047,6 +1063,7 @@ class Diagnostic():
         #~ ax.set_xlabel('years')
         #~ ax2.grid()
         #~ ax2.legend()
+
 
 
 
