@@ -8,8 +8,9 @@ __date__ = "0000/00/00"
 '''
 Module that contains relevant classes for diagnostic plots
 
-@todo: implement Glecker plots
+
 @todo: implement writing of statistics to an ASCII file as export
+@todo: implement taylor plots
 '''
 
 from matplotlib import pylab as plt
@@ -26,7 +27,6 @@ from matplotlib.patches import Circle
 
 import sys
 
-from diagnostic import *
 
 from scipy.spatial import cKDTree as KDTree #import the C version of KDTree (faster)
 
@@ -38,6 +38,7 @@ import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes
 
+import matplotlib as mpl
 
 #-----------------------------------------------------------------------
 
@@ -503,8 +504,8 @@ class ZonalPlot():
             self.ax.plot(dat,x.lat[:,0])
         elif dat.ndim == 2:
             for i in range(len(dat)):
-                print 'Time in zonal: ', i
-                print dat[i,:]
+                #~ print 'Time in zonal: ', i
+                #~ print dat[i,:]
                 #~ self.ax.plot(dat[i,:],label='time='+str(i))
                 self.ax.plot(dat[i,:],x.lat[:,0],label='time='+str(i))
 
@@ -615,31 +616,71 @@ class GleckerPlot():
         p = Polygon(xy,edgecolor='white',linewidth=1,fill=True,linestyle='solid',facecolor=color)
         ax.add_patch(p)
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.):
+#-----------------------------------------------------------------------
+
+    def _normalize_data(self):
+        '''
+        calculate for each observational data set
+        the relative deviation from the average
+        '''
+        pos = np.unique(self.pos.values())
+        self._raw_data = self.data.copy() #preserve original calculated data
+        for p in pos:
+            xm = self._get_mean_value(p) #calculate multimodel mean
+            for k in self.data:
+                if self.pos[k] == p:
+                    self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
+
+#-----------------------------------------------------------------------
+
+    def _get_mean_value(self,pos):
+        '''
+        calculate mean value for a given observational dataset
+        '''
+        x = []
+        for k in self.pos:
+            if self.pos[k] == pos:
+                x.append(self.data[k])
+        x = np.asarray(x)
+        return x.mean()
+
+
+
+#-----------------------------------------------------------------------
+
+
+
+    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=10,normalize=True):
+        '''
+        normalize data relative to multimodel mean
+        '''
+
+        #~ todo implement normalization here per position
+
+        if normalize:
+            self._normalize_data()
 
         nm = len(self.models); nv = len(self.variables)
 
         #- colormap
-        self.cmap = plt.cm.get_cmap(cmap_name, 10)
+        self.cmap = plt.cm.get_cmap(cmap_name, nclasses)
         self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
         gs = gridspec.GridSpec(nm, nv, wspace=0.05,hspace=0.05,bottom=0.2) #generate grid for subplots
 
-        cnt = 0
-        cnt_m = 0
+        cnt = 0; cnt_m = 0
 
         model_list = self.models.sort()
 
         for model in self.models:
-            cnt_m += 1
-            cnt_v  = 0
+            cnt_m += 1; cnt_v  = 0
             for variable in self.variables:
                 ax = self.fig.add_subplot(gs[cnt],frameon=True,aspect='equal',axisbg='grey')
                 self.__set_ax_prop(ax)
 
                 #labels
                 if cnt_v == 0:
-                    ax.set_ylabel(model,size=8)
+                    ax.set_ylabel(model,size=8,rotation='horizontal')
                 if cnt_m == nm:
                     ax.set_xlabel(variable,size=8)
 
@@ -659,6 +700,13 @@ class GleckerPlot():
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
         #draw legend
         self._draw_legend(left,right-left)
+
+#-----------------------------------------------------------------------
+
+
+
+
+
 
 
 
@@ -684,10 +732,57 @@ class GleckerPlot():
         return m.replace(' ','_')+'_'+v.replace(' ','_')+'_'+str(p)
 
     def add_data(self,v,m,x,pos=1):
+        '''
+        add a final data for plotting
+        '''
+
         if v in self.variables:
             if m in self.models:
                 self.data.update({ self.__gen_key(m,v,pos) :x})
                 self.pos.update({ self.__gen_key(m,v,pos) : pos})
+
+    def calc_index(self,x,y,model,variable,weights=None):
+        '''
+        calculate model performance index
+        the model and the variable need to have been registered
+        already using add_model and add_variable
+
+        @param x: reference data (observation)
+        @type x: C{Data} object
+
+        @param y: data to benchmark (e.g. model)
+        @type y: C{Data} object
+
+        @param model: model name
+        @type model: str
+
+        @param variable: variable name
+        @type variable: str
+
+        @return: returns performance index aggregated over time
+        @rtype float
+
+        '''
+
+        if weights == None:
+            print 'WARNING: no weights when calculating performance index'
+            weights = np.ones(x.data[0,:].shape)
+
+        from diagnostic import Diagnostic
+        D = Diagnostic(x,y=y)
+        e2 = D.calc_reichler_index(weights) #reichler performance index (might return a list if multiple times analyzed)
+
+        r = np.nansum(e2) #temporal aggregation
+
+        return r
+
+
+            #~ E2.append(np.nansum(e)) #temporal aggregation
+#~
+        #~ E2 = np.asarray(E2);  EM = E2.mean()
+        #~ self.e2_norm =  (E2 - EM) / EM #see Glecker et al, eq.2
+
+
 
     def _draw_legend(self,left,width):
         cax = self.fig.add_axes([left,0.05,width,0.05]) #left, bottom, width, height
@@ -721,7 +816,7 @@ def __basemap_ancillary(m):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, **kwargs):
     '''
     produce a nice looking map plot
 
@@ -760,6 +855,10 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @param logoffset: offset that should be added to the data before performing
                       logarithmic plotting. Useful if negative data
     @type logoffset:  bool
+
+    @param show_stat: show statistic of field in figure title
+    @type show_stat: bool
+
     '''
 
     #--- create new figure
@@ -887,9 +986,17 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- set title
     if title == None:
-        ax.set_title(x._get_label(),size=8)
+        title = x._get_label()
     else:
-        ax.set_title(title,size=8)
+        pass
+
+    #--- show field statistics in title ?
+    if show_stat:
+        me = xm.mean(); st=xm.std()
+        title = title + ' - ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$)'
+
+    ax.set_title(title,size=10)
+
 
     return fig
 

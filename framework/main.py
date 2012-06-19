@@ -151,7 +151,16 @@ class CMIP5Data(Model):
 
 
     def get_surface_shortwave_radiation(self):
-        filename = self.data_dir +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean_seasmean_yseasmean.nc'
+        filename1 = self.data_dir +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+        if s_start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if s_stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
+        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
 
         if not os.path.exists(filename):
             return None
@@ -642,7 +651,7 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
 
     vmin = 0.; vmax = 300
 
-    model_names = []
+    #~ model_names = []
 
     print 'Doing SIS analysis ...'
 
@@ -685,7 +694,7 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
 
         GP.add_model(model.name)
 
-        model_names.append(model.name)
+        #~ model_names.append(model.name)
 
         #~ if model.name == None:
             #~ raise ValueError, 'Model needs to have a name attribute!'
@@ -730,13 +739,16 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
         Rplot.add(e2,model_data.label,color='red')
         #~ print e2
 
+        #/// Glecker plot ///
+        e2a = global_glecker.calc_index(cmsaf_sis,model_data,model,'sis')
+        global_glecker.add_data('sis',model.name,e2a,pos=1)
 
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
     Rplot.bar()
     #print Rplot.e2_norm #the normalized Recihler index contains temporal aggregated and relative results
-    for i in range(len(Rplot.e2_norm)):
-        GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=1)
+    #~ for i in range(len(Rplot.e2_norm)):
+        #~ GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=1)
 
 
 def ceres_sis_analysis(model_list,interval = 'season',GP=None):
@@ -752,7 +764,7 @@ def ceres_sis_analysis(model_list,interval = 'season',GP=None):
 
     vmin = 0.; vmax = 300
 
-    model_names = []
+    #~ model_names = []
 
     print 'Doing CERES SIS analysis ...'
 
@@ -792,7 +804,7 @@ def ceres_sis_analysis(model_list,interval = 'season',GP=None):
 
         GP.add_model(model.name)
 
-        model_names.append(model.name)
+        #~ model_names.append(model.name)
 
 
         #--- get model data
@@ -832,16 +844,19 @@ def ceres_sis_analysis(model_list,interval = 'season',GP=None):
         #/// Reichler statistics ///
         Diag = Diagnostic(ceres_sis,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
-
-
         Rplot.add(e2,model_data.label,color='red')
+
+        #/// Glecker plot ///
+        e2a = global_glecker.calc_index(ceres_sis,model_data,model,'sis')
+        global_glecker.add_data('sis',model.name,e2a,pos=2)
+
 
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
     Rplot.bar()
 
-    for i in range(len(Rplot.e2_norm)):
-            GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=2)
+    #~ for i in range(len(Rplot.e2_norm)):
+            #~ GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=2)
 
 
 
@@ -880,14 +895,19 @@ data_dir = '/home/m300028/shared/data/CMIP5/EvaCliMod/rsds/' #CMIP5 data directo
 
 pl.close('all')
 
+global s_start_time
+global s_stop_time
 
 s_start_time = '1983-01-01' #todo where is this used ?
 s_stop_time  = '2005-12-31'
 
+
+
+
 #--- specify variables to analyze
 #~ variables = ['rain','albedo','sis']
 #variables = ['tree','albedo']
-variables = ['rain','sis'] #sis
+variables = ['sis'] #sis
 
 #--- specify mapping of variable to analysis script name
 scripts = get_script_names()
@@ -909,7 +929,10 @@ hlp.update({'tree' : 'get_tree_fraction()'})
 hlp.update({'grass' : 'get_grass_fraction()'})
 
 
-cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A']
+cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A','AGCM3-2H','AGCM3-2S','bcc-csm1-1','CGCM3','CNRM-CM5','GFDL-HIRAM-C180','GFDL-HIRAM-C360','GISS-E2-R','inmcm4','IPSL-CM5A-LR','MIROC5','NorESM1-M']
+
+
+cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MIROC5']
 cmip_models = []
 
 
@@ -925,7 +948,6 @@ cmip_cnt = 1
 for model in cmip_model_list:
     cmip = CMIP5Data(data_dir,model,experiment,jsbach_variables,unit='W/m**2',lat_name='lat',lon_name='lon',label=model)
     cmip.get_data()
-
     cmd = 'cmip' + str(cmip_cnt).zfill(4) + ' = ' + 'cmip.copy(); del cmip'
     exec(cmd) #store copy of cmip5 model in separate variable
     cmip_models.append('cmip' + str(cmip_cnt).zfill(4))
@@ -985,12 +1007,11 @@ for variable in variables:
             #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
             #~ eval(scripts[variable]+'([cmip,jsbach72])') #here one can put a multitude of model output for comparison in the end
             model_list = str(cmip_models).replace("'","") #cmip5 model list
-            model_list = model_list.replace(']',', ') + 'jsbach72' + ']'
+            #~ model_list = model_list.replace(']',', ') + 'jsbach72' + ']'
             eval(scripts[variable]+'(' + model_list + ')') #here one can put a multitude of model output for comparison in the end
 
 #~ if __name__ == '__main__':
     #~ main()
 
-global_glecker.plot(vmin=-0.2,vmax=0.2)
-
+global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=15)
 

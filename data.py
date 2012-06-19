@@ -110,6 +110,13 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time)
 
+
+    def set_sample_data(self,a,b,c):
+        '''
+        fill data matrix with some sample data
+        '''
+        self.data = plt.rand(a,b,c)
+
 #-----------------------------------------------------------------------
 
     def _squeeze(self):
@@ -375,6 +382,96 @@ class Data():
         res = pl.asarray(res)
 
         return years, res
+
+#-----------------------------------------------------------------------
+
+    def correlate(self,Y):
+        '''
+        correlate present data on a grid cell basis
+        with another dataset
+
+        @todo: more efficient implementation needed
+
+        @param y: dataset to corrleate the present one with. The
+                  data set of self will be used as X in the caluclation
+        @type y: C{Data} object
+
+        @return: returns correlation coefficient and its significance
+        @rtype: C{Data} objects
+
+        #test routines tcorr1.py, test_corr.py
+        '''
+
+        if Y.data.shape != self.data.shape:
+            raise ValueError, 'unequal shapes: correlation not possible!'
+
+        #- generate a mask of all samples that are valid in BOTH datasets
+        vmask = self.data.mask | Y.data.mask
+        vmask = ~vmask
+
+        #- copy original data
+        xv = self.data.copy()
+        yv = Y.data.copy()
+        sdim = self.data.shape
+
+        #- ... and reshape it
+        nt = len(self.data)
+        xv.shape=(nt,-1); yv.shape=(nt,-1)
+        vmask.shape = (nt,-1)
+
+        #- generate new mask for data
+        xv.data[xv.mask] = np.nan
+        yv.data[yv.mask] = np.nan
+        xv[~vmask] = np.nan; yv[~vmask] = np.nan
+
+        xv = np.ma.array(xv,mask=np.isnan(xv))
+        yv = np.ma.array(yv,mask=np.isnan(yv))
+
+        #- number of valid data sets where x and y are valid
+        nvalid = vmask.sum(axis=0)
+
+        #- calculate correlation only for grid cells with at least 3 valid samples
+
+        mskvalid = nvalid > 2
+        r = np.ones(sum(mskvalid)) * np.nan
+        p = np.ones(sum(mskvalid)) * np.nan
+
+        xn = xv[:,mskvalid]; yn=yv[:,mskvalid] #copy data
+        nv = nvalid[mskvalid]
+
+        #do correlation calculation; currently using np.ma.corrcoef as this
+        #supports masked arrays, while stats.linregress doesn't!
+        for i in range(sum(mskvalid)):
+            #~ slope, intercept, r_value, p_value, std_err = sci.stats.linregress(xn[:,i],yn[:,i])
+            r_value = np.ma.corrcoef(xn[:,i],yn[:,i])[0,1]
+            r[i]=r_value
+
+            p[i] = get_significance(r_value,nv[i]) #calculate p-value
+
+        #remap to original geometry
+        R = np.ones(xv.shape[1]) * np.nan #matrix for results
+        P = np.ones(xv.shape[1]) * np.nan #matrix for results
+        R[mskvalid] = r; P[mskvalid] = p
+        orgshape = (sdim[1],sdim[2])
+        R = R.reshape(orgshape) #generate a map again
+        P = P.reshape(orgshape)
+
+        R = np.ma.array(R,mask=np.isnan(R))
+        P = np.ma.array(P,mask=np.isnan(P))
+
+        RO = self.copy()
+        RO.data = R; RO.label = 'correlation' #: ' + self.label + ' ' + y.label
+        RO.unit = ''
+
+        PO = self.copy()
+        PO.data = P; PO.label = 'p-value' # + self.label + ' ' + y.label
+        PO.unit = ''
+
+        return RO,PO
+
+
+
+
 
 #-----------------------------------------------------------------------
 
@@ -1032,6 +1129,36 @@ class Data():
         y[:,:,n:]  = tmp[:,:,0:-n]
 
         return y
+
+#-----------------------------------------------------------------------
+
+    def timeshift(self,n):
+        '''
+        shift data in time by n-steps
+        positive numbers mean, that the
+        data is shifted leftwards (thus towards earlier times)
+
+        e.g. timeseries 1980,1981,1982, a shift of n=1 would generate
+        a dataset with the data ordered as follows
+        [1981,1982,1980]
+
+        @param n: lag to shift data (n>=0)
+        @type n: int
+
+        @todo: support for n < 0
+        '''
+
+        if n == 0:
+            return
+        if self.data.ndim != 3:
+            raise ValueError, 'array of size [time,ny,nx] is needed for temporal shifting!'
+
+        tmp = self.data.copy()
+        self.data[:,:,:]=np.nan
+        self.data[:-n:,:,:] = tmp[n:,:,:]
+        self.data[-n:,:,:]  = tmp[0:n,:,:]
+
+
 
 #-----------------------------------------------------------------------
 
