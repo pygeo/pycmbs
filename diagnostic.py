@@ -26,6 +26,197 @@ from pyCMBS.data import Data
 
 from scipy import linalg, dot;
 
+from anova import *
+
+#-----------------------------------------------------------------------
+
+class ANOVA():
+    '''
+    main class to perform an ANOVA analysis
+    using C{Data} objects
+
+    treatments are derived from data timeseries
+    blocks are obtained by different experiments
+    '''
+    def __init__(self):
+        self.experiments = []
+        self.data = {}
+
+    def add_experiment(self,label):
+        self.experiments.append(self.__trim(label))
+        self.data.update({self.__trim(label):[]})
+
+    def __trim(self,s):
+        return s.replace(' ','_')
+
+    def add_data(self,e,d):
+        '''
+        adds data for each experiment to a list
+        '''
+        k = self.__trim(e) #experiment key
+        if k in self.experiments:
+            #experiment was registered
+            #~ has_mask = True
+            #~ try: #this is a hack; how to do it better ??? #TODO !!!!
+                #~ d.data.shape == d.mask.shape
+            #~ except:
+                #~ has_mask = False
+            #~ if not has_mask:
+                #~ print d.data
+                #~ print e
+                #~ raise ValueError, 'All data objects need to me masked arrays!' #this is needed,as otherwise common mask generation is not possible
+            self.data[k].append(d)
+        else:
+            raise ValueError, 'Experiment was not yet registered!'
+
+    def analysis(self,analysis_type = 'one'):
+        '''
+        perform ANOVA analysis based on the data given
+        '''
+        #1) check if all data has the same length
+        # this is not a strong prerequesite for ANOVA as such, but for
+        # the implementation here
+        # generate a common mask with points that are valid throughout
+        # all timesteps and are not masked
+        self._get_valid_mask() #--> self.mask
+
+        #2) rearange data to work only with valid (not masked data)
+        #   check also that only data which is valid in all cases is used
+        #   it is realized by getting the valid indices of the data
+        idx = np.argwhere(self.mask) #returns list of indices of valid pixels
+
+        #3) perform ANOVA analysis on all pixels individually
+        resA = np.zeros(self.refshape)*np.nan
+        resB = np.zeros(self.refshape)*np.nan
+        resI = np.zeros(self.refshape)*np.nan
+        for p in idx:
+            print 'p: ', p[0], p[1]
+            if analysis_type == 'one': #one way ANOVA
+                m = self._data2anova1(p) #[nrens,ntime]
+                A = Anova1(m)
+                A.one_way_anova()
+
+                resA[p[0],p[1]] = A.get_fractional_variance_explained(adjust=True)
+                #todo significance
+
+            elif analysis_type == 'two': #two way ANOVA
+                m = self._data2anova2(p)
+                #- perform 2-way anova
+                A = Anova2(m)
+                A.two_way_anova_with_replication()
+
+                resA[p[0],p[1]] = A.get_fractional_variance_explained('a',adjust=False) #todo: adjust variance
+                resB[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=False) #todo: adjust variance
+                resI[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=False) #todo: adjust variance
+
+            else:
+                raise ValueError, 'Invalid type'
+
+        self.resA = resA
+        self.resB = resB
+        self.resI = resI
+
+
+    def _data2anova1(self,p):
+        '''
+        extract from the database all the data
+        relevant for a single location, given by the indices in p
+
+        p = indices
+
+        ---> time (nt)
+        |
+        |
+        v experiment (nexp)
+        '''
+
+        nexp = len(self.experiments)
+
+        if nexp != 1:
+            raise ValueError, 'one-way anova only valid for signle experiments!'
+
+        x = np.zeros((self.n,self.nt))*np.nan #[nrens,nt]
+
+        e = self.experiments[0]
+        for i in range(self.n):
+            d = self.data[e][i] #data object for experiment 'e' and ensemble nr [i]
+            x [i,:] = d.data[:,p[0],p[1]]
+
+        if np.any(np.isnan(x) > 0):
+            raise ValueError, 'Something is wrong: not all data valid!'
+
+        return x
+
+
+
+    def _data2anova2(self,p):
+        '''
+        extract from the database all the data
+        relevant for a single location, given by the indices in p
+
+        p = indices
+
+        ---> time (nt)
+        |
+        |
+        v experiment (nexp)
+
+        '''
+        nexp = len(self.experiments)
+        x = np.zeros((nexp,self.nt,self.n))*np.nan
+
+        for j in range(len(self.experiments)):
+            e = self.experiments[j]
+            for i in range(self.n):
+                d = self.data[e][i] #data object for experiment 'e' and ensemble nr [i]
+                x [j,:,i] = d.data[:,p[0],p[1]]
+
+        if np.any(np.isnan(x) > 0):
+            raise ValueError, 'Something is wrong: not all data valid!'
+
+        return x
+
+    def _get_valid_mask(self):
+        '''
+        generate a mask where all datasets are valid
+        '''
+        #- check if geometry in general o.k.
+        self.__same_geometry()
+
+    def __same_geometry(self):
+        '''
+        check if all data has the same geometry
+        '''
+        cnt = 0
+        for k in self.experiments:
+            d = self.data[k]
+            if cnt == 0:
+                refshape = d[0].data.shape #first dataset geometry as reference
+                self.refshape=(refshape[1],refshape[2])
+                nrens = len(d)
+                self.n = nrens
+                self.nt = refshape[0]
+                refmsk = np.ones((refshape[1],refshape[2])).astype('bool')
+                cnt += 1
+
+            if len(d) != nrens:
+                raise ValueError, 'Invalid Number of ensemble members found!'
+            for i in range(len(d)):
+
+                if d[i].data.shape != refshape:
+                    print k, i
+                    raise ValueError, 'Invalid data shape found!'
+
+                #- generate common mask
+                msk = d[i].get_valid_mask()
+                print sum(msk), k, i
+                refmsk = refmsk & msk
+
+        self.mask = refmsk
+
+        return True
+
+#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 class SVD():
@@ -562,6 +753,12 @@ class SVD():
     def plot_expansion_correlation(self,mode,ax=None):
         '''
         plot correlation and time series of expansion coeffcients
+
+        @param mode: mode to plot
+        @type mode: int
+
+        @param ax: axis to plot data
+        @type ax: matplotlib axis
         '''
         if ax == None:
             fig=plt.figure()
@@ -574,8 +771,7 @@ class SVD():
         c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
         plt.legend()
         ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')',size=10)
-        ax.set_xlabel('time')
-        ax.set_ylim(-3.,3.)
+        ax.set_xlabel('time'); ax.set_ylim(-3.,3.)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -583,11 +779,15 @@ class SVD():
 class Diagnostic():
     def __init__(self,x,y=None):
         '''
+        constructor for diagnostic class
         diagnostic for one or multiple data sets
 
-        x,y of type Data
-        '''
+        @param x: x data to be analyzed
+        @type x: C{Data} object
 
+        @param y: y data to be analyzed
+        @type y: C{Data} object
+        '''
         self.x = x
         if y != None:
             self.y = y
@@ -598,7 +798,6 @@ class Diagnostic():
         '''
         return the number of valid samples
         '''
-
         xm = ~self.xvec.mask #vector with valid sample
         ym = ~self.yvec.mask
         m = xm & ym
@@ -674,6 +873,9 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def get_correlation_value(self):
+        '''
+        get correlation between two vectors
+        '''
         c = np.ma.corrcoef(self.xvec,self.yvec)[0][1]
         return c #correlation coefficient
 
@@ -684,6 +886,9 @@ class Diagnostic():
         concatenate all information into
         a vector and apply a given
         mask if desired
+
+        @param mask: mask to be applied
+        @type mask: numpy array
         '''
 
         #--- generated copies and mask data if desired
@@ -701,11 +906,9 @@ class Diagnostic():
         xvec = X.data.copy()
         xvec.shape = (-1)
         if self.y != None:
-            yvec = Y.data.copy()
-            yvec.shape = (-1)
+            yvec = Y.data.copy(); yvec.shape = (-1)
 
-        self.xvec = xvec
-        self.yvec = yvec
+        self.xvec = xvec; self.yvec = yvec
 
 #-----------------------------------------------------------------------
 
@@ -726,8 +929,7 @@ class Diagnostic():
             raise ValueError, 'Can not calculate Reichler & Kim index without a second variable!'
 
         weights = weights.copy()
-        x = self.x.data.copy()
-        y = self.y.data.copy()
+        x = self.x.data.copy(); y = self.y.data.copy()
         std_x = self.x.std.copy()
 
         if np.shape(x) != np.shape(y):
@@ -740,28 +942,17 @@ class Diagnostic():
             n = len(x)
             x.shape = (n,-1) #[time,index]
             y.shape = (n,-1)
-            std_x.shape = (n,-1)
-            weights.shape = (-1)
-
+            std_x.shape = (n,-1); weights.shape = (-1)
             if np.shape(x[0,:]) != np.shape(weights):
                 raise ValueError, 'Invalid shape for weights!'
-
             e2 = []
             for i in range(n):
                 d = weights * ( (x[i,:]-y[i,:])**2)   / std_x[i,:]
-                #~ print std_x[i,:]
-                #~ print '*** ', i
-                #~ print min(x[i,:]),max(x[i,:])
-                #~ print min(y[i,:]),max(y[i,:])
-                #~ print ''
                 e2.append(np.sum(d)) #sum at end to avoid nan's   #it is important to use np.sum() !!
-
             e2 = np.asarray(e2)
 
-        print 'CALCULATED REICHLER INDEX: ', e2
         if np.any(np.isnan(e2)):
             raise ValueError, 'Reichler: e2 contains NAN, this happens most likely if STDV == 0'
-
         return e2
 
 #-----------------------------------------------------------------------
@@ -884,7 +1075,6 @@ class Diagnostic():
         the timeseries of each pixels is averaged over time
         before the correlation calculation
         '''
-
         x=self.x.data.copy()
 
         if not hasattr(self,'y'):
@@ -897,7 +1087,6 @@ class Diagnostic():
         else:
             y = self.y.data.copy()
 
-
         if np.shape(x) != np.shape(y):
             raise ValueError, 'slice_corr: shapes not matching!'
 
@@ -906,10 +1095,8 @@ class Diagnostic():
         x.shape = (n,-1) #size [time,ngridcells]
         y.shape = (n,-1)
 
-        R=np.ones((n,n))*np.nan
-        P=np.ones((n,n))*np.nan
-        L=np.ones((n,n))*np.nan
-        S=np.ones((n,n))*np.nan
+        R=np.ones((n,n))*np.nan; P=np.ones((n,n))*np.nan
+        L=np.ones((n,n))*np.nan; S=np.ones((n,n))*np.nan
 
         #--- perform correlation analysis
         print '   Doing slice correlation analysis ...'
@@ -959,8 +1146,16 @@ class Diagnostic():
         '''
         set ticks of timeline with
         yearly ticks
-        '''
 
+        @param years: list of years
+        @type years: list
+
+        @param ax: axis to handle
+        @type ax: matplotlib axis
+
+        @param axis: specify which axis to handle 'x' or 'y'
+        @type axis: str
+        '''
         ticks = ax.get_xticks()
 
         #- calculate ticks from year
@@ -972,7 +1167,6 @@ class Diagnostic():
                 oticks.append('')
             else:
                 oticks.append(years[int(t)])
-
         #- set ticks of axis
         if   axis == 'x':
             ax.set_xticklabels(oticks)
@@ -986,9 +1180,11 @@ class Diagnostic():
     def plot_slice_correlation(self,pthres = 1.01):
         '''
         plot slice correlation results
+
+        @param pthres: significance threshold. All results with p-values
+                       below this threshold will be plotted
+        @type pthres: float
         '''
-
-
         cmap1 = plt.cm.get_cmap('RdBu_r', 10)
         cmap2 = plt.cm.get_cmap('jet', 10)
 
@@ -1002,12 +1198,8 @@ class Diagnostic():
         fig=plt.figure(figsize=(12,6))
         fig.subplots_adjust(hspace=0.5)
         self.slice_fig = fig
-        ax1=fig.add_subplot(221)
-        ax2=fig.add_subplot(222)
-        ax3=fig.add_subplot(223)
-        ax4=fig.add_subplot(224)
-        #ax1 = fig.add_axes([0.07, 0.07, 0.4, 0.8])
-        #ax2 = fig.add_axes([0.55, 0.07, 0.4, 0.8])
+        ax1=fig.add_subplot(221); ax2=fig.add_subplot(222)
+        ax3=fig.add_subplot(223); ax4=fig.add_subplot(224)
 
         r_data      = self.slice_r.copy()
         p_data      = self.slice_p.copy()
@@ -1015,10 +1207,8 @@ class Diagnostic():
         slope_data  = self.slice_slope.copy()
 
         msk = p_data > pthres
-        r_data[msk]      = np.nan
-        p_data[msk]      = np.nan
-        length_data[msk] = np.nan
-        slope_data[msk]  = np.nan
+        r_data[msk]      = np.nan; p_data[msk]      = np.nan
+        length_data[msk] = np.nan; slope_data[msk]  = np.nan
 
         #- correlation
         imr=ax1.imshow(r_data,interpolation='nearest',cmap=cmap1)
@@ -1064,21 +1254,3 @@ class Diagnostic():
         ax2.clabel(CP2, inline=1, fontsize=10)
         ax3.clabel(CP3, inline=1, fontsize=10)
         ax4.clabel(CP4, inline=1, fontsize=10)
-
-        #pl.figure()
-        #pl.imshow(P,interpolation='nearest')
-        #~ CP = ax.contour(P,[0.01,0.05,0.1],linewidths=2) #,colors='black')
-        #~ ax.clabel(CP, inline=1, fontsize=10) #,colors='black')
-#~
-        #~
-        #~ ax2.plot(x,label='x')
-        #~ ax2.plot(y,label='y')
-        #~ ax2.set_title('Region: ' + reg.label)
-        #~ ax.set_xlabel('years')
-        #~ ax2.grid()
-        #~ ax2.legend()
-
-
-
-
-
