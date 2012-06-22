@@ -616,12 +616,38 @@ class GleckerPlot():
 
         color = self.__value2color(value)
 
-        if pos == 'top':
-            x = [0.,0.,1.]
-            y = [0.,1.,1.]
+        pmax = max(self.pos.values())
+
+        if pmax > 4:
+            raise ValueError, 'Only up to 4 observations supported!'
+
+        if pmax > 2:
+            #plot 4 triangles
+            if pos == 'top':
+                x = [0.,1.,0.5]
+                y = [1.,1.,0.5]
+            elif pos == 'bottom':
+                x = [0.,0.5,1.]
+                y = [0.,0.5,0.]
+            elif pos == 'left':
+                x = [0.,0.,0.5]
+                y = [0.,1.,0.5]
+            elif pos == 'right':
+                x = [1.,0.5,1.]
+                y = [0.,0.5,1.]
+            else:
+                raise ValueError, 'Invalid position for plot'
+
         else:
-            x = [1.,1.,0.]
-            y = [1.,0.,0.]
+            #- plot only two triangles (diagonal)
+            if pos == 'top':
+                x = [0.,0.,1.]
+                y = [0.,1.,1.]
+            elif pos == 'bottom':
+                x = [1.,1.,0.]
+                y = [1.,0.,0.]
+            else:
+                raise ValueError, 'Invalid position for plot'
 
         xy = list(zip(x,y))
         p = Polygon(xy,edgecolor='white',linewidth=1,fill=True,linestyle='solid',facecolor=color)
@@ -715,8 +741,11 @@ class GleckerPlot():
                 if cnt_m == nm:
                     ax.set_xlabel(variable,size=8)
 
-                self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top') #upper triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top')    #upper triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left') #left triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right') #right triangle
+
 
                 cnt += 1
                 cnt_v += 1

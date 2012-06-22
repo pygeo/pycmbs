@@ -981,13 +981,23 @@ class Data():
         '''
         calculate a mask which is True, when all timestamps
         of the field are valid
+
+        todo this is still not working properly when the data is
+        stored in masked arrays, as the mask is not applied in that case!
         '''
 
         if self.data.ndim == 2:
             return np.ones(self.data.shape).astype('bool')
         elif self.data.ndim == 3:
             n = len(self.data)
-            msk = np.sum(~np.isnan(self.data),axis=0) == n
+            hlp = self.data.copy()
+            if hasattr(hlp,'mask'):
+                hlp1 = hlp.data.copy()
+                hlp1[hlp.mask] = np.nan
+            else:
+                hlp1 = hlp.data.copy()
+            #~ print np.sum(~np.isnan(hlp1),axis=0), n
+            msk = np.sum(~np.isnan(hlp1),axis=0) == n
             return msk
         else:
             raise ValueError, 'unsupported dimension!'

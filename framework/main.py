@@ -639,6 +639,8 @@ def albedo_analysis(model_list):
 
 
 def sis_analysis(model_list,interval = 'season', GP=None):
+    isccp_sis_analysis(model_list,interval=interval,GP=GP)
+    srb_sis_analysis(model_list,interval=interval,GP=GP)
     cmsaf_sis_analysis(model_list,interval=interval,GP=GP)
     ceres_sis_analysis(model_list,interval=interval,GP=GP)
 
@@ -648,16 +650,12 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
     '''
     model_list = list which contains objects of data type MODEL
     '''
-
     vmin = 0.; vmax = 300
-
-    #~ model_names = []
 
     print 'Doing SIS analysis ...'
 
-    GP = global_glecker
-
     #--- GleckerPlot
+    GP = global_glecker
     if GP == None:
         GP = GleckerPlot()
 
@@ -692,12 +690,8 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
 
     for model in model_list:
 
+        #--- glecker plot
         GP.add_model(model.name)
-        #~ model_names.append(model.name)
-
-        #~ if model.name == None:
-            #~ raise ValueError, 'Model needs to have a name attribute!'
-        #~ GP.add_model(model.name)
 
         #--- get model data
         model_data = model.variables['sis']
@@ -721,10 +715,8 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
         #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
         divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
         dif.add_axes(zax1)
-
         divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
         dif.add_axes(zax2)
-
         divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
         dif.add_axes(zax3)
 
@@ -738,18 +730,206 @@ def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
         Diag = Diagnostic(cmsaf_sis,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
-        #~ print e2
 
         #/// Glecker plot ///
         e2a = global_glecker.calc_index(cmsaf_sis,model_data,model,'sis')
         global_glecker.add_data('sis',model.name,e2a,pos=1)
 
-    #~ Rplot.simple_plot()
-    #~ Rplot.circle_plot()
     Rplot.bar()
-    #print Rplot.e2_norm #the normalized Recihler index contains temporal aggregated and relative results
-    #~ for i in range(len(Rplot.e2_norm)):
-        #~ GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=1)
+
+#-----------------------------------------------------------------------
+
+def isccp_sis_analysis(model_list,interval = 'season',GP=None):
+    '''
+    model_list = list which contains objects of data type MODEL
+    '''
+    vmin = 0.; vmax = 300
+
+    print 'Doing SIS analysis ...'
+
+    #--- GleckerPlot
+    GP = global_glecker
+    if GP == None:
+        GP = GleckerPlot()
+
+    #--- get land sea mask
+    ls_mask = get_T63_landseamask()
+
+    #--- T63 weights
+    t63_weights = get_T63_weights()
+
+    #--- load CMSAF-SIS data
+    f1 = 'T63_ISCCP__versD1__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
+    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/isccp/' + f1
+    y1 = '1984-01-01'; y2='2005-12-31'
+
+    if interval == 'season':
+        #aggregate to seasons
+        cdo = pyCDO(raw_sis,y1,y2)
+        if interval == 'season':
+            seasfile = cdo.seasmean(); del cdo
+            print 'seasfile: ', seasfile
+            cdo = pyCDO(seasfile,y1,y2)
+            isccp_sis_file = cdo.yseasmean()
+            isccp_sis_std_file  = cdo.yseasstd()
+        else:
+            raise ValueError, 'Invalid interval option ', interval
+
+    #~ print isccp_sis_file
+    isccp_sis     = Data(isccp_sis_file,'BfISC84',read=True,label='isccp-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    isccp_sis_std = Data(isccp_sis_std_file,'BfISC84',read=True,label='isccp-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    isccp_sis.std = isccp_sis_std.data.copy(); del isccp_sis_std
+
+    #--- initailize Reichler plot
+    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
+
+    for model in model_list:
+
+        #--- glecker plot
+        GP.add_model(model.name)
+
+        #--- get model data
+        model_data = model.variables['sis']
+        if model_data == None: #data file was not existing
+            print 'Data not existing for model: ', model.name
+            stop
+            continue
+
+        if model_data.data.shape != isccp_sis.data.shape:
+            print 'Inconsistent geometries for SIS'
+            print model_data.data.shape; print isccp_sis.data.shape; stop
+
+        #--- generate difference map
+        dmin = -20.; dmax = 20.
+        dif  = map_difference(model_data ,isccp_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
+
+        #--- append zonal plot to difference map
+        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
+
+        #create net axis for zonal plot
+        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
+        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax1)
+        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax2)
+        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax3)
+
+        #calculate zonal statistics and plot
+        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
+        zon2 = ZonalPlot(ax=zax2); zon2.plot(isccp_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
+        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(isccp_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
+        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
+
+        #/// Reichler statistics ///
+        Diag = Diagnostic(isccp_sis,model_data)
+        e2   = Diag.calc_reichler_index(t63_weights)
+        Rplot.add(e2,model_data.label,color='red')
+
+        #/// Glecker plot ///
+        e2a = global_glecker.calc_index(isccp_sis,model_data,model,'sis')
+        global_glecker.add_data('sis',model.name,e2a,pos=3)
+
+    Rplot.bar()
+
+#-----------------------------------------------------------------------
+
+def srb_sis_analysis(model_list,interval = 'season',GP=None):
+    '''
+    model_list = list which contains objects of data type MODEL
+    '''
+    vmin = 0.; vmax = 300
+
+    print 'Doing SIS analysis ...'
+
+    #--- GleckerPlot
+    GP = global_glecker
+    if GP == None:
+        GP = GleckerPlot()
+
+    #--- get land sea mask
+    ls_mask = get_T63_landseamask()
+
+    #--- T63 weights
+    t63_weights = get_T63_weights()
+
+    #--- load CMSAF-SIS data
+    f1 = 'T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
+    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/srb/' + f1
+    y1 = '1984-01-01'; y2='2005-12-31'
+
+    if interval == 'season':
+        #aggregate to seasons
+        cdo = pyCDO(raw_sis,y1,y2)
+        if interval == 'season':
+            seasfile = cdo.seasmean(); del cdo
+            print 'seasfile: ', seasfile
+            cdo = pyCDO(seasfile,y1,y2)
+            srb_sis_file = cdo.yseasmean()
+            srb_sis_std_file  = cdo.yseasstd()
+        else:
+            raise ValueError, 'Invalid interval option ', interval
+
+    srb_sis     = Data(srb_sis_file,'BfSRB84',read=True,label='srb-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    srb_sis_std = Data(srb_sis_std_file,'BfSRB84',read=True,label='srb-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    srb_sis.std = srb_sis_std.data.copy(); del srb_sis_std
+
+    #--- initailize Reichler plot
+    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
+
+    for model in model_list:
+
+        #--- glecker plot
+        GP.add_model(model.name)
+
+        #--- get model data
+        model_data = model.variables['sis']
+        if model_data == None: #data file was not existing
+            print 'Data not existing for model: ', model.name
+            stop
+            continue
+
+        if model_data.data.shape != srb_sis.data.shape:
+            print 'Inconsistent geometries for SIS'
+            print model_data.data.shape; print srb_sis.data.shape; stop
+
+        #--- generate difference map
+        dmin = -20.; dmax = 20.
+        dif  = map_difference(model_data ,srb_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
+
+        #--- append zonal plot to difference map
+        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
+
+        #create net axis for zonal plot
+        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
+        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax1)
+        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax2)
+        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+        dif.add_axes(zax3)
+
+        #calculate zonal statistics and plot
+        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
+        zon2 = ZonalPlot(ax=zax2); zon2.plot(srb_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
+        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(srb_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
+        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
+
+        #/// Reichler statistics ///
+        Diag = Diagnostic(srb_sis,model_data)
+        e2   = Diag.calc_reichler_index(t63_weights)
+        Rplot.add(e2,model_data.label,color='red')
+
+        #/// Glecker plot ///
+        e2a = global_glecker.calc_index(srb_sis,model_data,model,'sis')
+        global_glecker.add_data('sis',model.name,e2a,pos=4)
+
+    Rplot.bar()
+
+
+#-----------------------------------------------------------------------
+
+
 
 
 def ceres_sis_analysis(model_list,interval = 'season',GP=None):
