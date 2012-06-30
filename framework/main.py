@@ -1112,6 +1112,8 @@ hlp.update({'grass' : 'get_grass_fraction()'})
 
 cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A','MRI-AGCM3-2H','MRI-AGCM3-2S','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GFDL-HIRAM-C180','GFDL-HIRAM-C360','GISS-E2-R','inmcm4','IPSL-CM5A-LR','MIROC5','NorESM1-M']
 
+cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GISS-E2-R','IPSL-CM5A-LR','MIROC5','NorESM1-M']
+
 
 #~ cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MIROC5']
 #~ cmip_model_list = ['MRI-AGCM3-2H']
@@ -1126,6 +1128,7 @@ for k in hlp.keys(): #only use the variables that should be analyzed!
         jsbach_variables.update({k:hlp[k]})
 
 experiment = 'amip'
+#~ experiment = 'historical'
 cmip_cnt = 1
 for model in cmip_model_list:
     cmip = CMIP5Data(data_dir,model,experiment,jsbach_variables,unit='W/m**2',lat_name='lat',lon_name='lon',label=model)

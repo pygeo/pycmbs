@@ -37,15 +37,29 @@ class Anova1():
 
         self.n, self.nt = x.shape
 
-    def one_way_anova(self):
+    def one_way_anova(self,verbose=False):
         self._calc_sst() #calculate different variance components
         self.p = self.get_significance(self._get_f())
+
+        if verbose:
+            self.print_results()
 
     def _get_f(self):
         n = self.ssa/(self.nt-1)
         d = self.sse/(self.nt*(self.n-1))
         return n/d
 
+    def print_results(self):
+        print
+
+
+        print 'p  :', self.p
+        print 'F  :', self._get_f()
+        print 'R2 :', self.get_fractional_variance_explained()
+        print 'R2a: ', self.get_fractional_variance_explained(adjust=False)
+        print 'SSA: ', self.ssa
+        print 'SSE: ', self.sse
+        print 'SST: ', self.sst
 
 
     def _calc_sst(self):
@@ -99,23 +113,37 @@ class Anova2():
 
     def get_fractional_variance_explained(self,s,adjust=True):
         '''
-        s: a,b,i,w
+        s: a,b,i,e
 
         @todo: not absolutely sure about these formulas, need some reference!
         '''
         if adjust:
-            raise ValueError, 'Todo implement variance adjustment'
-        else:
-            if s == 'a':
-                return self.ssa / self.sst
+            print 'WARNING: AJUSTED FRACTIONAL VARIANCE NOT VALIDATED WITH SOME REFERENCE DATA'
+            if s=='a':
+                adj = (self.sse / self.sst) * (self.df_ssa/self.df_sse)
             elif s == 'b':
-                return self.ssb / self.sst
+                adj = (self.sse / self.sst) * (self.df_ssb/self.df_sse)
             elif s == 'i':
-                return self.ssi / self.sst
-            elif s == 'w':
-                return self.ssw / self.sst
+                adj = (self.sse / self.sst) * (self.df_ssi/self.df_sse)
+            elif s=='e':
+                adj = (self.sse / self.sst) * (self.df_sse/self.df_sse)
             else:
-                raise ValueError, 'Invalid identified for variance!'
+                raise ValueError, 'unkown type'
+
+        else:
+            adj = 0.
+
+
+        if s == 'a':
+            return self.ssa / self.sst - adj
+        elif s == 'b':
+            return self.ssb / self.sst - adj
+        elif s == 'i':
+            return self.ssi / self.sst - adj
+        elif s == 'e':
+            return self.sse / self.sst - adj
+        else:
+            raise ValueError, 'Invalid identified for variance!'
 
     def get_significance(self,f,df1,df2):
         p = 1. - stats.f.cdf(f,df1,df2)
