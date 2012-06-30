@@ -844,13 +844,25 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def fldmean(self):
+    def fldmean(self,return_data = False):
         '''
         calculate mean of the spatial field
 
+        @param return_data: if True, then a C{Data} object is returned
+        @type return_data: bool
+
         @return: vector of spatial mean array[time]
         '''
-        return np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
+        if return_data: #return data object
+            tmp = np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
+            x = np.zeros((len(tmp),1,1))
+
+            x[:,0,0] = tmp
+            r = self.copy()
+            r.data = np.ma.array(x.copy(),mask=(x-x > 1.) ) #some dummy mask
+            return r
+        else: #return numpy array
+            return np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
 
 #-----------------------------------------------------------------------
 
