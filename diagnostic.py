@@ -69,10 +69,14 @@ class ANOVA():
         else:
             raise ValueError, 'Experiment was not yet registered!'
 
-    def analysis(self,analysis_type = 'one'):
+    def analysis(self,analysis_type = None):
         '''
         perform ANOVA analysis based on the data given
         '''
+
+        if analysis_type == None:
+            raise ValueError, 'Needs to specify type of ANOVA to be performed'
+
         #1) check if all data has the same length
         # this is not a strong prerequesite for ANOVA as such, but for
         # the implementation here
@@ -89,15 +93,26 @@ class ANOVA():
         resA = np.zeros(self.refshape)*np.nan
         resB = np.zeros(self.refshape)*np.nan
         resI = np.zeros(self.refshape)*np.nan
+        resE = np.zeros(self.refshape)*np.nan
+        resPA = np.zeros(self.refshape)*np.nan
+        resPB = np.zeros(self.refshape)*np.nan
+        resPI = np.zeros(self.refshape)*np.nan
+
+        resAa = np.zeros(self.refshape)*np.nan
+        resBa = np.zeros(self.refshape)*np.nan
+        resIa = np.zeros(self.refshape)*np.nan
+
         for p in idx:
-            print 'p: ', p[0], p[1]
             if analysis_type == 'one': #one way ANOVA
                 m = self._data2anova1(p) #[nrens,ntime]
                 A = Anova1(m)
-                A.one_way_anova()
+                A.one_way_anova(verbose=False)
 
-                resA[p[0],p[1]] = A.get_fractional_variance_explained(adjust=True)
-                #todo significance
+                resA[p[0],p[1]] = A.get_fractional_variance_explained(adjust=False) #ssa
+                resPA[p[0],p[1]] = A.p
+                resB[p[0],p[1]] = A.sse / A.sst #todo: adjustment here ???
+
+
 
             elif analysis_type == 'two': #two way ANOVA
                 m = self._data2anova2(p)
@@ -108,13 +123,34 @@ class ANOVA():
                 resA[p[0],p[1]] = A.get_fractional_variance_explained('a',adjust=False) #todo: adjust variance
                 resB[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=False) #todo: adjust variance
                 resI[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=False) #todo: adjust variance
+                resE[p[0],p[1]] = A.get_fractional_variance_explained('e',adjust=False) #todo: adjust variance
+
+                resPA[p[0],p[1]] = A.p_ssa
+                resPB[p[0],p[1]] = A.p_ssb
+                resPI[p[0],p[1]] = A.p_ssi
+
+                resAa[p[0],p[1]] = A.get_fractional_variance_explained('a',adjust=True) #todo: adjust variance
+                resBa[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=True) #todo: adjust variance
+                resIa[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=True) #todo: adjust variance
+
+                #todo significance
+
 
             else:
-                raise ValueError, 'Invalid type'
+                raise ValueError, 'Invalid ANOVA type'
 
         self.resA = resA
         self.resB = resB
         self.resI = resI
+        self.resE = resE
+
+        self.resPA = resPA
+        self.resPB = resPB
+        self.resPI = resPI
+
+        self.resAa = resAa
+        self.resBa = resBa
+        self.resIa = resIa
 
 
     def _data2anova1(self,p):
@@ -209,7 +245,7 @@ class ANOVA():
 
                 #- generate common mask
                 msk = d[i].get_valid_mask()
-                print sum(msk), k, i
+                #~ print sum(msk), k, i
                 refmsk = refmsk & msk
 
         self.mask = refmsk
