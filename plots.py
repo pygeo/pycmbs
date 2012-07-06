@@ -12,6 +12,8 @@ Module that contains relevant classes for diagnostic plots
 @todo: implement taylor plots
 '''
 
+from python.hov import *
+
 from matplotlib import pylab as plt
 
 from matplotlib.patches import Polygon
@@ -112,6 +114,27 @@ class CorrelationAnalysis():
             print 'RMSE: ', rmse
             print 'R   : ', r
             print 'N   : ', n
+
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+class HovmoellerPlot():
+    def __init__(self,D,rescaley=10,rescalex=10,dlat=1,yticksampling=1,monthly=False):
+        '''
+
+        D : C{Data} object
+
+        if the argument lat is provided it is assumed that lat/lon are 2D matrices
+        In this case the value is expected to be a 3D variables as
+        value(time,ny,nx)
+        '''
+        from python.hov import *
+        self.hov = hovmoeller(pl.num2date(D.time),D.data,lat=D.lat,rescaley=rescaley,rescalex=rescalex)
+        self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
+
+    def plot(self,title=None,climits=None):
+        if climits == None:
+            raise ValueError, 'CLIMITS needs to be specified!'
+        self.hov.plot(title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=climits)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -1101,7 +1124,27 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
 #-----------------------------------------------------------------------
 
-def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
+def add_nice_legend(ax,im,cmap,cticks=None):
+    '''
+    add a nice looking legend
+
+    @param ax: major axis with plot
+    @type ax: matpltlib axis object
+
+    @param im: result from command like imshow
+    @param im: matplotlib im object (???)
+
+
+    '''
+
+    #set legend aligned with plot (nice looking)
+    divider = make_axes_locatable(ax)
+    cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+    ax.figure.add_axes(cax)
+    norm = mpl.colors.Normalize(vmin=im.get_clim()[0], vmax=im.get_clim()[1])
+    cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+
+def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,**kwargs):
     '''
 
     class to plot hovmoeller diagrams of two datasets
@@ -1120,23 +1163,46 @@ def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
     ax2 = fig.add_subplot(312)
     ax3 = fig.add_subplot(313)
 
-    hov1 = hovmoeller(num2date(x.time),x.data,rescaley=6,lat=x.lat)
-    hov2 = hovmoeller(num2date(y.time),y.data,rescaley=6,lat=y.lat)
+    #set all invalid data to NAN
+    xdata = x.data
+    ydata = y.data
+
+    #~ xdata = x.data.data
+    #~ xdata[x.data.mask] = np.nan
+#~
+    #~ ydata = y.data.data
+    #~ ydata[y.data.mask] = np.nan
+
+
+    hov1 = hovmoeller(num2date(x.time),xdata,rescaley=6,lat=x.lat)
+    hov2 = hovmoeller(num2date(y.time),ydata,rescaley=6,lat=y.lat)
+
 
     hov1.time_to_lat(**kwargs)
     hov2.time_to_lat(**kwargs)
 
-    hov1.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap='jet',ax=ax1,showcolorbar=False,climits=climits)
-    hov2.plot(title=y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap='jet',ax=ax2,showcolorbar=False,climits=climits)
 
-    plt.colorbar(hov1.im,ax=ax1,shrink = 0.5,orientation='vertical')
-    plt.colorbar(hov2.im,ax=ax2,shrink = 0.5,orientation='vertical')
+    cmap = plt.cm.get_cmap(data_cmap, nclasses)
+
+
+    hov1.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax1,showcolorbar=False,climits=climits)
+    hov2.plot(title=y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax2,showcolorbar=False,climits=climits)
+
+    add_nice_legend(ax1,hov1.im,cmap,cticks=cticks)
+    add_nice_legend(ax2,hov2.im,cmap,cticks=cticks)
+
+    #~ plt.colorbar(hov1.im,ax=ax1,shrink = 0.5,orientation='vertical')
+    #~ plt.colorbar(hov2.im,ax=ax2,shrink = 0.5,orientation='vertical')
+
 
     if x.data.shape == y.data.shape:
         hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=6,lat=y.lat)
         hov3.time_to_lat(**kwargs)
-        hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap='RdBu',ax=ax3,showcolorbar=False,climits=dlimits)
-        plt.colorbar(hov3.im,ax=ax3,shrink = 0.5,orientation='vertical')
+        cmap_diff = plt.cm.get_cmap('RdBu', nclasses)
+        hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap_diff,ax=ax3,showcolorbar=False,climits=dlimits)
+        #~ plt.colorbar(hov3.im,ax=ax3,shrink = 0.5,orientation='vertical')
+        add_nice_legend(ax3,hov3.im,cmap_diff,cticks=cticks_dif)
+
     else:
         msg = 'Difference plot not possible as data has different shape'
         ax3.text(0.5, 0.5,msg,
@@ -1145,7 +1211,7 @@ def hov_difference(x,y,climits=None,dlimits=None,**kwargs):
              #transform = ax.transAxes)
         ax3.set_xticks([]); ax3.set_yticks([])
 
-    return fig
+    return fig,hov1,hov2
 
 
 #-----------------------------------------------------------------------
@@ -1228,6 +1294,9 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     #-first minus second dataset
     adif = x.sub(y) #absolute difference
     map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
+
+    map_plot(adif,use_basemap=use_basemap,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
+
 
     #- relative error
     rdat = y.div(x).subc(1.) #relative data

@@ -385,7 +385,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def correlate(self,Y):
+    def correlate(self,Y,pthres=1.01):
         '''
         correlate present data on a grid cell basis
         with another dataset
@@ -396,10 +396,16 @@ class Data():
                   data set of self will be used as X in the caluclation
         @type y: C{Data} object
 
+        @param pthres: threshold for masking insignificant pixels
+        @type pthres: float
+
         @return: returns correlation coefficient and its significance
         @rtype: C{Data} objects
 
         #test routines tcorr1.py, test_corr.py
+
+        @todo: implement faster correlation calculation
+
         '''
 
         if Y.data.shape != self.data.shape:
@@ -447,6 +453,8 @@ class Data():
             r[i]=r_value
 
             p[i] = get_significance(r_value,nv[i]) #calculate p-value
+            if p[i] > pthres:
+                r[i] = np.nan
 
         #remap to original geometry
         R = np.ones(xv.shape[1]) * np.nan #matrix for results
@@ -1264,13 +1272,32 @@ class Data():
         @type copy: bool
         '''
 
-
-
         if copy:
             d = self.copy()
         else:
             d = self
         d.data -= x
+        return d
+
+#-----------------------------------------------------------------------
+
+    def addc(self,x,copy=True):
+        '''
+        Add a constant value to the current object field
+
+        @param x: constant
+        @type  x: float
+
+        @param copy: if True, then a new data object is returned
+                     else, the data of the present object is changed
+        @type copy: bool
+        '''
+
+        if copy:
+            d = self.copy()
+        else:
+            d = self
+        d.data += x
         return d
 
 #-----------------------------------------------------------------------

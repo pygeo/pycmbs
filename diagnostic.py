@@ -30,6 +30,212 @@ from anova import *
 
 #-----------------------------------------------------------------------
 
+class EOF():
+    '''
+    main class to perform an EOF analyis
+    '''
+
+    def __init__(self,x):
+        '''
+        constructor for EOF analysis
+
+        @param x: C{Data} object with a 3D data. The data is assumed to have structire [time,ny,nx]
+        @type x: C{Data} object
+        '''
+
+        #/// check geometries
+        if x.data.ndim != 3:
+            raise ValueError, 'EOF analysis currently only supported for 3D data matrices of type [time,ny,nx]'
+
+        self._x0 = x #preserve information on original data
+
+        #/// reshape data [time,npoints] ///
+        self._shape0 = x.data[0,:,:].shape #original data shape
+        n = len(x.data)
+        self.n = n
+        self.x = x.data.copy()
+        self.x.shape = (n,-1)
+        self.x = self.x.T #[npoints,time]
+
+        print 'Shape is now ...', self.x.shape
+
+        #/// calculate covariance matrix ///
+        self.C = np.cov(self.x,rowvar=0)
+
+        #/// solve eigenvalue problem ///
+        eigval,eigvec = np.linalg.eig(self.C)
+
+        self.eigval = eigval
+        self.eigvec = eigvec
+
+        #/// calculate expansion coefficients == PC (projection of original data to new parameter space)
+        A = np.dot(self.x,eigvec)
+        self.EOF = A
+
+        #/// explained variance
+        evar = eigval/sum(eigval)
+        self._var = evar #explained variance
+
+    def get_explained_variance(self):
+        '''
+        returns vector with explained variance
+        '''
+        return self._var
+
+    def plot_eof_coefficients(self,k,all=False):
+        '''
+        plot EOF coefficients = time series
+
+        @param k: list of eof coefficients to be plotted
+        @type k: list
+
+        @param all: plot all principle components (overwrites k)
+        @type all: bool
+        '''
+        if all:
+            k=range(self.n)
+        else:
+            if np.isscalar(k):
+                k=[k]
+
+        f = plt.figure()
+        ax = f.add_subplot(111)
+        for i in k:
+            ax.plot(self.eigvec[:,i],label='EOF'+str(i).zfill(3))
+        ax.legend()
+
+        return ax
+
+    def plot_EOF(self,k,all=False):
+        '''
+        plot multiple eof patterns
+
+        @param k: scalar or list with principal component indices
+        @type k: scalar or list
+
+        @param all: plot all principle components (overwrites k)
+        @type all: bool
+        '''
+        if all:
+            k = range(self.n)
+        else:
+            if np.isscalar(k):
+                k=[k]
+
+        for i in k:
+            self._plot_single_EOF(i)
+
+    def _plot_single_EOF(self,k):
+        '''
+        plot principal component k
+
+        @param k: number of principal component to plot
+        @type k: int
+        '''
+        if k<0:
+            raise ValueError, 'k<0'
+        d = self.EOF[:,k]; d.shape = self._shape0
+        D = Data(None,None)
+        D.data = d
+        D.label = 'PC ' + str(k).zfill(3)
+        map_plot(D)
+
+    def reconstruct_data(self,maxn=None):
+        '''
+        reconstruct data from EOFs
+
+        @param maxn: specifies the truncation number for EOF reconstruction
+        @type maxn: int
+
+        @todo: complete implementation of EOF data reconstruction and plotting of reconstructed data!
+        '''
+
+        print 'not working yet!'
+        stop
+
+        F = np.zeros((self.n,np.prod(self._shape0)))
+
+        if maxn == None:
+            maxn = self.n
+
+        for i in range(maxn):
+            a = np.asarray([self.EOF[:,i]]).T
+            c = np.asarray([self.eigvec[:,i]])
+
+            print a.shape
+            print c.shape
+            print F.shape
+
+            F += np.dot(a,c)
+
+        D = self._x0.copy()
+
+        F.shape = self._x0.data.shape
+        D.data = F
+
+        return D
+
+
+
+    def get_correlation_matrix(self):
+        '''
+        correlation matrix of original data [ntimes,ntimes]
+        '''
+        return np.corrcoef(self.x,rowvar=0)
+
+    def get_pc_data_correlation(self,plot=True):
+        '''
+        get correlation between original data and PCs
+        '''
+
+        c=np.corrcoef(self.x,self.PC,rowvar=0) #correate PCS and original data
+        c1 = c[self.n:,0:self.n]
+        if plot:
+            f = plt.figure()
+            ax = f.add_subplot(111)
+
+            im=ax.imshow(c1**2,interpolation='nearest',vmin=0,vmax=1.,origin='lower')
+            plt.colorbar(im)
+            ax.set_title('$R^2$ of EOFs with original data')
+            ax.set_xlabel('original data channel #')
+            ax.set_ylabel('PC #')
+
+    def plot_channnel_correlations(self,samp):
+        '''
+        generate a scatterplot of correlations of call channles vs. each other
+
+        @param samp: stepsize for subsampling of data for faster plotting
+        @type samp: int
+        '''
+
+        f = plt.figure()
+        cnt = 1
+        for i in range(self.n):
+            x = self.x[::samp,i]
+            for j in range(self.n):
+                print i,j
+                y = self.x[::samp,j]
+                if j >=i:
+                    ax = f.add_subplot(self.n,self.n,cnt)
+                    #~ ax.set_aspect('equal')
+                    ax.hexbin(x,y,mincnt=1,bins='log')
+                    ax.set_ylim(ax.get_xlim())
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+                cnt += 1
+
+        f.subplots_adjust(wspace=0.,hspace=0.,right=1.,left=0.,bottom=0.,top=1.)
+
+        return f
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------
+
 class ANOVA():
     '''
     main class to perform an ANOVA analysis
