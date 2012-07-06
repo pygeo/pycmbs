@@ -73,7 +73,7 @@ print 'SEP directory: ' + data_pool_directory
 model_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
 
 
-f_fast=True
+f_fast=False
 shift_lon = use_basemap = not f_fast
 
 
@@ -425,7 +425,7 @@ def rainfall_analysis(model_list,interval='season'):
             print model_data.data.shape; print gpcp.data.shape
 
         dmin=-1.;dmax=1.
-        dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10])
+        dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu')
 
         #/// ZONAL STATISTICS
         #--- append zonal plot to difference map
@@ -1088,7 +1088,7 @@ s_stop_time  = '2005-12-31'
 #--- specify variables to analyze
 #~ variables = ['rain','albedo','sis']
 #variables = ['tree','albedo']
-variables = ['sis'] #sis
+variables = ['rain'] #sis
 
 #--- specify mapping of variable to analysis script name
 scripts = get_script_names()
@@ -1189,11 +1189,11 @@ for variable in variables:
 
             print 'Doing analysis for variable ... ', variable
             print scripts[variable]
-            #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
+            eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
             #~ eval(scripts[variable]+'([cmip,jsbach72])') #here one can put a multitude of model output for comparison in the end
             model_list = str(cmip_models).replace("'","") #cmip5 model list
             #~ model_list = model_list.replace(']',', ') + 'jsbach72' + ']'
-            eval(scripts[variable]+'(' + model_list + ')') #here one can put a multitude of model output for comparison in the end
+            #~ eval(scripts[variable]+'(' + model_list + ')') for CMIP5 !!! <<<<<<<<#here one can put a multitude of model output for comparison in the end
 
 #~ if __name__ == '__main__':
     #~ main()
