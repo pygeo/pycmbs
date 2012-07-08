@@ -106,7 +106,7 @@ class EOF():
 
         return ax
 
-    def plot_EOF(self,k,all=False):
+    def plot_EOF(self,k,all=False,use_basemap=False):
         '''
         plot multiple eof patterns
 
@@ -123,9 +123,9 @@ class EOF():
                 k=[k]
 
         for i in k:
-            self._plot_single_EOF(i)
+            self._plot_single_EOF(i,use_basemap=use_basemap)
 
-    def _plot_single_EOF(self,k):
+    def _plot_single_EOF(self,k,use_basemap=False):
         '''
         plot principal component k
 
@@ -135,10 +135,11 @@ class EOF():
         if k<0:
             raise ValueError, 'k<0'
         d = self.EOF[:,k]; d.shape = self._shape0
-        D = Data(None,None)
+        D = self._x0.copy()
         D.data = d
-        D.label = 'PC ' + str(k).zfill(3)
-        map_plot(D)
+        D.unit = None #reset units as EOF have no physical units
+        D.label = 'EOF ' + str(k).zfill(3)
+        map_plot(D,use_basemap=use_basemap)
 
     def reconstruct_data(self,maxn=None):
         '''
@@ -146,36 +147,28 @@ class EOF():
 
         @param maxn: specifies the truncation number for EOF reconstruction
         @type maxn: int
-
-        @todo: complete implementation of EOF data reconstruction and plotting of reconstructed data!
         '''
 
-        print 'not working yet!'
-        stop
-
-        F = np.zeros((self.n,np.prod(self._shape0)))
+        sh = (self.n,np.prod(self._shape0))
+        F = np.zeros(sh)
 
         if maxn == None:
             maxn = self.n
 
+        #- reconstruct data matrix
         for i in range(maxn):
             a = np.asarray([self.EOF[:,i]]).T
             c = np.asarray([self.eigvec[:,i]])
+            F += np.dot(a,c).T
 
-            print a.shape
-            print c.shape
-            print F.shape
-
-            F += np.dot(a,c)
-
+        #- generate data object to be returned
         D = self._x0.copy()
-
         F.shape = self._x0.data.shape
         D.data = F
 
         return D
 
-
+#-----------------------------------------------------------------------
 
     def get_correlation_matrix(self):
         '''
