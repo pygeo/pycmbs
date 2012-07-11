@@ -10,6 +10,7 @@ Module that contains relevant classes for diagnostic plots
 
 @todo: implement writing of statistics to an ASCII file as export
 @todo: implement taylor plots
+@todo: faster implementation of Basemap plots. For large number of grid cells, the current KTree implementation is by far too slow!
 '''
 
 from python.hov import *
@@ -1076,7 +1077,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
     cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
-#-----------------------------------------------------------------------
+
 
     def _add_region(m,r,color='red'):
         '''
@@ -1116,6 +1117,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     if show_stat:
         me = xm.mean(); st=xm.std()
         title = title + ' - ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$)'
+        print 'TITLE: ', title
 
     ax.set_title(title,size=10)
 
@@ -1144,13 +1146,15 @@ def add_nice_legend(ax,im,cmap,cticks=None):
     norm = mpl.colors.Normalize(vmin=im.get_clim()[0], vmax=im.get_clim()[1])
     cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
-def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,**kwargs):
+def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,**kwargs):
     '''
 
     class to plot hovmoeller diagrams of two datasets
     and their difference
 
     x,y two Data structures
+
+    axextra: plot difference on separate axis
     '''
 
     if climits == None:
@@ -1159,9 +1163,12 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
         sys.exit('Please specify dlimits for hovmoeller')
 
     fig = plt.figure()
-    ax1 = fig.add_subplot(311)
-    ax2 = fig.add_subplot(312)
-    ax3 = fig.add_subplot(313)
+    if ax1 == None:
+        ax1 = fig.add_subplot(311)
+    if ax2 == None:
+        ax2 = fig.add_subplot(312)
+    if ax3 == None:
+        ax3 = fig.add_subplot(313)
 
     #set all invalid data to NAN
     xdata = x.data
@@ -1174,8 +1181,8 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
     #~ ydata[y.data.mask] = np.nan
 
 
-    hov1 = hovmoeller(num2date(x.time),xdata,rescaley=6,lat=x.lat)
-    hov2 = hovmoeller(num2date(y.time),ydata,rescaley=6,lat=y.lat)
+    hov1 = hovmoeller(num2date(x.time),xdata,rescaley=rescaley,lat=x.lat)
+    hov2 = hovmoeller(num2date(y.time),ydata,rescaley=rescaley,lat=y.lat)
 
 
     hov1.time_to_lat(**kwargs)
@@ -1185,8 +1192,8 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
     cmap = plt.cm.get_cmap(data_cmap, nclasses)
 
 
-    hov1.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax1,showcolorbar=False,climits=climits)
-    hov2.plot(title=y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax2,showcolorbar=False,climits=climits)
+    hov1.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax1,showcolorbar=False,climits=climits,grid=grid)
+    hov2.plot(title=y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax2,showcolorbar=False,climits=climits,grid=grid)
 
     add_nice_legend(ax1,hov1.im,cmap,cticks=cticks)
     add_nice_legend(ax2,hov2.im,cmap,cticks=cticks)
@@ -1196,10 +1203,10 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 
 
     if x.data.shape == y.data.shape:
-        hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=6,lat=y.lat)
+        hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=rescaley,lat=y.lat)
         hov3.time_to_lat(**kwargs)
         cmap_diff = plt.cm.get_cmap('RdBu', nclasses)
-        hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap_diff,ax=ax3,showcolorbar=False,climits=dlimits)
+        hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap_diff,ax=ax3,showcolorbar=False,climits=dlimits,grid=grid)
         #~ plt.colorbar(hov3.im,ax=ax3,shrink = 0.5,orientation='vertical')
         add_nice_legend(ax3,hov3.im,cmap_diff,cticks=cticks_dif)
 

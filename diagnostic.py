@@ -839,7 +839,7 @@ class SVD():
             #calculate mean and stdv
             O.label = O.label + ' (' + str(round(O.data.mean(),2)) + ' ' + str(round(O.data.std(),2)) + ')'
 
-            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,vmin=vmin,vmax=vmax,cticks=cticks,title=title,regions_to_plot=regions_to_plot)
+            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,vmin=vmin,vmax=vmax,cticks=cticks,title=title,regions_to_plot=regions_to_plot,show_stat=True)
 
 
 
@@ -1299,7 +1299,7 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
-    def slice_corr(self,timmean=True):
+    def slice_corr(self,timmean=True,spearman=False,partial=False,z=None):
         '''
         perform correlation analysis for
         different starting times and length
@@ -1309,7 +1309,21 @@ class Diagnostic():
         on basis of the mean spatial fields, thus
         the timeseries of each pixels is averaged over time
         before the correlation calculation
+
+        partial: do partial correlation
+        z: condition in case of partial correlation
         '''
+
+        if partial:
+            if spearman:
+                raise ValueError, 'Spearman and partial correlation not supported'
+            if z == None:
+                raise ValueError, 'no z-value given for partial correlation!'
+            if self.x.data.shape != z.data.shape:
+                print self.x.data.shape
+                print z.data.shape
+                raise ValueError, 'Invalid geometries for partial correlation!'
+
         x=self.x.data.copy()
 
         if not hasattr(self,'y'):
@@ -1325,10 +1339,19 @@ class Diagnostic():
         if np.shape(x) != np.shape(y):
             raise ValueError, 'slice_corr: shapes not matching!'
 
+
+
         #--- reshape data
         n = len(x) #timesteps
         x.shape = (n,-1) #size [time,ngridcells]
         y.shape = (n,-1)
+
+        if partial:
+            z = z.data.copy()
+            z.shape = (n,-1)
+
+
+
 
         R=np.ones((n,n))*np.nan; P=np.ones((n,n))*np.nan
         L=np.ones((n,n))*np.nan; S=np.ones((n,n))*np.nan
@@ -1351,6 +1374,9 @@ class Diagnostic():
                     xmsk  = xdata.mask; ymsk = ydata.mask
                     msk = xmsk | ymsk
 
+                    if partial:
+                        raise ValueError, 'No timmean supported yet for partial correlation!'
+
                 else:
                     ''' all grid cells at all times '''
                     xdata = x.data[i1:i2,:]; ydata = y.data[i1:i2,:]
@@ -1358,8 +1384,31 @@ class Diagnostic():
                     ymsk  = y.mask[i1:i2,:]
                     msk   = xmsk | ymsk
 
+                    if partial:
+                        zdata = z.data[i1:i2,:]
+                        zmsk  = z.mask[i1:i2,:]
+                        msk = msk | zmsk
+                        zdata = zdata[~msk].flatten()
+
                 xdata = xdata[~msk].flatten()
                 ydata = ydata[~msk].flatten()
+
+                #use spearman correlation
+                if spearman:
+                    tmpx = xdata.argsort()
+                    tmpy = ydata.argsort()
+                    xdata = tmpx
+                    ydata = tmpy
+
+                if partial:
+                    #calculate residuals for individual correlations
+                    slope, intercept, r, p, stderr = sci.stats.linregress(zdata,xdata)
+                    xdata = (xdata - intercept) / slope
+
+                    slope, intercept, r, p, stderr = sci.stats.linregress(zdata,ydata)
+                    ydata = (ydata - intercept) / slope
+
+
 
                 slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
                 R[length,i1] = r
