@@ -620,6 +620,10 @@ class Data():
             basedate = self.time_str.split('since')[1].lstrip()
             print 'BASEDATE: ', basedate
             self._set_date(basedate,unit='day')
+        elif 'months since' in self.time_str:
+            basedate = self.time_str.split('since')[1].lstrip()
+            print 'BASEDATE: ', basedate
+            self._set_date(basedate,unit='month')
         else:
             print self.filename
             print self.time_str
@@ -915,12 +919,30 @@ class Data():
 
         if unit == 'hour':
             scal = 24.
+            self.time = (self.time/scal + plt.datestr2num(basedate) )
         elif unit == 'day':
             scal = 1.
+            self.time = (self.time/scal + plt.datestr2num(basedate) )
+        elif unit == 'month':
+            #months since basedate
+            from dateutil.rrule import rrule, MONTHLY
+            from datetime import datetime
+            bdate = plt.num2date(plt.datestr2num(basedate))
+            sdate = [d for d in rrule(MONTHLY,dtstart=datetime(bdate.year,bdate.month,bdate.day),count=self.time[0]+1)] #calculate date of first dataset
+            sdate=sdate[-1] #last date as start date
+
+            #@todo: implement time support for monthly data also for not equally spaced months
+            interval = np.diff(self.time)
+            msk = interval == interval[0]
+            interval = map(int,interval)
+            if any(msk) == False:
+                raise ValueError, 'Monthly timeseries only supported at the moment with equdistant timesteps'
+            x=[d for d in rrule(MONTHLY,dtstart=datetime(sdate.year,sdate.month,sdate.day),count=len(self.time),interval=interval[0] )] #calculate series of data
+            self.time = plt.date2num(x)
         else:
             raise ValueError, 'Unsupported unit value'
 
-        self.time = (self.time/scal + plt.datestr2num(basedate) ) #+  plt.datestr2num('0001-01-01 00:00:00') #substract basetime of python
+
 
 #-----------------------------------------------------------------------
 
@@ -955,7 +977,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_aoi_lat_lon(self,R):
+    def get_aoi_lat_lon(self,R,apply_mask=True):
         '''
         get aoi given lat/lon coordinates
 
@@ -982,7 +1004,7 @@ class Data():
 
         msk_lat = (self.lat >= R.latmin) & (self.lat <= R.latmax)
         msk_lon = (LON      >= R.lonmin) & (LON      <= R.lonmax)
-        if R.mask == None: #additional mask in Region object
+        if (R.mask == None) | (apply_mask==False): #additional mask in Region object
             msk_region = np.ones(np.shape(msk_lat)).astype('bool')
         else:
             if np.shape(msk_lat) != np.shape(R.mask):
@@ -1361,7 +1383,8 @@ class Data():
         performed row-wise for all grid cells using
         corrcoef()
 
-        @return: correlation coefficient for each grid point
+        @return: list of C{Data} objects for correlation, slope, intercept, p-value, covariance
+        @rtype: list
 
         @todo significance of correlation (is the calculation correct?)
         '''
