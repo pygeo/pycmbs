@@ -13,21 +13,18 @@ DESCRIPTION
 
 #todo
 #
-# implement temperature analysis
+# @todo: implement temperature analysis
+# @todo: implement precipitation analysis
+#
+# @todo: implement temporary directory for pyCMBS processing
 
-#- implement different options for temporal aggregation/plotting of map differences
-#- make routines for access of JSBACH output more flexible; what about required data pre-processing?
-# why is SIS model too low ???? --> wrong data! CMIP5 seems o.k.
-#
-# implement interface for reading CMOR data
-#
+
 # - regional analysis based on an input mask
-# - correlation and RMSE analysis and Taylor plotting
+#@todo: correlation and RMSE analysis and Taylor plotting
 #
 # other colorbar for vegetation fraction analysis
 # implement grass cover fraction analysis
-#
-# documentation!
+
 #
 # todo: interpolation method for fractional coverage !!!
 # area weighting for correlation analysis
@@ -43,7 +40,7 @@ DESCRIPTION
 # - seasonals vs yearly vs individual year analysis
 #
 __author__ = "Alexander Loew"
-__version__ = "0.0"
+__version__ = "0.1"
 __date__ = "0000/00/00"
 
 
@@ -150,8 +147,10 @@ class CMIP5Data(Model):
         self.data_dir = data_dir
 
 
-    def get_surface_shortwave_radiation(self):
-        filename1 = self.data_dir +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+
+    def get_surface_shortwave_radiation_down(self):
+        filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
         if s_start_time == None:
             raise ValueError, 'Start time needs to be specified'
@@ -169,6 +168,71 @@ class CMIP5Data(Model):
         print 'Data read!'
 
         return sis
+
+    def get_surface_shortwave_radiation_up(self):
+        filename1 = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+        if s_start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if s_stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
+        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+
+        if not os.path.exists(filename):
+            return None
+
+        sis = Data(filename,'rsus',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
+        print 'Data read!'
+
+        return sis
+
+    def get_albedo_data(self):
+        '''
+        calculate albedo as ratio of upward and downwelling fluxes
+        first the monthly mean fluxes are used to calculate the albedo,
+        '''
+
+
+        if s_start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if s_stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+
+        file_down = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        file_up   = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+        if not os.path.exists(file_down):
+            print 'File not existing: ', file_down
+            return None
+        if not os.path.exists(file_up):
+            print 'File not existing: ', file_up
+            return None
+
+        #/// calculate ratio on monthly basis
+        # CAUTION: it might happen that latitudes are flipped. Therefore always apply remapcon!
+
+        #select dates
+        Fu = pyCDO(file_up,s_start_time,s_stop_time).seldate()
+        Fd = pyCDO(file_down,s_start_time,s_stop_time).seldate()
+
+        #remap to T63
+        tmpu = pyCDO(Fu,s_start_time,s_stop_time).remap()
+        tmpd = pyCDO(Fd,s_start_time,s_stop_time).remap()
+
+        #calculate monthly albedo
+        albmon = pyCDO(tmpu,s_start_time,s_stop_time).div(tmpd,output=self.model + '_' + self.experiment + '_albedo_tmp.nc')
+
+        #calculate seasonal mean albedo
+        tmp1 = pyCDO(albmon,s_start_time,s_stop_time).seasmean()
+        albfile = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+
+        alb = Data(albfile,'rsus',read=True,label=self.model + ' albedo',unit='-',lat_name='lat',lon_name='lon',shift_lon=True)
+        return alb
+
 
 
 
@@ -199,7 +263,7 @@ class JSBACH(Model):
 
         v = 'var176'
 
-        filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_albedo_yseasmean.nc' #todo: proper files
+        filename = self.data_dir + 'data/model1/' + self.experiment + '_echam6_BOT_mm_1979-2006_albedo_yseasmean.nc' #todo: proper files
         ls_mask = get_T63_landseamask()
 
         albedo = Data(filename,v,read=True,
@@ -252,7 +316,7 @@ class JSBACH(Model):
 
 
 
-    def get_surface_shortwave_radiation(self,interval = 'season'):
+    def get_surface_shortwave_radiation_down(self,interval = 'season'):
         '''
         get surface shortwave incoming radiation data for JSBACH
 
@@ -562,14 +626,16 @@ def tree_fraction_analysis(model_list,pft='tree'):
 ######### END TREE COVER ANALYSIS ##############
 
 
-
-
-
-
-
-
-
 def albedo_analysis(model_list):
+    albedo_analysis_modis(model_list)
+
+
+
+
+
+
+
+def albedo_analysis_modis(model_list):
     '''
     model_list = list which contains objects of data type MODEL
     '''
@@ -577,6 +643,12 @@ def albedo_analysis(model_list):
     vmin = 0.; vmax = 0.6
 
     print 'Doing albedo analysis ...'
+
+    #--- GleckerPlot
+    GP = global_glecker
+    if GP == None:
+        GP = GleckerPlot()
+
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask()
@@ -596,6 +668,8 @@ def albedo_analysis(model_list):
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     for model in model_list:
+
+        GP.add_model(model.name) #register model for Glecker Plot
 
         #--- get model data
         model_data = model.variables['albedo']
@@ -632,6 +706,10 @@ def albedo_analysis(model_list):
         Diag = Diagnostic(albedo,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
+
+        #/// Glecker plot ///
+        e2a = global_glecker.calc_index(albedo,model_data,model,'sis')
+        global_glecker.add_data('albedo',model.name,e2a,pos=1)
 
     #~ Rplot.simple_plot()
     #~ Rplot.circle_plot()
@@ -1053,25 +1131,13 @@ def ceres_sis_analysis(model_list,interval = 'season',GP=None):
 #####################################################################
 #####################################################################
 
-
-
-
-
-
-
-
-
-#one class that implements models and contains routines to extract data
-
-
-
 from pyCMBS import *
 
 
 
 #~ def main():
 
-data_dir = '/home/m300028/shared/data/CMIP5/EvaCliMod/rsds/' #CMIP5 data directory
+data_dir = '/home/m300028/shared/data/CMIP5/EvaCliMod/' #CMIP5 data directory
 
 
 pl.close('all')
@@ -1088,7 +1154,7 @@ s_stop_time  = '2005-12-31'
 #--- specify variables to analyze
 #~ variables = ['rain','albedo','sis']
 #variables = ['tree','albedo']
-variables = ['rain'] #sis
+variables = ['albedo'] #sis
 
 #--- specify mapping of variable to analysis script name
 scripts = get_script_names()
@@ -1101,48 +1167,63 @@ start_time = plt.num2date(plt.datestr2num(s_start_time))
 stop_time  = plt.num2date(plt.datestr2num(s_stop_time ))
 
 #--- get model results (needs to be already pre-processed)
-jsbach_variables={}
-hlp={}
-hlp.update({'rain' : 'get_rainfall_data()'})
-hlp.update({'albedo' : 'get_albedo_data()'})
-hlp.update({'sis' : 'get_surface_shortwave_radiation()'})
-hlp.update({'tree' : 'get_tree_fraction()'})
-hlp.update({'grass' : 'get_grass_fraction()'})
 
 
-cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A','MRI-AGCM3-2H','MRI-AGCM3-2S','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GFDL-HIRAM-C180','GFDL-HIRAM-C360','GISS-E2-R','inmcm4','IPSL-CM5A-LR','MIROC5','NorESM1-M']
+def get_variable_methods(variables):
+    '''
+    for a given list of variables, return a dictionary
+    with information on methods how to read the data
+    '''
 
-cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GISS-E2-R','IPSL-CM5A-LR','MIROC5','NorESM1-M']
+    hlp={};
+    hlp.update({'rain' : 'get_rainfall_data()'})
+    hlp.update({'albedo' : 'get_albedo_data()'})
+    hlp.update({'sis' : 'get_surface_shortwave_radiation_down()'})
+    hlp.update({'tree' : 'get_tree_fraction()'})
+    hlp.update({'grass' : 'get_grass_fraction()'})
+
+    res={}
+    for k in hlp.keys(): #only use the variables that should be analyzed!
+        if k in variables:
+            res.update({k:hlp[k]})
+
+    return res
 
 
-#~ cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MIROC5']
-#~ cmip_model_list = ['MRI-AGCM3-2H']
+
+
+
+
+
+
+
+
+#/// get dictionary with methods how to read data for variables to be analyzed ///
+jsbach_variables=get_variable_methods(variables)
+
+
+#/// CMIP5 specific ///
+#~ cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A','MRI-AGCM3-2H','MRI-AGCM3-2S','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GFDL-HIRAM-C180','GFDL-HIRAM-C360','GISS-E2-R','inmcm4','IPSL-CM5A-LR','MIROC5','NorESM1-M']
+#~ cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GISS-E2-R','IPSL-CM5A-LR','MIROC5','NorESM1-M']
+cmip_model_list = ['MPI-ESM-LR']
 cmip_models = []
-
-
-
-
-for k in hlp.keys(): #only use the variables that should be analyzed!
-    print k, hlp[k]
-    if k in variables:
-        jsbach_variables.update({k:hlp[k]})
 
 experiment = 'amip'
 #~ experiment = 'historical'
+
+'''
+read all variables for all CMIP5 models
+and return a list of Data objects containing
+the data
+'''
 cmip_cnt = 1
 for model in cmip_model_list:
-    cmip = CMIP5Data(data_dir,model,experiment,jsbach_variables,unit='W/m**2',lat_name='lat',lon_name='lon',label=model)
+    cmip = CMIP5Data(data_dir,model,experiment,jsbach_variables,lat_name='lat',lon_name='lon',label=model)
     cmip.get_data()
     cmd = 'cmip' + str(cmip_cnt).zfill(4) + ' = ' + 'cmip.copy(); del cmip'
     exec(cmd) #store copy of cmip5 model in separate variable
     cmip_models.append('cmip' + str(cmip_cnt).zfill(4))
-
-
     cmip_cnt += 1
-
-print str(cmip_models)
-
-
 
 
 
@@ -1163,14 +1244,14 @@ print str(cmip_models)
 
 
 
-jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
+jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach72') #model output is in kg/m**2 s --> mm
 jsbach72.get_data()
 
-#~ jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-#~ jsbach73.get_data()
+jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach73') #model output is in kg/m**2 s --> mm
+jsbach73.get_data()
 
-#~ jsbach74 = JSBACH(model_directory,jsbach_variables,'tra0074',start_time=start_time,stop_time=stop_time,name='jsbach') #model output is in kg/m**2 s --> mm
-#~ jsbach74.get_data()
+jsbach74 = JSBACH(model_directory,jsbach_variables,'tra0074',start_time=start_time,stop_time=stop_time,name='jsbach74') #model output is in kg/m**2 s --> mm
+jsbach74.get_data()
 
 
 skeys = scripts.keys()
@@ -1189,11 +1270,11 @@ for variable in variables:
 
             print 'Doing analysis for variable ... ', variable
             print scripts[variable]
-            eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
+            #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
             #~ eval(scripts[variable]+'([cmip,jsbach72])') #here one can put a multitude of model output for comparison in the end
             model_list = str(cmip_models).replace("'","") #cmip5 model list
-            #~ model_list = model_list.replace(']',', ') + 'jsbach72' + ']'
-            #~ eval(scripts[variable]+'(' + model_list + ')') for CMIP5 !!! <<<<<<<<#here one can put a multitude of model output for comparison in the end
+            model_list = model_list.replace(']',', ') + 'jsbach72,' + 'jsbach73,'+ 'jsbach74,'+ ']'
+            eval(scripts[variable]+'(' + model_list + ')') #for CMIP5 !!! <<<<<<<<#here one can put a multitude of model output for comparison in the end
 
 #~ if __name__ == '__main__':
     #~ main()

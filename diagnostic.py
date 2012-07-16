@@ -176,12 +176,12 @@ class EOF():
         '''
         return np.corrcoef(self.x,rowvar=0)
 
-    def get_pc_data_correlation(self,plot=True):
+    def get_eof_data_correlation(self,plot=True):
         '''
         get correlation between original data and PCs
         '''
 
-        c=np.corrcoef(self.x,self.PC,rowvar=0) #correate PCS and original data
+        c=np.corrcoef(self.x,self.EOF,rowvar=0) #correate PCS and original data
         c1 = c[self.n:,0:self.n]
         if plot:
             f = plt.figure()

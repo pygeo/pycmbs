@@ -57,6 +57,34 @@ class pyCDO():
 
 #-----------------------------------------------------------------------
 
+    def div(self,file2,force=False,output=None):
+        '''
+        divide by file 2
+
+        @param force: force calculations to be performed
+        @type force: bool
+
+        @param output: optional argument to specify output filename.
+                       if names are too long (e.g. contain path names!)
+        @type output: str
+
+        @return: returns name of output file
+        @rtype: str
+        '''
+
+        #@todo: when dividing, it needs to be ensured that both data have same geometry, or warning from CDO must be taken into account!!!!
+        #apply always remapcon before ????
+
+        if output != None:
+            oname = output
+        else:
+            oname = self.filename[:-3] + '_' + self.date1 + '_' + self.date2 + '_div_' + file2[:-3] + '.nc'
+        cmd = 'cdo ' + self.options + ' ' + 'div' + ' '  + self.filename + ' ' + file2 + ' ' + oname
+        self.run(cmd,oname,force)
+        return oname
+
+#-----------------------------------------------------------------------
+
     def selmon(self,months,force=False):
         '''
         select months from a dataset (cdo selmon)
