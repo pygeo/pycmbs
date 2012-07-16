@@ -428,7 +428,7 @@ class LinePlot():
 
             if self.regress: #calculate linear regression
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
-                label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+                label = label + ' (y=' + "%.1e" % slope + 'x+' + "%.1e" % intercept  + ', r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
 
             self.labels.append(label)
 
@@ -1302,7 +1302,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     adif = x.sub(y) #absolute difference
     map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
 
-    map_plot(adif,use_basemap=use_basemap,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
+    #~ map_plot(adif,use_basemap=use_basemap,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
 
 
     #- relative error
