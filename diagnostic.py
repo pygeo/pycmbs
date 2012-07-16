@@ -51,9 +51,14 @@ class EOF():
 
         #/// reshape data [time,npoints] ///
         self._shape0 = x.data[0,:,:].shape #original data shape
-        n = len(x.data)
+        n = len(x.data) #number of timestamps
         self.n = n
-        self.x = x.data.copy()
+
+        #-estimate only valid data, discard any masked values
+        lon,lat,vdata,msk = x.get_valid_data(return_mask=True)
+        self._x0mask = msk.copy() #store mask applied to original data
+
+        self.x = vdata.copy()
         self.x.shape = (n,-1)
         self.x = self.x.T #[npoints,time]
 
@@ -82,7 +87,7 @@ class EOF():
         '''
         return self._var
 
-    def plot_eof_coefficients(self,k,all=False):
+    def plot_eof_coefficients(self,k,all=False,norm=True,ax=None,label=None):
         '''
         plot EOF coefficients = time series
 
@@ -91,6 +96,10 @@ class EOF():
 
         @param all: plot all principle components (overwrites k)
         @type all: bool
+
+        @param norm: normalize coefficients by stdv. to allow better plotting (default=True)
+        @type norm: bool
+
         '''
         if all:
             k=range(self.n)
@@ -98,15 +107,27 @@ class EOF():
             if np.isscalar(k):
                 k=[k]
 
-        f = plt.figure()
-        ax = f.add_subplot(111)
+        if ax == None:
+            f = plt.figure()
+            ax = f.add_subplot(111)
+        else:
+            f=ax.figure
+
+        if label == None:
+            label=''
+        else:
+            label = label + ' '
+
         for i in k:
-            ax.plot(self.eigvec[:,i],label='EOF'+str(i).zfill(3))
+            y = self.eigvec[:,i].copy()
+            if norm:
+                y = (y-y.mean() ) / y.std()
+            ax.plot(plt.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
         ax.legend()
 
         return ax
 
-    def plot_EOF(self,k,all=False,use_basemap=False):
+    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None):
         '''
         plot multiple eof patterns
 
@@ -115,6 +136,9 @@ class EOF():
 
         @param all: plot all principle components (overwrites k)
         @type all: bool
+
+        @param logplot: take log of data for plotting
+        @param logplot: bool
         '''
         if all:
             k = range(self.n)
@@ -122,49 +146,91 @@ class EOF():
             if np.isscalar(k):
                 k=[k]
 
-        for i in k:
-            self._plot_single_EOF(i,use_basemap=use_basemap)
 
-    def _plot_single_EOF(self,k,use_basemap=False):
+        for i in k:
+            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region)
+
+    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None):
         '''
         plot principal component k
 
         @param k: number of principal component to plot
         @type k: int
+
+        @param use_basemap: do plot using Basemap
+        @type use_basemap: bool
+
+        @param logplot: take log of data for plotting
+        @param logplot: bool
         '''
         if k<0:
             raise ValueError, 'k<0'
-        d = self.EOF[:,k]; d.shape = self._shape0
-        D = self._x0.copy()
-        D.data = d
-        D.unit = None #reset units as EOF have no physical units
-        D.label = 'EOF ' + str(k).zfill(3)
-        map_plot(D,use_basemap=use_basemap)
+        #~ d = self.EOF[:,k]; d.shape = self._shape0
 
-    def reconstruct_data(self,maxn=None):
+        if label == None:
+            label = ''
+        else:
+            label = label + ' '
+
+
+        #remap data back to original shape
+        #1) valid data --> all data
+        hlp = np.zeros(len(self._x0mask))*np.nan
+        hlp[self._x0mask] = self.EOF[:,k].copy()
+        #2) vector --> matrix
+        hlp.shape = self._shape0
+        hlp = np.ma.array(hlp,mask=np.isnan(hlp))
+
+        #pyCMBS data object
+        D = self._x0.copy()
+        D.data = hlp
+        D.unit = None #reset units as EOF have no physical units
+        D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100.,2)) + '%)' #caution: labeling is always k+1!
+        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region)
+
+    def reconstruct_data(self,maxn=None,input=None):
         '''
         reconstruct data from EOFs
 
         @param maxn: specifies the truncation number for EOF reconstruction
         @type maxn: int
+
+        @param input: if this argument is given, then the reconstruction is based on the modes specified
+                      in this list. It can be an arbitrary list of mode valid mode indices
+        @type input: list of int
         '''
 
         sh = (self.n,np.prod(self._shape0))
         F = np.zeros(sh)
 
-        if maxn == None:
-            maxn = self.n
+
+
+        #- reconsturction list
+        if input == None:
+            #use all data up to maxn
+            if maxn == None:
+                maxn = self.n
+            thelist = range(maxn)
+        else:
+            #use user defined list
+            thelist = input
+
 
         #- reconstruct data matrix
-        for i in range(maxn):
-            a = np.asarray([self.EOF[:,i]]).T
+        for i in thelist:
+            #~ a = np.asarray([self.EOF[:,i]]).T
+            #remap to original geometry first
+            hlp = np.zeros(len(self._x0mask))*np.nan
+            hlp[self._x0mask] = self.EOF[:,i].copy()
+
+            a = np.asarray([hlp]).T
             c = np.asarray([self.eigvec[:,i]])
             F += np.dot(a,c).T
 
         #- generate data object to be returned
         D = self._x0.copy()
         F.shape = self._x0.data.shape
-        D.data = F
+        D.data = np.ma.array(F,mask=np.isnan(F))
 
         return D
 
@@ -494,6 +560,8 @@ class SVD():
         self.x = x; self.y = y
         self.X = X; self.Y = Y
 
+        self.time = X.time.copy()
+
         self.label = label
 
         self.scf_threshold = scf_threshold #threshold for explained variance until which result maps are plotted
@@ -575,9 +643,11 @@ class SVD():
         self.mskx = mskx; self.msky = msky
 
         #/// detrend the data for each grid point ///
+        print 'Detrending ...'
         if detrend:
             x = self.__detrend_time(x)
             y = self.__detrend_time(y)
+        print 'Detrended!'
 
         #/// normalized each timeseries by its variance
         if varnorm:
@@ -585,7 +655,9 @@ class SVD():
             y = self.__time_normalization(y)
 
         #/// calculate covariance matrix
+        print 'Construct covariance matrix ...'
         C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual grid points, but only the covariance terms!
+        print 'Done!'
         self.C = C
         self.x_used = x.copy() #store vectors like they are used for SVD calculations
         self.y_used = y.copy()
@@ -593,6 +665,7 @@ class SVD():
         #/// singular value decomposition
         print '   Doing singular value decomposition ...'
         U, s, V = linalg.svd( C )
+        print 'Done!'
         L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is somewhat python specific
 
         #/// expansion coefficients (time series)
@@ -1001,8 +1074,8 @@ class SVD():
         else:
             ax = ax
 
-        ax.plot(self.A[:,mode]/np.std(self.A[:,mode]),label='A')
-        ax.plot(self.B[:,mode]/np.std(self.B[:,mode]),label='B')
+        ax.plot(plt.num2date(self.time),self.A[:,mode]/np.std(self.A[:,mode]),label='A')
+        ax.plot(plt.num2date(self.time),self.B[:,mode]/np.std(self.B[:,mode]),label='B')
         c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
         plt.legend()
         ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')',size=10)

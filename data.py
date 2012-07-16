@@ -657,8 +657,10 @@ class Data():
             else:
                 print 'Temporal subsetting for 2D variable ...', self.squeezed
                 self.data = self.data[i1:i2,:]
+        elif self.data.ndim == 1: #single temporal vector assumed
+            self.data = self.data[i1:i2]
         else:
-            sys.exit('Error temporal subsetting')
+            sys.exit('Error temporal subsetting: invalid dimension!')
 
 #-----------------------------------------------------------------------
 
@@ -693,6 +695,13 @@ class Data():
         #- determine indices
         m1 = abs(self.time - s1).argmin()
         m2 = abs(self.time - s2).argmin()
+
+        if self.time[m1] < s1:
+            m1=m1+1
+        if self.time[m2] > s2:
+            print 'REDUCTION'
+            m2 = m2-1
+        m2 += 1 #increment so that subsetting is o.k. in the end
 
         if m2 < m1:
             sys.exit('Something went wrong _get_time_indices')
@@ -1046,11 +1055,14 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_valid_data(self):
+    def get_valid_data(self,return_mask=False):
         '''
         this routine calculates from the masked array
         only the valid data and returns it together with its
         coordinate as vector
+
+        @param return_mask: specifies if the mask applied to the original data should be returned as well
+        @type return_mask: bool
         '''
 
         n = len(self.time)
@@ -1060,20 +1072,27 @@ class Data():
         lat  = self.lat.reshape(-1)
         data = self.data.reshape(n,-1)
 
+        #~ print 'data shape: ', data.shape
+
         #- extract only valid (not masked data)
         msk = np.sum(~data.mask,axis=0) == n #identify all ngrid cells where all timesteps are valid
-        data = data[:,msk]
-        lon  = lon[msk]
-        lat  = lat[msk]
-        del msk
-
-        msk = np.sum(~np.isnan(data),axis=0) == n
 
         data = data[:,msk]
         lon  = lon[msk]
         lat  = lat[msk]
+        #~ del msk
 
-        return lon,lat,data
+        #~ msk = np.sum(~np.isnan(data),axis=0) == n
+        #~ print 'shape mask: ', msk.shape
+#~
+        #~ data = data[:,msk]
+        #~ lon  = lon[msk]
+        #~ lat  = lat[msk]
+
+        if return_mask:
+            return lon,lat,data,msk
+        else:
+            return lon,lat,data
 
 #-----------------------------------------------------------------------
 
@@ -1450,6 +1469,12 @@ class Data():
             Iout._apply_mask(mask)
             Pout._apply_mask(mask)
             Cout._apply_mask(mask)
+
+            Rout.unit = None
+            Sout.unit = None
+            Iout.unit = None
+            Pout.unit = None
+            Cout.unit = None
 
         return Rout,Sout,Iout,Pout, Cout
 
