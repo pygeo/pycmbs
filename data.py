@@ -914,6 +914,32 @@ class Data():
         self.time = plt.datestr2num(T)
 
 #-----------------------------------------------------------------------
+    def adjust_time(self,day=None,month=None):
+        '''
+        correct all timestamps and assign
+        same day and/or month
+
+        @param day: day to apply to all timestamps
+        @type day: int
+
+        @param year: year to apply to all timestamps
+        @type year: int
+        '''
+
+        o = []
+        for t in self.time:
+            d = plt.num2date(t)
+            s = str(d) #convert to a string
+            if day != None:
+                s = s[0:8] + str(day).zfill(2) + s[10:] #replace day
+            if month != None:
+                s = s[0:5] + str(month).zfill(2) + s[7:] #replace day
+            o.append(plt.datestr2num(s))
+
+        o = np.asarray(o)
+        self.time = o.copy()
+
+#-----------------------------------------------------------------------
 
     def _set_date(self,basedate,unit='hour'):
         '''
