@@ -939,7 +939,7 @@ def __basemap_ancillary(m):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False, **kwargs):
     '''
     produce a nice looking map plot
 
@@ -982,6 +982,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @param show_stat: show statistic of field in figure title
     @type show_stat: bool
 
+    @param f_kdtree: use kdTree for interpolation of data to grid (might be slow, but might solve problem of stripes in plots)
+    @type f_kdtree: bool
     '''
 
     #--- create new figure
@@ -1029,34 +1031,40 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #generate map
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
 
-        #use KDTRee nearest neighbor resampling to avoid stripes in plotting
-        lons = np.unique(x.lon); lats = np.unique(x.lat)
-        lons.sort(); lats.sort()
-        TLON,TLAT = np.meshgrid(lons,lats)  #generate target coordinates
-        XT,YT = m1(TLON,TLAT)
-        X=XT.copy(); Y=YT.copy()
-        shape0 = np.shape(XT)
-        XT.shape = (-1); YT.shape = (-1) #... vectorize them for inertpolation
-        tree = KDTree(zip(XT,YT)) #generate tree from TARGET coordinates
 
-        #prepare data and interpolate
-        xmap,ymap = m1(x.lon,x.lat)
-        xmap.shape = (-1); ymap.shape = (-1)
-        pts  = zip(xmap,ymap) #generate points to interpolate from source data
-        dist,idx = tree.query(pts,k=1)     #perform nearest neighbor interpolation (returns distance and indices)
+        if f_kdtree:
+            #use KDTRee nearest neighbor resampling to avoid stripes in plotting
+            lons = np.unique(x.lon); lats = np.unique(x.lat)
+            lons.sort(); lats.sort()
+            TLON,TLAT = np.meshgrid(lons,lats)  #generate target coordinates
+            XT,YT = m1(TLON,TLAT)
+            X=XT.copy(); Y=YT.copy()
+            shape0 = np.shape(XT)
+            XT.shape = (-1); YT.shape = (-1) #... vectorize them for inertpolation
+            tree = KDTree(zip(XT,YT)) #generate tree from TARGET coordinates
 
-        #- map data to output matrix for plotting
-        Z = np.ones(shape0)*np.nan; Z.shape = (-1) #generate target vector
-        omask = np.ones(shape0).astype('bool'); omask.shape = (-1)
+            #prepare data and interpolate
+            xmap,ymap = m1(x.lon,x.lat)
+            xmap.shape = (-1); ymap.shape = (-1)
+            pts  = zip(xmap,ymap) #generate points to interpolate from source data
+            dist,idx = tree.query(pts,k=1)     #perform nearest neighbor interpolation (returns distance and indices)
 
-        msk1 = xm.mask.copy(); msk1.shape = (-1); omask[idx] = msk1
+            #- map data to output matrix for plotting
+            Z = np.ones(shape0)*np.nan; Z.shape = (-1) #generate target vector
+            omask = np.ones(shape0).astype('bool'); omask.shape = (-1)
 
-        xm1 = xm.copy(); xm1.shape = (-1)
-        Z[idx]   = xm1 #assign data and reshape it and set generate masked array
+            msk1 = xm.mask.copy(); msk1.shape = (-1); omask[idx] = msk1
 
-        #~ print Z.shape, omask.shape
-        Z[omask] = np.nan
-        Z = np.reshape(Z,shape0); Z = np.ma.array(Z,mask=np.isnan(Z))
+            xm1 = xm.copy(); xm1.shape = (-1)
+            Z[idx]   = xm1 #assign data and reshape it and set generate masked array
+
+            #~ print Z.shape, omask.shape
+            Z[omask] = np.nan
+            Z = np.reshape(Z,shape0); Z = np.ma.array(Z,mask=np.isnan(Z))
+
+        else: #f_kdtree
+            X,Y = m1(x.lon,x.lat)
+            Z = xm
 
         #here is still a problem in the plotting over land; masking does not work properly,
         #while the data as such is o.k.!
@@ -1146,7 +1154,7 @@ def add_nice_legend(ax,im,cmap,cticks=None):
     norm = mpl.colors.Normalize(vmin=im.get_clim()[0], vmax=im.get_clim()[1])
     cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
-def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,**kwargs):
+def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,rescalex=1,**kwargs):
     '''
 
     class to plot hovmoeller diagrams of two datasets
@@ -1181,8 +1189,8 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
     #~ ydata[y.data.mask] = np.nan
 
 
-    hov1 = hovmoeller(num2date(x.time),xdata,rescaley=rescaley,lat=x.lat)
-    hov2 = hovmoeller(num2date(y.time),ydata,rescaley=rescaley,lat=y.lat)
+    hov1 = hovmoeller(num2date(x.time),xdata,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
+    hov2 = hovmoeller(num2date(y.time),ydata,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
 
 
     hov1.time_to_lat(**kwargs)
@@ -1203,7 +1211,7 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 
 
     if x.data.shape == y.data.shape:
-        hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=rescaley,lat=y.lat)
+        hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
         hov3.time_to_lat(**kwargs)
         cmap_diff = plt.cm.get_cmap('RdBu', nclasses)
         hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap_diff,ax=ax3,showcolorbar=False,climits=dlimits,grid=grid)
