@@ -1499,6 +1499,114 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
+    def slice_corr_gap(self,timmean=True,spearman=False):
+        '''
+        perform correlation analysis for
+        different starting times and gap sizes
+
+        if timmean=True then the correlation is caluclated
+        on basis of the mean spatial fields, thus
+        the timeseries of each pixels is averaged over time
+        before the correlation calculation
+
+        '''
+
+        x=self.x.data.copy()
+
+        if not hasattr(self,'y'):
+            #if no y value is given, then time is used as independent variable
+            print 'No y-value specified. Use time as indpendent variable!'
+
+            y = x.copy()
+            x = np.ma.array(self.x.time.copy(),mask = self.x.time < 0. )
+
+        else:
+            y = self.y.data.copy()
+
+        if np.shape(x) != np.shape(y):
+            raise ValueError, 'slice_corr: shapes not matching!'
+
+        #--- reshape data
+        n = len(x) #timesteps
+
+        gaps = np.arange(n)
+
+        x.shape = (n,-1) #size [time,ngridcells]
+        y.shape = (n,-1)
+        maxgap = n
+
+
+        #~ print 'maxgap: ', maxgap
+
+
+        R=np.ones((maxgap,n))*np.nan; P=np.ones((maxgap,n))*np.nan
+        L=np.ones((maxgap,n))*np.nan; S=np.ones((maxgap,n))*np.nan
+
+        #--- perform correlation analysis
+        print '   Doing slice correlation analysis ...'
+        i1 = 0
+        while i1 < n-1: #loop over starting year
+            i2 = n
+            #- loop over different lengths
+            for gap in gaps:
+
+                if gap >=  i2 - i1:
+                    continue
+
+                if timmean:
+                    ''' temporal mean -> all grid cells only (temporal mean) '''
+
+                    raise ValueError, 'TIMMEAN not supported yet for gap analysis'
+
+                    #print 'drin'
+                    xdata = x[i1:i2,:].mean(axis=0)
+                    ydata = y[i1:i2,:].mean(axis=0)
+
+                    xmsk  = xdata.mask; ymsk = ydata.mask
+                    msk = xmsk | ymsk
+
+                else:
+                    ''' all grid cells at all times '''
+                    #~ xdata = x.data[i1:i2,:]; ydata = y.data[i1:i2,:]
+                    xdata = x.data.copy(); ydata = y.data.copy()
+                    xmsk  = x.mask.copy() #  [i1:i2,:]
+                    ymsk  = y.mask.copy() #  [i1:i2,:]
+
+                    #mask data which has gaps and use whole period elsewhere
+                    xmsk[i1:i1+gap,:] = True
+                    ymsk[i1:i1+gap,:] = True
+
+                    msk   = xmsk | ymsk
+
+
+
+                xdata = xdata[~msk].flatten()
+                ydata = ydata[~msk].flatten()
+
+                #use spearman correlation
+                if spearman:
+                    tmpx = xdata.argsort()
+                    tmpy = ydata.argsort()
+                    xdata = tmpx
+                    ydata = tmpy
+
+                slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
+                R[gap,i1] = r
+                P[gap,i1] = p
+                L[gap,i1] = gap-1
+                S[gap,i1] = slope
+
+
+            i1 += 1
+
+        self.slice_r = R
+        self.slice_p = P
+        self.slice_length = L
+        self.slice_slope = S
+
+
+#-----------------------------------------------------------------------
+
     def _set_year_ticks(self,years,ax,axis='x'):
         '''
         set ticks of timeline with
