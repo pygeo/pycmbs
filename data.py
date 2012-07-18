@@ -782,12 +782,12 @@ class Data():
 
         #scale factor
         if hasattr(var,'scale_factor'):
-            scal = var.scale_factor
+            scal = float(var.scale_factor)
         else:
             scal = 1.
 
         if hasattr(var,'add_offset'):
-            offset = var.add_offset
+            offset = float(var.add_offset)
         else:
             offset = 0.
 

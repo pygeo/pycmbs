@@ -939,7 +939,7 @@ def __basemap_ancillary(m):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True, **kwargs):
     '''
     produce a nice looking map plot
 
@@ -1026,7 +1026,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 di = 0. #with 0 it works; for other values problems may occur for negative lon!
                 llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
-                proj='tmerc' #use mercator projection at regional scale as robinson does not work!
+                #~ proj='tmerc' #use mercator projection at regional scale as robinson does not work!
+                proj = 'cyl'
 
         #generate map
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
@@ -1079,11 +1080,12 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
 
     #set legend aligned with plot (nice looking)
-    divider = make_axes_locatable(ax)
-    cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
-    ax.figure.add_axes(cax)
-    norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
-    cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+    if show_colorbar:
+        divider = make_axes_locatable(ax)
+        cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+        ax.figure.add_axes(cax)
+        norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
+        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
 
 
@@ -1124,7 +1126,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #--- show field statistics in title ?
     if show_stat:
         me = xm.mean(); st=xm.std()
-        title = title + ' - ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$)'
+        title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + x._get_unit() + ')'
         print 'TITLE: ', title
 
     ax.set_title(title,size=10)
