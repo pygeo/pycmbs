@@ -26,7 +26,7 @@ class Data():
     '''
     Data class: main class
     '''
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None):
         '''
         Constructor for Data class
 
@@ -80,6 +80,9 @@ class Data():
         @param squeeze: remove singletone dimensions in the data when it is read
         @type squeeze: bool
 
+        @param level: specify level to work with (needed for 4D data)
+        @type level: int
+
         '''
 
         self.filename     = filename
@@ -90,9 +93,13 @@ class Data():
         self.squeeze      = squeeze
         self.squeezed     = False
 
+        self.detrended    = False
+
         self._lon360 = True #assume that coordinates are always in 0 < lon < 360
 
         self.inmask = mask
+
+        self.level = level
 
         if label == None:
             self.label = self.filename
@@ -405,6 +412,8 @@ class Data():
         #test routines tcorr1.py, test_corr.py
 
         @todo: implement faster correlation calculation
+        @todo: slope calculation as well ???
+        @todo: significance correct ???
 
         '''
 
@@ -593,7 +602,7 @@ class Data():
         else:
             raise ValueError, 'Invalid dimension when calculating anomalies'
 
-        ret = np.ma.array(ret,mask=np.isnan(ret))
+        ret = np.ma.array(ret,mask=(np.isnan(ret) | self.data.mask) )
 
         #return a data object
         res = self.copy(); res.data = ret.copy()
@@ -771,6 +780,14 @@ class Data():
         var = F.variables[varname]
         data = var.get_value().astype('float').copy()
 
+        if data.ndim > 3:
+            if self.level == None:
+                print data.shape
+                raise ValueError, '4-dimensional variables not supported yet! Either remove a dimension or specify a level!'
+            else:
+                print 'Data'
+                data = data[:,self.level,:,:] #[time,level,ny,nx ] --> [time,ny,nx]
+
         self.fill_value = None
         if hasattr(var,'_FillValue'):
             self.fill_value = float(var._FillValue)
@@ -782,7 +799,10 @@ class Data():
 
         #scale factor
         if hasattr(var,'scale_factor'):
-            scal = float(var.scale_factor)
+            if plt.is_string_like(var.scale_factor):
+                scal = float(var.scale_factor.replace('.f','.'))
+            else:
+                scal = var.scale_factor
         else:
             scal = 1.
 
@@ -808,31 +828,47 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def timmean(self):
+    def timmean(self,return_object=False):
         '''
         calculate temporal mean of data field
         '''
         if self.data.ndim == 3:
-            return self.data.mean(axis=0)
-        if self.data.ndim == 2:
+            res = self.data.mean(axis=0)
+        elif self.data.ndim == 2:
             #no temporal averaging
-            return self.data.copy()
+            res = self.data.copy()
         else:
+            print self.data.ndim
             sys.exit('Temporal mean can not be calculated as dimensions do not match!')
+
+        if return_object:
+            tmp = self.copy(); tmp.data = res
+            return tmp
+        else:
+            return res
 
 #-----------------------------------------------------------------------
 
-    def timstd(self):
+    def timstd(self,return_object=False):
         '''
         calculate temporal standard deviation of data field
         '''
         if self.data.ndim == 3:
-            return self.data.std(axis=0)
-        if self.data.ndim == 2:
+            res = self.data.std(axis=0)
+        elif self.data.ndim == 2:
             #no temporal averaging
-            return None
+            res = None
         else:
             sys.exit('Temporal standard deviation can not be calculated as dimensions do not match!')
+
+        if return_object:
+            if res == None:
+                return res
+            else:
+                tmp = self.copy(); tmp.data = res
+                return tmp
+        else:
+            return res
 
 #-----------------------------------------------------------------------
 
@@ -865,6 +901,16 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def timn(self):
+        '''
+        calculate number of samples
+        done via timmean and timsum to take
+        into account the valid values only
+        '''
+        return self.timsum() / self.timmean()
+
+#-----------------------------------------------------------------------
+
     def fldmean(self,return_data = False):
         '''
         calculate mean of the spatial field
@@ -893,6 +939,12 @@ class Data():
 
         @return label (str)
         '''
+
+        if hasattr(self,'label'):
+            pass
+        else:
+            self.label = ''
+
         u = self._get_unit()
         return self.label + ' ' + u
 
@@ -1086,6 +1138,8 @@ class Data():
         this routine calculates from the masked array
         only the valid data and returns it together with its
         coordinate as vector
+
+        valid means that ALL timestamps need to be valid!
 
         @param return_mask: specifies if the mask applied to the original data should be returned as well
         @type return_mask: bool
@@ -1313,7 +1367,7 @@ class Data():
         '''
 
         if np.shape(self.data) != np.shape(x.data):
-            print 'Inconsistent geometry (sub): can not calculate!'
+            raise ValueError, 'Inconsistent geometry (sub): can not calculate!'
 
         if copy:
             d = self.copy()
@@ -1331,7 +1385,8 @@ class Data():
         '''
         Substract a constant value from the current object field
 
-        @param x: constant
+        @param x: constant (can be either a scalar or a field that has
+                  the same geometry as the second and third dimension of self.data)
         @type  x: float
 
         @param copy: if True, then a new data object is returned
@@ -1343,7 +1398,13 @@ class Data():
             d = self.copy()
         else:
             d = self
-        d.data -= x
+        if np.isscalar(x):
+            d.data = d.data - x
+        elif x.ndim == 2:
+            for i in range(len(self.time)):
+                d.data[i,:,:] = d.data[i,:,:] - x[:,:]
+        else:
+            raise ValueError, 'Invalid geometry in detrend()'
         return d
 
 #-----------------------------------------------------------------------
@@ -1374,7 +1435,8 @@ class Data():
         Divide current object field by field of a C{Data} object
 
         @param x: C{Data} object in the denominator
-        @type  x: C{Data} object
+        @type  x: C{Data} object (data needs to have either same geometry
+                  as self.data or second and third dimension need to match)
 
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
@@ -1382,17 +1444,92 @@ class Data():
         '''
 
         if np.shape(self.data) != np.shape(x.data):
-            print 'Inconsistent geometry (sub): can not calculate!'
+            if self.data.ndim == 3:
+                if x.data.ndim == 2:
+                    if np.shape(self.data[0,:,:]) == np.shape(x.data):
+                        #second and third dimension match
+                        pass
+                    else:
+                        print np.shape(self.data)
+                        print np.shape(x.data)
+                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                else:
+                        print np.shape(self.data)
+                        print np.shape(x.data)
+                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+            else:
+                print np.shape(self.data)
+                print np.shape(x.data)
+                raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+
 
         if copy:
             d = self.copy()
         else:
             d = self
+        if np.shape(d.data) == np.shape(x.data):
+            d.data = d.data / x.data
+        elif np.shape(d.data[0,:,:]) == np.shape(x.data):
+            for i in range(len(self.time)):
+                d.data[i,:,:] = d.data[i,:,:] / x.data
+        else:
+            raise ValueError, 'Can not handle this geometry in div()'
 
-        d.data = d.data / x.data
         d.label = self.label + ' / ' + x.label
 
         return d
+
+
+    def mul(self,x,copy=True):
+        '''
+        Multiply current object field by field by a C{Data} object
+
+        @param x: C{Data} object in the denominator
+        @type  x: C{Data} object (data needs to have either same geometry
+                  as self.data or second and third dimension need to match)
+
+        @param copy: if True, then a new data object is returned
+                     else, the data of the present object is changed
+        @type copy: bool
+        '''
+
+        if np.shape(self.data) != np.shape(x.data):
+            if self.data.ndim == 3:
+                if x.data.ndim == 2:
+                    if np.shape(self.data[0,:,:]) == np.shape(x.data):
+                        #second and third dimension match
+                        pass
+                    else:
+                        print np.shape(self.data)
+                        print np.shape(x.data)
+                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                else:
+                        print np.shape(self.data)
+                        print np.shape(x.data)
+                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+            else:
+                print np.shape(self.data)
+                print np.shape(x.data)
+                raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+
+
+        if copy:
+            d = self.copy()
+        else:
+            d = self
+        if np.shape(d.data) == np.shape(x.data):
+            d.data = d.data * x.data
+        elif np.shape(d.data[0,:,:]) == np.shape(x.data):
+            for i in range(len(self.time)):
+                d.data[i,:,:] = d.data[i,:,:] * x.data
+        else:
+            raise ValueError, 'Can not handle this geometry in div()'
+
+        d.label = self.label + ' * ' + x.label
+
+        return d
+
+
 
 #-----------------------------------------------------------------------
 
@@ -1504,6 +1641,45 @@ class Data():
 
         return Rout,Sout,Iout,Pout, Cout
 
+#-----------------------------------------------------------------------
+
+    def detrend(self,return_object=True):
+        '''
+        detrend data timeseries
+        '''
+
+        print 'Detrending data ...'
+
+        if self.data.ndim != 3:
+            raise ValueError, 'Can not detrend data other than 3D!'
+
+        #generate dummy vector for linear correlation
+        x = np.arange(len(self.time))
+
+        #correlate and get slope and intercept
+        Rout,Sout,Iout,Pout, Cout = self.corr_single(x)
+
+
+
+        #calculate regression field
+        reg = Data(None,None)
+        reg.data = np.zeros(self.data.shape) * np.nan
+        reg.label = 'trend line'
+        nt = self.data.shape[0]
+        for i in range(nt):
+            reg.data[i,:,:] = Sout.data * i + Iout.data
+
+        #substract regression line
+        res = self.sub(reg)
+        #~ res = self.subc(Iout.data).div(Sout)  #does not work yet! todo
+
+        if return_object:
+            res.detrended = True
+            return res
+        else:
+            self.data = res.data
+            self.detrended = True
+            return None
 
 
 
