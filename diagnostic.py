@@ -1499,7 +1499,7 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
-    def slice_corr_gap(self,timmean=True,spearman=False):
+    def slice_corr_gap(self,timmean=True,spearman=False,pthres=None):
         '''
         perform correlation analysis for
         different starting times and gap sizes
@@ -1546,7 +1546,7 @@ class Diagnostic():
         print '   Doing slice correlation analysis ...'
         i1 = 0
         while i1 < n-1: #loop over starting year
-            i2 = n
+            i2 = n #always entire time period
             #- loop over different lengths
             for gap in gaps:
 
@@ -1578,8 +1578,6 @@ class Diagnostic():
 
                     msk   = xmsk | ymsk
 
-
-
                 xdata = xdata[~msk].flatten()
                 ydata = ydata[~msk].flatten()
 
@@ -1599,10 +1597,15 @@ class Diagnostic():
 
             i1 += 1
 
-        self.slice_r = R
-        self.slice_p = P
-        self.slice_length = L
-        self.slice_slope = S
+
+        if pthres != None: #mask all insignificant values
+            R = np.ma.array(R,mask=P>pthres)
+            S = np.ma.array(S,mask=P>pthres)
+
+        self.slice_r_gap = R
+        self.slice_p_gap = P
+        self.slice_length_gap = L
+        self.slice_slope_gap = S
 
 
 #-----------------------------------------------------------------------
