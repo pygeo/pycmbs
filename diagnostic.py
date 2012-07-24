@@ -35,12 +35,19 @@ class EOF():
     main class to perform an EOF analyis
     '''
 
-    def __init__(self,x):
+    def __init__(self,x,allow_gaps=False):
         '''
         constructor for EOF analysis
 
         @param x: C{Data} object with a 3D data. The data is assumed to have structire [time,ny,nx]
         @type x: C{Data} object
+
+        @param allow_gaps: specifies if data gaps are allowed. If True, then temporal gaps are allowed
+                           and are considered approprately when calculating the covariance matrix
+                           if FALSE, then only timeseries without any gaps will be used.
+        @type allow_gaps: bool
+
+        @todo: how to deal with negative eigenvalues, which sometimes occur?
         '''
 
         #/// check geometries
@@ -55,7 +62,11 @@ class EOF():
         self.n = n
 
         #-estimate only valid data, discard any masked values
-        lon,lat,vdata,msk = x.get_valid_data(return_mask=True)
+        if allow_gaps:
+            lon,lat,vdata,msk = x.get_valid_data(return_mask=True,mode='one')
+        else:
+            lon,lat,vdata,msk = x.get_valid_data(return_mask=True,mode='all')
+
         self._x0mask = msk.copy() #store mask applied to original data
 
         self.x = vdata.copy()
@@ -65,7 +76,10 @@ class EOF():
         print 'Shape is now ...', self.x.shape
 
         #/// calculate covariance matrix ///
-        self.C = np.cov(self.x,rowvar=0)
+        if allow_gaps:
+            self.C = np.ma.cov(self.x,rowvar=0)
+        else:
+            self.C = np.cov(self.x,rowvar=0)
 
         #/// solve eigenvalue problem ///
         eigval,eigvec = np.linalg.eig(self.C)
@@ -74,7 +88,10 @@ class EOF():
         self.eigvec = eigvec
 
         #/// calculate expansion coefficients == PC (projection of original data to new parameter space)
-        A = np.dot(self.x,eigvec)
+        if allow_gaps:
+            A = np.ma.dot(self.x,eigvec)
+        else:
+            A = np.dot(self.x,eigvec)
         self.EOF = A
 
         #/// explained variance
@@ -180,6 +197,7 @@ class EOF():
         #2) vector --> matrix
         hlp.shape = self._shape0
         hlp = np.ma.array(hlp,mask=np.isnan(hlp))
+
 
         #pyCMBS data object
         D = self._x0.copy()
