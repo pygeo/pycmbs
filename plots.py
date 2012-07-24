@@ -285,7 +285,7 @@ class ScatterPlot():
     '''
     Class for generation of scatterplots
     '''
-    def __init__(self,x,ax=None):
+    def __init__(self,x,ax=None,ticksize=10):
         '''
         constructor of class C{ScatterPlot}
 
@@ -302,6 +302,7 @@ class ScatterPlot():
         self.figure = self.ax.figure
         self.x = x
         self.lines = []; self.labels = []
+        self.ticksize=ticksize
 
 #-----------------------------------------------------------------------
 
@@ -329,8 +330,16 @@ class ScatterPlot():
             self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
         self.lines.append(l); self.labels.append(label)
 
-        self.ax.set_xlabel(self.x._get_label() )
-        self.ax.set_ylabel(y._get_unit())
+        self.ax.set_xlabel(self.x._get_label(),size=self.ticksize )
+        self.ax.set_ylabel(y._get_unit(),size=self.ticksize)
+
+        self._change_ticklabels()
+
+    def _change_ticklabels(self):
+        for tick in self.ax.xaxis.get_major_ticks():
+                tick.label.set_fontsize(self.ticksize)
+        for tick in self.ax.yaxis.get_major_ticks():
+            tick.label.set_fontsize(self.ticksize)
 
 #-----------------------------------------------------------------------
 
@@ -349,7 +358,7 @@ class LinePlot():
 
     This class is usefull for plotting timeseries
     '''
-    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True):
+    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10):
         '''
         constructor of LinePlot
 
@@ -383,6 +392,8 @@ class LinePlot():
 
         self.lines = []; self.labels = []
 
+        self.ticksize = ticksize
+
 #-----------------------------------------------------------------------
 
     def legend(self):
@@ -390,6 +401,17 @@ class LinePlot():
         plot legend
         '''
         self.ax.legend(self.lines,self.labels,prop={'size':8})
+
+#-----------------------------------------------------------------------
+
+    def _change_ticklabels(self,ax=None):
+        if ax == None:
+            ax = self.ax
+
+        #~ for tick in ax.xaxis.get_major_ticks():
+            #~ tick.label.set_fontsize(self.ticksize)
+        for tick in ax.yaxis.get_major_ticks():
+            tick.label.set_fontsize(self.ticksize)
 
 #-----------------------------------------------------------------------
 
@@ -438,9 +460,9 @@ class LinePlot():
                 ax.plot(x.time,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
 
             if self.show_ylabel:
-                ax.set_ylabel(x._get_unit())
+                ax.set_ylabel(x._get_unit(),size=self.ticksize)
             if self.show_xlabel:
-                ax.set_xlabel('time')
+                ax.set_xlabel('time',size=self.ticksize)
 
             if self.title != None:
                 ax.set_title(self.title)
@@ -448,6 +470,9 @@ class LinePlot():
             if vmin != None:
                 if vmax != None:
                     ax.set_ylim(vmin,vmax)
+
+
+            self._change_ticklabels(ax)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -921,16 +946,26 @@ class GleckerPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-def __basemap_ancillary(m):
+def __basemap_ancillary(m,latvalues = None, lonvalues = None):
     '''
     routine to plot ancillary data like coastlines
     or meridians on a basemap plot
 
     @param m: map to add features to
     @type m: C{Basemap} object
+
+    @param latvalues: latitude values for drawing grid (optional)
+    @type latvalues: list or numpy array
+
+    @param lonvalues: longitude values for drawing grid (optional)
+    @type lonvalues: list or numpy array
+
     '''
-    latvalues=np.arange(-90.,120.,30.)
-    lonvalues= np.arange(-180.,180.,90.)
+
+    if latvalues == None:
+        latvalues=np.arange(-90.,120.,30.)
+    if lonvalues == None:
+        lonvalues= np.arange(-180.,180.,90.)
     m.drawcountries(); m.drawcoastlines()
     m.drawlsmask(lakes=True)
     m.drawmapboundary() # draw a line around the map region
@@ -939,7 +974,7 @@ def __basemap_ancillary(m):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None, **kwargs):
     '''
     produce a nice looking map plot
 
@@ -984,6 +1019,13 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param f_kdtree: use kdTree for interpolation of data to grid (might be slow, but might solve problem of stripes in plots)
     @type f_kdtree: bool
+
+    @param latvalues: latitude values for drawing grid (optional)
+    @type latvalues: list or numpy array
+
+    @param lonvalues: longitude values for drawing grid (optional)
+    @type lonvalues: list or numpy array
+
     '''
 
     #--- create new figure
@@ -1026,8 +1068,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 di = 0. #with 0 it works; for other values problems may occur for negative lon!
                 llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
-                #~ proj='tmerc' #use mercator projection at regional scale as robinson does not work!
-                proj = 'cyl'
+                proj='tmerc' #use mercator projection at regional scale as robinson does not work!
+                #~ proj = 'cyl'
 
         #generate map
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
@@ -1071,7 +1113,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #while the data as such is o.k.!
         #~ im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
         im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-        __basemap_ancillary(m1)
+        __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues)
 
     else: #use_basemap = False
         #- normal plots
@@ -1127,9 +1169,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     if show_stat:
         me = xm.mean(); st=xm.std()
         title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + x._get_unit() + ')'
-        print 'TITLE: ', title
 
-    ax.set_title(title,size=10)
+
+    ax.set_title(title,size=12)
 
 
     return fig

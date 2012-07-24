@@ -1133,7 +1133,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_valid_data(self,return_mask=False):
+    def get_valid_data(self,return_mask=False,mode='all'):
         '''
         this routine calculates from the masked array
         only the valid data and returns it together with its
@@ -1143,23 +1143,27 @@ class Data():
 
         @param return_mask: specifies if the mask applied to the original data should be returned as well
         @type return_mask: bool
+
+        @param mode: analyis mode: 'all'=all timestamps need to be valid, 'one'=at least a single dataset needs to be valid
         '''
 
         n = len(self.time)
 
         #- vectorize the data
-        lon  = self.lon.reshape(-1)
-        lat  = self.lat.reshape(-1)
+        lon  = self.lon.reshape(-1); lat  = self.lat.reshape(-1)
         data = self.data.reshape(n,-1)
 
-        #~ print 'data shape: ', data.shape
-
         #- extract only valid (not masked data)
-        msk = np.sum(~data.mask,axis=0) == n #identify all ngrid cells where all timesteps are valid
+        if mode == 'all':
+            msk = np.sum(~data.mask,axis=0) == n #identify all ngrid cells where all timesteps are valid
+        elif mode == 'one':
+            msk = np.sum(~data.mask,axis=0) > 0  #identify ONE grid cell where all timesteps are valid
+        else:
+            print mode
+            raise ValueError, 'Invalid option in get_valid_data()'
 
         data = data[:,msk]
-        lon  = lon[msk]
-        lat  = lat[msk]
+        lon  = lon[msk]; lat  = lat[msk]
         #~ del msk
 
         #~ msk = np.sum(~np.isnan(data),axis=0) == n
@@ -1189,7 +1193,6 @@ class Data():
         '''
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()
-
 
         print 'Geometry in masking: ', self.data.ndim, self.data.shape
 
