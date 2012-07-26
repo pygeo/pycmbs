@@ -18,6 +18,8 @@ from statistic import get_significance
 
 import matplotlib.pylab as pl
 
+from scipy import stats
+
 '''
 @todo: data access via opendap
 '''
@@ -1571,7 +1573,8 @@ class Data():
         @return: list of C{Data} objects for correlation, slope, intercept, p-value, covariance
         @rtype: list
 
-        @todo significance of correlation (is the calculation correct?)
+        @todo significance of correlation (is the calculation correct? currently it assumes that all data is valid!)
+        @todo: it is still not ensured that masked data is handeled propertly!!!
         '''
 
         if self.data.ndim != 3:
@@ -1582,34 +1585,73 @@ class Data():
         if nt != len(x):
             raise ValueError, 'Inconsistent geometries'
 
+        #--- get data with at least one valid value
+        lo,la,dat,msk = self.get_valid_data(return_mask=True,mode='one')
+        xx,n = dat.shape
+        print msk.shape, sum(msk)
+        print '   Number of grid points: ', n
+        print dat.shape
+
         R=np.ones((ny,nx))*np.nan #output matrix for correlation
+        P=np.ones((ny,nx))*np.nan #output matrix for p-value
         S=np.ones((ny,nx))*np.nan #output matrix for slope
         I=np.ones((ny,nx))*np.nan #output matrix for intercept
         CO=np.ones((ny,nx))*np.nan #output matrix for covariance
 
+        R.shape = (-1)
+        S.shape = (-1)
+        P.shape = (-1)
+        I.shape = (-1)
+        CO.shape = (-1)
+
         print 'Calculating correlation ...'
-        for i in range(ny): #todo how to further increase efficiency?
-            if i % 25 == 0:
-                print i, '/', ny
-            c = np.vstack((self.data[:,i,:].T,x))
-            r=np.corrcoef(c)
-            CO[i,:] = np.cov(c)[0:-1,-1]
+        res = [stats.linregress(x,dat[:,i]) for i in range(n)]
+        res = np.asarray(res)
 
-            poly = np.polyfit(x,self.data[:,i,:],1  ) #self.data is dependent variable
+        slope = res[:,0]; intercept = res[:,1]
+        r_value = res[:,2]; p_value = res[:,3]
+        std_err = res[:,4]
 
-            R[i,:] = r[0:-1,-1]
-            S[i,:] = poly[0,:]
-            I[i,:] = poly[1,:]
+        print np.shape(res)
+        print msk.shape, ny,nx
+
+        R[msk] = r_value
+        P[msk] = p_value
+        I[msk] = intercept
+        S[msk] = slope
+
+        R.shape = (ny,nx)
+        P.shape = (ny,nx)
+        I.shape = (ny,nx)
+        S.shape = (ny,nx)
 
 
-        #--- calculate significance (assuming no gaps in the timeseries)
-        p_value = get_significance(R,len(x))
+        #~ for i in range(ny): #todo how to further increase efficiency?
+            #~ if i % 25 == 0:
+                #~ print i, '/', ny
+            #~ slope, intercept, r_value, p_value, std_err = stats.linregress(x    ,y)
+#~
+            #~ y = x,self.data[:,i,j]
+#~
+            #~ c = np.vstack((self.data[:,i,:].T,x))
+            #~ r=np.corrcoef(c)
+            #~ CO[i,:] = np.cov(c)[0:-1,-1]
+#~
+            #~ poly = np.polyfit(x,self.data[:,i,:],1  ) #self.data is dependent variable
+#~
+            #~ R[i,:] = r[0:-1,-1]
+            #~ S[i,:] = poly[0,:]
+            #~ I[i,:] = poly[1,:]
+#~
+#~
+        #~ #--- calculate significance (assuming no gaps in the timeseries)
+        #~ p_value = get_significance(R,len(x))
 
 
         #--- prepare output data objects
         Rout = self.copy() #copy obkect to get coordinates
         Rout.label = 'correlation'
-        msk = (p_value > pthres) | np.isnan(R)
+        msk = (P > pthres) | np.isnan(R)
         Rout.data = np.ma.array(R,mask=msk).copy()
 
         Sout = self.copy() #copy object to get coordinates
@@ -1622,11 +1664,11 @@ class Data():
 
         Pout = self.copy() #copy object to get coordinates
         Pout.label = 'p-value'
-        Pout.data = np.ma.array(p_value).copy()
+        Pout.data = np.ma.array(P).copy()
 
         Cout = self.copy() #copy object to get coordinates
         Cout.label = 'covariance'
-        Cout.data = np.ma.array(CO,mask=msk).copy()
+        Cout.data = np.ma.array(np.ones(P.shape)*np.nan,mask=msk).copy() #currently not supported: covariance!
 
         if mask != None:
             #apply a mask
