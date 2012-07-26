@@ -11,9 +11,10 @@ Module that contains relevant classes for diagnostic plots
 @todo: implement writing of statistics to an ASCII file as export
 @todo: implement taylor plots
 @todo: faster implementation of Basemap plots. For large number of grid cells, the current KTree implementation is by far too slow!
+
 '''
 
-from python.hov import *
+from hov import *
 
 from matplotlib import pylab as plt
 
@@ -128,7 +129,7 @@ class HovmoellerPlot():
         In this case the value is expected to be a 3D variables as
         value(time,ny,nx)
         '''
-        from python.hov import *
+        #~ from python.hov import *
         self.hov = hovmoeller(pl.num2date(D.time),D.data,lat=D.lat,rescaley=rescaley,rescalex=rescalex)
         self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
 
