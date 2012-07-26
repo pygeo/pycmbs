@@ -1588,9 +1588,9 @@ class Data():
         #--- get data with at least one valid value
         lo,la,dat,msk = self.get_valid_data(return_mask=True,mode='one')
         xx,n = dat.shape
-        print msk.shape, sum(msk)
+        #~ print msk.shape, sum(msk)
         print '   Number of grid points: ', n
-        print dat.shape
+        #~ print dat.shape
 
         R=np.ones((ny,nx))*np.nan #output matrix for correlation
         P=np.ones((ny,nx))*np.nan #output matrix for p-value
@@ -1605,15 +1605,15 @@ class Data():
         CO.shape = (-1)
 
         print 'Calculating correlation ...'
-        res = [stats.linregress(x,dat[:,i]) for i in range(n)]
+        res = [stats.mstats.linregress(x,dat[:,i]) for i in range(n)] #@todo: still rather inefficient for masked arrays
         res = np.asarray(res)
 
         slope = res[:,0]; intercept = res[:,1]
         r_value = res[:,2]; p_value = res[:,3]
         std_err = res[:,4]
 
-        print np.shape(res)
-        print msk.shape, ny,nx
+        #~ print np.shape(res)
+        #~ print msk.shape, ny,nx
 
         R[msk] = r_value
         P[msk] = p_value
