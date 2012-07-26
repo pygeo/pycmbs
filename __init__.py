@@ -63,6 +63,7 @@ from diagnostic import *
 from plots  import *
 from pyCDO  import *
 
+from hov import *
 
 #------------------------------
 #--- Global constants
