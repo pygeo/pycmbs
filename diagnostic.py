@@ -125,7 +125,7 @@ class EOF():
                 k=[k]
 
         if ax == None:
-            f = plt.figure()
+            f = pl.figure()
             ax = f.add_subplot(111)
         else:
             f=ax.figure
@@ -144,7 +144,7 @@ class EOF():
 
         return ax
 
-    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None):
+    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None):
         '''
         plot multiple eof patterns
 
@@ -159,15 +159,16 @@ class EOF():
         '''
         if all:
             k = range(self.n)
+            ax = None
         else:
             if np.isscalar(k):
                 k=[k]
 
 
         for i in k:
-            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region)
+            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax)
 
-    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None):
+    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None):
         '''
         plot principal component k
 
@@ -189,6 +190,11 @@ class EOF():
         else:
             label = label + ' '
 
+        if ax == None:
+            f = plt.figure()
+            ax = f.add_subplot(111)
+
+
 
         #remap data back to original shape
         #1) valid data --> all data
@@ -204,7 +210,7 @@ class EOF():
         D.data = hlp
         D.unit = None #reset units as EOF have no physical units
         D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100.,2)) + '%)' #caution: labeling is always k+1!
-        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region)
+        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax)
 
     def reconstruct_data(self,maxn=None,input=None):
         '''
@@ -598,6 +604,8 @@ class SVD():
         @type x: numpy masked array
 
         @return: masked array and mask
+
+        @todo: handling of invalid, gappy data
         '''
         sx = x.sum(axis=0) #calculate sum. If all values are valid, then no a float should be there, else Nan
         mx = ~np.isnan(sx) #masked array

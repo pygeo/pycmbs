@@ -1368,3 +1368,33 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
 
     return fig
+
+#-----------------------------------------------------------------------
+
+def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=None,climits=None):
+    '''
+    plot hovmoeller plots given a C{Data} object
+
+    @param x: C{Data} object
+    @type x: C{Data} object
+    '''
+
+    if climits == None:
+        raise ValueError, 'climits need to be given!'
+
+    if cmap == None:
+        cmap = plt.cm.get_cmap('RdBu', 15)
+    if ax == None:
+        f = plt.figure()
+        ax = f.add_subplot(111)
+
+    h = hovmoeller(pl.num2date(x.time),x.data,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
+    h.time_to_lat(dlat=dlat,monthly = True, yearonly = True,monthsamp=monthsamp)
+    h.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax,showcolorbar=False,climits=climits,grid=False)
+
+    add_nice_legend(ax,h.im,cmap,cticks=None)
+
+    return h
+
+
+
