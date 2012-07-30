@@ -176,6 +176,87 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def get_percentile(self,p,return_object = True):
+        '''
+        calculate percentile
+
+        @todo: masked array handling
+
+        @param p: percentil value to obtain, e.g. 0.05 corresponds to 5% percentil
+        @type p: float
+        '''
+
+        res = np.percentile(self.data,p*100.,axis=0)
+
+        #- return
+        if return_object:
+            r = self.copy()
+            r.label = self.label + ' - percentil: ' + str(round(p,2))
+            r.data = res
+            return r
+        else:
+            return res
+
+#-----------------------------------------------------------------------
+
+    def __xxxxget_percentilxxx(self,p,return_object = True):
+        '''
+        return array of percentil values
+        The calculation is performed using a fast approach without
+        calculating the actual histogram, but relying on the original
+        data
+
+        http://stackoverflow.com/questions/3209362/how-to-plot-empirical-cdf-in-matplotlib-in-python
+
+        routine was validated against median value calculation with np.ma.median(x,axis=0). Results
+        are almost equal (< 0.1% deviation)
+
+        @param p: percentil value to obtain, e.g. 0.05 corresponds to 5% percentil
+        @type p: float
+
+        @param return_object: return C{Data} object
+        @type return_object: bool
+
+        @todo: better handling of masked arrays
+        '''
+
+        raise ValueError, 'Outdated function !!!'
+
+        if self.data.ndim !=3:
+            raise ValueError, 'Pcerentiles can only be calculated for 3D arrays'
+
+        d = self.data.copy()
+
+        #- sort data
+        d = np.ma.sort(d,axis=0); y = np.arange( len(d)*1.0)/len(d) #todo: change y dynamically to adapt for changing valid values
+
+        #- get percentiles
+        i1 = abs(y-p).argmin() #minimum position of data
+        if y[i1] < p:
+            #- calculate weighted value
+            i2 = i1 + 1
+            w = (p-y[i1])/(y[i2]-y[i1])
+            res = d[i1,:,:]*w + d[i2,:,:]*(1.-w)
+
+        elif y[i1] == p:
+            res = d[i1,:,:]
+        else:
+            i2 = i1*1
+            i1 = i2 - 1
+            w = (p-y[i1])/(y[i2]-y[i1])
+            res = d[i1,:,:]*w + d[i2,:,:]*(1.-w)
+
+        #- return
+        if return_object:
+            r = self.copy()
+            r.label = self.label + ' - percentil: ' + str(round(p,2))
+            r.data = res
+            return r
+        else:
+            return res
+
+#-----------------------------------------------------------------------
+
     def _get_unit(self):
         '''
         get a nice looking string for units
@@ -312,7 +393,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_yearmean(self,mask=None):
+    def get_yearmean(self,mask=None,return_data=False):
         '''
         This routine calculate the yearly mean of the data field
         A vector with a mask can be provided for further filtering
@@ -322,6 +403,9 @@ class Data():
 
         @param mask: mask [time]
         @type mask : numpy boolean array
+
+        @param return_data: specifies if results should be returned as C{Data} object
+        @type return_data: bool
 
         '''
 
@@ -349,7 +433,14 @@ class Data():
                 res.append( dat[hlp,:].mean(axis=0) )
         res = pl.asarray(res)
 
-        return years, res
+        if return_data:
+            r = self.copy()
+            r.data = np.ma.array(res)
+            r.time = pl.datestr2num(np.asarray([str(years[i])+'-01-01' for i in range(len(years))]))
+
+            return r
+        else:
+            return years, res
 
 #-----------------------------------------------------------------------
 
@@ -1690,7 +1781,13 @@ class Data():
 
     def detrend(self,return_object=True):
         '''
-        detrend data timeseries
+        detrend data timeseries by removing linear trend over time.
+        It is assumed that the timesamples have equidistant spacing.
+        This assumption is important to consider, as regression is calculated
+        only using the length of the data vector!
+
+        @param return_object: specifies if C{Data} object will be returned (default0True)
+        @type return_object: bool
         '''
 
         print 'Detrending data ...'
@@ -1699,12 +1796,10 @@ class Data():
             raise ValueError, 'Can not detrend data other than 3D!'
 
         #generate dummy vector for linear correlation
-        x = np.arange(len(self.time))
+        x = np.arange(len(self.time)) #@todo: replace this by using actual timestamp for regression calcuclation
 
         #correlate and get slope and intercept
         Rout,Sout,Iout,Pout, Cout = self.corr_single(x)
-
-
 
         #calculate regression field
         reg = Data(None,None)
@@ -1716,7 +1811,6 @@ class Data():
 
         #substract regression line
         res = self.sub(reg)
-        #~ res = self.subc(Iout.data).div(Sout)  #does not work yet! todo
 
         if return_object:
             res.detrended = True
@@ -1726,5 +1820,6 @@ class Data():
             self.detrended = True
             return None
 
+#-----------------------------------------------------------------------
 
 
