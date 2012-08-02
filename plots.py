@@ -359,7 +359,7 @@ class LinePlot():
 
     This class is usefull for plotting timeseries
     '''
-    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10):
+    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.):
         '''
         constructor of LinePlot
 
@@ -377,6 +377,9 @@ class LinePlot():
 
         @param show_ylabel: show y-label for the plot
         @type show_ylabel: bool
+
+        @param normx: normalization constant for x-variable (needed e.g. if you want to normalize a timevector for regression analysis)
+        @type normx: float
         '''
 
         if ax == None:
@@ -395,13 +398,15 @@ class LinePlot():
 
         self.ticksize = ticksize
 
+        self.normx=normx
+
 #-----------------------------------------------------------------------
 
     def legend(self):
         '''
         plot legend
         '''
-        self.ax.legend(self.lines,self.labels,prop={'size':8})
+        self.ax.legend(self.lines,self.labels,prop={'size':10})
 
 #-----------------------------------------------------------------------
 
@@ -450,8 +455,9 @@ class LinePlot():
                 label = x.label
 
             if self.regress: #calculate linear regression
-                slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
-                label = label + ' (y=' + "%.1e" % slope + 'x+' + "%.1e" % intercept  + ', r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+                slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time/self.normx,y) #@todo: is it correct to use here time instead of .data?
+                slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y) #@todo: is it correct to use here time instead of .data?
+                label = label + ' (y=' + "%.1e" % slope_print + 'x+' + "%.1e" % intercept_print  + ', r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
 
             self.labels.append(label)
 

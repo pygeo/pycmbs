@@ -2,13 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-USAGE:
-
-    main.py [-h, --help]
-
-DESCRIPTION
-
-    programm to plot difference in rainfall between two data sets
+pyCMBS - climate model bechmarking framework
 '''
 
 #todo
@@ -67,7 +61,7 @@ else:
 
 print 'SEP directory: ' + data_pool_directory
 
-model_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
+#~ model_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
 
 
 f_fast=False
@@ -455,6 +449,9 @@ def rainfall_analysis(model_list,interval='season'):
     ls_mask = get_T63_landseamask()
 
     #--- load GPCP data
+
+    #todo GPCP v2.2 data
+
     if interval == 'season': #seasonal comparison
         gpcp_file  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasmean.nc' #todo unit ??
         gpcp_file_std  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasstd.nc'
@@ -1134,27 +1131,133 @@ def ceres_sis_analysis(model_list,interval = 'season',GP=None):
 from pyCMBS import *
 
 
-
-#~ def main():
-
-data_dir = '/home/m300028/shared/data/CMIP5/EvaCliMod/' #CMIP5 data directory
-
+#~ data_dir = '/home/m300028/shared/data/CMIP5/EvaCliMod/' #CMIP5 data directory
 
 pl.close('all')
+
+file='pyCMBS.cfg'
+
+
+class ConfigFile():
+    '''
+    class to read pyCMBS configuration file
+    '''
+    def __init__(self,file):
+        '''
+        file: name of configuration file
+        '''
+        self.file = file
+        if not os.path.exists(self.file):
+            raise ValueError, 'Configuration file not existing: ', self.file
+        else:
+            self.f=open(file,'r')
+
+        self.read()
+
+    def __read_header(self):
+        '''
+        read commented lines until next valid line
+        '''
+        x = '####'
+        while x[0] == '#':
+            a = self.f.readline().replace('\n','')
+            x = a.lstrip()
+            if len(x) == 0: #only whitespaces
+                x='#'
+        return x
+
+    def __check_var(self,x):
+        s=x.split(',')
+        print s
+        if int(s[1]) == 1:
+            return s[0]
+        else:
+            return None
+
+    def __read_var_block(self):
+        #read header of variable plot
+        vars=[];
+        l=self.__read_header()
+        r=self.__check_var(l)
+        if r != None:
+            vars.append(r)
+        while l[0] != '#':
+            l = self.f.readline().replace('\n','')
+            l = l.lstrip()
+
+            if (len(l) > 0):
+                if l[0] == '#':
+                    pass
+                else:
+                    r=self.__check_var(l)
+                    if r != None:
+                        vars.append(r)
+            else:
+                l=' '
+        return vars
+
+    def __get_model_details(self,s):
+        return s.split(',')
+
+    def __read_date_block(self):
+        date1 = self.__read_header()
+        date2 = self.f.readline().replace('\n','')
+        return date1,date2
+
+    def __read_model_block(self):
+        models=[];types=[]; experiments=[]; ddirs=[]
+        l=self.__read_header()
+        model,ty,experiment,ddir = self.__get_model_details(l)
+        models.append(model); types.append(ty)
+        experiments.append(experiment); ddirs.append(ddir)
+
+        has_eof = False
+        while not has_eof:
+            print has_eof
+            try:
+                l=self.f.next()
+                l=l.lstrip()
+                print l
+                if (len(l) > 0) & (l[0] != '#'):
+                    model,ty,experiment,ddir = self.__get_model_details(l)
+                    models.append(model); types.append(ty)
+                    experiments.append(experiment); ddirs.append(ddir)
+            except:
+                has_eof=True
+        return models,experiments,types,ddirs
+
+    def read(self):
+        '''
+        read configuration files in 3 blocks
+        '''
+        self.variables  = self.__read_var_block()
+        self.start_date,self.stop_date  = self.__read_date_block()
+        self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
+
+        for k in self.dtypes:
+            if k.upper() not in ['CMIP5','JSBACH']:
+                print k
+                raise ValueError, 'Unknown model type'
+
+
+########################################################################
+########################################################################
+########################################################################
+
+
+#/// read configuration file ///
+CF = ConfigFile(file)
+
+stop
 
 global s_start_time
 global s_stop_time
 
-s_start_time = '1983-01-01' #todo where is this used ?
-s_stop_time  = '2005-12-31'
+s_start_time = CF.start_date #'1983-01-01' #todo where is this used ?
+s_stop_time  = CF.stop_date  #'2005-12-31'
+start_time = pl.num2date(pl.datestr2num(s_start_time))
+stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
 
-
-
-
-#--- specify variables to analyze
-#~ variables = ['rain','albedo','sis']
-#variables = ['tree','albedo']
-variables = ['albedo'] #sis
 
 #--- specify mapping of variable to analysis script name
 scripts = get_script_names()
@@ -1163,10 +1266,8 @@ scripts = get_script_names()
 #################################################
 
 #-----
-start_time = plt.num2date(plt.datestr2num(s_start_time))
-stop_time  = plt.num2date(plt.datestr2num(s_stop_time ))
 
-#--- get model results (needs to be already pre-processed)
+
 
 
 def get_variable_methods(variables):
@@ -1191,39 +1292,43 @@ def get_variable_methods(variables):
 
 
 
-
-
-
-
-
-
-
 #/// get dictionary with methods how to read data for variables to be analyzed ///
+variables = CF.variables
 jsbach_variables=get_variable_methods(variables)
 
-
-#/// CMIP5 specific ///
-#~ cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','HadGEM2-A','MRI-AGCM3-2H','MRI-AGCM3-2S','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GFDL-HIRAM-C180','GFDL-HIRAM-C360','GISS-E2-R','inmcm4','IPSL-CM5A-LR','MIROC5','NorESM1-M']
-#~ cmip_model_list = ['CSIRO-Mk3-6-0','MPI-ESM-LR','MPI-ESM-MR','bcc-csm1-1','MRI-CGCM3','CNRM-CM5','GISS-E2-R','IPSL-CM5A-LR','MIROC5','NorESM1-M']
-cmip_model_list = ['MPI-ESM-LR']
-cmip_models = []
-
-experiment = 'amip'
-#~ experiment = 'historical'
-
+#/// READ DATA ///
 '''
-read all variables for all CMIP5 models
-and return a list of Data objects containing
-the data
+create a Model instance for each model specified
+in the configuration file
+
+read the data for all variables and return a list
+of Data objects for further processing
 '''
-cmip_cnt = 1
-for model in cmip_model_list:
-    cmip = CMIP5Data(data_dir,model,experiment,jsbach_variables,lat_name='lat',lon_name='lon',label=model)
-    cmip.get_data()
-    cmd = 'cmip' + str(cmip_cnt).zfill(4) + ' = ' + 'cmip.copy(); del cmip'
+model_cnt   = 1; proc_models = []
+for i in range(len(CF.models)):
+    #--- assign model information from configuration ---
+    data_dir   = CF.dirs[i]
+    model      = CF.models[i]
+    experiment = CF.experiments[i]
+
+    #--- create model object and read data ---
+    # results are stored in individual variables namex modelXXXXX
+    if CF.dtypes[i].upper() == 'CMIP5':
+        themodel = CMIP5Data(data_dir,model,experiment,jsbach_variables,lat_name='lat',lon_name='lon',label=model)
+    elif CF.dtypes[i].upper() == 'JSBACH':
+        themodel = JSBACH(data_dir,jsbach_variables,experiment,start_time=start_time,stop_time=stop_time,name=model)
+
+    else:
+        print CF.dtypes[i]
+        raise ValueError, 'Invalid model type!'
+
+    themodel.get_data()
+    cmd = 'model' + str(model_cnt).zfill(4) + ' = ' + 'themodel.copy(); del themodel'
     exec(cmd) #store copy of cmip5 model in separate variable
-    cmip_models.append('cmip' + str(cmip_cnt).zfill(4))
-    cmip_cnt += 1
+    proc_models.append('model' + str(model_cnt).zfill(4))
+    model_cnt += 1
+
+
 
 
 
@@ -1244,40 +1349,40 @@ for model in cmip_model_list:
 
 
 
-jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach72') #model output is in kg/m**2 s --> mm
-jsbach72.get_data()
-
-jsbach73 = JSBACH(model_directory,jsbach_variables,'tra0073',start_time=start_time,stop_time=stop_time,name='jsbach73') #model output is in kg/m**2 s --> mm
-jsbach73.get_data()
-
-jsbach74 = JSBACH(model_directory,jsbach_variables,'tra0074',start_time=start_time,stop_time=stop_time,name='jsbach74') #model output is in kg/m**2 s --> mm
-jsbach74.get_data()
+#~ jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach72') #model output is in kg/m**2 s --> mm
+#~ jsbach72.get_data()
+#~
 
 
-skeys = scripts.keys()
 
+#/// prepare global becnhmarking metrices
 #generate a global variable for glecker plot!
 global global_glecker
 global_glecker = GleckerPlot()
 
+
+########################################################################
+# MAIN ANALYSIS LOOP: perform analysis for each model and variable
+########################################################################
+skeys = scripts.keys()
 for variable in variables:
 
-    global_glecker.add_variable(variable) #register current variable in Glecker Plot
+    #/// register current variable in Glecker Plot
+    global_glecker.add_variable(variable)
 
-    #--- call analysis scripts for each variable
+    #/// call analysis scripts for each variable
     for k in range(len(skeys)):
         if variable == skeys[k]:
 
             print 'Doing analysis for variable ... ', variable
-            print scripts[variable]
-            #~ eval(scripts[variable]+'([jsbach72])') #here one can put a multitude of model output for comparison in the end
-            #~ eval(scripts[variable]+'([cmip,jsbach72])') #here one can put a multitude of model output for comparison in the end
-            model_list = str(cmip_models).replace("'","") #cmip5 model list
-            model_list = model_list.replace(']',', ') + 'jsbach72,' + 'jsbach73,'+ 'jsbach74,'+ ']'
-            eval(scripts[variable]+'(' + model_list + ')') #for CMIP5 !!! <<<<<<<<#here one can put a multitude of model output for comparison in the end
+            print '   ... ', scripts[variable]
+            model_list = str(proc_models).replace("'","")  #model list is reformatted so it can be evaluated properly
+            eval(scripts[variable]+'(' + model_list + ')') #run analysis
+
+#/// generate Glecker analysis plot for all variables and models analyzed ///
+global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=15)
+
 
 #~ if __name__ == '__main__':
     #~ main()
-
-global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=15)
 
