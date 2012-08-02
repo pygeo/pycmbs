@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+
 '''
 pyCMBS - climate model bechmarking framework
 '''
+
+#@todo: put option in cfg file if basemap should be used or not
 
 #todo
 #
@@ -11,6 +15,22 @@ pyCMBS - climate model bechmarking framework
 # @todo: implement precipitation analysis
 #
 # @todo: implement temporary directory for pyCMBS processing
+
+
+# TODO CMIP5:
+# - seldate appropriately
+# - check timestamp!
+# seasmean calculations automatically!!
+
+#todo check datetime; something is wrong! as data starts in Dcember 1978!
+# do maps per season ???
+
+# TODO: zonal means ??
+# area weigting of zonal means and also area weighting of RMS errors etc.
+
+#
+# TODO seasmean yseasmean !!!!
+
 
 
 # - regional analysis based on an input mask
@@ -33,10 +53,13 @@ pyCMBS - climate model bechmarking framework
 #
 # - seasonals vs yearly vs individual year analysis
 #
+
+
 __author__ = "Alexander Loew"
 __version__ = "0.1"
 __date__ = "0000/00/00"
 
+#============ IMPORTS ==================================================
 
 from pyCMBS import *
 
@@ -49,345 +72,23 @@ from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes
 
 
+#--- framework specific modules ---
+from models   import *
+from config   import *
+from analysis import *
+
+#=======================================================================
+
+#--- set path to observational directory /pool/SEP ---
 
 
 
-#--- global variables
-#data_pool_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
-if 'SEP' in os.environ.keys():
-    data_pool_directory = os.environ['SEP'] #get directory of pool/SEP
-else:
-    data_pool_directory = '/pool/SEP/'
-
-print 'SEP directory: ' + data_pool_directory
-
-#~ model_directory = '/home/m300028/shared/dev/svn/alex/sahel_albedo_jsbach/'
-
-
-f_fast=False
+f_fast=True
 shift_lon = use_basemap = not f_fast
 
+#=======================================================================
 
-
-
-
-
-
-
-class Model(Data):
-    '''
-    This class is the main class, specifying a climate model or a particular run
-    Sub-classes for particular models or experiments are herited from this class
-    '''
-    def __init__(self,data_dir,dic_variables,name='',**kwargs):
-        '''
-        constructor for Model class
-
-        INPUT
-        -----
-        filename: name of the file to read data from (single file currently)
-        could be improved later by more abstract class definitions
-
-        dic_variables: dictionary specifiying variable names for a model
-        e.g. 'rainfall','var4'
-        '''
-
-        #--- set a list with different datasets for different models
-        self.dic_vars = dic_variables
-
-        #--- set some metadata
-        self.name = name
-        self.data_dir = data_dir
-
-        if 'start_time' in kwargs.keys():
-            self.start_time = kwargs['start_time']
-        else:
-            self.start_time = None
-        if 'stop_time' in kwargs.keys():
-            self.stop_time = kwargs['stop_time']
-        else:
-            self.stop_time = None
-
-
-    def get_data(self):
-        '''
-        central routine to extract data for all variables
-        using functions specified in derived class
-        '''
-
-        self.variables={}
-        for k in self.dic_vars.keys():
-            routine = self.dic_vars[k] #get name of routine to perform data extraction
-            cmd = 'dat = self.' + routine
-            #~ print cmd
-            #~ if hasattr(self,routine):
-            if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
-                exec(cmd)
-                self.variables.update({ k : dat })
-            else:
-                print 'WARNING: unknown function to read data (skip!) ', routine
-                self.variables.update({ k : None })
-                #~ sys.exit()
-
-
-
-
-class CMIP5Data(Model):
-    def __init__(self,data_dir,model,experiment,dic_variables,name='',**kwargs):
-        Model.__init__(self,None,dic_variables,name=model,**kwargs)
-
-        self.model = model
-        self.experiment = experiment
-        self.data_dir = data_dir
-
-
-
-
-    def get_surface_shortwave_radiation_down(self):
-        filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-        if s_start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if s_stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
-
-        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
-        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
-
-        if not os.path.exists(filename):
-            return None
-
-        sis = Data(filename,'rsds',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
-        print 'Data read!'
-
-        return sis
-
-    def get_surface_shortwave_radiation_up(self):
-        filename1 = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-        if s_start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if s_stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
-
-        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
-        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
-
-        if not os.path.exists(filename):
-            return None
-
-        sis = Data(filename,'rsus',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
-        print 'Data read!'
-
-        return sis
-
-    def get_albedo_data(self):
-        '''
-        calculate albedo as ratio of upward and downwelling fluxes
-        first the monthly mean fluxes are used to calculate the albedo,
-        '''
-
-
-        if s_start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if s_stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
-
-
-        file_down = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-        file_up   = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-        if not os.path.exists(file_down):
-            print 'File not existing: ', file_down
-            return None
-        if not os.path.exists(file_up):
-            print 'File not existing: ', file_up
-            return None
-
-        #/// calculate ratio on monthly basis
-        # CAUTION: it might happen that latitudes are flipped. Therefore always apply remapcon!
-
-        #select dates
-        Fu = pyCDO(file_up,s_start_time,s_stop_time).seldate()
-        Fd = pyCDO(file_down,s_start_time,s_stop_time).seldate()
-
-        #remap to T63
-        tmpu = pyCDO(Fu,s_start_time,s_stop_time).remap()
-        tmpd = pyCDO(Fd,s_start_time,s_stop_time).remap()
-
-        #calculate monthly albedo
-        albmon = pyCDO(tmpu,s_start_time,s_stop_time).div(tmpd,output=self.model + '_' + self.experiment + '_albedo_tmp.nc')
-
-        #calculate seasonal mean albedo
-        tmp1 = pyCDO(albmon,s_start_time,s_stop_time).seasmean()
-        albfile = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
-
-        alb = Data(albfile,'rsus',read=True,label=self.model + ' albedo',unit='-',lat_name='lat',lon_name='lon',shift_lon=True)
-        return alb
-
-
-
-
-
-#####################################################
-
-
-
-
-class JSBACH(Model):
-    '''
-    '''
-
-    def __init__(self,filename,dic_variables,experiment,name='',**kwargs):
-
-        Model.__init__(self,filename,dic_variables,name=name,**kwargs)
-        self.experiment = experiment
-        self.get_data()
-
-
-
-    def get_albedo_data(self):
-        '''
-        get albedo data for JSBACH
-
-        returns Data object
-        '''
-
-        v = 'var176'
-
-        filename = self.data_dir + 'data/model1/' + self.experiment + '_echam6_BOT_mm_1979-2006_albedo_yseasmean.nc' #todo: proper files
-        ls_mask = get_T63_landseamask()
-
-        albedo = Data(filename,v,read=True,
-        label='MPI-ESM albedo ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
-        shift_lon=shift_lon,
-        mask=ls_mask.data.data)
-
-        return albedo
-
-
-
-    def get_tree_fraction(self):
-        '''
-        todo implement this for data from a real run !!!
-        '''
-
-        ls_mask = get_T63_landseamask()
-
-        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_forest_shrub.nc'
-        v = 'var12'
-        tree = Data(filename,v,read=True,
-        label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
-        shift_lon=shift_lon,
-        mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')))
-
-        return tree
-
-    def get_grass_fraction(self):
-        '''
-        todo implement this for data from a real run !!!
-        '''
-
-        ls_mask = get_T63_landseamask()
-
-        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_grass_crop_pasture_2001.nc'
-        v = 'var12'
-        grass = Data(filename,v,read=True,
-        label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
-        shift_lon=shift_lon,
-        mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')) , squeeze=True  )
-
-
-        return grass
-
-
-
-
-
-
-
-
-
-    def get_surface_shortwave_radiation_down(self,interval = 'season'):
-        '''
-        get surface shortwave incoming radiation data for JSBACH
-
-        returns Data object
-        '''
-
-        v = 'var176'
-
-        y1 = '1979-01-01'; y2 = '2006-12-31'
-        rawfilename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_srads.nc'
-
-        if not os.path.exists(rawfilename):
-            return None
-
-
-        #--- read data
-        cdo = pyCDO(rawfilename,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            filename = cdo.yseasmean()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-        #--- read land-sea mask
-        ls_mask = get_T63_landseamask()
-
-        #--- read SIS data
-        sis = Data(filename,v,read=True,
-        label='MPI-ESM SIS ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
-        shift_lon=shift_lon,
-        mask=ls_mask.data.data)
-
-        return sis
-
-
-    def get_rainfall_data(self,interval='season'):
-        '''
-        get rainfall data for JSBACH
-
-        returns Data object
-        '''
-
-        #todo: implement preprocessing here
-
-        v = 'var4' #todo is this really precip ???
-        if interval == 'season':
-            filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1982-2006_sel_yseasmean.nc'
-        else:
-            raise ValueError, 'Invalid value for interval: ' + interval
-
-        ls_mask = get_T63_landseamask()
-
-        if not os.path.exists(filename):
-            stop
-            return None
-
-        try: #todo this is silly
-            rain = Data(filename,v,read=True,scale_factor = 86400.,
-            label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
-            shift_lon=shift_lon,
-            mask=ls_mask.data.data)
-        except:
-            v='var142'
-            rain = Data(filename,v,read=True,scale_factor = 86400.,
-            label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
-            shift_lon=shift_lon,
-            mask=ls_mask.data.data)
-
-
-
-        return rain
-
-
-
-def get_script_names():
+def get_analysis_scripts():
     '''
     returns names of analysis scripts for all variables as a dictionary
     in general, these names can be also read from an ASCII file
@@ -401,726 +102,9 @@ def get_script_names():
 
     return d
 
-def get_T63_landseamask():
-    '''
-    get JSBACH T63 land sea mask
-    the LS mask is read from the JSBACH init file
 
-    todo put this to the JSBACH model class
-    '''
-    ls_file = data_pool_directory + 'variables/land/land_sea_mask/jsbach_T63_GR15_4tiles_1992.nc'
-    ls_mask = Data(ls_file,'slm',read=True,label='T63 land-sea mask',lat_name='lat',lon_name='lon',shift_lon=shift_lon)
-    msk=ls_mask.data>0.; ls_mask.data[~msk] = 0.; ls_mask.data[msk] = 1.
-    ls_mask.data = ls_mask.data.astype('bool') #convert to bool
 
-    return ls_mask
-
-def get_T63_weights():
-    '''
-    get JSBACH T63 cell weights
-
-    todo put this to the JSBACH model class
-    '''
-    w_file = data_pool_directory + 'variables/land/land_sea_mask/t63_weights.nc'
-    weight = Data(w_file,'cell_weights',read=True,label='T63 cell weights',lat_name='lat',lon_name='lon',shift_lon=shift_lon)
-
-    return weight.data
-
-
-def rainfall_analysis(model_list,interval='season'):
-    '''
-    units: mm/day
-    '''
-
-
-    print 'Doing rainfall analysis ...'
-
-    vmin = 0.; vmax = 10.
-
-    #--- Glecker plot
-    GP = global_glecker
-    model_names = []
-
-
-    #--- T63 weights
-    t63_weights = get_T63_weights()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask()
-
-    #--- load GPCP data
-
-    #todo GPCP v2.2 data
-
-    if interval == 'season': #seasonal comparison
-        gpcp_file  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasmean.nc' #todo unit ??
-        gpcp_file_std  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasstd.nc'
-    else:
-        sys.exit('Unknown interval for rainfall_analyis()')
-
-    print 'GPCP data'
-    gpcp = Data(gpcp_file,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    gpcp_std = Data(gpcp_file_std,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    gpcp.std = gpcp_std.data.copy(); del gpcp_std
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    #--- get model field of precipitation
-    for model in model_list:
-
-        model_data = model.variables['rain']
-
-        GP.add_model(model.name)
-
-
-        if model_data == None:
-            continue
-
-        model_names.append(model.name)
-
-
-
-        if model_data.data.shape != gpcp.data.shape:
-            print 'WARNING Inconsistent geometries for GPCP'
-            print model_data.data.shape; print gpcp.data.shape
-
-        dmin=-1.;dmax=1.
-        dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu')
-
-        #/// ZONAL STATISTICS
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #--- calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(gpcp,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(gpcp),None) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #--- calculate Reichler diagnostic for preciptation
-        Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-    Rplot.bar()
-
-
-    for i in range(len(Rplot.e2_norm)):
-            GP.add_data('rain',model_names[i],Rplot.e2_norm[i],pos=1)
-
-
-def grass_fraction_analysis(model_list):
-    #use same analysis script as for trees, but with different argument
-    tree_fraction_analysis(model_list,pft='grass')
-
-
-
-def tree_fraction_analysis(model_list,pft='tree'):
-    '''
-    '''
-
-
-    def fraction2netcdf(pft):
-        filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/' + pft + '_05.dat'
-        #save 0.5 degree data to netCDF file
-        t=pl.loadtxt(filename)
-        outname = filename[:-4] + '.nc'
-        if os.path.exists(outname):
-            os.remove(outname) #todo: really desired?
-        F = Nio.open_file(outname,'w')
-        F.create_dimension('lat',t.shape[0])
-        F.create_dimension('lon',t.shape[1])
-        var = F.create_variable(pft + '_fraction','d',('lat','lon'))
-        lat = F.create_variable('lat','d',('lat',))
-        lon = F.create_variable('lon','d',('lon',))
-        lon.standard_name = "grid_longitude"
-        lon.units = "degrees"
-        lon.axis = "X"
-        lat.standard_name = "grid_latitude"
-        lat.units = "degrees"
-        lat.axis = "Y"
-        var._FillValue = -99.
-        var.assign_value(t)
-        lat.assign_value(np.linspace(90.-0.25,-90.+0.25,t.shape[0])) #todo: center coordinates or corner coordinates?
-        lon.assign_value(np.linspace(-180.+0.25,180.-0.25,t.shape[1]))
-
-        #todo: lon 0 ... 360 ****
-
-
-        #~ print t.shape
-        F.close()
-
-        return outname
-
-
-    #//// load tree fraction observations ////
-    #1) convert to netCDF
-    fraction_file = fraction2netcdf(pft)
-    #2) remap to T63
-    y1 = '2001-01-01'; y2='2001-12-31'
-    cdo = pyCDO(fraction_file,y1,y2)
-    t63_file = cdo.remap(method='remapcon')
-
-    #3) load data
-    ls_mask = get_T63_landseamask()
-    hansen  = Data(t63_file,pft + '_fraction',read=True,label='MODIS VCF ' + pft + ' fraction',unit='-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-
-    #~ todo now remap to T63 grid; which remapping is the most useful ???
-
-
-    #//// PERFORM ANALYSIS ///
-
-    vmin = 0.; vmax = 1.
-    for model in model_list:
-
-        model_data = model.variables[pft]
-
-        if model_data.data.shape != hansen.data.shape:
-            print 'WARNING Inconsistent geometries for GPCP'
-            print model_data.data.shape; print hansen.data.shape
-
-        dmin=-1;dmax=1.
-        dif = map_difference(model_data,hansen,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0.,0.25,0.5,0.75,1.])
-
-        #/// ZONAL STATISTICS
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #--- calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax])  #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(hansen,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(hansen),None)  #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-
-        #--- calculate RMSE statistics etc.
-        ES = CorrelationAnalysis(model_data,hansen)
-        ES.do_analysis()
-
-
-######### END TREE COVER ANALYSIS ##############
-
-
-def albedo_analysis(model_list):
-    albedo_analysis_modis(model_list)
-
-
-
-
-
-
-
-def albedo_analysis_modis(model_list):
-    '''
-    model_list = list which contains objects of data type MODEL
-    '''
-
-    vmin = 0.; vmax = 0.6
-
-    print 'Doing albedo analysis ...'
-
-    #--- GleckerPlot
-    GP = global_glecker
-    if GP == None:
-        GP = GleckerPlot()
-
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask()
-
-    #--- T63 weights
-    t63_weights = get_T63_weights()
-
-    #--- load MODIS data
-    modis_file     = '/home/m300028/shared/data/SEP/variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_mean.nc'
-    modis_file_std = '/home/m300028/shared/data/SEP/variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_std.nc'
-    albedo=Data(modis_file,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    albedo_std=Data(modis_file_std,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    albedo.std = albedo_std.data.copy(); del albedo_std
-
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        GP.add_model(model.name) #register model for Glecker Plot
-
-        #--- get model data
-        model_data = model.variables['albedo']
-
-        if model_data.data.shape != albedo.data.shape:
-            print 'Inconsistent geometries for ALBEDO'
-            print model_data.data.shape; print albedo.data.shape; stop
-
-        #--- generate difference map
-        dmin = -0.1; dmax = 0.1
-        dif  = map_difference(model_data ,albedo,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(albedo,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(albedo),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(albedo,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = global_glecker.calc_index(albedo,model_data,model,'sis')
-        global_glecker.add_data('albedo',model.name,e2a,pos=1)
-
-    #~ Rplot.simple_plot()
-    #~ Rplot.circle_plot()
-    Rplot.bar()
-
-
-def sis_analysis(model_list,interval = 'season', GP=None):
-    isccp_sis_analysis(model_list,interval=interval,GP=GP)
-    srb_sis_analysis(model_list,interval=interval,GP=GP)
-    cmsaf_sis_analysis(model_list,interval=interval,GP=GP)
-    ceres_sis_analysis(model_list,interval=interval,GP=GP)
-
-
-
-def cmsaf_sis_analysis(model_list,interval = 'season',GP=None):
-    '''
-    model_list = list which contains objects of data type MODEL
-    '''
-    vmin = 0.; vmax = 300
-
-    print 'Doing SIS analysis ...'
-
-    #--- GleckerPlot
-    GP = global_glecker
-    if GP == None:
-        GP = GleckerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask()
-
-    #--- T63 weights
-    t63_weights = get_T63_weights()
-
-    #--- load CMSAF-SIS data
-    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc'
-    y1 = '1984-01-01'; y2='2005-12-31'
-
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            cmsaf_sis_file = cdo.yseasmean()
-            cmsaf_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-    cmsaf_sis     = Data(cmsaf_sis_file,'SIS',read=True,label='cmsaf-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    cmsaf_sis_std = Data(cmsaf_sis_std_file,'SIS',read=True,label='cmsaf-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    cmsaf_sis.std = cmsaf_sis_std.data.copy(); del cmsaf_sis_std
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        #--- glecker plot
-        GP.add_model(model.name)
-
-        #--- get model data
-        model_data = model.variables['sis']
-        if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name
-            stop
-            continue
-
-        if model_data.data.shape != cmsaf_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print cmsaf_sis.data.shape; stop
-
-        #--- generate difference map
-        dmin = -20.; dmax = 20.
-        dif  = map_difference(model_data ,cmsaf_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(cmsaf_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(cmsaf_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(cmsaf_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = global_glecker.calc_index(cmsaf_sis,model_data,model,'sis')
-        global_glecker.add_data('sis',model.name,e2a,pos=1)
-
-    Rplot.bar()
-
-#-----------------------------------------------------------------------
-
-def isccp_sis_analysis(model_list,interval = 'season',GP=None):
-    '''
-    model_list = list which contains objects of data type MODEL
-    '''
-    vmin = 0.; vmax = 300
-
-    print 'Doing SIS analysis ...'
-
-    #--- GleckerPlot
-    GP = global_glecker
-    if GP == None:
-        GP = GleckerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask()
-
-    #--- T63 weights
-    t63_weights = get_T63_weights()
-
-    #--- load CMSAF-SIS data
-    f1 = 'T63_ISCCP__versD1__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
-    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/isccp/' + f1
-    y1 = '1984-01-01'; y2='2005-12-31'
-
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            isccp_sis_file = cdo.yseasmean()
-            isccp_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-    #~ print isccp_sis_file
-    isccp_sis     = Data(isccp_sis_file,'BfISC84',read=True,label='isccp-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    isccp_sis_std = Data(isccp_sis_std_file,'BfISC84',read=True,label='isccp-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    isccp_sis.std = isccp_sis_std.data.copy(); del isccp_sis_std
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        #--- glecker plot
-        GP.add_model(model.name)
-
-        #--- get model data
-        model_data = model.variables['sis']
-        if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name
-            stop
-            continue
-
-        if model_data.data.shape != isccp_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print isccp_sis.data.shape; stop
-
-        #--- generate difference map
-        dmin = -20.; dmax = 20.
-        dif  = map_difference(model_data ,isccp_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(isccp_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(isccp_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(isccp_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = global_glecker.calc_index(isccp_sis,model_data,model,'sis')
-        global_glecker.add_data('sis',model.name,e2a,pos=3)
-
-    Rplot.bar()
-
-#-----------------------------------------------------------------------
-
-def srb_sis_analysis(model_list,interval = 'season',GP=None):
-    '''
-    model_list = list which contains objects of data type MODEL
-    '''
-    vmin = 0.; vmax = 300
-
-    print 'Doing SIS analysis ...'
-
-    #--- GleckerPlot
-    GP = global_glecker
-    if GP == None:
-        GP = GleckerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask()
-
-    #--- T63 weights
-    t63_weights = get_T63_weights()
-
-    #--- load CMSAF-SIS data
-    f1 = 'T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
-    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/srb/' + f1
-    y1 = '1984-01-01'; y2='2005-12-31'
-
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            srb_sis_file = cdo.yseasmean()
-            srb_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-    srb_sis     = Data(srb_sis_file,'BfSRB84',read=True,label='srb-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    srb_sis_std = Data(srb_sis_std_file,'BfSRB84',read=True,label='srb-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    srb_sis.std = srb_sis_std.data.copy(); del srb_sis_std
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        #--- glecker plot
-        GP.add_model(model.name)
-
-        #--- get model data
-        model_data = model.variables['sis']
-        if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name
-            stop
-            continue
-
-        if model_data.data.shape != srb_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print srb_sis.data.shape; stop
-
-        #--- generate difference map
-        dmin = -20.; dmax = 20.
-        dif  = map_difference(model_data ,srb_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(srb_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(srb_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(srb_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = global_glecker.calc_index(srb_sis,model_data,model,'sis')
-        global_glecker.add_data('sis',model.name,e2a,pos=4)
-
-    Rplot.bar()
-
-
-#-----------------------------------------------------------------------
-
-
-
-
-def ceres_sis_analysis(model_list,interval = 'season',GP=None):
-    '''
-    model_list = list which contains objects of data type MODEL
-    '''
-
-    GP = global_glecker
-
-    #--- GleckerPlot
-    if GP == None:
-        GP = GleckerPlot()
-
-    vmin = 0.; vmax = 300
-
-    #~ model_names = []
-
-    print 'Doing CERES SIS analysis ...'
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask()
-
-    #--- T63 weights
-    t63_weights = get_T63_weights()
-
-    #--- load CMSAF-SIS data
-
-    raw_sis        = data_pool_directory + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
-    y1 = '2001-01-01'; y2='2003-12-31'
-
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            ceres_sis_file = cdo.yseasmean()
-            ceres_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-    ceres_sis     = Data(ceres_sis_file,'BfCER00',read=True,label='ceres-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    ceres_sis_std = Data(ceres_sis_std_file,'BfCER00',read=True,label='ceres-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    ceres_sis.std = ceres_sis_std.data.copy(); del ceres_sis_std
-
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-
-        GP.add_model(model.name)
-
-        #~ model_names.append(model.name)
-
-
-        #--- get model data
-        model_data = model.variables['sis']
-
-        if model_data == None:
-            continue
-
-        if model_data.data.shape != ceres_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print ceres_sis.data.shape; stop
-
-        #--- generate difference map
-        dmin = -20.; dmax = 20.
-        dif  = map_difference(model_data ,ceres_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(ceres_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(ceres_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(ceres_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = global_glecker.calc_index(ceres_sis,model_data,model,'sis')
-        global_glecker.add_data('sis',model.name,e2a,pos=2)
-
-
-    #~ Rplot.simple_plot()
-    #~ Rplot.circle_plot()
-    Rplot.bar()
-
-    #~ for i in range(len(Rplot.e2_norm)):
-            #~ GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=2)
-
-
-
-
-
-
-
-
+#=======================================================================
 
 
 
@@ -1138,139 +122,10 @@ pl.close('all')
 file='pyCMBS.cfg'
 
 
-class ConfigFile():
-    '''
-    class to read pyCMBS configuration file
-    '''
-    def __init__(self,file):
-        '''
-        file: name of configuration file
-        '''
-        self.file = file
-        if not os.path.exists(self.file):
-            raise ValueError, 'Configuration file not existing: ', self.file
-        else:
-            self.f=open(file,'r')
 
-        self.read()
+#-----------------------------------------------------------------------
 
-    def __read_header(self):
-        '''
-        read commented lines until next valid line
-        '''
-        x = '####'
-        while x[0] == '#':
-            a = self.f.readline().replace('\n','')
-            x = a.lstrip()
-            if len(x) == 0: #only whitespaces
-                x='#'
-        return x
-
-    def __check_var(self,x):
-        s=x.split(',')
-        print s
-        if int(s[1]) == 1:
-            return s[0]
-        else:
-            return None
-
-    def __read_var_block(self):
-        #read header of variable plot
-        vars=[];
-        l=self.__read_header()
-        r=self.__check_var(l)
-        if r != None:
-            vars.append(r)
-        while l[0] != '#':
-            l = self.f.readline().replace('\n','')
-            l = l.lstrip()
-
-            if (len(l) > 0):
-                if l[0] == '#':
-                    pass
-                else:
-                    r=self.__check_var(l)
-                    if r != None:
-                        vars.append(r)
-            else:
-                l=' '
-        return vars
-
-    def __get_model_details(self,s):
-        return s.split(',')
-
-    def __read_date_block(self):
-        date1 = self.__read_header()
-        date2 = self.f.readline().replace('\n','')
-        return date1,date2
-
-    def __read_model_block(self):
-        models=[];types=[]; experiments=[]; ddirs=[]
-        l=self.__read_header()
-        model,ty,experiment,ddir = self.__get_model_details(l)
-        models.append(model); types.append(ty)
-        experiments.append(experiment); ddirs.append(ddir)
-
-        has_eof = False
-        while not has_eof:
-            print has_eof
-            try:
-                l=self.f.next()
-                l=l.lstrip()
-                print l
-                if (len(l) > 0) & (l[0] != '#'):
-                    model,ty,experiment,ddir = self.__get_model_details(l)
-                    models.append(model); types.append(ty)
-                    experiments.append(experiment); ddirs.append(ddir)
-            except:
-                has_eof=True
-        return models,experiments,types,ddirs
-
-    def read(self):
-        '''
-        read configuration files in 3 blocks
-        '''
-        self.variables  = self.__read_var_block()
-        self.start_date,self.stop_date  = self.__read_date_block()
-        self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
-
-        for k in self.dtypes:
-            if k.upper() not in ['CMIP5','JSBACH']:
-                print k
-                raise ValueError, 'Unknown model type'
-
-
-########################################################################
-########################################################################
-########################################################################
-
-
-#/// read configuration file ///
-CF = ConfigFile(file)
-
-stop
-
-global s_start_time
-global s_stop_time
-
-s_start_time = CF.start_date #'1983-01-01' #todo where is this used ?
-s_stop_time  = CF.stop_date  #'2005-12-31'
-start_time = pl.num2date(pl.datestr2num(s_start_time))
-stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
-
-
-#--- specify mapping of variable to analysis script name
-scripts = get_script_names()
-
-
-#################################################
-
-#-----
-
-
-
-
-def get_variable_methods(variables):
+def get_methods4variables(variables):
     '''
     for a given list of variables, return a dictionary
     with information on methods how to read the data
@@ -1292,9 +147,40 @@ def get_variable_methods(variables):
 
 
 
+
+#=======================================================================
+#=======================================================================
+
+'''
+adding a new variable:
+1) register variable in get_methods4variables()
+2) implement for each data object a routine how to read the data
+3) implement an analysis script that performs the actual analysis
+4) regist this analysis script in get_analysis_scripts()
+'''
+
+
+
+#/// read configuration file ///
+CF = ConfigFile(file)
+
+#~ stop
+
+s_start_time = CF.start_date #'1983-01-01' #todo where is this used ?
+s_stop_time  = CF.stop_date  #'2005-12-31'
+start_time = pl.num2date(pl.datestr2num(s_start_time))
+stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
+
+#--- PRE-Configuration ---
+
+#--- names of analysis scripts for all variables ---
+scripts = get_analysis_scripts()
+
 #/// get dictionary with methods how to read data for variables to be analyzed ///
 variables = CF.variables
-jsbach_variables=get_variable_methods(variables)
+varmethods = get_methods4variables(variables)
+
+#=======================================================================
 
 #/// READ DATA ///
 '''
@@ -1314,50 +200,26 @@ for i in range(len(CF.models)):
     #--- create model object and read data ---
     # results are stored in individual variables namex modelXXXXX
     if CF.dtypes[i].upper() == 'CMIP5':
-        themodel = CMIP5Data(data_dir,model,experiment,jsbach_variables,lat_name='lat',lon_name='lon',label=model)
+        themodel = CMIP5Data(data_dir,model,experiment,varmethods,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time)
     elif CF.dtypes[i].upper() == 'JSBACH':
-        themodel = JSBACH(data_dir,jsbach_variables,experiment,start_time=start_time,stop_time=stop_time,name=model)
-
+        themodel = JSBACH(data_dir,varmethods,experiment,start_time=start_time,stop_time=stop_time,name=model)
     else:
         print CF.dtypes[i]
         raise ValueError, 'Invalid model type!'
 
+    #--- read data for current model ---
     themodel.get_data()
     cmd = 'model' + str(model_cnt).zfill(4) + ' = ' + 'themodel.copy(); del themodel'
     exec(cmd) #store copy of cmip5 model in separate variable
+
+    #--- append model to list of models ---
     proc_models.append('model' + str(model_cnt).zfill(4))
     model_cnt += 1
 
 
-
-
-
-# TODO CMIP5:
-# - seldate appropriately
-# - check timestamp!
-# seasmean calculations automatically!!
-
-#todo check datetime; something is wrong! as data starts in Dcember 1978!
-# do maps per season ???
-
-# TODO: zonal means ??
-# area weigting of zonal means and also area weighting of RMS errors etc.
-
-#
-# TODO seasmean yseasmean !!!!
-
-
-
-
-#~ jsbach72 = JSBACH(model_directory,jsbach_variables,'tra0072',start_time=start_time,stop_time=stop_time,name='jsbach72') #model output is in kg/m**2 s --> mm
-#~ jsbach72.get_data()
-#~
-
-
-
 #/// prepare global becnhmarking metrices
 #generate a global variable for glecker plot!
-global global_glecker
+#~ global global_glecker
 global_glecker = GleckerPlot()
 
 
@@ -1377,7 +239,7 @@ for variable in variables:
             print 'Doing analysis for variable ... ', variable
             print '   ... ', scripts[variable]
             model_list = str(proc_models).replace("'","")  #model list is reformatted so it can be evaluated properly
-            eval(scripts[variable]+'(' + model_list + ')') #run analysis
+            eval(scripts[variable]+'(' + model_list + ',GP=global_glecker,shift_lon=shift_lon,use_basemap=use_basemap)') #run analysis
 
 #/// generate Glecker analysis plot for all variables and models analyzed ///
 global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=15)

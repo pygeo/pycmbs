@@ -1099,14 +1099,18 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             pts  = zip(xmap,ymap) #generate points to interpolate from source data
             dist,idx = tree.query(pts,k=1)     #perform nearest neighbor interpolation (returns distance and indices)
 
+
             #- map data to output matrix for plotting
             Z = np.ones(shape0)*np.nan; Z.shape = (-1) #generate target vector
             omask = np.ones(shape0).astype('bool'); omask.shape = (-1)
 
             msk1 = xm.mask.copy(); msk1.shape = (-1); omask[idx] = msk1
 
+            #~ omask[dist != 0.] = True
+
             xm1 = xm.copy(); xm1.shape = (-1)
             Z[idx]   = xm1 #assign data and reshape it and set generate masked array
+            #~ Z[dist != 0.] = np.nan
 
             #~ print Z.shape, omask.shape
             Z[omask] = np.nan
