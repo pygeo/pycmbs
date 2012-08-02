@@ -1636,7 +1636,7 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
-    def _set_year_ticks(self,years,ax,axis='x'):
+    def _set_year_ticks(self,years,ax,axis='x',size=10):
         '''
         set ticks of timeline with
         yearly ticks
@@ -1663,9 +1663,9 @@ class Diagnostic():
                 oticks.append(years[int(t)])
         #- set ticks of axis
         if   axis == 'x':
-            ax.set_xticklabels(oticks)
+            ax.set_xticklabels(oticks,size=size)
         elif axis == 'y':
-            ax.set_yticklabels(oticks)
+            ax.set_yticklabels(oticks,size=size)
         else:
             raise ValueError, 'Invalid axis (set_year_ticks)'
 
