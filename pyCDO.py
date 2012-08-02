@@ -15,7 +15,7 @@ class pyCDO():
     @todo: put examples how to run pyCDO
     '''
 
-    def __init__(self,filename,date1,date2,force=False):
+    def __init__(self,filename,date1,date2,force=False,verbose=False):
         '''
         constructor of the pyCDO class
 
@@ -38,6 +38,7 @@ class pyCDO():
         self.date1=date1; self.date2=date2
         self.options = '-f nc'
         self.force = force
+        self.verbose = verbose
 
 #-----------------------------------------------------------------------
 
@@ -232,7 +233,8 @@ class pyCDO():
         if f_calc:
             print cmd; os.system(cmd)
         else:
-            print 'INFO - File existing, no calculations will be performed ', oname
+            if self.verbose:
+                print 'INFO - File existing, no calculations will be performed ', oname
 
 #-----------------------------------------------------------------------
 

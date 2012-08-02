@@ -28,7 +28,7 @@ class Data():
     '''
     Data class: main class
     '''
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False):
         '''
         Constructor for Data class
 
@@ -85,6 +85,9 @@ class Data():
         @param level: specify level to work with (needed for 4D data)
         @type level: int
 
+        @param verbose: verbose mode for printing
+        @type verbose: bool
+
         '''
 
         self.filename     = filename
@@ -96,6 +99,8 @@ class Data():
         self.squeezed     = False
 
         self.detrended    = False
+
+        self.verbose = verbose
 
         self._lon360 = True #assume that coordinates are always in 0 < lon < 360
 
@@ -133,13 +138,15 @@ class Data():
         remove singletone dimensions in data variable
         '''
 
-        print 'SQUEEZING data ... ', self.data.ndim, self.data.shape
+        if self.verbose:
+            print 'SQUEEZING data ... ', self.data.ndim, self.data.shape
 
         if self.data.ndim > 2:
             self.data = self.data.squeeze()
             self.squeezed = True
 
-        print 'AFTER SQUEEZING data ... ', self.data.ndim, self.data.shape
+        if self.verbose:
+            print 'AFTER SQUEEZING data ... ', self.data.ndim, self.data.shape
 
 #-----------------------------------------------------------------------
 
@@ -295,7 +302,7 @@ class Data():
                     nweights[dat[i,:,:].mask] = 0. #set weights to zero where the data is masked
                     sw = nweights.sum(); print 'Sum of weights: ', sw
                     nweights = nweights / sw #normalize thus the sum is one
-                    print nweights.sum()
+                    #~ print nweights.sum()
                     dat[i,:,:] = dat[i,:,:]*nweights.data
 
 
@@ -340,7 +347,8 @@ class Data():
         self.data = self.read_netcdf(self.varname) #o.k.
         #this scaling is related to unit conversion and NOT
         #due to data compression
-        print 'scale_factor : ', self.scale_factor
+        if self.verbose:
+            print 'scale_factor : ', self.scale_factor
         self.data = self.data * self.scale_factor
 
         #--- squeeze data to singletone
@@ -720,11 +728,13 @@ class Data():
             self._set_date(basedate,unit='hour')
         elif 'days since' in self.time_str:
             basedate = self.time_str.split('since')[1].lstrip()
-            print 'BASEDATE: ', basedate
+            if self.verbose:
+                print 'BASEDATE: ', basedate
             self._set_date(basedate,unit='day')
         elif 'months since' in self.time_str:
             basedate = self.time_str.split('since')[1].lstrip()
-            print 'BASEDATE: ', basedate
+            if self.verbose:
+                print 'BASEDATE: ', basedate
             self._set_date(basedate,unit='month')
         else:
             print self.filename
@@ -750,14 +760,15 @@ class Data():
 
         self.time = self.time[i1:i2]
         if self.data.ndim == 3:
-            print 'Temporal subsetting for 3D variable ...'
+            if self.verbose:
+                print 'Temporal subsetting for 3D variable ...'
             self.data = self.data[i1:i2,:,:]
         elif self.data.ndim == 2:
             if self.squeezed: #data has already been squeezed and result was 2D (thus without time!)
-                print 'Data was already squeezed: not temporal subsetting is performed'
+                print 'Data was already squeezed: not temporal subsetting is performed!'
                 pass
             else:
-                print 'Temporal subsetting for 2D variable ...', self.squeezed
+                #~ print 'Temporal subsetting for 2D variable ...', self.squeezed
                 self.data = self.data[i1:i2,:]
         elif self.data.ndim == 1: #single temporal vector assumed
             self.data = self.data[i1:i2]
@@ -818,12 +829,9 @@ class Data():
 
         @return list of years
         '''
-
         d = plt.num2date(self.time); years = []
-
         for x in d:
             years.append(x.year)
-
         return years
 
 #-----------------------------------------------------------------------
@@ -831,15 +839,11 @@ class Data():
     def _get_months(self):
         '''
         get months from timestamp
-
         @return: returns a list of months
         '''
-
         d = plt.num2date(self.time); months = []
-
         for x in d:
             months.append(x.month)
-
         return months
 
 #-----------------------------------------------------------------------
@@ -863,8 +867,9 @@ class Data():
         @param varname: name of variable to be read
         @type varname: str
         '''
-        F=Nio.open_file(self.filename)
-        print 'Reading file ', self.filename
+        F=Nio.open_file(self.filename,'r')
+        if self.verbose:
+            print 'Reading file ', self.filename
         if not varname in F.variables.keys():
             print 'Error: data can not be read. Variable not existing! ', varname
             F.close()
@@ -878,7 +883,6 @@ class Data():
                 print data.shape
                 raise ValueError, '4-dimensional variables not supported yet! Either remove a dimension or specify a level!'
             else:
-                print 'Data'
                 data = data[:,self.level,:,:] #[time,level,ny,nx ] --> [time,ny,nx]
 
         self.fill_value = None
@@ -1287,7 +1291,7 @@ class Data():
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()
 
-        print 'Geometry in masking: ', self.data.ndim, self.data.shape
+        #~ print 'Geometry in masking: ', self.data.ndim, self.data.shape
 
         if self.data.ndim == 2:
             tmp1 = self.data.copy().astype('float') #convert to float to allow for nan support
@@ -1680,7 +1684,8 @@ class Data():
         lo,la,dat,msk = self.get_valid_data(return_mask=True,mode='one')
         xx,n = dat.shape
         #~ print msk.shape, sum(msk)
-        print '   Number of grid points: ', n
+        if self.verbose:
+            print '   Number of grid points: ', n
         #~ print dat.shape
 
         R=np.ones((ny,nx))*np.nan #output matrix for correlation
@@ -1703,9 +1708,6 @@ class Data():
         r_value = res[:,2]; p_value = res[:,3]
         std_err = res[:,4]
 
-        #~ print np.shape(res)
-        #~ print msk.shape, ny,nx
-
         R[msk] = r_value
         P[msk] = p_value
         I[msk] = intercept
@@ -1715,29 +1717,6 @@ class Data():
         P.shape = (ny,nx)
         I.shape = (ny,nx)
         S.shape = (ny,nx)
-
-
-        #~ for i in range(ny): #todo how to further increase efficiency?
-            #~ if i % 25 == 0:
-                #~ print i, '/', ny
-            #~ slope, intercept, r_value, p_value, std_err = stats.linregress(x    ,y)
-#~
-            #~ y = x,self.data[:,i,j]
-#~
-            #~ c = np.vstack((self.data[:,i,:].T,x))
-            #~ r=np.corrcoef(c)
-            #~ CO[i,:] = np.cov(c)[0:-1,-1]
-#~
-            #~ poly = np.polyfit(x,self.data[:,i,:],1  ) #self.data is dependent variable
-#~
-            #~ R[i,:] = r[0:-1,-1]
-            #~ S[i,:] = poly[0,:]
-            #~ I[i,:] = poly[1,:]
-#~
-#~
-        #~ #--- calculate significance (assuming no gaps in the timeseries)
-        #~ p_value = get_significance(R,len(x))
-
 
         #--- prepare output data objects
         Rout = self.copy() #copy obkect to get coordinates
