@@ -118,12 +118,14 @@ def tree_fraction_analysis(model_list,pft='tree'):
 #=======================================================================
 
 
-def albedo_analysis(model_list):
-    albedo_analysis_modis(model_list)
+def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False):
+    if shift_lon == None:
+        raise ValueError, 'You need to specify shift_lon option!'
+    if use_basemap == None:
+        raise ValueError, 'You need to specify use_basemap option!'
+    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap)
 
-
-
-def albedo_analysis_modis(model_list):
+def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False):
     '''
     model_list = list which contains objects of data type MODEL
     '''
@@ -133,20 +135,19 @@ def albedo_analysis_modis(model_list):
     print 'Doing albedo analysis ...'
 
     #--- GleckerPlot
-    GP = global_glecker
+    #~ GP = global_glecker
     if GP == None:
         GP = GleckerPlot()
 
-
     #--- get land sea mask
-    ls_mask = get_T63_landseamask()
+    ls_mask = get_T63_landseamask(shift_lon)
 
     #--- T63 weights
-    t63_weights = get_T63_weights()
+    t63_weights = get_T63_weights(shift_lon)
 
     #--- load MODIS data
-    modis_file     = '/home/m300028/shared/data/SEP/variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_mean.nc'
-    modis_file_std = '/home/m300028/shared/data/SEP/variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_std.nc'
+    modis_file     = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_mean.nc'
+    modis_file_std = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_std.nc'
     albedo=Data(modis_file,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     albedo_std=Data(modis_file_std,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     albedo.std = albedo_std.data.copy(); del albedo_std
@@ -161,6 +162,9 @@ def albedo_analysis_modis(model_list):
 
         #--- get model data
         model_data = model.variables['albedo']
+
+        if model_data == None: #data file was not existing
+            print 'Data not existing for model: ', model.name; continue
 
         if model_data.data.shape != albedo.data.shape:
             print 'Inconsistent geometries for ALBEDO'
@@ -196,11 +200,9 @@ def albedo_analysis_modis(model_list):
         Rplot.add(e2,model_data.label,color='red')
 
         #/// Glecker plot ///
-        e2a = global_glecker.calc_index(albedo,model_data,model,'sis')
-        global_glecker.add_data('albedo',model.name,e2a,pos=1)
+        e2a = GP.calc_index(albedo,model_data,model,'albedo')
+        GP.add_data('albedo',model.name,e2a,pos=1)
 
-    #~ Rplot.simple_plot()
-    #~ Rplot.circle_plot()
     Rplot.bar()
 
 #=======================================================================
@@ -224,23 +226,23 @@ def rainfall_analysis(model_list,interval='season'):
     vmin = 0.; vmax = 10.
 
     #--- Glecker plot
-    GP = global_glecker
+    #~ GP = global_glecker
     model_names = []
 
 
     #--- T63 weights
-    t63_weights = get_T63_weights()
+    t63_weights = get_T63_weights(shift_lon)
 
     #--- get land sea mask
-    ls_mask = get_T63_landseamask()
+    ls_mask = get_T63_landseamask(shift_lon)
 
     #--- load GPCP data
 
     #todo GPCP v2.2 data
 
     if interval == 'season': #seasonal comparison
-        gpcp_file  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasmean.nc' #todo unit ??
-        gpcp_file_std  = data_pool_directory + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasstd.nc'
+        gpcp_file      = get_data_pool_directory() + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasmean.nc' #todo unit ??
+        gpcp_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasstd.nc'
     else:
         sys.exit('Unknown interval for rainfall_analyis()')
 
@@ -303,7 +305,9 @@ def rainfall_analysis(model_list,interval='season'):
 
 
     for i in range(len(Rplot.e2_norm)):
-            GP.add_data('rain',model_names[i],Rplot.e2_norm[i],pos=1)
+        print 'check this again!!!!'
+        stop
+        GP.add_data('rain',model_names[i],Rplot.e2_norm[i],pos=1)
 
 
 #=======================================================================
@@ -331,111 +335,23 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 
     print '   SIS analysis ...'
 
-    isccp_sis_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
-    srb_sis_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
-    cmsaf_sis_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
-    ceres_sis_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
-
-
-
-def cmsaf_sis_analysis(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.):
-    '''
-    model_list = list which contains objects of data type MODEL
-    '''
-
-    print '      ... CM-SAF'
-
-    #--- GleckerPlot
-    #~ GP = global_glecker
-    if GP == None:
-        GP = GleckerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-    #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
-
-    #--- load CMSAF-SIS data
-    raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc'
-    y1 = '1984-01-01'; y2='2005-12-31'
-
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            cmsaf_sis_file = cdo.yseasmean()
-            cmsaf_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-    cmsaf_sis     = Data(cmsaf_sis_file,'SIS',read=True,label='cmsaf-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    cmsaf_sis_std = Data(cmsaf_sis_std_file,'SIS',read=True,label='cmsaf-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    cmsaf_sis.std = cmsaf_sis_std.data.copy(); del cmsaf_sis_std
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        #--- glecker plot
-        GP.add_model(model.name)
-
-        #--- get model data
-        model_data = model.variables['sis']
-        if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name
-            stop
-            continue
-
-        if model_data.data.shape != cmsaf_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print cmsaf_sis.data.shape; stop
-
-        #--- generate difference map
-        dif  = map_difference(model_data ,cmsaf_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(cmsaf_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(cmsaf_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(cmsaf_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = GP.calc_index(cmsaf_sis,model_data,model,'sis')
-        GP.add_data('sis',model.name,e2a,pos=1)
-
-    Rplot.bar()
+    #isccp
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP')
+    #srb
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB')
+    #ceres
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES')
+    #cm-saf
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF')
 
 #-----------------------------------------------------------------------
 
-def isccp_sis_analysis(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.):
+def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None):
     '''
     model_list = list which contains objects of data type MODEL
     '''
 
-
-    print '      ... ISCCP'
+    print '      ... ' + obs_type
 
     #--- GleckerPlot
     if GP == None:
@@ -447,10 +363,42 @@ def isccp_sis_analysis(model_list,interval = 'season',GP=None,shift_lon=None,use
     #--- T63 weights
     t63_weights = get_T63_weights(shift_lon)
 
-    #--- load ISCCP-SIS data
-    f1 = 'T63_ISCCP__versD1__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
-    raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/isccp/' + f1
-    y1 = '1984-01-01'; y2='2005-12-31' #todo: specifiy externally
+    if obs_type == 'ISCCP':
+        #--- load ISCCP-SIS data
+        f1 = 'T63_ISCCP__versD1__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
+        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/isccp/' + f1
+        y1 = '1984-01-01'; y2='2005-12-31' #todo: specifiy externally
+
+        obs_var = 'BfISC84'
+        glecker_pos = 3
+
+    elif obs_type == 'SRB':
+        f1 = 'T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
+        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/srb/' + f1
+        y1 = '1984-01-01'; y2='2005-12-31'
+
+        obs_var = 'BfSRB84'
+        glecker_pos = 4
+
+    elif obs_type == 'CERES':
+        #todo EBAF data
+        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
+        y1 = '2001-01-01'; y2='2003-12-31'
+
+        obs_var = 'BfCER00'
+        glecker_pos = 2
+
+    elif obs_type == 'CMSAF':
+        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc'
+        y1 = '1984-01-01'; y2='2005-12-31'
+
+        obs_var = 'SIS'
+        glecker_pos = 1
+
+    else:
+        print obs_type
+        raise ValueError, 'Unknown observation type for SIS-analysis!'
+
 
     #--- PREPROESSING ---
     if interval == 'season':
@@ -460,35 +408,33 @@ def isccp_sis_analysis(model_list,interval = 'season',GP=None,shift_lon=None,use
             seasfile = cdo.seasmean(); del cdo
             print 'seasfile: ', seasfile
             cdo = pyCDO(seasfile,y1,y2)
-            isccp_sis_file = cdo.yseasmean()
-            isccp_sis_std_file  = cdo.yseasstd()
+            obs_sis_file = cdo.yseasmean()
+            obs_sis_std_file  = cdo.yseasstd()
         else:
             raise ValueError, 'Invalid interval option ', interval
 
     #--- READ DATA ---
-    isccp_sis     = Data(isccp_sis_file,'BfISC84',read=True,label='isccp-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    isccp_sis_std = Data(isccp_sis_std_file,'BfISC84',read=True,label='isccp-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    isccp_sis.std = isccp_sis_std.data.copy(); del isccp_sis_std
+    obs_sis     = Data(obs_sis_file,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    obs_sis_std = Data(obs_sis_std_file,obs_var,read=True,label=obs_type + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    obs_sis.std = obs_sis_std.data.copy(); del obs_sis_std
 
-    #--- initailize Reichler plot
+    #--- initialize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     for model in model_list:
-
         GP.add_model(model.name) #register model name in GleckerPlot
 
         #--- get model data
         model_data = model.variables['sis']
         if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name
-            continue
+            print 'Data not existing for model: ', model.name; continue
 
-        if model_data.data.shape != isccp_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print isccp_sis.data.shape; stop
+        if model_data.data.shape != obs_sis.data.shape:
+            print model_data.data.shape; print obs_sis.data.shape
+            raise ValueError, 'Inconsistent geometries for SIS'
 
         #--- generate difference map
-        dif  = map_difference(model_data ,isccp_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
+        dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
 
         #--- append zonal plot to difference map
         ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
@@ -504,218 +450,23 @@ def isccp_sis_analysis(model_list,interval = 'season',GP=None,shift_lon=None,use
 
         #calculate zonal statistics and plot
         zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(isccp_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(isccp_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
+        zon2 = ZonalPlot(ax=zax2); zon2.plot(obs_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
+        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(obs_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
         zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
 
         #/// Reichler statistics ///
-        Diag = Diagnostic(isccp_sis,model_data)
+        Diag = Diagnostic(obs_sis,model_data)
         e2   = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
 
         #/// Glecker plot ///
-        e2a = GP.calc_index(isccp_sis,model_data,model,'sis')
-        GP.add_data('sis',model.name,e2a,pos=3)
+        e2a = GP.calc_index(obs_sis,model_data,model,'sis')
+        GP.add_data('sis',model.name,e2a,pos=glecker_pos)
 
     Rplot.bar()
 
 #-----------------------------------------------------------------------
 
-def srb_sis_analysis(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.):
-    '''
-    model_list = list which contains objects of data type MODEL
-    '''
-
-
-    print '      ... SRB'
-
-    #--- GleckerPlot
-    #~ GP = global_glecker
-    if GP == None:
-        GP = GleckerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-    #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
-
-    #--- load CMSAF-SIS data
-    f1 = 'T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
-    raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/srb/' + f1
-    y1 = '1984-01-01'; y2='2005-12-31'
-
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            srb_sis_file = cdo.yseasmean()
-            srb_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-    srb_sis     = Data(srb_sis_file,'BfSRB84',read=True,label='srb-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    srb_sis_std = Data(srb_sis_std_file,'BfSRB84',read=True,label='srb-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    srb_sis.std = srb_sis_std.data.copy(); del srb_sis_std
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        #--- glecker plot
-        GP.add_model(model.name)
-
-        #--- get model data
-        model_data = model.variables['sis']
-        if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name
-            stop
-            continue
-
-        if model_data.data.shape != srb_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print srb_sis.data.shape; stop
-
-        #--- generate difference map
-
-        dif  = map_difference(model_data ,srb_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(srb_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(srb_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(srb_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = GP.calc_index(srb_sis,model_data,model,'sis')
-        GP.add_data('sis',model.name,e2a,pos=4)
-
-    Rplot.bar()
-
-
-#-----------------------------------------------------------------------
-
-def ceres_sis_analysis(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.):
-    '''
-    model_list = list which contains objects of data type MODEL
-
-    @todo: implement new CERES EBAF data
-
-    '''
-
-    #--- GleckerPlot
-    if GP == None:
-        GP = GleckerPlot()
-
-
-    #~ model_names = []
-
-    print '      ... CERES'
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-    #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
-
-    #--- load CMSAF-SIS data
-
-    raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
-    y1 = '2001-01-01'; y2='2003-12-31'
-
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
-            cdo = pyCDO(seasfile,y1,y2)
-            ceres_sis_file = cdo.yseasmean()
-            ceres_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
-
-    ceres_sis     = Data(ceres_sis_file,'BfCER00',read=True,label='ceres-sis',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    ceres_sis_std = Data(ceres_sis_std_file,'BfCER00',read=True,label='ceres-sis std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    ceres_sis.std = ceres_sis_std.data.copy(); del ceres_sis_std
-
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-        GP.add_model(model.name)
-
-        #--- get model data
-        model_data = model.variables['sis']
-
-        if model_data == None:
-            continue
-
-        if model_data.data.shape != ceres_sis.data.shape:
-            print 'Inconsistent geometries for SIS'
-            print model_data.data.shape; print ceres_sis.data.shape; stop
-
-        #--- generate difference map
-        dif  = map_difference(model_data ,ceres_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(ceres_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(ceres_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(ceres_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Glecker plot ///
-        e2a = GP.calc_index(ceres_sis,model_data,model,'sis')
-        GP.add_data('sis',model.name,e2a,pos=2)
-
-
-    #~ Rplot.simple_plot()
-    #~ Rplot.circle_plot()
-    Rplot.bar()
-
-    #~ for i in range(len(Rplot.e2_norm)):
-            #~ GP.add_data('sis',model_names[i],Rplot.e2_norm[i],pos=2)
 
 #=======================================================================
 # SIS -- end

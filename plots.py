@@ -722,24 +722,29 @@ class GleckerPlot():
             self.data = self._raw_data.copy()
         else:
             self._raw_data = self.data.copy() #preserve original calculated data
-        for p in pos:
-            xm = self._get_mean_value(p) #calculate multimodel mean
-            for k in self.data:
-                if self.pos[k] == p:
-                    self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
+
+        for var in self.variables:
+            for p in pos:
+                xm = self._get_mean_value(p,var) #calculate multimodel mean
+                for k in self.data:
+                    if (self.pos[k] == p) & ('_' + var + '_' in k):
+                        self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
 
 #-----------------------------------------------------------------------
 
-    def _get_mean_value(self,pos):
+    def _get_mean_value(self,pos,var):
         '''
         calculate mean value for a given observational dataset
 
         @param pos: position marker
         @type pos: int
+
+        @param var: name of variable to analyze
+        @type var: str
         '''
         x = []
         for k in self.pos:
-            if self.pos[k] == pos:
+            if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
         x = np.asarray(x)
         return x.mean()
@@ -748,7 +753,7 @@ class GleckerPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10):
         '''
         plot Glecker diagram
 
@@ -763,6 +768,9 @@ class GleckerPlot():
 
         @param nclasses: number of classes for colormap
         @type nclasses: int
+
+        @param size: size of labels
+        @type size: int
 
         @param normalize: normalize data relative to multimodel mean (affects self.data)
         @type normalize: bool
@@ -793,9 +801,9 @@ class GleckerPlot():
 
                 #labels
                 if cnt_v == 0:
-                    ax.set_ylabel(model,size=8,rotation='horizontal')
+                    ax.set_ylabel(model,size=size,rotation='horizontal')
                 if cnt_m == nm:
-                    ax.set_xlabel(variable,size=8)
+                    ax.set_xlabel(variable,size=size)
 
                 self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top')    #upper triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle

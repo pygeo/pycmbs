@@ -33,7 +33,6 @@ class ConfigFile():
 
     def __check_var(self,x):
         s=x.split(',')
-        print s
         if int(s[1]) == 1:
             return s[0]
         else:
@@ -78,11 +77,8 @@ class ConfigFile():
 
         has_eof = False
         while not has_eof:
-            print has_eof
             try:
-                l=self.f.next()
-                l=l.lstrip()
-                print l
+                l=self.f.next(); l=l.lstrip()
                 if (len(l) > 0) & (l[0] != '#'):
                     model,ty,experiment,ddir = self.__get_model_details(l)
                     models.append(model); types.append(ty)
