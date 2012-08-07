@@ -26,6 +26,8 @@ from pyCMBS.data import Data
 
 from scipy import linalg, dot;
 
+import matplotlib.gridspec as gridspec
+
 from anova import *
 
 #-----------------------------------------------------------------------
@@ -104,7 +106,7 @@ class EOF():
         '''
         return self._var
 
-    def plot_eof_coefficients(self,k,all=False,norm=True,ax=None,label=None):
+    def plot_eof_coefficients(self,k,all=False,norm=True,ax=None,label=None,show_legend=True):
         '''
         plot EOF coefficients = time series
 
@@ -125,7 +127,7 @@ class EOF():
                 k=[k]
 
         if ax == None:
-            f = pl.figure()
+            f = plt.figure()
             ax = f.add_subplot(111)
         else:
             f=ax.figure
@@ -140,11 +142,13 @@ class EOF():
             if norm:
                 y = (y-y.mean() ) / y.std()
             ax.plot(plt.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
-        ax.legend()
+
+        if show_legend:
+            ax.legend()
 
         return ax
 
-    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None):
+    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,show_coef=False,cmap=None,title=None):
         '''
         plot multiple eof patterns
 
@@ -156,7 +160,11 @@ class EOF():
 
         @param logplot: take log of data for plotting
         @param logplot: bool
+
+        @param show_coef: show coefficients in a separate plot
+        @param show_coef: bool
         '''
+
         if all:
             k = range(self.n)
             ax = None
@@ -164,11 +172,28 @@ class EOF():
             if np.isscalar(k):
                 k=[k]
 
+        if show_coef:
+            f = plt.figure()
+            gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
+            ax  = f.add_subplot(gs[0])
+            ax2 = f.add_subplot(gs[1])
 
         for i in k:
-            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax)
+            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax,cmap=cmap,title=title)
+            if show_coef:
+                self.plot_eof_coefficients(k,ax=ax2,show_legend=False)
+                ax2.grid()
+                ti = ax2.get_yticks(); n=len(ti) / 2
+                ax2.set_yticks([ti[0],ti[n],ti[-1]])
 
-    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None):
+        if show_coef:
+            return f
+        else:
+            return None
+
+
+
+    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,cmap=None,title=None):
         '''
         plot principal component k
 
@@ -210,7 +235,7 @@ class EOF():
         D.data = hlp
         D.unit = None #reset units as EOF have no physical units
         D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100.,2)) + '%)' #caution: labeling is always k+1!
-        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax)
+        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,cmap_data=cmap,title=title)
 
     def reconstruct_data(self,maxn=None,input=None):
         '''
