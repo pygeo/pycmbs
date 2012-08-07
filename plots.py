@@ -322,9 +322,12 @@ class ScatterPlot():
         xdat = self.x.fldmean(); ydat = y.fldmean()
 
         #- calculate linear regression
+        #~ print xdat.shape
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.linregress(xdat,ydat)
             label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+            rms_error = np.mean(((xdat-ydat)**2))
+            std_error = np.std(xdat-ydat)
 
         l = self.ax.plot(xdat,ydat,'.',label=label,**kwargs)[0]
         if regress:
@@ -335,6 +338,11 @@ class ScatterPlot():
         self.ax.set_ylabel(y._get_unit(),size=self.ticksize)
 
         self._change_ticklabels()
+
+        if regress:
+            return r_value,p_value,rms_error, std_error
+        else:
+            return None
 
     def _change_ticklabels(self):
         for tick in self.ax.xaxis.get_major_ticks():
@@ -1051,7 +1059,7 @@ def map_season(x,**kwargs):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1., **kwargs):
     '''
     produce a nice looking map plot
 
@@ -1107,9 +1115,19 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- create new figure
     if ax == None:
-        fig = plt.figure(); ax = fig.add_subplot(111)
+        fig = plt.figure()
+
+        #with timeseries plot?
+        if show_timeseries:
+            gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
+            ax  = fig.add_subplot(gs[0])
+            ax2 = fig.add_subplot(gs[1])
+        else:
+            ax = fig.add_subplot(111)
     else:
         fig = ax.figure
+
+
 
     #if cmap provided in kwargs, then remove it and set cmap_data
     kwargs1 = kwargs.copy()
@@ -1262,11 +1280,20 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #--- show field statistics in title ?
     if show_stat:
         me = xm.mean(); st=xm.std()
-        title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + x._get_unit() + ')'
+        title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
 
 
     ax.set_title(title,size=12)
 
+
+    #/// show timeseries? ///
+    if show_timeseries:
+        ax2.plot(plt.num2date(x.time),x.fldmean())
+        ax2.grid()
+        ax2.set_ylim(im1.get_clim()[0]*scal_timeseries,im1.get_clim()[1]*scal_timeseries)
+        ti = ax2.get_yticks(); n=len(ti) / 2
+        ax2.set_yticks([ti[0],ti[n],ti[-1]])
+        ax2.set_ylabel(x._get_unit())
 
     return fig
 
