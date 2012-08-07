@@ -61,6 +61,7 @@ from report import *
 from region import *
 from diagnostic import *
 from plots  import *
+from taylor import *
 from pyCDO  import *
 
 from hov import *
