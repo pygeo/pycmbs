@@ -46,6 +46,7 @@ class Report():
         self.author=author
         self.outdir=outdir
         self.open()
+        self.figure_counter = 0
 
 #-----------------------------------------------------------------------
 
@@ -76,8 +77,16 @@ class Report():
         write document header
         '''
         self.write('\documentclass{article}')
+        self.write('\usepackage{fancyhdr}')
         self.write('\usepackage{graphicx}')
         #self.write('\usepackage{todonotes}')
+
+        self.write('\pagestyle{fancy}')
+        self.write('\fancyhf{}')
+
+        self.write('\lhead{\nouppercase{\leftmark}}')  #%writes section header
+        self.write('\lfoot{\today}')
+        self.write('\rfoot{\thepage}')
 
         self.write('\\begin{document}')
         self.write('\\title{' + self.title.replace('_',' ') + '}')
@@ -116,14 +125,16 @@ class Report():
         @type f: matplotlib figure object
         '''
 
-        figname = 'fig_' + str(f.number).zfill(4) + '.' + self.format
+        self.figure_counter +=1
+        figname = 'fig_' + str(self.figure_counter).zfill(5) + '.' + self.format
 
         self._write_separator()
         self.write('\\begin{figure}[htp]')
         self.write('   \centering')
-        self.write('   \includegraphics[width=12cm]{' + figname + '} \\\ ')
+        #self.write('   \includegraphics[width=12cm]{' + figname + '} \\\ ')
+        self.write('   \includegraphics[width=12cm]{' + figname + '} ')
         self.write('   \caption{' + caption + '}')
-        self.write('   \label{fig:' + str(f.number) + '}')
+        self.write('   \label{fig:' + str(self.figure_counter) + '}')
         self.write('\\end{figure}')
         self._write_separator()
 
@@ -136,7 +147,8 @@ class Report():
         @param s: title of section
         @type s: str
         '''
-        self.write('\section{' + s + '}')
+        self.write('\clearpage')
+        self.write('\section{' + s.replace('_',' ') + '}')
 
 #-----------------------------------------------------------------------
 
@@ -170,7 +182,7 @@ class Report():
         @param s: string to be written to the file
         @type: str
         '''
-        self.file.write(s + '\n')
+        self.file.write(s.replace('\f','\\f').replace('\n','\\n').replace('\t','\\t').replace('\r','\\r') + '\n')
 
 #-----------------------------------------------------------------------
 

@@ -31,12 +31,28 @@ class ConfigFile():
                 x='#'
         return x
 
+    def __check_bool(self,x):
+        s=x.split(',')
+        if int(s[1]) == 1:
+            return True
+        else:
+            return False
+
     def __check_var(self,x):
         s=x.split(',')
         if int(s[1]) == 1:
             return s[0]
         else:
             return None
+
+    def __read_options(self):
+        #read header of variable plot
+        self.options={};
+        l=self.__read_header()
+
+        if 'BASEMAP' in l.upper():
+            self.options.update({'basemap':self.__check_bool(l)})
+
 
     def __read_var_block(self):
         #read header of variable plot
@@ -91,11 +107,12 @@ class ConfigFile():
         '''
         read configuration files in 3 blocks
         '''
+        self.__read_options()
         self.variables  = self.__read_var_block()
         self.start_date,self.stop_date  = self.__read_date_block()
         self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
 
         for k in self.dtypes:
-            if k.upper() not in ['CMIP5','JSBACH']:
+            if k.upper() not in ['CMIP5','JSBACH_BOT']:
                 print k
                 raise ValueError, 'Unknown model type'

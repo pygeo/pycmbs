@@ -165,8 +165,6 @@ class Data():
         @todo: check weighting of zonal statistics
         '''
 
-        print '... calculating zonal averages'
-
         if weights != None:
             method = 'sum' #perform weighted sum in case that weights are provided
 
@@ -293,14 +291,15 @@ class Data():
         if weights != None:
             if dat.ndim == 2:
                 weights[dat.mask] = 0. #set weights to zero where the data is masked
-                sw = weights.sum(); print 'Sum of weights: ', sw
+                sw = weights.sum(); #print 'Sum of weights: ', sw
                 weights = weights / sw #normalize thus the sum is one
                 dat = dat*weights.data
             elif dat.ndim == 3:
                 for i in range(len(dat)): #for all timesteps set mask
                     nweights = weights.copy()
+                    #~ print i, dat.shape,range(len(dat)), weights.shape, nweights.shape
                     nweights[dat[i,:,:].mask] = 0. #set weights to zero where the data is masked
-                    sw = nweights.sum(); print 'Sum of weights: ', sw
+                    sw = nweights.sum(); #print 'Sum of weights: ', sw
                     nweights = nweights / sw #normalize thus the sum is one
                     #~ print nweights.sum()
                     dat[i,:,:] = dat[i,:,:]*nweights.data
@@ -341,6 +340,8 @@ class Data():
         '''
         if not os.path.exists(self.filename):
             sys.exit('Error: file not existing: '+ self.filename)
+        else:
+            print 'Reading file ', self.filename
 
 
         #read data
@@ -812,7 +813,7 @@ class Data():
         if self.time[m1] < s1:
             m1=m1+1
         if self.time[m2] > s2:
-            print 'REDUCTION'
+            #~ print 'REDUCTION'
             m2 = m2-1
         m2 += 1 #increment so that subsetting is o.k. in the end
 
@@ -909,6 +910,12 @@ class Data():
             offset = 0.
 
         data = data * scal + offset
+
+        #set units if possible; if given by user, this is taken
+        #otherwise unit information from file is used if available
+        if self.unit == None:
+            if hasattr(var,'units'):
+                self.unit = var.units
 
         if 'time' in F.variables.keys():
             tvar = F.variables['time']

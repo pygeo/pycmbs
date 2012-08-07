@@ -1,18 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-
-
 '''
 pyCMBS - climate model bechmarking framework
 '''
 
-#@todo: put option in cfg file if basemap should be used or not
+
+#--- Analysis compliance matrix (which was already checked?)
+
+#                    | CMIP5 | JSBACH_BOT | JSBACH RAW |
+#albedo analysis     |    x  |            |            |
+#SIS analysis        |    x  |            |            |
+#rainfall analysis   |       |      X     |            |
+#temperature         |       |            |            |
+#veg. fraction       |       |            |            |
+# phenology          |       |            |            |
+
+#preprocessing of observations and/or data ???
+
+#land sea mask for model in SIS analysis
+
+
+#@todo: implement JSBACH raw data
+#@todo: implement ATM/BOT files
+
+#@todo: systematic validation of zonal mean statistics using som reference cases
 
 #todo
 #
 # @todo: implement temperature analysis
 # @todo: implement precipitation analysis
+#                 implement more observational datasets!!!
+
+
 #
 # @todo: implement temporary directory for pyCMBS processing
 
@@ -23,14 +42,9 @@ pyCMBS - climate model bechmarking framework
 # seasmean calculations automatically!!
 
 #todo check datetime; something is wrong! as data starts in Dcember 1978!
-# do maps per season ???
 
-# TODO: zonal means ??
+
 # area weigting of zonal means and also area weighting of RMS errors etc.
-
-#
-# TODO seasmean yseasmean !!!!
-
 
 
 # - regional analysis based on an input mask
@@ -47,12 +61,6 @@ pyCMBS - climate model bechmarking framework
 # - pre-processing scripts from external configuration file
 # - regional subsetting options ??
 
-# - hovmoeller plots
-#
-# - get temporal subset of data and then generate e.g. seasonal difference plots
-#
-# - seasonals vs yearly vs individual year analysis
-#
 
 
 __author__ = "Alexander Loew"
@@ -65,12 +73,9 @@ from pyCMBS import *
 
 import matplotlib.pylab as pl
 
-
-
 #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
 from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes
-
 
 #--- framework specific modules ---
 from models   import *
@@ -79,12 +84,7 @@ from analysis import *
 
 #=======================================================================
 
-#--- set path to observational directory /pool/SEP ---
 
-
-
-f_fast=True
-shift_lon = use_basemap = not f_fast
 
 #=======================================================================
 
@@ -113,15 +113,7 @@ def get_analysis_scripts():
 #####################################################################
 
 from pyCMBS import *
-
-
-#~ data_dir = '/home/m300028/shared/data/CMIP5/EvaCliMod/' #CMIP5 data directory
-
 pl.close('all')
-
-file='pyCMBS.cfg'
-
-
 
 #-----------------------------------------------------------------------
 
@@ -162,16 +154,21 @@ adding a new variable:
 
 
 #/// read configuration file ///
+file='pyCMBS.cfg'
 CF = ConfigFile(file)
 
-#~ stop
+if CF.options['basemap']:
+    f_fast = False
+else:
+    f_fast=True
+shift_lon = use_basemap = not f_fast
+
+print 'Using Basemap: ', use_basemap
 
 s_start_time = CF.start_date #'1983-01-01' #todo where is this used ?
 s_stop_time  = CF.stop_date  #'2005-12-31'
 start_time = pl.num2date(pl.datestr2num(s_start_time))
 stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
-
-#--- PRE-Configuration ---
 
 #--- names of analysis scripts for all variables ---
 scripts = get_analysis_scripts()
@@ -201,8 +198,8 @@ for i in range(len(CF.models)):
     # results are stored in individual variables namex modelXXXXX
     if CF.dtypes[i].upper() == 'CMIP5':
         themodel = CMIP5Data(data_dir,model,experiment,varmethods,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time)
-    elif CF.dtypes[i].upper() == 'JSBACH':
-        themodel = JSBACH(data_dir,varmethods,experiment,start_time=start_time,stop_time=stop_time,name=model)
+    elif CF.dtypes[i].upper() == 'JSBACH_BOT':
+        themodel = JSBACH_BOT(data_dir,varmethods,experiment,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
     else:
         print CF.dtypes[i]
         raise ValueError, 'Invalid model type!'
@@ -219,7 +216,6 @@ for i in range(len(CF.models)):
 
 #/// prepare global becnhmarking metrices
 #generate a global variable for glecker plot!
-#~ global global_glecker
 global_glecker = GleckerPlot()
 
 

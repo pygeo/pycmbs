@@ -1,4 +1,4 @@
-#!/usr/bin/pythonl
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -516,7 +516,7 @@ class ZonalPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,x,areaweights,xlim=None):
+    def plot(self,x,areaweights,xlim=None,timmean = False,show_ylabel=True):
         '''
         plot zonal plot
 
@@ -528,6 +528,10 @@ class ZonalPlot():
 
         @param xlim: limits for the x-axis (e.g. values)
         @type xlim: tuple
+
+        @param timmean: temporal mean calculation
+        @type timmean: bool
+
         '''
 
         #check if all latitudes are the same
@@ -542,16 +546,24 @@ class ZonalPlot():
 
             stop
 
+        if timmean:
+            thex = x.timmean(return_object=True)
+        else:
+            thex = x
+
         if self.dir == 'y':
-            dat = x.get_zonal_statistics(areaweights) #no area weighting performed
+            dat = thex.get_zonal_statistics(areaweights) #no area weighting performed
         else:
             raise ValueError, 'Invalid option'
 
-        if dat.shape[x.data.ndim-2] != x.lat.shape[0]:
-            print 'Inconsistent shapes!'
-            print dat.shape
-            print x.lat.shape
-            sys.exit()
+        if timmean:
+            pass #todo
+        else:
+            if dat.shape[x.data.ndim-2] != x.lat.shape[0]:
+                print 'Inconsistent shapes!'
+                print dat.shape
+                print x.lat.shape
+                sys.exit()
 
 
         #--- plot zonal statistics
@@ -564,8 +576,14 @@ class ZonalPlot():
                 #~ self.ax.plot(dat[i,:],label='time='+str(i))
                 self.ax.plot(dat[i,:],x.lat[:,0],label='time='+str(i))
 
-        self.ax.set_ylabel('latitude [deg]')
+
+
         self.ax.set_ylim(-90.,90.)
+
+        if show_ylabel:
+            self.ax.set_ylabel('latitude [deg]')
+        else:
+            self.ax.set_yticks([])
 
         if xlim != None:
             self.ax.set_xlim(xlim)
@@ -989,7 +1007,51 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None, **kwargs):
+def map_season(x,**kwargs):
+    '''
+    generate a seasonal plot
+    all arguments are parsed directly to map_plot function
+
+    if kwargs contain a 'figure' argument, then this figure fill be used
+    for plotting. Otherwise a new figure will be generated
+
+    @param x: C{Data} object
+    @type x : C{Data}
+
+    @return: returns the figure where plot was done
+    @rtype: C{figure}
+
+    '''
+
+    #/// checks ///
+    if x.data.ndim != 3:
+        raise ValueError, 'only 3D data supported'
+
+    if len(x.data) != 4:
+        raise ValueError, 'only data with four seasons supported'
+
+    #/// figure and axes
+    if 'figure' in kwargs:
+        f = kwargs['figure']
+    else:
+        f = pl.figure()
+
+    #/// plot
+    labels=['JFM','AMJ','JAS','OND']
+
+    for i in range(4):
+        ax = f.add_subplot(2,2,i+1)
+        d = x.copy(); d.data = x.data[i,:,:]
+        d.label = labels[i]
+        map_plot(d,ax=ax,**kwargs); del d
+
+    f.suptitle(x.label,size=12)
+
+    return f
+
+#-----------------------------------------------------------------------
+
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True, **kwargs):
     '''
     produce a nice looking map plot
 
@@ -1048,6 +1110,11 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         fig = plt.figure(); ax = fig.add_subplot(111)
     else:
         fig = ax.figure
+
+    #if cmap provided in kwargs, then remove it and set cmap_data
+    kwargs1 = kwargs.copy()
+    if 'cmap' in kwargs:
+        cmap_data = kwargs1.pop('cmap')
 
     #--- create colormap
     cmap = plt.cm.get_cmap(cmap_data, nclasses)
@@ -1131,13 +1198,15 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #here is still a problem in the plotting over land; masking does not work properly,
         #while the data as such is o.k.!
         #~ im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-        im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+        im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
         __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues)
 
     else: #use_basemap = False
         #- normal plots
-        im1=ax.imshow(xm,cmap=cmap,interpolation='nearest', **kwargs)
+        im1=ax.imshow(xm,cmap=cmap,interpolation='nearest', **kwargs1)
         ax.set_xticks([]); ax.set_yticks([])
+
+
 
 
     #set legend aligned with plot (nice looking)
@@ -1147,6 +1216,12 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         ax.figure.add_axes(cax)
         norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+
+    #Zonal plot
+    if show_zonal:
+        add_zonal_plot(ax,x,timmean=zonal_timmean) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+
+
 
 
 
@@ -1197,7 +1272,46 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
 #-----------------------------------------------------------------------
 
-def add_nice_legend(ax,im,cmap,cticks=None):
+def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
+    '''
+    add a zonal plot to the axis
+
+    @param ax: axis where zonal plot should be added to
+    @type ax: axis
+
+    @param x: data to plot
+    @type x: C{Data} object
+
+    @param timmean: temporal mean for zonal plot?
+    @type timmean: bool
+    '''
+
+    divider = make_axes_locatable(ax)
+    zax = divider.new_horizontal("15%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+    ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
+
+    ZP = ZonalPlot(ax=zax,dir='y')
+
+    if x.data.ndim == 2:
+        weights = np.ones(x.data.shape)
+    elif x.data.ndim == 3:
+        nt,ny,nx = x.data.shape
+        weights = np.ones((ny,nx))
+    weights = np.ma.array(weights,mask = weights != weights)
+    ZP.plot(x,weights,timmean=timmean,show_ylabel=False) #@todo: area weighting??
+
+    #set only first and last label
+    #~ lab = zax.get_xticklabels()
+    ti  = zax.get_xticks()
+    zax.set_xticks([ti[0],ti[-1]])
+
+    return zax
+
+    #~ zax.set_xlim(vmin,vmax)
+
+#-----------------------------------------------------------------------
+
+def add_nice_legend(ax,im,cmap,cticks=None,dummy=False):
     '''
     add a nice looking legend
 
@@ -1207,15 +1321,25 @@ def add_nice_legend(ax,im,cmap,cticks=None):
     @param im: result from command like imshow
     @param im: matplotlib im object (???)
 
-
+    @param dummy: add colorbar axis as a dummy axis which is not visible
+                  this is useful if you have multiple subplots which should
+                  have the same size. Adding a colorbar will slightly change the size
+    @type dummy: bool
     '''
 
     #set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
     cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
-    ax.figure.add_axes(cax)
-    norm = mpl.colors.Normalize(vmin=im.get_clim()[0], vmax=im.get_clim()[1])
-    cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+    ax.figure.add_axes(cax,axisbg=ax.figure.get_facecolor())
+    if dummy:
+        cax.set_xticks([])
+        cax.set_yticks([])
+        cax.set_frame_on(False)
+    else:
+        norm = mpl.colors.Normalize(vmin=im.get_clim()[0], vmax=im.get_clim()[1])
+        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+
+#-----------------------------------------------------------------------
 
 def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,rescalex=1,**kwargs):
     '''
@@ -1295,7 +1419,7 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 #-----------------------------------------------------------------------
 
 
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,rmax=1., absthres=None, **kwargs):
+def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, **kwargs):
     '''
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets
@@ -1346,6 +1470,11 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
                      absolute difference and will be applied to
                      relative difference maps
     @type absthres: float
+
+    @param show_zonal: plot zonal statistic plot
+    @type show_zonal: bool
+
+
     '''
 
     fig = plt.figure()
@@ -1364,25 +1493,25 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     proj='robin'; lon_0=0.; lat_0=0.
 
     #- plot first dataset
-    map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title, **kwargs)
+    map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean, **kwargs)
 
     #- plot second dataset
-    map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title,  **kwargs)
+    map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,  **kwargs)
 
     #-first minus second dataset
     adif = x.sub(y) #absolute difference
-    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
+    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
 
     #~ map_plot(adif,use_basemap=use_basemap,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
 
 
     #- relative error
-    rdat = y.div(x).subc(1.) #relative data
+    rdat = adif.div(x) #y.div(x).subc(1.) #relative data
     if absthres != None:
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
 
-    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=None,region=region ,nclasses=nclasses,cmap_data=cmap_difference)
+    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=None,region=region ,nclasses=nclasses,cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
 
 
     return fig
