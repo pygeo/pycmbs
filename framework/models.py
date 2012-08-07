@@ -3,6 +3,7 @@
 
 from pyCMBS import *
 
+from utils import *
 
 class Model(Data):
     '''
@@ -178,17 +179,17 @@ class CMIP5Data(Model):
 
 
 
-class JSBACH(Model):
-    '''
+class JSBACH_BOT(Model):
     '''
 
-    def __init__(self,filename,dic_variables,experiment,name='',**kwargs):
+    '''
+
+    def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
 
         Model.__init__(self,filename,dic_variables,name=name,**kwargs)
         self.experiment = experiment
+        self.shift_lon = shift_lon
         self.get_data()
-
-
 
     def get_albedo_data(self):
         '''
@@ -293,19 +294,18 @@ class JSBACH(Model):
     def get_rainfall_data(self,interval='season'):
         '''
         get rainfall data for JSBACH
-
         returns Data object
         '''
 
         #todo: implement preprocessing here
 
-        v = 'var4' #todo is this really precip ???
+        v = 'var4'
         if interval == 'season':
             filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1982-2006_sel_yseasmean.nc'
         else:
             raise ValueError, 'Invalid value for interval: ' + interval
 
-        ls_mask = get_T63_landseamask()
+        ls_mask = get_T63_landseamask(self.shift_lon)
 
         if not os.path.exists(filename):
             stop
@@ -314,13 +314,13 @@ class JSBACH(Model):
         try: #todo this is silly
             rain = Data(filename,v,read=True,scale_factor = 86400.,
             label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
-            shift_lon=shift_lon,
+            shift_lon=self.shift_lon,
             mask=ls_mask.data.data)
         except:
             v='var142'
             rain = Data(filename,v,read=True,scale_factor = 86400.,
             label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
-            shift_lon=shift_lon,
+            shift_lon=self.shift_lon,
             mask=ls_mask.data.data)
 
 

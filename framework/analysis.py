@@ -172,27 +172,7 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False):
 
         #--- generate difference map
         dmin = -0.1; dmax = 0.1
-        dif  = map_difference(model_data ,albedo,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(albedo,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(albedo),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
+        dif  = map_difference(model_data ,albedo,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
 
         #/// Reichler statistics ///
         Diag = Diagnostic(albedo,model_data)
@@ -213,22 +193,22 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False):
 #=======================================================================
 # RAINFALL -- begin
 #=======================================================================
+def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False):
+    rainfall_analysis_gpcp(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap)
 
 
-def rainfall_analysis(model_list,interval='season'):
+
+
+def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False):
     '''
     units: mm/day
     '''
-
-
     print 'Doing rainfall analysis ...'
 
     vmin = 0.; vmax = 10.
 
     #--- Glecker plot
-    #~ GP = global_glecker
     model_names = []
-
 
     #--- T63 weights
     t63_weights = get_T63_weights(shift_lon)
@@ -246,7 +226,6 @@ def rainfall_analysis(model_list,interval='season'):
     else:
         sys.exit('Unknown interval for rainfall_analyis()')
 
-    print 'GPCP data'
     gpcp = Data(gpcp_file,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     gpcp_std = Data(gpcp_file_std,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     gpcp.std = gpcp_std.data.copy(); del gpcp_std
@@ -256,58 +235,30 @@ def rainfall_analysis(model_list,interval='season'):
 
     #--- get model field of precipitation
     for model in model_list:
-
         model_data = model.variables['rain']
-
         GP.add_model(model.name)
-
 
         if model_data == None:
             continue
 
         model_names.append(model.name)
 
-
-
         if model_data.data.shape != gpcp.data.shape:
             print 'WARNING Inconsistent geometries for GPCP'
             print model_data.data.shape; print gpcp.data.shape
 
         dmin=-1.;dmax=1.
-        dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu')
-
-        #/// ZONAL STATISTICS
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #--- calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(gpcp,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(gpcp),None) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
+        dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
 
         #--- calculate Reichler diagnostic for preciptation
         Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
 
+        #/// Glecker plot ///
+        e2a = GP.calc_index(gpcp,model_data,model,'sis')
+        GP.add_data('rain',model.name,e2a,pos=1)
+
     Rplot.bar()
-
-
-    for i in range(len(Rplot.e2_norm)):
-        print 'check this again!!!!'
-        stop
-        GP.add_data('rain',model_names[i],Rplot.e2_norm[i],pos=1)
 
 
 #=======================================================================
@@ -434,25 +385,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use
             raise ValueError, 'Inconsistent geometries for SIS'
 
         #--- generate difference map
-        dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10)
-
-        #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0]; ax2 = dif.get_axes()[1]; ax3 = dif.get_axes()[2]
-
-        #create net axis for zonal plot
-        #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1); zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax1)
-        divider2 = make_axes_locatable(ax2); zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax2)
-        divider3 = make_axes_locatable(ax3); zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
-        dif.add_axes(zax3)
-
-        #calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(obs_sis,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(obs_sis),None,xlim=[-0.2,0.2]) #None == no area weighting performed
-        zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
+        dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
 
         #/// Reichler statistics ///
         Diag = Diagnostic(obs_sis,model_data)
