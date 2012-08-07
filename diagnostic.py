@@ -632,10 +632,25 @@ class SVD():
 
         @todo: handling of invalid, gappy data
         '''
-        sx = x.sum(axis=0) #calculate sum. If all values are valid, then no a float should be there, else Nan
+        sx = x.data.sum(axis=0) #calculate sum. If all values are valid, then no a float should be there, else Nan
         mx = ~np.isnan(sx) #masked array
-        m1 = mx.data; m1[mx.mask]=False #apply also mask of masked array
-        return x[:,m1],m1
+        m1 = mx
+        #~ m1[x.mask]=False #apply also mask of masked array
+
+        r = np.ones( (len(x.data) , sum(mx)  ))*np.nan
+        for i in range(len(x.data)):
+            tmp = x.data[i,:]
+            if np.any(np.isnan(tmp[m1])):
+                print 'nans are not allowed here!'
+                print tmp
+                stop
+
+            r[i,:] = tmp[m1]*1.
+            del tmp
+
+
+
+        return np.ma.array(r),m1
 
 #-----------------------------------------------------------------------
 
@@ -977,16 +992,16 @@ class SVD():
 
 
         for i in mode_list:
-            fig=plt.figure()
-            ax1a = fig.add_subplot(521) #homogeneous plots
-            ax1b = fig.add_subplot(522)
-            ax1c = fig.add_subplot(523)
-            ax1d = fig.add_subplot(524)
+            fig=plt.figure(figsize=(6,8))
+            ax1a = fig.add_subplot(421) #homogeneous plots
+            ax1b = fig.add_subplot(423)
+            ax1c = fig.add_subplot(425)
+            #~ ax1d = fig.add_subplot(524)
 
-            ax2a = fig.add_subplot(525) #heterogeneous plots
-            ax2b = fig.add_subplot(526)
-            ax2c = fig.add_subplot(527)
-            ax2d = fig.add_subplot(528)
+            ax2a = fig.add_subplot(422) #heterogeneous plots
+            ax2b = fig.add_subplot(424)
+            ax2c = fig.add_subplot(426)
+            #~ ax2d = fig.add_subplot(528)
 
             ax3  = fig.add_subplot(515) #expansion coefficients
 
@@ -1007,13 +1022,13 @@ class SVD():
             plot_cmap(Rout1_ho,ax1a,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
             plot_cmap(Rout2_ho,ax1b,'correlation (homo)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
             plot_cmap(Rout2_ho,ax1c,'exp.frac.var (homo)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
-            plot_cmap(Cout2_ho,ax1d,'covariance (homo)',plot_var=False,use_basemap=self.use_basemap,region=region2,cmap='jet',regions_to_plot=regions_to_plot,vmin=None,vmax=None) #explained covariance
+            #~ plot_cmap(Cout2_ho,ax1d,'covariance (homo)',plot_var=False,use_basemap=self.use_basemap,region=region2,cmap='jet',regions_to_plot=regions_to_plot,vmin=None,vmax=None) #explained covariance
 
             #heterogeneous
             plot_cmap(Rout1_he,ax2a,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
             plot_cmap(Rout2_he,ax2b,'correlation (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
             plot_cmap(Rout2_he,ax2c,'exp.frac.var (hetero)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
-            plot_cmap(Cout2_he,ax2d,'covariance (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region2,cmap='jet',regions_to_plot=regions_to_plot,vmin=None,vmax=None) #explained covariance
+            #~ plot_cmap(Cout2_he,ax2d,'covariance (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region2,cmap='jet',regions_to_plot=regions_to_plot,vmin=None,vmax=None) #explained covariance
 
             #expansion coefficients
             self.plot_expansion_correlation(i,ax=ax3)
@@ -1125,8 +1140,8 @@ class SVD():
         else:
             ax = ax
 
-        ax.plot(plt.num2date(self.time),self.A[:,mode]/np.std(self.A[:,mode]),label='A')
-        ax.plot(plt.num2date(self.time),self.B[:,mode]/np.std(self.B[:,mode]),label='B')
+        ax.plot(plt.num2date(self.time),self.A[:,mode]/np.std(self.A[:,mode]),label='A',color='red')
+        ax.plot(plt.num2date(self.time),self.B[:,mode]/np.std(self.B[:,mode]),label='B',color='blue',linestyle='--')
         c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
         plt.legend()
         ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')',size=10)
