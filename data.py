@@ -1257,6 +1257,8 @@ class Data():
         lon  = self.lon.reshape(-1); lat  = self.lat.reshape(-1)
         data = self.data.reshape(n,-1)
 
+        data.mask[np.isnan(data.data)] = True
+
         #- extract only valid (not masked data)
         if mode == 'all':
             msk = np.sum(~data.mask,axis=0) == n #identify all ngrid cells where all timesteps are valid
