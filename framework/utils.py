@@ -15,7 +15,7 @@ def get_data_pool_directory():
 
 
 
-def get_T63_landseamask(shift_lon):
+def get_T63_landseamask(shift_lon,mask_antarctica=True):
     '''
     get JSBACH T63 land sea mask
     the LS mask is read from the JSBACH init file
@@ -26,6 +26,8 @@ def get_T63_landseamask(shift_lon):
     ls_mask = Data(ls_file,'slm',read=True,label='T63 land-sea mask',lat_name='lat',lon_name='lon',shift_lon=shift_lon)
     msk=ls_mask.data>0.; ls_mask.data[~msk] = 0.; ls_mask.data[msk] = 1.
     ls_mask.data = ls_mask.data.astype('bool') #convert to bool
+    if mask_antarctica:
+        ls_mask.data[ls_mask.lat < -60.] = False
 
     return ls_mask
 
