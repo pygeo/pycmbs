@@ -240,11 +240,9 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
 
     #--- load GPCP data
 
-    #todo GPCP v2.2 data
-
     if interval == 'season': #seasonal comparison
-        gpcp_file      = get_data_pool_directory() + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasmean.nc' #todo unit ??
-        gpcp_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP__V2_1dm__PRECIP__2.5x2.5__197901-200612_T63_seasmean_yseasstd.nc'
+        gpcp_file      = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasmean.nc' 
+        gpcp_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
     else:
         sys.exit('Unknown interval for rainfall_analyis()')
 
