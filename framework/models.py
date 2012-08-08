@@ -64,12 +64,13 @@ class Model(Data):
 
 
 class CMIP5Data(Model):
-    def __init__(self,data_dir,model,experiment,dic_variables,name='',**kwargs):
-        Model.__init__(self,None,dic_variables,name=model,**kwargs)
+    def __init__(self,data_dir,model,experiment,dic_variables,name='',shift_lon=False,**kwargs):
+        Model.__init__(self,None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
 
         self.model = model
         self.experiment = experiment
         self.data_dir = data_dir
+        self.shift_lon = shift_lon
 
 
 
@@ -130,6 +131,9 @@ class CMIP5Data(Model):
         '''
 
 
+        #--- read land-sea mask
+        ls_mask = get_T63_landseamask(self.shift_lon)
+
         if self.start_time == None:
             raise ValueError, 'Start time needs to be specified'
         if self.stop_time == None:
@@ -168,6 +172,9 @@ class CMIP5Data(Model):
         albfile = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
 
         alb = Data(albfile,'rsus',read=True,label=self.model + ' albedo',unit='-',lat_name='lat',lon_name='lon',shift_lon=True)
+
+        alb._apply_mask(ls_mask.data)
+
         return alb
 
 
@@ -326,3 +333,213 @@ class JSBACH_BOT(Model):
 
 
         return rain
+
+
+
+#-----------------------------------------------------------------------
+
+class JSBACH_RAW(Model):
+    '''
+    RAW JSBACH model output
+    '''
+
+    def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
+
+        Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+        self.experiment = experiment
+        self.shift_lon = shift_lon
+        self.get_data()
+
+    def get_albedo_data(self):
+        '''
+        calculate albedo as ratio of upward and downwelling fluxes
+        first the monthly mean fluxes are used to calculate the albedo,
+        '''
+
+        if self.start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if self.stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+
+
+
+        sw_down = self.get_surface_shortwave_radiation_down()
+        sw_up   = self.get_surface_shortwave_radiation_up()
+        alb     = sw_up.div(sw_down)
+        alb.label = self.experiment + ' albedo'
+        alb.unit = '-'
+
+
+
+
+        #~ s_start_time = str(self.start_time)[0:10]
+        #~ s_stop_time = str(self.stop_time)[0:10]
+#~
+        #~ file_down = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        #~ file_up   = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+#~
+        #~ if not os.path.exists(file_down):
+            #~ print 'File not existing: ', file_down
+            #~ return None
+        #~ if not os.path.exists(file_up):
+            #~ print 'File not existing: ', file_up
+            #~ return None
+
+        #/// calculate ratio on monthly basis
+        # CAUTION: it might happen that latitudes are flipped. Therefore always apply remapcon!
+
+        #select dates
+        #~ Fu = pyCDO(file_up,s_start_time,s_stop_time).seldate()
+        #~ Fd = pyCDO(file_down,s_start_time,s_stop_time).seldate()
+
+        #remap to T63
+        #~ tmpu = pyCDO(Fu,s_start_time,s_stop_time).remap()
+        #~ tmpd = pyCDO(Fd,s_start_time,s_stop_time).remap()
+
+        #calculate monthly albedo
+        #~ albmon = pyCDO(tmpu,s_start_time,s_stop_time).div(tmpd,output=self.model + '_' + self.experiment + '_albedo_tmp.nc')
+
+        #calculate seasonal mean albedo
+        #~ tmp1 = pyCDO(albmon,s_start_time,s_stop_time).seasmean()
+        #~ albfile = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+
+        #~ alb = Data(albfile,'rsus',read=True,label=self.model + ' albedo',unit='-',lat_name='lat',lon_name='lon',shift_lon=True)
+        return alb
+
+
+
+
+    def get_surface_shortwave_radiation_down(self,interval = 'season'):
+        '''
+        get surface shortwave incoming radiation data for JSBACH
+
+        returns Data object
+        '''
+
+        v = 'swdown_acc'
+
+        y1 = '1992-01-01'; y2 = '2001-12-31'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+
+        if not os.path.exists(rawfilename):
+            return None
+
+
+        #--- read data
+        #~ cdo = pyCDO(rawfilename,y1,y2)
+        #~ if interval == 'season':
+            #~ seasfile = cdo.seasmean(); del cdo
+            #~ print 'seasfile: ', seasfile
+            #~ cdo = pyCDO(seasfile,y1,y2)
+            #~ filename = cdo.yseasmean()
+        #~ else:
+            #~ raise ValueError, 'Invalid interval option ', interval
+        filename = rawfilename
+
+        #--- read land-sea mask
+        ls_mask = get_T63_landseamask(self.shift_lon)
+
+        #--- read SIS data
+        sw_down = Data(filename,v,read=True,
+        label=self.experiment + ' ' + v, unit = 'W/m**2',lat_name='lat',lon_name='lon',
+        shift_lon=self.shift_lon,
+        mask=ls_mask.data.data)
+
+        return sw_down
+
+
+#-----------------------------------------------------------------------
+
+    def get_surface_shortwave_radiation_up(self,interval = 'season'):
+        '''
+        get surface shortwave upward radiation data for JSBACH
+
+        returns Data object
+
+        todo CDO preprocessing of seasonal means
+        todo temporal aggregation of data --> or leave it to the user!
+        '''
+
+        v = 'swdown_reflect_acc'
+
+        y1 = '1992-01-01'; y2 = '2001-12-31'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+
+        if not os.path.exists(rawfilename):
+            return None
+
+
+        #--- read data
+        #~ cdo = pyCDO(rawfilename,y1,y2)
+        #~ if interval == 'season':
+            #~ seasfile = cdo.seasmean(); del cdo
+            #~ print 'seasfile: ', seasfile
+            #~ cdo = pyCDO(seasfile,y1,y2)
+            #~ filename = cdo.yseasmean()
+        #~ else:
+            #~ raise ValueError, 'Invalid interval option ', interval
+        filename = rawfilename
+
+        #--- read land-sea mask
+        ls_mask = get_T63_landseamask(self.shift_lon)
+
+        #--- read SW up data
+        sw_up = Data(filename,v,read=True,
+        label=self.experiment + ' ' + v, unit = 'W/m**2',lat_name='lat',lon_name='lon',
+        shift_lon=self.shift_lon,
+        mask=ls_mask.data.data)
+
+        return sw_up
+
+#-----------------------------------------------------------------------
+
+    def get_rainfall_data(self,interval = 'season'):
+        '''
+        get surface rainfall data for JSBACH
+
+        returns Data object
+
+        todo CDO preprocessing of seasonal means
+        todo temporal aggregation of data --> or leave it to the user!
+        '''
+
+        v = 'precip_acc'
+
+        y1 = '1992-01-01'; y2 = '2001-12-31' #todo
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+
+        if not os.path.exists(rawfilename):
+            return None
+
+
+        #--- read data
+        #~ cdo = pyCDO(rawfilename,y1,y2)
+        #~ if interval == 'season':
+            #~ seasfile = cdo.seasmean(); del cdo
+            #~ print 'seasfile: ', seasfile
+            #~ cdo = pyCDO(seasfile,y1,y2)
+            #~ filename = cdo.yseasmean()
+        #~ else:
+            #~ raise ValueError, 'Invalid interval option ', interval
+        filename = rawfilename
+
+        #--- read land-sea mask
+        ls_mask = get_T63_landseamask(self.shift_lon)
+
+        #--- read SW up data
+        rain = Data(filename,v,read=True,
+        label=self.experiment + ' ' + v, unit = 'mm/day',lat_name='lat',lon_name='lon',
+        shift_lon=self.shift_lon,
+        mask=ls_mask.data.data,scale_factor = 86400.)
+
+        return rain
+
+
+#-----------------------------------------------------------------------
+
+
+
+
+
+

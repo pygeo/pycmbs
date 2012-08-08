@@ -118,14 +118,18 @@ def tree_fraction_analysis(model_list,pft='tree'):
 #=======================================================================
 
 
-def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False):
+def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
     if use_basemap == None:
         raise ValueError, 'You need to specify use_basemap option!'
-    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap)
+    if report == None:
+        raise ValueError, 'You need to specify report option!'
 
-def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False):
+    report.section('Surface albedo')
+    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
+
+def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
     '''
     model_list = list which contains objects of data type MODEL
     '''
@@ -172,7 +176,11 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False):
 
         #--- generate difference map
         dmin = -0.1; dmax = 0.1
-        dif  = map_difference(model_data ,albedo,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
+        f_dif  = map_difference(model_data ,albedo,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
+
+        #seasonal map
+        f_season = map_season(model_data.sub(albedo),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True)
+
 
         #/// Reichler statistics ///
         Diag = Diagnostic(albedo,model_data)
@@ -183,7 +191,16 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False):
         e2a = GP.calc_index(albedo,model_data,model,'albedo')
         GP.add_data('albedo',model.name,e2a,pos=1)
 
-    Rplot.bar()
+        #/// report results
+        report.subsection(model.name)
+        report.figure(f_season,caption='Seasonal differences')
+        report.figure(f_dif,caption='Mean and relative differences')
+
+
+
+    f_reich = Rplot.bar()
+    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
+    report.newpage()
 
 #=======================================================================
 # ALBEDO -- end
@@ -193,13 +210,18 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False):
 #=======================================================================
 # RAINFALL -- begin
 #=======================================================================
-def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False):
-    rainfall_analysis_gpcp(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap)
+def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+
+    if report == None:
+        raise ValueError, 'You need to specify report option!'
+
+    report.section('Precipitation')
+    rainfall_analysis_gpcp(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
 
 
 
 
-def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False):
+def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None):
     '''
     units: mm/day
     '''
@@ -248,7 +270,10 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
             print model_data.data.shape; print gpcp.data.shape
 
         dmin=-1.;dmax=1.
-        dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
+        f_dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
+
+        #seasonal map
+        f_season = map_season(model_data.sub(gpcp),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
 
         #--- calculate Reichler diagnostic for preciptation
         Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
@@ -258,7 +283,14 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
         e2a = GP.calc_index(gpcp,model_data,model,'sis')
         GP.add_data('rain',model.name,e2a,pos=1)
 
-    Rplot.bar()
+        #report
+        report.subsection(model.name)
+        report.figure(f_season,caption='Seasonal differences')
+        report.figure(f_dif,caption='Mean and relative differences')
+
+    f_reich = Rplot.bar()
+    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
+    report.newpage()
 
 
 #=======================================================================
@@ -271,7 +303,7 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
 #=======================================================================
 
 
-def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None):
+def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None):
     '''
     main routine for SIS analysis
 
@@ -281,23 +313,29 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
         raise ValueError, 'You need to specify shift_lon option!'
     if use_basemap == None:
         raise ValueError, 'You need to specify use_basemap option!'
+    if report == None:
+        raise ValueError, 'You need to specify report option!'
 
     vmin=0.;vmax=300;dmin=-20.;dmax = 20.
 
     print '   SIS analysis ...'
 
     #isccp
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP')
+    report.section('Shortwave downwelling radiation - ISCCP')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report)
     #srb
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB')
+    report.section('Shortwave downwelling radiation - SRB')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report)
     #ceres
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES')
+    report.section('Shortwave downwelling radiation - CERES')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report)
     #cm-saf
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF')
+    report.section('Shortwave downwelling radiation - CMSAF')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report)
 
 #-----------------------------------------------------------------------
 
-def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None):
+def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None,report=None):
     '''
     model_list = list which contains objects of data type MODEL
     '''
@@ -385,7 +423,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use
             raise ValueError, 'Inconsistent geometries for SIS'
 
         #--- generate difference map
-        dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
+        f_dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
 
         #/// Reichler statistics ///
         Diag = Diagnostic(obs_sis,model_data)
@@ -396,7 +434,13 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use
         e2a = GP.calc_index(obs_sis,model_data,model,'sis')
         GP.add_data('sis',model.name,e2a,pos=glecker_pos)
 
-    Rplot.bar()
+        #/// report results
+        report.subsection(model.name)
+        report.figure(f_dif,caption='Mean and relative differences ' + obs_type + ' ' + model.name)
+
+    f_reich = Rplot.bar()
+    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
+    report.newpage()
 
 #-----------------------------------------------------------------------
 

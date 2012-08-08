@@ -49,9 +49,17 @@ class ConfigFile():
         #read header of variable plot
         self.options={};
         l=self.__read_header()
+        l=l.lstrip()
 
         if 'BASEMAP' in l.upper():
             self.options.update({'basemap':self.__check_bool(l)})
+
+        l = self.f.readline().replace('\n','')
+        if 'REPORT=' in l.upper():
+            s = l[7:]
+            self.options.update({'report' : s.replace(' ','') })
+        else:
+            sys.exit('report missing in configuration file!')
 
 
     def __read_var_block(self):
@@ -113,6 +121,6 @@ class ConfigFile():
         self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
 
         for k in self.dtypes:
-            if k.upper() not in ['CMIP5','JSBACH_BOT']:
+            if k.upper() not in ['CMIP5','JSBACH_BOT','JSBACH_RAW']:
                 print k
                 raise ValueError, 'Unknown model type'

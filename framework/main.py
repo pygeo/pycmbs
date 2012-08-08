@@ -7,18 +7,16 @@ pyCMBS - climate model bechmarking framework
 
 #--- Analysis compliance matrix (which was already checked?)
 
-#                    | CMIP5 | JSBACH_BOT | JSBACH RAW |
-#albedo analysis     |    x  |            |            |
-#SIS analysis        |    x  |            |            |
-#rainfall analysis   |       |      X     |            |
+#                    | CMIP5 | JSBACH_BOT | JSBACH RAW | report
+#albedo analysis     |   X   |            |      X     |    x
+#SIS analysis        |   X   |            |      X     |    x
+#rainfall analysis   |       |      X     |      X     |    x
 #temperature         |       |            |            |
 #veg. fraction       |       |            |            |
 # phenology          |       |            |            |
+#snow fraction       |       |            |            |
 
 #preprocessing of observations and/or data ???
-
-#land sea mask for model in SIS analysis
-
 
 #@todo: implement JSBACH raw data
 #@todo: implement ATM/BOT files
@@ -28,12 +26,12 @@ pyCMBS - climate model bechmarking framework
 #todo
 #
 # @todo: implement temperature analysis
-# @todo: implement precipitation analysis
-#                 implement more observational datasets!!!
+#                 implement more observational datasets!!! for precipitation
 
 
 #
 # @todo: implement temporary directory for pyCMBS processing
+# @todo: implement cdo processing using framework of Ralf Mueller
 
 
 # TODO CMIP5:
@@ -157,6 +155,8 @@ adding a new variable:
 file='pyCMBS.cfg'
 CF = ConfigFile(file)
 
+
+
 if CF.options['basemap']:
     f_fast = False
 else:
@@ -197,9 +197,11 @@ for i in range(len(CF.models)):
     #--- create model object and read data ---
     # results are stored in individual variables namex modelXXXXX
     if CF.dtypes[i].upper() == 'CMIP5':
-        themodel = CMIP5Data(data_dir,model,experiment,varmethods,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time)
+        themodel = CMIP5Data(data_dir,model,experiment,varmethods,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time,shift_lon=shift_lon)
     elif CF.dtypes[i].upper() == 'JSBACH_BOT':
         themodel = JSBACH_BOT(data_dir,varmethods,experiment,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
+    elif CF.dtypes[i].upper() == 'JSBACH_RAW':
+        themodel = JSBACH_RAW(data_dir,varmethods,experiment,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
     else:
         print CF.dtypes[i]
         raise ValueError, 'Invalid model type!'
@@ -218,6 +220,11 @@ for i in range(len(CF.models)):
 #generate a global variable for glecker plot!
 global_glecker = GleckerPlot()
 
+########################################################################
+# REPORT
+########################################################################
+rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],'Alexander Loew',outdir='./report_' + CF.options['report'] + '/')
+
 
 ########################################################################
 # MAIN ANALYSIS LOOP: perform analysis for each model and variable
@@ -235,10 +242,18 @@ for variable in variables:
             print 'Doing analysis for variable ... ', variable
             print '   ... ', scripts[variable]
             model_list = str(proc_models).replace("'","")  #model list is reformatted so it can be evaluated properly
-            eval(scripts[variable]+'(' + model_list + ',GP=global_glecker,shift_lon=shift_lon,use_basemap=use_basemap)') #run analysis
+            eval(scripts[variable]+'(' + model_list + ',GP=global_glecker,shift_lon=shift_lon,use_basemap=use_basemap,report=rep)') #run analysis
 
 #/// generate Glecker analysis plot for all variables and models analyzed ///
 global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=15)
+
+rep.section('Summary')
+rep.figure(global_glecker.fig,caption='Glecker et al. (2008) model preformance index')
+
+#/// close report ///
+rep.close()
+
+pl.close('all')
 
 
 #~ if __name__ == '__main__':

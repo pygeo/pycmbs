@@ -214,6 +214,8 @@ class ReichlerPlot():
         self.ax.set_ylabel('$\\epsilon / \\bar{\\epsilon}$ [%]')
         self.ax.grid(); self.ax.set_title(title)
 
+        return self.ax.figure
+
 
 #-----------------------------------------------------------------------
 
