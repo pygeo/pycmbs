@@ -94,6 +94,9 @@ class Report():
 
         self.write('\maketitle')
         self.write('\\newpage')
+
+        self.write('\\tableofcontents')
+        self.write('\\newpage')
         self._write_separator()
 
 #-----------------------------------------------------------------------
@@ -133,7 +136,7 @@ class Report():
         self.write('   \centering')
         #self.write('   \includegraphics[width=12cm]{' + figname + '} \\\ ')
         self.write('   \includegraphics[width=12cm]{' + figname + '} ')
-        self.write('   \caption{' + caption + '}')
+        self.write('   \caption{' + caption.replace('_','-') + '}')
         self.write('   \label{fig:' + str(self.figure_counter) + '}')
         self.write('\\end{figure}')
         self._write_separator()
@@ -149,6 +152,15 @@ class Report():
         '''
         self.write('\clearpage')
         self.write('\section{' + s.replace('_',' ') + '}')
+
+    def subsection(self,s):
+        '''
+        write subsection header
+
+        @param s: title of subsection
+        @type s: str
+        '''
+        self.write('\subsection{' + s.replace('_',' ') + '}')
 
 #-----------------------------------------------------------------------
 
@@ -172,6 +184,12 @@ class Report():
         '''
         self.write('\clearpage')
         self.write('\\newpage')
+
+    def clearpage(self):
+        '''
+        create a new page
+        '''
+        self.write('\clearpage')
 
 #-----------------------------------------------------------------------
 
