@@ -162,7 +162,7 @@ class Data():
 
         @return: returns an array with zonal statistics
 
-        @todo: check weighting of zonal statistics
+        @todo: CAUTION: grid cell weighting for zonal statistic has not yet been properly validated !!; check weighting of zonal statistics
         '''
 
         if weights != None:
@@ -182,21 +182,37 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_percentile(self,p,return_object = True):
+
         '''
         calculate percentile
 
-        @todo: masked array handling
+        uses:
+        scipy.stats.mstats.scoreatpercentile(data, per, limit=(), alphap=0.4, betap=0.4
+        http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.scoreatpercentile.html#scipy.stats.mstats.scoreatpercentile
 
-        @param p: percentil value to obtain, e.g. 0.05 corresponds to 5% percentil
+        @param p: percentile value to obtain, e.g. 0.05 corresponds to 5% percentil
         @type p: float
+
+        @todo: get mask of pixls with at least a few valid samples, so performance is better!
         '''
 
-        res = np.percentile(self.data,p*100.,axis=0)
+        if self.data.ndim != 3:
+            raise ValueError, 'Percentile calculation only supported for 3D data!'
 
-        #- return
+        nt = len(self.data)
+        x = self.data.copy(); x.shape = (nt,-1)
+
+        #--- calculate percentile ---
+        res = stats.mstats.scoreatpercentile(x,p*100.)
+
+        #--- reshape data array ---
+        res.shape = np.shape(self.data[0,:,:])
+        res = np.ma.array(res,mask=np.isnan(res))
+
+        #--- return
         if return_object:
             r = self.copy()
-            r.label = self.label + ' - percentil: ' + str(round(p,2))
+            r.label = self.label + ' - percentile: ' + str(round(p,2))
             r.data = res
             return r
         else:
