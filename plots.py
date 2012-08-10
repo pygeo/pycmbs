@@ -288,12 +288,15 @@ class ScatterPlot():
     '''
     Class for generation of scatterplots
     '''
-    def __init__(self,x,ax=None,ticksize=10):
+    def __init__(self,x,ax=None,ticksize=10,normalize_data=False):
         '''
         constructor of class C{ScatterPlot}
 
         @param x: Variable that will be used as the x-variable
         @type x: C{Data} object
+
+        @param normalize_data: if True, then the dataseries is normalizued internally so that it has zero mean and a std of 1
+        @type normalize_data: bool
         '''
 
         if ax == None:
@@ -306,6 +309,17 @@ class ScatterPlot():
         self.x = x
         self.lines = []; self.labels = []
         self.ticksize=ticksize
+
+        self.normalize = normalize_data
+
+
+#-----------------------------------------------------------------------
+    def __normalize_data(self,x):
+        '''
+        normmalize timeseries
+        '''
+        return (x-x.mean()) / x.std()
+
 
 #-----------------------------------------------------------------------
 
@@ -322,6 +336,10 @@ class ScatterPlot():
         '''
         label=y.label
         xdat = self.x.fldmean(); ydat = y.fldmean()
+
+        if self.normalize:
+            xdat = self.__normalize_data(xdat)
+            ydat = self.__normalize_data(ydat)
 
         #- calculate linear regression
         #~ print xdat.shape
@@ -369,7 +387,7 @@ class LinePlot():
 
     This class is usefull for plotting timeseries
     '''
-    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.):
+    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.,show_equation=True):
         '''
         constructor of LinePlot
 
@@ -409,6 +427,7 @@ class LinePlot():
         self.ticksize = ticksize
 
         self.normx=normx
+        self.show_equation = show_equation
 
 #-----------------------------------------------------------------------
 
@@ -467,7 +486,10 @@ class LinePlot():
             if self.regress: #calculate linear regression
                 slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time/self.normx,y) #@todo: is it correct to use here time instead of .data?
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y) #@todo: is it correct to use here time instead of .data?
-                label = label + ' (y=' + "%.1e" % slope_print + 'x+' + "%.1e" % intercept_print  + ', r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+                if self.show_equation:
+                    label = label + ' (y=' + "%.1e" % slope_print + 'x+' + "%.1e" % intercept_print  + ', r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+                else:
+                    label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
 
             self.labels.append(label)
 
@@ -1547,7 +1569,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
 #-----------------------------------------------------------------------
 
-def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=None,climits=None):
+def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=None,climits=None,xtickrotation=0):
     '''
     plot hovmoeller plots given a C{Data} object
 
@@ -1566,7 +1588,7 @@ def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=N
 
     h = hovmoeller(pl.num2date(x.time),x.data,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
     h.time_to_lat(dlat=dlat,monthly = True, yearonly = True,monthsamp=monthsamp)
-    h.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax,showcolorbar=False,climits=climits,grid=False)
+    h.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=xtickrotation,cmap=cmap,ax=ax,showcolorbar=False,climits=climits,grid=False)
 
     add_nice_legend(ax,h.im,cmap,cticks=None)
 
