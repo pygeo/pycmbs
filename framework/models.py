@@ -5,6 +5,13 @@ from pyCMBS import *
 
 from utils import *
 
+'''
+@todo: implement reading of air temperature fields
+'''
+
+
+
+
 class Model(Data):
     '''
     This class is the main class, specifying a climate model or a particular run
