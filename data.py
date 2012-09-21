@@ -212,7 +212,7 @@ class Data():
         #--- return
         if return_object:
             r = self.copy()
-            r.label = self.label + ' - percentile: ' + str(round(p,2))
+            r.label = self.label + '\n percentile: ' + str(round(p,2))
             r.data = res
             return r
         else:
@@ -377,6 +377,10 @@ class Data():
             self._apply_mask(self.inmask)
 
         #read lat/lon
+        if self.lat_name == None: #try reading lat/lon using default names
+            self.lat_name = 'lat'
+        if self.lon_name == None:
+            self.lon_name = 'lon'
         if self.lat_name != None:
             self.lat = self.read_netcdf(self.lat_name)
         else:
@@ -1552,6 +1556,30 @@ class Data():
             d = self
         d.data += x
         return d
+
+#-----------------------------------------------------------------------
+
+    def divc(self,x,copy=True):
+        '''
+        Divide current data by a constant
+
+        @param x: constant
+        @type  x: float
+
+        @param copy: if True, then a new data object is returned
+                     else, the data of the present object is changed
+        @type copy: bool
+        '''
+
+        if copy:
+            d = self.copy()
+        else:
+            d = self
+        d.data /= x
+        return d
+
+
+
 
 #-----------------------------------------------------------------------
 

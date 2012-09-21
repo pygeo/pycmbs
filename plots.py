@@ -476,8 +476,10 @@ class LinePlot():
 
             if ax == None:
                 ax = self.ax
+                set_axiscolor=False
             else:
                 ax = ax
+                set_axiscolor=True
 
             y = x.fldmean()
             if label == None:
@@ -509,6 +511,9 @@ class LinePlot():
             if vmin != None:
                 if vmax != None:
                     ax.set_ylim(vmin,vmax)
+
+            for tl in ax.get_yticklabels():
+                tl.set_color(p.get_color())
 
 
             self._change_ticklabels(ax)
@@ -1039,7 +1044,7 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None):
 
 #-----------------------------------------------------------------------
 
-def map_season(x,**kwargs):
+def map_season(x,year=False,**kwargs):
     '''
     generate a seasonal plot
     all arguments are parsed directly to map_plot function
@@ -1050,16 +1055,23 @@ def map_season(x,**kwargs):
     @param x: C{Data} object
     @type x : C{Data}
 
+    @param year: specify of yearly data or (TRUE) or seasonal data (False) should be used
+    @type year : bool
+
     @return: returns the figure where plot was done
     @rtype: C{figure}
 
     '''
+    if year:
+        nvals = 12
+    else:
+        nvals = 4
 
     #/// checks ///
     if x.data.ndim != 3:
         raise ValueError, 'only 3D data supported'
 
-    if len(x.data) != 4:
+    if len(x.data) != nvals:
         raise ValueError, 'only data with four seasons supported'
 
     #/// figure and axes
@@ -1068,16 +1080,28 @@ def map_season(x,**kwargs):
     else:
         f = pl.figure()
 
-    #/// plot
-    labels=['JFM','AMJ','JAS','OND']
+    if 'title' in kwargs:
+        tit = kwargs.pop('title')
+    else:
+        tit = x.label
 
-    for i in range(4):
-        ax = f.add_subplot(2,2,i+1)
+    #/// plot
+    if year:
+        labels=['J','F','M','A','M','J','J','A','S','O','N','D']
+    else:
+        labels=['JFM','AMJ','JAS','OND']
+
+    for i in range(nvals):
+        print i,nvals,year
+        if year:
+            ax = f.add_subplot(4,3,i+1)
+        else:
+            ax = f.add_subplot(2,2,i+1)
         d = x.copy(); d.data = x.data[i,:,:]
         d.label = labels[i]
         map_plot(d,ax=ax,**kwargs); del d
 
-    f.suptitle(x.label,size=12)
+    f.suptitle(tit,size=12)
 
     return f
 
