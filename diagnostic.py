@@ -1338,7 +1338,8 @@ class Diagnostic():
                 raise ValueError, 'Invalid shape for weights!'
             e2 = []
             for i in range(n):
-                d = weights * ( (x[i,:]-y[i,:])**2)   / std_x[i,:]
+                d = weights * ( (x[i,:]-y[i,:])**2.)   / std_x[i,:]
+                #~ print d.sum(), np.sum(d)
                 e2.append(np.sum(d)) #sum at end to avoid nan's   #it is important to use np.sum() !!
             e2 = np.asarray(e2)
 
