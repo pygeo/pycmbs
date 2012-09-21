@@ -8,7 +8,58 @@ import pylab as pl
 import matplotlib.dates as mdates
 import sys
 import matplotlib.pyplot as pyplot
-from python.statistic import agg_hourly,align
+
+def agg_hourly(d,v,timestamp='mid',mode='mean'):
+    '''
+    calculate hourly mean values in a very efficient way
+
+    INPUT
+       d - array of datetime objects
+       v - array of values
+
+       optional arguments
+       timestamp - specifies if timestamp is at beginning / mid or end of hour
+       --> first / mid / last
+
+    OUTPUT
+       returns pandas timeseries object
+
+    example from
+    http://stackoverflow.com/questions/6467832/how-to-get-the-correlation-between-two-timeseries-using-pandas
+    '''
+
+    import pandas as pa
+    s = pa.Series(v,index=d)
+    #mean hourly values using pandas group function
+    if mode == 'mean':
+        #r = s.groupby(lambda date: date.replace(second=0,microsecond=0,minute=0)).mean() #works only for most recent version of pandas
+        r = s.groupby(lambda date: date.replace(second=0,microsecond=0,minute=0)).agg(mean)
+    else:
+        sys.exit('agg_hourly - invalid mode: ' + mode)
+
+    if timestamp == 'first':
+        pass
+    elif timestamp == 'mid':
+        r=r.rename(lambda date: date.replace(minute=30))
+    elif timestamp == 'last':
+        r=r.rename(lambda date: date.replace(minute=59,second=59))
+    else:
+        sys.exit('agg_hourly: invalid timestamp option' )
+    return r
+
+
+def align(x,y):
+    '''
+    aligns two pandas timeseries and returns
+    values two pandas timeseries which are aligned
+
+    this is a hack as I dont know how to do it better at the moment
+    '''
+
+    t=x+y #just add the two series and then substract the individuals again
+
+    return t-y,t-x #corresponds to x,y
+
 
 def generate_monthly_timeseries(t,sday='01'):
     '''
