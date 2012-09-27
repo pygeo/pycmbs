@@ -548,6 +548,7 @@ class ZonalPlot():
         if ax == None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
+            
         else:
             self.ax = ax
 
@@ -592,7 +593,7 @@ class ZonalPlot():
             dat = thex.get_zonal_statistics(areaweights) #no area weighting performed
         else:
             raise ValueError, 'Invalid option'
-
+        #return dat
         if timmean:
             pass #todo
         else:
@@ -601,7 +602,8 @@ class ZonalPlot():
                 print dat.shape
                 print x.lat.shape
                 sys.exit()
-
+		
+		
 
         #--- plot zonal statistics
         if dat.ndim == 1:
@@ -612,8 +614,9 @@ class ZonalPlot():
                 #~ print dat[i,:]
                 #~ self.ax.plot(dat[i,:],label='time='+str(i))
                 self.ax.plot(dat[i,:],x.lat[:,0],label='time='+str(i))
-
-
+            	self.ax.grid(b='on')
+            	
+			
 
         self.ax.set_ylim(-90.,90.)
 
@@ -624,8 +627,9 @@ class ZonalPlot():
 
         if xlim != None:
             self.ax.set_xlim(xlim)
-
-        self.ax.grid()
+        
+        self.ax.grid(b='on')
+        
 
 #-----------------------------------------------------------------------
 
@@ -1187,7 +1191,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- temporal mean fields
     xm = x.timmean()
-
+    
     #--- logscale plot ?
     if logplot:
         if logoffset == None:
@@ -1278,7 +1282,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #set legend aligned with plot (nice looking)
     if show_colorbar:
         divider = make_axes_locatable(ax)
-        cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+        cax = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
         ax.figure.add_axes(cax)
         norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
@@ -1362,7 +1366,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
     '''
 
     divider = make_axes_locatable(ax)
-    zax = divider.new_horizontal("15%", pad=0.05, axes_class=maxes.Axes,pack_start=True)
+    zax = divider.new_horizontal("15%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
     ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
 
     ZP = ZonalPlot(ax=zax,dir='y')

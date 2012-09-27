@@ -84,8 +84,8 @@ class EOF():
             self.C = np.cov(self.x,rowvar=0)
 
         #/// solve eigenvalue problem ///
-        #eigval,eigvec = np.linalg.eig(self.C)
-        eigvec,eigval,v = linalg.svd( self.C )
+        #eigval,eigvec = np.linalg.eig(self.C) # complex numbers in output matrices
+        eigvec,eigval,v = linalg.svd( self.C ) # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
 		
         self.eigval = eigval
         self.eigvec = eigvec
@@ -738,7 +738,7 @@ class SVD():
 
         #/// singular value decomposition
         print '   Doing singular value decomposition xxxxxx ...'
-        plt.imshow(C); plt.colorbar()
+        #plt.imshow(C); plt.colorbar()
         #return C
         
         U, s, V = linalg.svd( C )
@@ -746,7 +746,7 @@ class SVD():
         L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is somewhat python specific
 
         #/// expansion coefficients (time series)
-        A = dot(x,U); B = dot(y,V)
+        A = dot(x,U); B = dot(y,V.T) # ACHTUNG!!! SCHOULD BE B = dot(y,V)
 
         #/// store results
         self.U = U; self.V = V
