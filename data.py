@@ -166,10 +166,13 @@ class Data():
         '''
 
         if weights != None:
-            method = 'sum' #perform weighted sum in case that weights are provided
+            #method = 'sum' #perform weighted sum in case that weights are provided
+            method = 'mean' 
+            print "NOTE! zonal plot calculationmethod was set to -mean- by default: in data.py"
 
         dat = self._get_weighted_data(weights)
-
+         
+        
         if method == 'mean':
             r = dat.mean(axis=self.data.ndim-1)
         elif method == 'sum':
@@ -306,23 +309,30 @@ class Data():
 
         if weights != None:
             if dat.ndim == 2:
+            	print "dat.ndim= ", dat.ndim
+            	print "NOTE! zonal weight normalizat was commented: in data.py"
                 weights[dat.mask] = 0. #set weights to zero where the data is masked
-                sw = weights.sum(); #print 'Sum of weights: ', sw
-                weights = weights / sw #normalize thus the sum is one
+                #sw = weights.sum(); #print 'Sum of weights: ', sw
+                #weights = weights / sw #normalize thus the sum is one
                 dat = dat*weights.data
             elif dat.ndim == 3:
+            	print "dat.ndim= ", dat.ndim
+            	print "NOTE! zonal weight normalizat was commented: in data.py"
                 for i in range(len(dat)): #for all timesteps set mask
                     nweights = weights.copy()
                     #~ print i, dat.shape,range(len(dat)), weights.shape, nweights.shape
                     nweights[dat[i,:,:].mask] = 0. #set weights to zero where the data is masked
-                    sw = nweights.sum(); #print 'Sum of weights: ', sw
-                    nweights = nweights / sw #normalize thus the sum is one
+                    #sw = nweights.sum(); #print 'Sum of weights: ', sw
+                    #nweights = nweights / sw #normalize thus the sum is one
+                    #nweights = nweights*100
                     #~ print nweights.sum()
                     dat[i,:,:] = dat[i,:,:]*nweights.data
-
+                    
+                    
 
             else:
                 raise ValueError, 'Invalid dimensions: not supported yet'
+        
 
         return dat
 
@@ -1755,6 +1765,7 @@ class Data():
 
         print 'Calculating correlation ...'
         res = [stats.mstats.linregress(x,dat[:,i]) for i in range(n)] #@todo: still rather inefficient for masked arrays
+        # res = [stats.mstats.linregress(A[168],dat[168,i]) for i in range(18432)]
         res = np.asarray(res)
 
         slope = res[:,0]; intercept = res[:,1]
