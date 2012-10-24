@@ -40,12 +40,17 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         GP.add_model(model.name) #register model for Glecker Plot
 
         #/// GREENING PHASE ANALYSIS STEP 1 ... ///
-        ddir = './external/phenology_benchmarking/'
-        template = ddir + 'Greening_Phase_Analysis_I_CYC.m'
+        #ddir = './external/phenology_benchmarking/' #todo set right directory!
+        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'
+        
+        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!!
+        varname = 'fapar' #todo: set variable name interactively
+        
+        template = ddir + 'Greening_Phase_Analysis_I,quit' #important: no file extension!!! and ',quit' at the end to leave execution in the end!
 
-        tags = [{'tag':'C:\Matlab\data\Cyclopes','value':'model-save-path'},{'tag':'FFT-Mask','value':'asdasdadsadsa'} ]
+        tags = [{'tag':'<STARTYEAR>','value':'1970'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':ddir + 'GPA-01-' + model.name.replace(' ','') },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
 
-        E=ExternalAnalysis('matlab -r <INPUTFILE>',template,tags,output_directory='./tmp_' + model.name.replace(' ','') + '/' ) #temporary scripts are stored in directories that have same name as model
+        E=ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template,tags,output_directory='./tmp_' + model.name.replace(' ','') + '/' ) #temporary scripts are stored in directories that have same name as model
         E.run()
 
         #/// GREENING PHASE ANALYSIS STEP 2 ... ///
