@@ -97,6 +97,7 @@ def get_analysis_scripts():
     d.update({'sis':'sis_analysis'})
     d.update({'tree':'tree_fraction_analysis'})
     d.update({'grass':'grass_fraction_analysis'})
+    d.update({'phenology_faPAR':'phenology_faPAR_analysis'})
 
     return d
 
@@ -127,6 +128,7 @@ def get_methods4variables(variables):
     hlp.update({'sis' : 'get_surface_shortwave_radiation_down()'})
     hlp.update({'tree' : 'get_tree_fraction()'})
     hlp.update({'grass' : 'get_grass_fraction()'})
+    hlp.update({'phenology_faPAR' : 'get_faPAR()'})
 
     res={}
     for k in hlp.keys(): #only use the variables that should be analyzed!
@@ -146,7 +148,7 @@ adding a new variable:
 1) register variable in get_methods4variables()
 2) implement for each data object a routine how to read the data
 3) implement an analysis script that performs the actual analysis
-4) regist this analysis script in get_analysis_scripts()
+4) register this analysis script in get_analysis_scripts()
 '''
 
 

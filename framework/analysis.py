@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from utils import *
+from external_analysis import *
 
 '''
 @todo: implement temperature analysis
@@ -11,6 +12,62 @@ from utils import *
 #=======================================================================
 # VEGETATION COVER FRACTION -- begin
 #=======================================================================
+
+
+def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
+    '''
+    Analysis of vegetation phenology
+
+    Reference:
+    - Dahlke, Loew, Reick: ???? @todo: complete reference when paper published
+    '''
+
+    if GP == None:
+        GP = GleckerPlot()
+
+    #--- get land sea mask
+    ls_mask = get_T63_landseamask(shift_lon)
+
+    #--- T63 weights
+    t63_weights = get_T63_weights(shift_lon)
+
+
+    #--- initailize Reichler plot
+    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
+
+    for model in model_list:
+
+        GP.add_model(model.name) #register model for Glecker Plot
+
+        #/// GREENING PHASE ANALYSIS STEP 1 ... ///
+        ddir = './external/phenology_benchmarking/'
+        template = ddir + 'Greening_Phase_Analysis_I_CYC.m'
+
+        tags = [{'tag':'C:\Matlab\data\Cyclopes','value':'model-save-path'},{'tag':'FFT-Mask','value':'asdasdadsadsa'} ]
+
+        E=ExternalAnalysis('matlab -r <INPUTFILE>',template,tags,output_directory='./tmp_' + model.name.replace(' ','') + '/' ) #temporary scripts are stored in directories that have same name as model
+        E.run()
+
+        #/// GREENING PHASE ANALYSIS STEP 2 ... ///
+
+
+
+
+        #--- calculate Reichler diagnostic for preciptation
+        #~ Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
+        #~ Rplot.add(e2,model_data.label,color='red')
+
+        #/// Glecker plot ///
+        #~ e2a = GP.calc_index(gpcp,model_data,model,'pheno_faPAR')
+        e2a = np.random.rand() #todo
+        GP.add_data('pheno_faPAR',model.name,e2a,pos=1)
+
+
+
+
+
+
+
 
 
 def grass_fraction_analysis(model_list):
@@ -283,7 +340,7 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
         Rplot.add(e2,model_data.label,color='red')
 
         #/// Glecker plot ///
-        e2a = GP.calc_index(gpcp,model_data,model,'sis')
+        e2a = GP.calc_index(gpcp,model_data,model,'rain')
         GP.add_data('rain',model.name,e2a,pos=1)
 
         #report

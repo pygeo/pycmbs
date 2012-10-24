@@ -79,6 +79,40 @@ class CMIP5Data(Model):
         self.data_dir = data_dir
         self.shift_lon = shift_lon
 
+    def get_faPAR(self):
+        ############################################################################################
+        ############################################################################################
+        ############################################################################################
+        ###  todo: this is just a DUMMY copy at the moment!!! Replace with faPAR reading routine!!!
+        ############################################################################################
+        ############################################################################################
+        ############################################################################################
+        filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+
+
+        if self.start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if self.stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+        s_start_time = str(self.start_time)[0:10]
+        s_stop_time = str(self.stop_time)[0:10]
+
+        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
+        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+
+
+        if not os.path.exists(filename):
+            return None
+
+        sis = Data(filename,'rsds',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
+        print 'Data read!'
+
+        return sis
+
+
 
 
 
