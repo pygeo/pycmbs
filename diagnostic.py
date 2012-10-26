@@ -86,7 +86,7 @@ class EOF():
         #/// solve eigenvalue problem ///
         #eigval,eigvec = np.linalg.eig(self.C) # complex numbers in output matrices
         eigvec,eigval,v = linalg.svd( self.C ) # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
-		
+
         self.eigval = eigval
         self.eigvec = eigvec
 
@@ -707,13 +707,13 @@ class SVD():
         #/// perform SVN only for data points which are valid throughout entire time series ///
         x,mskx = self._get_valid_timeseries(self.x)
         y,msky = self._get_valid_timeseries(self.y)
-        
+
         #return x,mskx,y,msky
-        
-        
-        
-        
-        
+
+
+
+
+
         self.mskx = mskx; self.msky = msky
 
         #/// detrend the data for each grid point ///
@@ -740,7 +740,7 @@ class SVD():
         print '   Doing singular value decomposition xxxxxx ...'
         #plt.imshow(C); plt.colorbar()
         #return C
-        
+
         U, s, V = linalg.svd( C )
         print 'Done!'
         L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is somewhat python specific
@@ -1027,12 +1027,12 @@ class SVD():
             Rout1_he,Sout1_he,Iout1_he,Pout1_he,Cout1_he = self.X.corr_single(self.B[:,i],pthres=pthres)
             Rout2_he,Sout2_he,Iout2_he,Pout2_he,Cout2_he = self.Y.corr_single(self.A[:,i],pthres=pthres)
 
-        	#R #output matrix for correlation
-        	#P #output matrix for p-value
-        	#S #output matrix for slope
-        	#I #output matrix for intercept
-        	#C #output matrix for covariance
-        
+            #R #output matrix for correlation
+            #P #output matrix for p-value
+            #S #output matrix for slope
+            #I #output matrix for intercept
+            #C #output matrix for covariance
+
             #--- plot maps
             print 'Starting map plotting'
             #homogeneous
@@ -1694,7 +1694,7 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
-    def _set_year_ticks(self,years,ax,axis='x',size=10):
+    def _set_year_ticks(self,years,ax,axis='x',size=10,rotation=0.):
         '''
         set ticks of timeline with
         yearly ticks
@@ -1721,9 +1721,9 @@ class Diagnostic():
                 oticks.append(years[int(t)])
         #- set ticks of axis
         if   axis == 'x':
-            ax.set_xticklabels(oticks,size=size)
+            ax.set_xticklabels(oticks,size=size,rotation=rotation)
         elif axis == 'y':
-            ax.set_yticklabels(oticks,size=size)
+            ax.set_yticklabels(oticks,size=size,rotation=rotation)
         else:
             raise ValueError, 'Invalid axis (set_year_ticks)'
 

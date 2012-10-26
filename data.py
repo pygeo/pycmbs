@@ -167,12 +167,12 @@ class Data():
 
         if weights != None:
             #method = 'sum' #perform weighted sum in case that weights are provided
-            method = 'mean' 
+            method = 'mean'
             print "NOTE! zonal plot calculationmethod was set to -mean- by default: in data.py"
 
         dat = self._get_weighted_data(weights)
-         
-        
+
+
         if method == 'mean':
             r = dat.mean(axis=self.data.ndim-1)
         elif method == 'sum':
@@ -309,15 +309,15 @@ class Data():
 
         if weights != None:
             if dat.ndim == 2:
-            	print "dat.ndim= ", dat.ndim
-            	print "NOTE! zonal weight normalizat was commented: in data.py"
+                print "dat.ndim= ", dat.ndim
+                print "NOTE! zonal weight normalizat was commented: in data.py"
                 weights[dat.mask] = 0. #set weights to zero where the data is masked
                 #sw = weights.sum(); #print 'Sum of weights: ', sw
                 #weights = weights / sw #normalize thus the sum is one
                 dat = dat*weights.data
             elif dat.ndim == 3:
-            	print "dat.ndim= ", dat.ndim
-            	print "NOTE! zonal weight normalizat was commented: in data.py"
+                print "dat.ndim= ", dat.ndim
+                print "NOTE! zonal weight normalizat was commented: in data.py"
                 for i in range(len(dat)): #for all timesteps set mask
                     nweights = weights.copy()
                     #~ print i, dat.shape,range(len(dat)), weights.shape, nweights.shape
@@ -327,12 +327,12 @@ class Data():
                     #nweights = nweights*100
                     #~ print nweights.sum()
                     dat[i,:,:] = dat[i,:,:]*nweights.data
-                    
-                    
+
+
 
             else:
                 raise ValueError, 'Invalid dimensions: not supported yet'
-        
+
 
         return dat
 
@@ -1044,6 +1044,18 @@ class Data():
         return self.timsum() / self.timmean()
 
 #-----------------------------------------------------------------------
+#~
+    #~ def flipud(self):
+        #~ '''
+        #~ flip dataset up/down
+        #~ '''
+#~
+        #~ self.data = np.flipud(self.data)
+        #~ self.lon  = np.flipud(self.lon)
+        #~ self.lat  = np.flipud(self.lat)
+
+
+#-----------------------------------------------------------------------
 
     def fldmean(self,return_data = False):
         '''
@@ -1235,6 +1247,16 @@ class Data():
                 msk_region = R.mask
 
         msk = msk_lat & msk_lon & msk_region  # valid area
+
+
+        #~ print msk
+        #~ pl.figure(); pl.imshow(msk)
+        #~ pl.figure(); pl.imshow(msk_lat)
+        #~ pl.figure(); pl.imshow(msk_lon)
+        #~ pl.figure(); pl.imshow(msk_region)
+        #~ stop
+
+
 
         self._apply_mask(msk)
 
@@ -1488,6 +1510,33 @@ class Data():
                 #-copy
                 cmd = "d." + attr + " = self." + attr
                 exec(cmd)
+
+        return d
+
+#-----------------------------------------------------------------------
+
+    def add(self,x,copy=True):
+        '''
+        Add a C{Data} object to the current object field
+
+        @param x: C{Data} object which will be added
+        @type  x: Data object
+
+        @param copy: if True, then a new data object is returned
+                     else, the data of the present object is changed
+        @type copy: bool
+        '''
+
+        if np.shape(self.data) != np.shape(x.data):
+            raise ValueError, 'Inconsistent geometry (add): can not calculate!'
+
+        if copy:
+            d = self.copy()
+        else:
+            d = self
+
+        d.data = d.data + x.data
+        d.label = self.label + ' + ' + x.label
 
         return d
 
@@ -1854,6 +1903,7 @@ class Data():
 
         #substract regression line
         res = self.sub(reg)
+        res.label = self.label + '(det.)'
 
         if return_object:
             res.detrended = True
