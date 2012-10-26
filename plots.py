@@ -49,7 +49,7 @@ def thin_xticks(ax,n):
     '''
     thin xticks of axis
 
-    If there are too manx xticks in a plot or the labels
+    If there are too many xticks in a plot or the labels
     are overlapping, it makes sense to thin the mńumber of labels
 
     @param ax: axis that will be treated
@@ -288,7 +288,7 @@ class ScatterPlot():
     '''
     Class for generation of scatterplots
     '''
-    def __init__(self,x,ax=None,ticksize=10,normalize_data=False):
+    def __init__(self,x,ax=None,ticksize=10,normalize_data=False,show_xlabel=True):
         '''
         constructor of class C{ScatterPlot}
 
@@ -297,7 +297,13 @@ class ScatterPlot():
 
         @param normalize_data: if True, then the dataseries is normalizued internally so that it has zero mean and a std of 1
         @type normalize_data: bool
+
+        @param show_xlabel: show xlabel in plot
+        @type show_xlabel: bool
         '''
+
+        self.show_xlabel = show_xlabel
+
 
         if ax == None:
             f = plt.figure()
@@ -345,7 +351,11 @@ class ScatterPlot():
         #~ print xdat.shape
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.linregress(xdat,ydat)
-            label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+            if p_value < 0.01:
+                spvalue = 'p < 0.01'
+            else:
+                spvalue = 'p=' + str(round(p_value,2))
+            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ')'
             rms_error = np.mean(((xdat-ydat)**2))
             std_error = np.std(xdat-ydat)
 
@@ -354,7 +364,8 @@ class ScatterPlot():
             self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
         self.lines.append(l); self.labels.append(label)
 
-        self.ax.set_xlabel(self.x._get_label(),size=self.ticksize )
+        if self.show_xlabel:
+            self.ax.set_xlabel(self.x._get_label(),size=self.ticksize )
         self.ax.set_ylabel(y._get_unit(),size=self.ticksize)
 
         self._change_ticklabels()
@@ -488,10 +499,16 @@ class LinePlot():
             if self.regress: #calculate linear regression
                 slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time/self.normx,y) #@todo: is it correct to use here time instead of .data?
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y) #@todo: is it correct to use here time instead of .data?
-                if self.show_equation:
-                    label = label + ' (y=' + "%.1e" % slope_print + 'x+' + "%.1e" % intercept_print  + ', r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+
+                if p_value < 0.01:
+                    spvalue = 'p < 0.01'
                 else:
-                    label = label + ' (r=' + str(round(r_value,2)) + ', p=' + str(round(p_value,2)) + ')'
+                    spvalue = 'p=' + str(round(p_value,2))
+
+                if self.show_equation:
+                    label = label + ' (y=' + "%.1e" % slope_print + 'x+' + "%.1e" % intercept_print  + ', r=' + str(round(r_value,2)) + ', ' + spvalue + ')'
+                else:
+                    label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ')'
 
             self.labels.append(label)
 
@@ -548,7 +565,7 @@ class ZonalPlot():
         if ax == None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
-            
+
         else:
             self.ax = ax
 
@@ -602,8 +619,8 @@ class ZonalPlot():
                 print dat.shape
                 print x.lat.shape
                 sys.exit()
-		
-		
+
+
 
         #--- plot zonal statistics
         if dat.ndim == 1:
@@ -614,9 +631,9 @@ class ZonalPlot():
                 #~ print dat[i,:]
                 #~ self.ax.plot(dat[i,:],label='time='+str(i))
                 self.ax.plot(dat[i,:],x.lat[:,0],label='time='+str(i))
-            	self.ax.grid(b='on')
-            	
-			
+                self.ax.grid(b='on')
+
+
 
         self.ax.set_ylim(-90.,90.)
 
@@ -627,9 +644,9 @@ class ZonalPlot():
 
         if xlim != None:
             self.ax.set_xlim(xlim)
-        
+
         self.ax.grid(b='on')
-        
+
 
 #-----------------------------------------------------------------------
 
@@ -1191,7 +1208,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- temporal mean fields
     xm = x.timmean()
-    
+
     #--- logscale plot ?
     if logplot:
         if logoffset == None:
