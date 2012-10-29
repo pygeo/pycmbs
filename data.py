@@ -43,7 +43,7 @@ class Data():
     '''
     Data class: main class
     '''
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,weights=None):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,weights=None,time_var='time'):
         '''
         Constructor for Data class
 
@@ -142,7 +142,7 @@ class Data():
         self._areaweights_org = weights #2D areaweights; these are then modified for each valid grid cell
 
         if read:
-            self.read(shift_lon,start_time=start_time,stop_time=stop_time)
+            self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
 
             #~ todo implement areaweighting assignment when reading the data!
 #~
@@ -376,7 +376,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def read(self,shift_lon,start_time=None,stop_time=None):
+    def read(self,shift_lon,start_time=None,stop_time=None,time_var='time'):
         '''
         read data from file
 
@@ -388,6 +388,9 @@ class Data():
 
         @param stop_time: stop time for reading the data
         @type: stop_time: datetime object
+
+        @param time_var: name of time variable field
+        @type time_var: str
 
         '''
         if not os.path.exists(self.filename):
@@ -430,7 +433,7 @@ class Data():
             self.lon = None
 
         #- read time
-        self.time = self.read_netcdf('time') #returns either None or a masked array
+        self.time = self.read_netcdf(time_var) #returns either None or a masked array
         if hasattr(self.time,'mask'):
             self.time = self.time.data
         else:
@@ -790,6 +793,7 @@ class Data():
             self._set_date(basedate,unit='day')
         elif 'months since' in self.time_str:
             basedate = self.time_str.split('since')[1].lstrip()
+            print 'BASEDATA: ', basedate
             if self.verbose:
                 print 'BASEDATE: ', basedate
             self._set_date(basedate,unit='month')
@@ -1190,7 +1194,7 @@ class Data():
 
     def _set_date(self,basedate,unit='hour'):
         '''
-        set Data object time variable
+        set C{Data} object time variable
 
         @param basedate: basis date used for the data;
         @type basedate: str, datestring that can be interpreted by datestr2num()
@@ -1204,6 +1208,7 @@ class Data():
             self.time = (self.time/scal + plt.datestr2num(basedate) )
         elif unit == 'day':
             scal = 1.
+            #~ print self.time
             self.time = (self.time/scal + plt.datestr2num(basedate) )
         elif unit == 'month':
             #months since basedate
@@ -1213,14 +1218,24 @@ class Data():
             sdate = [d for d in rrule(MONTHLY,dtstart=datetime(bdate.year,bdate.month,bdate.day),count=self.time[0]+1)] #calculate date of first dataset
             sdate=sdate[-1] #last date as start date
 
-            #@todo: implement time support for monthly data also for not equally spaced months
             interval = np.diff(self.time)
             msk = interval == interval[0]
             interval = map(int,interval)
-            if any(msk) == False:
-                raise ValueError, 'Monthly timeseries only supported at the moment with equdistant timesteps'
-            x=[d for d in rrule(MONTHLY,dtstart=datetime(sdate.year,sdate.month,sdate.day),count=len(self.time),interval=interval[0] )] #calculate series of data
-            self.time = plt.date2num(x)
+
+            if ~all(msk):
+                #--- the months are not equally spaced, therefore generate a list manually
+                from datetime import date
+                from dateutil.relativedelta import relativedelta
+                x=[]
+                bdate0 = datetime(bdate.year,bdate.month,bdate.day)
+                print bdate0
+                for t in self.time:
+                    x.append(bdate0 + relativedelta( months = int(t) ))
+                self.time = plt.date2num(x)
+            else:
+                #--- monthly timeseries for equidistant data
+                x=[d for d in rrule(MONTHLY,dtstart=datetime(sdate.year,sdate.month,sdate.day),count=len(self.time),interval=interval[0] )] #calculate series of data
+                self.time = plt.date2num(x)
         else:
             raise ValueError, 'Unsupported unit value'
 
@@ -1416,6 +1431,7 @@ class Data():
         elif self.data.ndim == 3:
             for i in range(len(self.data)):
                 tmp              = self.data[i,:,:].copy()
+                print tmp.shape, msk.shape
                 tmp[~msk]        = np.nan
                 self.data[i,:,:] = tmp[:,:]
                 del tmp
