@@ -144,11 +144,11 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time)
 
-            todo implement areaweighting assignment when reading the data!
-
-            set areaweights_org to the valid mask if no weights are provided initaalilly
-
-            and also when applying a mask!!
+            #~ todo implement areaweighting assignment when reading the data!
+#~
+            #~ set areaweights_org to the valid mask if no weights are provided initaalilly
+#~
+            #~ and also when applying a mask!!
 
 
     def set_sample_data(self,a,b,c):

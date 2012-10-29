@@ -594,8 +594,8 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
     #read monthly data if global means desired
     if GM != None:
-        obs_monthly = Data(raw_sis,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-        GM.plot(obs_monthly)
+        obs_monthly = Data(raw_sis,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
+        GM.plot(obs_monthly,linestyle='--')
         del obs_monthly
 
 
