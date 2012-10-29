@@ -1,18 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = "Alexander Loew"
+__version__ = "0.1"
+__date__ = "2012/10/29"
+__email__ = "alexander.loew@zmaw.de"
+
+'''
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+'''
+
 from utils import *
 from external_analysis import *
 
-'''
-@todo: implement temperature analysis
-'''
+#///////////////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////
 
 
 #=======================================================================
 # VEGETATION COVER FRACTION -- begin
 #=======================================================================
-
 
 def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
     '''
@@ -42,10 +59,10 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         #/// GREENING PHASE ANALYSIS STEP 1 ... ///
         #ddir = './external/phenology_benchmarking/' #todo set right directory!
         ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'
-        
+
         data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!!
         varname = 'fapar' #todo: set variable name interactively
-        
+
         template = ddir + 'Greening_Phase_Analysis_I,quit' #important: no file extension!!! and ',quit' at the end to leave execution in the end!
 
         tags = [{'tag':'<STARTYEAR>','value':'1970'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':ddir + 'GPA-01-' + model.name.replace(' ','') },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
@@ -184,7 +201,6 @@ def tree_fraction_analysis(model_list,pft='tree'):
 # ALBEDO -- begin
 #=======================================================================
 
-
 def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
@@ -194,6 +210,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
         raise ValueError, 'You need to specify report option!'
 
     report.section('Surface albedo')
+    report.subsection('MODIS WSA')
     albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
 
 def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
@@ -203,10 +220,9 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
     vmin = 0.; vmax = 0.6
 
-    print 'Doing albedo analysis ...'
+    print 'Doing ALBEDO analysis ...'
 
     #--- GleckerPlot
-    #~ GP = global_glecker
     if GP == None:
         GP = GleckerPlot()
 
@@ -229,10 +245,15 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
     for model in model_list:
 
+        print 'ALBEDO analysis of model: ', model.name
+
         GP.add_model(model.name) #register model for Glecker Plot
 
         #--- get model data
         model_data = model.variables['albedo']
+
+        #--- use only valid albedo data (invalid values might be due to polar night effects)
+        model_data.data = np.ma.array(model_data.data,mask = ((model_data.data<0.) | (model_data.data > 1.)) )
 
         if model_data == None: #data file was not existing
             print 'Data not existing for model: ', model.name; continue
@@ -242,12 +263,11 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
             print model_data.data.shape; print albedo.data.shape; stop
 
         #--- generate difference map
-        dmin = -0.1; dmax = 0.1
-        f_dif  = map_difference(model_data ,albedo,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
+        dmin = -0.09; dmax = 0.09
+        f_dif  = map_difference(model_data ,albedo,nclasses=6,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,0.1,0.2,0.3,0.4,0.5,0.6],cticks_diff=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09])
 
         #seasonal map
-        f_season = map_season(model_data.sub(albedo),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True)
-
+        f_season = map_season(model_data.sub(albedo),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09],nclasses=6)
 
         #/// Reichler statistics ///
         Diag = Diagnostic(albedo,model_data)
@@ -259,19 +279,105 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
         GP.add_data('albedo',model.name,e2a,pos=1)
 
         #/// report results
-        report.subsection(model.name)
+        report.subsubsection(model.name)
         report.figure(f_season,caption='Seasonal differences')
         report.figure(f_dif,caption='Mean and relative differences')
 
-
-
-    f_reich = Rplot.bar()
+    f_reich = Rplot.bar(title='relative model error: ALBEDO')
     report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
     report.newpage()
 
 #=======================================================================
 # ALBEDO -- end
 #=======================================================================
+
+#=======================================================================
+# TEMPERATURE -- begin
+#=======================================================================
+
+
+#=======================================================================
+# TEMPERATURE -- end
+#=======================================================================
+def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+
+    if report == None:
+        raise ValueError, 'You need to specify report option!'
+
+    report.section('Temperature')
+    temperature_analysis_cru(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
+
+def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None):
+    '''
+    units: K
+    '''
+    print 'Doing Temperature analysis ...'
+
+    vmin = 270; vmax = 320.
+
+    #--- Glecker plot
+    model_names = []
+
+    #--- T63 weights
+    t63_weights = get_T63_weights(shift_lon)
+
+    #--- get land sea mask
+    ls_mask = get_T63_landseamask(shift_lon)
+
+    #--- load CRU data
+
+    if interval == 'season': #seasonal comparison
+        t2_file      = get_data_pool_directory() + 'variables/land/Ta_2m/CRUTEM3v.nc'
+        #gpcp_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
+    else:
+        sys.exit('Unknown interval for rainfall_analyis()')
+
+    T2 = Data(t2_file,'temp',read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    #~ gpcp_std = Data(gpcp_file_std,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    #~ gpcp.std = gpcp_std.data.copy(); del gpcp_std
+
+    #--- initailize Reichler plot
+    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
+
+    #--- get model field of precipitation
+    for model in model_list:
+        model_data = model.variables['T2']
+        GP.add_model(model.name)
+
+        if model_data == None:
+            continue
+
+        model_names.append(model.name)
+
+        if model_data.data.shape != gpcp.data.shape:
+            print 'WARNING Inconsistent geometries for CRU temperature'
+            print model_data.data.shape; print gpcp.data.shape
+
+        dmin=-10.;dmax=10.
+        f_dif = map_difference(model_data,T2,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
+
+        #seasonal map
+        f_season = map_season(model_data.sub(T2),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
+
+        #--- calculate Reichler diagnostic for preciptation
+        Diag = Diagnostic(T2,model_data); e2 = Diag.calc_reichler_index(t63_weights)
+        Rplot.add(e2,model_data.label,color='red')
+
+        #/// Glecker plot ///
+        e2a = GP.calc_index(T2,model_data,model,'T2')
+        GP.add_data('T2',model.name,e2a,pos=1)
+
+        #report
+        report.subsection(model.name)
+        report.figure(f_season,caption='Seasonal differences')
+        report.figure(f_dif,caption='Mean and relative differences')
+
+    f_reich = Rplot.bar()
+    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
+    report.newpage()
+
+
+
 
 
 #=======================================================================
@@ -283,6 +389,7 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
         raise ValueError, 'You need to specify report option!'
 
     report.section('Precipitation')
+    report.subsection('GPCP')
     rainfall_analysis_gpcp(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
 
 
@@ -349,7 +456,7 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
         GP.add_data('rain',model.name,e2a,pos=1)
 
         #report
-        report.subsection(model.name)
+        report.subsubsection(model.name)
         report.figure(f_season,caption='Seasonal differences')
         report.figure(f_dif,caption='Mean and relative differences')
 
@@ -381,28 +488,41 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
     if report == None:
         raise ValueError, 'You need to specify report option!'
 
-    vmin=0.;vmax=300;dmin=-20.;dmax = 20.
+    vmin=0.;vmax=300;dmin=-18.;dmax = 18.
 
     print '   SIS analysis ...'
 
+    report.section('Shortwave downwelling radiation (SIS)')
+    fG = plt.figure(); axg = fG.add_subplot(111)
+    GM = GlobalMeanPlot(ax=axg) #global mean plot
+
     #isccp
-    report.section('Shortwave downwelling radiation - ISCCP')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report)
+    report.subsection('ISCCP')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #srb
-    report.section('Shortwave downwelling radiation - SRB')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report)
+    report.subsection('SRB')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #ceres
-    report.section('Shortwave downwelling radiation - CERES')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report)
+    report.subsection('CERES')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #cm-saf
-    report.section('Shortwave downwelling radiation - CMSAF')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report)
+    report.subsection('CMSAF')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+
+    report.figure(fG,caption='Global means for SIS ')
+
 
 #-----------------------------------------------------------------------
 
-def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None,report=None):
+def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None,report=None):
     '''
     model_list = list which contains objects of data type MODEL
+
+
+    @param GM: global mean plot
+    @type GM: C{GlobalMeanPlot}
+
+
     '''
 
     print '      ... ' + obs_type
@@ -457,7 +577,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use
     #--- PREPROESSING ---
     if interval == 'season':
         #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2)
+        cdo = pyCDO(raw_sis,y1,y2) #todo: start/stop years dynamically !!!
         if interval == 'season':
             seasfile = cdo.seasmean(); del cdo
             print 'seasfile: ', seasfile
@@ -468,15 +588,27 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use
             raise ValueError, 'Invalid interval option ', interval
 
     #--- READ DATA ---
-    obs_sis     = Data(obs_sis_file,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    obs_sis_std = Data(obs_sis_std_file,obs_var,read=True,label=obs_type + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    obs_sis     = Data(obs_sis_file,obs_var,read=True,label=obs_type,unit = '$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
+    obs_sis_std = Data(obs_sis_std_file,obs_var,read=True,label=obs_type + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
     obs_sis.std = obs_sis_std.data.copy(); del obs_sis_std
+
+    #read monthly data if global means desired
+    if GM != None:
+        obs_monthly = Data(raw_sis,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+        GM.plot(obs_monthly)
+        del obs_monthly
+
+
 
     #--- initialize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     for model in model_list:
         GP.add_model(model.name) #register model name in GleckerPlot
+
+        if GM != None:
+            if 'sis_org' in model.variables.keys():
+                GM.plot(model.variables['sis_org'],label=model.name) #(time,meandata)
 
         #--- get model data
         model_data = model.variables['sis']
@@ -488,7 +620,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use
             raise ValueError, 'Inconsistent geometries for SIS'
 
         #--- generate difference map
-        f_dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=10,show_zonal=True,zonal_timmean=False)
+        f_dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=6,show_zonal=True,zonal_timmean=False,cticks=[0.,50.,100.,150.,200.,250.,300.],cticks_diff=[-18.,-12.,-6.,0.,6.,12.,18.],rmin=-0.25,rmax=0.25)
 
         #/// Reichler statistics ///
         Diag = Diagnostic(obs_sis,model_data)
@@ -500,10 +632,10 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,shift_lon=None,use
         GP.add_data('sis',model.name,e2a,pos=glecker_pos)
 
         #/// report results
-        report.subsection(model.name)
+        report.subsubsection(model.name)
         report.figure(f_dif,caption='Mean and relative differences ' + obs_type + ' ' + model.name)
 
-    f_reich = Rplot.bar()
+    f_reich = Rplot.bar(title='relative model error: SIS')
     report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
     report.newpage()
 

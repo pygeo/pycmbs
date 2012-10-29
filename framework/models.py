@@ -1,8 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from pyCMBS import *
+__author__ = "Alexander Loew"
+__version__ = "0.1"
+__date__ = "2012/10/29"
+__email__ = "alexander.loew@zmaw.de"
 
+'''
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+'''
+
+
+
+from pyCMBS import *
 from utils import *
 
 '''
@@ -61,7 +81,14 @@ class Model(Data):
             #~ if hasattr(self,routine):
             if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
                 exec(cmd)
-                self.variables.update({ k : dat })
+
+                #if a tuple is returned, then it is the data + a tuple for the original global mean field
+                if 'tuple' in str(type(dat)):
+                    self.variables.update({ k : dat[0] }) #update field with data
+                    self.variables.update({ k + '_org' : dat[1]})
+                else:
+                    self.variables.update({ k : dat[0] }) #update field with data
+
             else:
                 print 'WARNING: unknown function to read data (skip!) ', routine
                 self.variables.update({ k : None })
@@ -78,6 +105,7 @@ class CMIP5Data(Model):
         self.experiment = experiment
         self.data_dir = data_dir
         self.shift_lon = shift_lon
+        self.type = 'CMIP5'
 
     def get_faPAR(self):
         ############################################################################################
@@ -117,9 +145,17 @@ class CMIP5Data(Model):
 
 
     def get_surface_shortwave_radiation_down(self):
+
+        '''
+        return data object of
+        a) seasonal means for SIS
+        b) global mean timeseries for SIS at original temporal resolution
+        '''
+
+        #original data
         filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
-
+        force_calc = False
 
         if self.start_time == None:
             raise ValueError, 'Start time needs to be specified'
@@ -129,7 +165,7 @@ class CMIP5Data(Model):
         s_start_time = str(self.start_time)[0:10]
         s_stop_time = str(self.stop_time)[0:10]
 
-        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
+        tmp  = pyCDO(filename1,s_start_time,s_stop_time,force=force_calc).seldate()
         tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
         filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
 
@@ -137,10 +173,20 @@ class CMIP5Data(Model):
         if not os.path.exists(filename):
             return None
 
-        sis = Data(filename,'rsds',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
-        print 'Data read!'
+        sis = Data(filename,'rsds',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
+        #print 'Data read!'
 
-        return sis
+        sisall = Data(filename1,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False)
+        sismean = sisall.fldmean()
+
+        retval = (sisall.time,sismean); del sisall
+
+        #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
+        sis.data = np.ma.array(sis.data,mask=sis.data < 1.)
+
+        return sis,retval
+
+
 
     def get_surface_shortwave_radiation_up(self):
         filename1 = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -171,6 +217,7 @@ class CMIP5Data(Model):
         first the monthly mean fluxes are used to calculate the albedo,
         '''
 
+        force_calc = False
 
         #--- read land-sea mask
         ls_mask = get_T63_landseamask(self.shift_lon)
@@ -198,23 +245,25 @@ class CMIP5Data(Model):
         # CAUTION: it might happen that latitudes are flipped. Therefore always apply remapcon!
 
         #select dates
-        Fu = pyCDO(file_up,s_start_time,s_stop_time).seldate()
-        Fd = pyCDO(file_down,s_start_time,s_stop_time).seldate()
+        Fu = pyCDO(file_up,s_start_time,s_stop_time,force=force_calc).seldate()
+        Fd = pyCDO(file_down,s_start_time,s_stop_time,force=force_calc).seldate()
 
         #remap to T63
-        tmpu = pyCDO(Fu,s_start_time,s_stop_time).remap()
-        tmpd = pyCDO(Fd,s_start_time,s_stop_time).remap()
+        tmpu = pyCDO(Fu,s_start_time,s_stop_time,force=force_calc).remap()
+        tmpd = pyCDO(Fd,s_start_time,s_stop_time,force=force_calc).remap()
 
         #calculate monthly albedo
-        albmon = pyCDO(tmpu,s_start_time,s_stop_time).div(tmpd,output=self.model + '_' + self.experiment + '_albedo_tmp.nc')
+        albmon = pyCDO(tmpu,s_start_time,s_stop_time,force=force_calc).div(tmpd,output=self.model + '_' + self.experiment + '_albedo_tmp.nc')
 
         #calculate seasonal mean albedo
-        tmp1 = pyCDO(albmon,s_start_time,s_stop_time).seasmean()
-        albfile = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+        tmp1 = pyCDO(albmon,s_start_time,s_stop_time,force=force_calc).seasmean()
+        albfile = pyCDO(tmp1,s_start_time,s_stop_time,force=force_calc).yseasmean()
 
         alb = Data(albfile,'rsus',read=True,label=self.model + ' albedo',unit='-',lat_name='lat',lon_name='lon',shift_lon=True)
+        alb._set_valid_range(0.,1.)
 
         alb._apply_mask(ls_mask.data)
+
 
         return alb
 
@@ -238,6 +287,7 @@ class JSBACH_BOT(Model):
         self.experiment = experiment
         self.shift_lon = shift_lon
         self.get_data()
+        self.type = 'JSBACH_BOT'
 
     def get_albedo_data(self):
         '''
@@ -345,21 +395,28 @@ class JSBACH_BOT(Model):
         returns Data object
         '''
 
-        #todo: implement preprocessing here
-
-        v = 'var4'
         if interval == 'season':
-            filename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1982-2006_sel_yseasmean.nc'
+            pass
         else:
             raise ValueError, 'Invalid value for interval: ' + interval
 
+        #/// PREPROCESSING: seasonal means ///
+        s_start_time = str(self.start_time)[0:10]
+        s_stop_time = str(self.stop_time)[0:10]
+
+        filename1 = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1982-2006_sel.nc'
+        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
+        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+
+        #/// READ DATA ///
+
+        #1) land / sea mask
         ls_mask = get_T63_landseamask(self.shift_lon)
 
-        if not os.path.exists(filename):
-            stop
-            return None
-
-        try: #todo this is silly
+        #2) precipitation data
+        try: #todo this is silly; need to adapt in the edn
+            v = 'var4'
             rain = Data(filename,v,read=True,scale_factor = 86400.,
             label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
             shift_lon=self.shift_lon,
@@ -370,8 +427,6 @@ class JSBACH_BOT(Model):
             label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
             shift_lon=self.shift_lon,
             mask=ls_mask.data.data)
-
-
 
         return rain
 
@@ -390,6 +445,7 @@ class JSBACH_RAW(Model):
         self.experiment = experiment
         self.shift_lon = shift_lon
         self.get_data()
+        self.type = 'JSBACH_RAW'
 
     def get_albedo_data(self):
         '''
