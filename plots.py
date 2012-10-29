@@ -583,7 +583,7 @@ class GlobalMeanPlot():
         self.labels=[]
         self.plots=[]
 
-    def plot(self,D,color=None,linewidth=2,show_std=False,label=None):
+    def plot(self,D,color=None,linewidth=1,show_std=False,label=None,linestyle='-'):
         '''
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -635,9 +635,9 @@ class GlobalMeanPlot():
 
         #--- plot generation ---
         if color == None:
-            p = self.ax.plot(t,mdata,linewidth=linewidth)
+            p = self.ax.plot(t,mdata,linewidth=linewidth,linestyle=linestyle)
         else:
-            p = self.ax.plot(t,mdata,color=color,linewidth=linewidth)
+            p = self.ax.plot(t,mdata,color=color,linewidth=linewidth,linestyle=linestyle)
 
         if show_std:
             s = D.fldstd (return_data=True) #std
