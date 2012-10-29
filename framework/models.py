@@ -87,7 +87,7 @@ class Model(Data):
                     self.variables.update({ k : dat[0] }) #update field with data
                     self.variables.update({ k + '_org' : dat[1]})
                 else:
-                    self.variables.update({ k : dat[0] }) #update field with data
+                    self.variables.update({ k : dat }) #update field with data
 
             else:
                 print 'WARNING: unknown function to read data (skip!) ', routine
@@ -140,7 +140,90 @@ class CMIP5Data(Model):
 
         return sis
 
+#-----------------------------------------------------------------------
 
+    def get_rainfall_data(self):
+
+        '''
+        return data object of
+        a) seasonal means for precipitation
+        b) global mean timeseries for PR at original temporal resolution
+        '''
+
+        #original data
+        filename1 = self.data_dir + 'pr/' +  self.model + '/' + 'pr_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+        force_calc = False
+
+        if self.start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if self.stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+        s_start_time = str(self.start_time)[0:10]
+        s_stop_time = str(self.stop_time)[0:10]
+
+        tmp  = pyCDO(filename1,s_start_time,s_stop_time,force=force_calc).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
+        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+
+        if not os.path.exists(filename):
+            return None
+
+        pr = Data(filename,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
+
+        prall = Data(filename1,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
+        prmean = prall.fldmean()
+
+        retval = (prall.time,prmean); del prall
+
+        pr.data = np.ma.array(pr.data,mask=pr.data < 0.)
+
+        return pr,retval
+
+#-----------------------------------------------------------------------
+
+    def get_temperature_2m(self):
+
+        '''
+        return data object of
+        a) seasonal means for air temperature
+        b) global mean timeseries for TAS at original temporal resolution
+        '''
+
+        #original data
+        filename1 = self.data_dir + 'tas/' +  self.model + '/' + 'tas_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+        force_calc = False
+
+        if self.start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if self.stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+        s_start_time = str(self.start_time)[0:10]
+        s_stop_time = str(self.stop_time)[0:10]
+
+        tmp  = pyCDO(filename1,s_start_time,s_stop_time,force=force_calc).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
+        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+
+        if not os.path.exists(filename):
+            return None
+
+        tas = Data(filename,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False)
+
+        tasall = Data(filename1,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False)
+        tasmean = tasall.fldmean()
+
+        retval = (tasall.time,tasmean); del tasall
+
+        tas.data = np.ma.array(tas.data,mask=tas.data < 0.)
+
+        return tas,retval
+
+
+#-----------------------------------------------------------------------
 
 
 

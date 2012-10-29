@@ -28,8 +28,8 @@ __email__ = "alexander.loew@zmaw.de"
 #                    | CMIP5 | JSBACH_BOT | JSBACH RAW | report | Remark
 #albedo analysis     |   P   |            |      X     |    x   | preprocessing includes calculation of albedo from SW up and downward fluxes as well as regridding to T63 grid if needed
 #SIS analysis        |   P   |            |      X     |    x   |
-#rainfall analysis   |       |      P     |      X     |    x   |
-#temperature         |       |            |            |        |
+#rainfall analysis   |   P   |      P     |      X     |    x   |
+#temperature         |   P   |            |            |    x   |
 #veg. fraction       |       |            |            |        |
 # phenology          |       |            |            |        |  external framework
 #snow fraction       |       |            |            |        |

@@ -327,21 +327,41 @@ def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=Fals
     #--- load CRU data
 
     if interval == 'season': #seasonal comparison
-        t2_file      = get_data_pool_directory() + 'variables/land/Ta_2m/CRUTEM3v.nc'
+        #~ t2_file      = get_data_pool_directory() + 'variables/land/Ta_2m/CRUTEM3v.nc'
         #gpcp_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
+
+        s_start_time = '1979-01-01'; s_stop_time = '2006-12-31'
+        obs_file_raw = get_data_pool_directory() + 'variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
+
+        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
+        tmp1     = pyCDO(tmp,s_start_time,s_stop_time).remap()
+        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
+        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean() #seasonal mean
+
+        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #seasonal std
+
+
+        obs_var = 'tmp'
+
+
+
     else:
         sys.exit('Unknown interval for rainfall_analyis()')
 
-    T2 = Data(t2_file,'temp',read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    #~ gpcp_std = Data(gpcp_file_std,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    #~ gpcp.std = gpcp_std.data.copy(); del gpcp_std
+    T2 = Data(obs_file,obs_var,read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,level=0)
+    T2.data = T2.data + 273.15 #Kelvin
+    T2_std = Data(obs_file_std,obs_var,read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,level=0)
+    T2.std = T2_std.data.copy(); del T2_std
+
+
+
 
     #--- initailize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     #--- get model field of precipitation
     for model in model_list:
-        model_data = model.variables['T2']
+        model_data = model.variables['temperature']
         GP.add_model(model.name)
 
         if model_data == None:
@@ -349,9 +369,9 @@ def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=Fals
 
         model_names.append(model.name)
 
-        if model_data.data.shape != gpcp.data.shape:
+        if model_data.data.shape != T2.data.shape:
             print 'WARNING Inconsistent geometries for CRU temperature'
-            print model_data.data.shape; print gpcp.data.shape
+            print model_data.data.shape; print T2.data.shape
 
         dmin=-10.;dmax=10.
         f_dif = map_difference(model_data,T2,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
@@ -389,17 +409,26 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
         raise ValueError, 'You need to specify report option!'
 
     report.section('Precipitation')
+
     report.subsection('GPCP')
-    rainfall_analysis_gpcp(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
+    rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='GPCP')
+
+    report.subsection('CRU')
+    rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='CRU')
+
+    #~ report.subsection('GPCC')
+    #~ rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='GPCC')
 
 
 
-
-def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None):
+def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None,obs_type=None):
     '''
     units: mm/day
     '''
     print 'Doing rainfall analysis ...'
+
+    if obs_type == None:
+        raise ValueError, 'Can not do precipitation analysis:  missing observation type'
 
     vmin = 0.; vmax = 10.
 
@@ -412,17 +441,62 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
 
-    #--- load GPCP data
+    if obs_type == 'GPCP':
+        #--- load GPCP data
+        glecker_pos = 1
+        if interval == 'season': #seasonal comparison
+            obs_file      = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasmean.nc'
+            obs_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
+            obs_var = 'precip'
+        else:
+            sys.exit('Unknown interval for rainfall_analyis()')
 
-    if interval == 'season': #seasonal comparison
-        gpcp_file      = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasmean.nc'
-        gpcp_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
+        scale_data = 1.
+
+    elif obs_type == 'CRU':
+        glecker_pos = 2
+        s_start_time = '1979-01-01'; s_stop_time = '2006-12-31'
+
+        obs_file_raw = get_data_pool_directory() + 'variables/land/precipitation/CRU/cru_ts_3_00.1901.2006.pre_miss.nc'
+
+        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).remap()
+        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
+        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean() #seasonal mean
+
+        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #standard deviation of seasonal mean
+
+        scale_data = 12./365. #scale factor to scale from mm/month to mm/day #@todo: revise scale factor in precipitation analysis (not taking care yet for different month lengths!)
+
+        obs_var = 'pre'
+
+    elif obs_type == 'GPCC':
+
+        raise ValueError, 'GPCC not supported yet, as no coordinates in OBS file!!' #@todo: coordinates in GPCC observational file!
+
+        glecker_pos = 3
+        s_start_time = '1979-01-01'; s_stop_time = '2007-12-31'
+
+        obs_file_raw = get_data_pool_directory() + 'variables/land/precipitation/GPCC/gpcc_full_vs4_1951-2007.nc'
+
+        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
+        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).remap()
+        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
+        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean() #seasonal mean
+
+        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #standard deviation of seasonal mean
+
+        scale_data = 12./365. #scale factor to scale from mm/month to mm/day #@todo: revise scale factor in precipitation analysis (not taking care yet for different month lengths!)
+
+        obs_var = 'var260'
+
+
     else:
-        sys.exit('Unknown interval for rainfall_analyis()')
+        raise ValueError, 'UNKNOWN obs_type: ' + obs_type
 
-    gpcp = Data(gpcp_file,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    gpcp_std = Data(gpcp_file_std,'precip',read=True,label='GPCP',unit='mm',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    gpcp.std = gpcp_std.data.copy(); del gpcp_std
+    theobs = Data(obs_file,obs_var,read=True,label=obs_type,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,scale_factor = scale_data)
+    theobs_std = Data(obs_file_std,obs_var,read=True,label=obs_type,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+    theobs.std = theobs_std.data.copy(); del theobs_std
 
     #--- initailize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -437,23 +511,23 @@ def rainfall_analysis_gpcp(model_list,interval='season',GP=None,shift_lon=False,
 
         model_names.append(model.name)
 
-        if model_data.data.shape != gpcp.data.shape:
+        if model_data.data.shape != theobs.data.shape:
             print 'WARNING Inconsistent geometries for GPCP'
-            print model_data.data.shape; print gpcp.data.shape
+            print model_data.data.shape; print theobs.data.shape
 
         dmin=-1.;dmax=1.
-        f_dif = map_difference(model_data,gpcp,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
+        f_dif = map_difference(model_data,theobs,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
 
         #seasonal map
-        f_season = map_season(model_data.sub(gpcp),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
+        f_season = map_season(model_data.sub(theobs),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
 
         #--- calculate Reichler diagnostic for preciptation
-        Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
+        Diag = Diagnostic(theobs,model_data); e2 = Diag.calc_reichler_index(t63_weights)
         Rplot.add(e2,model_data.label,color='red')
 
         #/// Glecker plot ///
-        e2a = GP.calc_index(gpcp,model_data,model,'rain')
-        GP.add_data('rain',model.name,e2a,pos=1)
+        e2a = GP.calc_index(theobs,model_data,model,'rain')
+        GP.add_data('rain',model.name,e2a,pos=glecker_pos)
 
         #report
         report.subsubsection(model.name)
