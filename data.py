@@ -1,10 +1,25 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.0"
-__date__ = "0000/00/00"
+__version__ = "0.1"
+__date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
+
+'''
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+'''
+
 
 import os,sys
 
@@ -28,7 +43,7 @@ class Data():
     '''
     Data class: main class
     '''
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,weights=None):
         '''
         Constructor for Data class
 
@@ -88,6 +103,9 @@ class Data():
         @param verbose: verbose mode for printing
         @type verbose: bool
 
+        @param weights: area weighting factor. sum(weights) should be one. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
+        @type weights: numpy array
+
         '''
 
         self.filename     = filename
@@ -121,8 +139,16 @@ class Data():
         if time_cycle != None:
             self.time_cycle = time_cycle
 
+        self._areaweights_org = weights #2D areaweights; these are then modified for each valid grid cell
+
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time)
+
+            todo implement areaweighting assignment when reading the data!
+
+            set areaweights_org to the valid mask if no weights are provided initaalilly
+
+            and also when applying a mask!!
 
 
     def set_sample_data(self,a,b,c):
@@ -314,7 +340,7 @@ class Data():
                 weights[dat.mask] = 0. #set weights to zero where the data is masked
                 #sw = weights.sum(); #print 'Sum of weights: ', sw
                 #weights = weights / sw #normalize thus the sum is one
-                dat = dat*weights.data
+                dat = dat*weights.data #todo: renormalize only by valid data!!!
             elif dat.ndim == 3:
                 print "dat.ndim= ", dat.ndim
                 print "NOTE! zonal weight normalizat was commented: in data.py"
@@ -1079,6 +1105,29 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def fldstd(self,return_data = False):
+        '''
+        calculate stdv of the spatial field
+
+        @param return_data: if True, then a C{Data} object is returned
+        @type return_data: bool
+
+        @return: vector of spatial std array[time]
+        '''
+        if return_data: #return data object
+            tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
+            x = np.zeros((len(tmp),1,1))
+
+            x[:,0,0] = tmp
+            r = self.copy()
+            r.data = np.ma.array(x.copy(),mask=(x-x > 1.) ) #some dummy mask
+            return r
+        else: #return numpy array
+            return np.reshape(self.data,(len(self.data),-1)).std(axis=1)
+
+
+#-----------------------------------------------------------------------
+
     def _get_label(self):
         '''
         return a nice looking label
@@ -1473,6 +1522,24 @@ class Data():
 
 
 #-----------------------------------------------------------------------
+    def _set_valid_range(self,vmin,vmax):
+        '''
+        sets the valid range of the data
+
+        only data with vmin <= data <= vmax will be kept as valid
+
+        @param vmin: minimum valid value
+        @type vmin: float
+        @param vmax: maximum valid value
+        @type vmax: float
+        '''
+
+        self.data = np.ma.array(self.data,mask = ((self.data < vmin) | (self.data > vmax))   )
+
+
+#-----------------------------------------------------------------------
+
+
 
     def __shift2D(self,x,n):
         '''

@@ -2,8 +2,24 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.0"
-__date__ = "0000/00/00"
+__version__ = "0.1"
+__date__ = "2012/10/29"
+__email__ = "alexander.loew@zmaw.de"
+
+'''
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+'''
+
 
 '''
 Module that contains relevant classes for diagnostic plots
@@ -206,10 +222,24 @@ class ReichlerPlot():
         print 'Doing Reichler plot as barplot ...'
         self._normalize()
         x = np.arange(len(self.e2_norm))
-        self.ax.bar(x,self.e2_norm*100.,**kwargs)
+        y1 = self.e2_norm*100.; y2 = self.e2_norm*100.
+        y1[y1 < 0.] = np.nan  #posistive values only
+        y2[y2 >= 0.] = np.nan #negative values only
+        self.ax.bar(x,y1,color='red',edgecolor='None',**kwargs) #todo hier Farbe ändern!!
+        self.ax.bar(x,y2,color='blue',edgecolor='None',**kwargs)
+
         self.ax.set_xticks(x+0.5)
-        self.ax.set_xticklabels(self.labels)
+        self.ax.set_xticklabels(self.labels,rotation=90.)
         if (vmin !=None) & (vmax != None):
+            self.ax.set_ylim(vmin,vmax)
+        else:
+            vmin,vmax = self.ax.get_ylim() #equal axes
+            if abs(vmax) > abs(vmin):
+                vmin = -vmax
+                vmax = vmax
+            else:
+                vmin = vmin
+                vmax = -vmin
             self.ax.set_ylim(vmin,vmax)
         self.ax.set_ylabel('$\\epsilon / \\bar{\\epsilon}$ [%]')
         self.ax.grid(); self.ax.set_title(title)
@@ -538,6 +568,100 @@ class LinePlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
+class GlobalMeanPlot():
+    '''
+    plots timeseries of global mean field
+    '''
+
+    def __init__(self,ax=None):
+        if ax == None:
+            f = plt.figure()
+            self.ax = f.add_subplot(111)
+        else:
+            self.ax = ax
+
+        self.labels=[]
+        self.plots=[]
+
+    def plot(self,D,color=None,linewidth=2,show_std=False,label=None):
+        '''
+        generate global mean plot. The plot includes the temporal evolution
+        of the global mean field and also (as an option) its stdv
+
+        assumes data structure of [time,ny,nx]
+
+        labels need to be unique and are derived either from the optional
+        argument or, if a C{Data} object is given they are derived from
+        the Data label. In case of a duplication of the data labels,
+        no plot will be done!
+
+        @param: D data field to be plotted
+        @type: C{Data} or (time,data) tuple
+
+        @param color: color of the line
+        @type color: str
+
+        @param linewidth: width of the line
+        @type linewidth: float
+
+        @param show_std: shows standard deviation
+        @type show_std: bool
+        '''
+
+        if ((label==None) and (D.label in self.labels)):
+            print 'Label already existing: ', D.label, ' skipping analysis'
+            return
+        elif ((label != None) and (label in self.labels)):
+            print 'Label already existing: ', label, ' skipping analysis'
+            return
+
+        is_list = False
+        if 'tuple' in str(type(D)): #only a vector is provided as data together with time (time,data)
+            is_list = True
+            t = D[0]
+            mdata = D[1]
+            if show_std:
+                raise ValueError, 'This combination is not supported yet!'
+        else:
+            if D.data.ndim != 3:
+                raise ValueError, 'Global plot only supported for 3D data'
+
+            #mean field
+            m = D.fldmean(return_data=True) #mean
+            mdata = m.data.flatten()
+
+            #time
+            t = plt.num2date(m.time)
+
+        #--- plot generation ---
+        if color == None:
+            p = self.ax.plot(t,mdata,linewidth=linewidth)
+        else:
+            p = self.ax.plot(t,mdata,color=color,linewidth=linewidth)
+
+        if show_std:
+            s = D.fldstd (return_data=True) #std
+            sdata = s.data.flatten()
+            self.ax.fill_between(t,mdata-sdata,y2=mdata+sdata,color=p[0].get_color(),alpha=0.5)
+
+        #store information for legend
+        self.plots.append(p[0])
+        if label==None:
+            self.labels.append(D.label)
+        else:
+            self.labels.append(label)
+
+        #labels
+        if not is_list:
+            self.ax.set_ylabel(D._get_unit())
+        self.ax.set_xlabel('time')
+
+        #legend
+        self.ax.legend(self.plots,self.labels,loc='lower center',ncol=2,fancybox=True)
+
+
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
 
 class ZonalPlot():
@@ -1128,7 +1252,7 @@ def map_season(x,year=False,**kwargs):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1., **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None, **kwargs):
     '''
     produce a nice looking map plot
 
@@ -1180,6 +1304,12 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @param lonvalues: longitude values for drawing grid (optional)
     @type lonvalues: list or numpy array
 
+    @param vmin_zonal: minimum value for zonal plot
+    @type vmin_zonal: float
+
+    @param vmax_zonal: maximum value for zonal plot
+    @type vmax_zonal: float
+
     '''
 
     #--- create new figure
@@ -1195,7 +1325,6 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             ax = fig.add_subplot(111)
     else:
         fig = ax.figure
-
 
 
     #if cmap provided in kwargs, then remove it and set cmap_data
@@ -1301,12 +1430,13 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         divider = make_axes_locatable(ax)
         cax = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
         ax.figure.add_axes(cax)
-        norm = mpl.colors.Normalize(vmin=im1.get_clim()[0], vmax=im1.get_clim()[1])
+        vmin = im1.get_clim()[0]; vmax = im1.get_clim()[1]
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
     #Zonal plot
     if show_zonal:
-        add_zonal_plot(ax,x,timmean=zonal_timmean) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+        add_zonal_plot(ax,x,timmean=zonal_timmean,vmin=vmin_zonal,vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
 
 
 
@@ -1396,10 +1526,35 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
     weights = np.ma.array(weights,mask = weights != weights)
     ZP.plot(x,weights,timmean=timmean,show_ylabel=False) #@todo: area weighting??
 
+
+    #- set limits
+    if ((vmin == None) & (vmax == None)):
+        vmin = zax.get_xlim()[0]
+        vmax = zax.get_xlim()[1]
+        #symmetry if neg. and posistive limits
+        if (vmin < 0.) & (vmax>0.):
+            val = max(abs(vmin),abs(vmax))
+            vmin = -val; vmax = val
+
+    if vmin == None:
+        vmin = zax.get_xlim()[0]
+    if vmax == None:
+        vmax = zax.get_xlim()[1]
+    zax.set_xlim(vmin,vmax)
+
     #set only first and last label
     #~ lab = zax.get_xticklabels()
-    ti  = zax.get_xticks()
-    zax.set_xticks([ti[0],ti[-1]])
+    #~ ti  = zax.get_xticks()
+    #~ zax.set_xticks([ti[0],ti[-1]])
+    zax.set_xticks([vmin,vmax])
+    #~ zax.set_xticklabels(zax.get_xticklabels(),fontdict={'size':8})
+
+    zax.plot([0,0],zax.get_ylim(),linestyle='-',color='grey')
+
+
+    for tick in zax.xaxis.get_major_ticks():
+        tick.label.set_fontsize(8)
+
 
     return zax
 
@@ -1407,7 +1562,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
 
 #-----------------------------------------------------------------------
 
-def add_nice_legend(ax,im,cmap,cticks=None,dummy=False):
+def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=6):
     '''
     add a nice looking legend
 
@@ -1434,6 +1589,10 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False):
     else:
         norm = mpl.colors.Normalize(vmin=im.get_clim()[0], vmax=im.get_clim()[1])
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+
+        for t in cb.ax.get_yticklabels():
+            t.set_fontsize(6)
+
 
 #-----------------------------------------------------------------------
 
@@ -1573,6 +1732,14 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     '''
 
+
+    if 'cticks_diff' in kwargs:
+        cticks_diff = kwargs.pop('cticks_diff')
+    else:
+        cticks_diff = None
+
+
+
     fig = plt.figure()
 
     ax1 = fig.add_subplot(221)
@@ -1596,7 +1763,8 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     #-first minus second dataset
     adif = x.sub(y) #absolute difference
-    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
+
+    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
 
     #~ map_plot(adif,use_basemap=use_basemap,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
 
@@ -1607,7 +1775,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
 
-    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=None,region=region ,nclasses=nclasses,cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
+    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=8,cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
 
 
     return fig
