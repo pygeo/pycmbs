@@ -1,13 +1,24 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+__author__ = "Alexander Loew"
+__version__ = "0.1"
+__date__ = "2012/10/29"
+__email__ = "alexander.loew@zmaw.de"
+
+'''
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
 #
-# pyCMBS -- Pythonic Climate Model Benchmarking Suite
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
 #
-# Copyright (C) 2011-2012 Alexander Loew
-# Authors: Alexander Loew <alexander.loew@zmaw.de.de>,
-#
-# Max-Planck-Institute for Meteorology, Hamburg, Germany
-#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+'''
 
 __name__ = "pyCMBS"
 """The project name."""

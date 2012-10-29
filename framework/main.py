@@ -1,22 +1,43 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+__author__ = "Alexander Loew"
+__version__ = "0.1"
+__date__ = "2012/10/29"
+__email__ = "alexander.loew@zmaw.de"
+
 '''
-pyCMBS - climate model bechmarking framework
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 '''
 
 
-#--- Analysis compliance matrix (which was already checked?)
+#--- Analysis compliance matrix (which was already checked)
+# a P indicates that the preprocessing to seasonal data is performed automatically
+# and works
 
-#                    | CMIP5 | JSBACH_BOT | JSBACH RAW | report
-#albedo analysis     |   X   |            |      X     |    x
-#SIS analysis        |   X   |            |      X     |    x
-#rainfall analysis   |       |      X     |      X     |    x
-#temperature         |       |            |            |
-#veg. fraction       |       |            |            |
-# phenology          |       |            |            |
-#snow fraction       |       |            |            |
+#                    | CMIP5 | JSBACH_BOT | JSBACH RAW | report | Remark
+#albedo analysis     |   P   |            |      X     |    x   | preprocessing includes calculation of albedo from SW up and downward fluxes as well as regridding to T63 grid if needed
+#SIS analysis        |   P   |            |      X     |    x   |
+#rainfall analysis   |       |      P     |      X     |    x   |
+#temperature         |       |            |            |        |
+#veg. fraction       |       |            |            |        |
+# phenology          |       |            |            |        |  external framework
+#snow fraction       |       |            |            |        |
 
-#preprocessing of observations and/or data ???
+
+
+#todo TIMEPERIODs of model and data in a consistent manner
+#    if not available from obs, then take maximum possible timespan
 
 #@todo: implement JSBACH raw data
 #@todo: implement ATM/BOT files
@@ -37,7 +58,6 @@ pyCMBS - climate model bechmarking framework
 # TODO CMIP5:
 # - seldate appropriately
 # - check timestamp!
-# seasmean calculations automatically!!
 
 #todo check datetime; something is wrong! as data starts in Dcember 1978!
 
@@ -98,6 +118,7 @@ def get_analysis_scripts():
     d.update({'tree':'tree_fraction_analysis'})
     d.update({'grass':'grass_fraction_analysis'})
     d.update({'phenology_faPAR':'phenology_faPAR_analysis'})
+    d.update({'temperature':'temperature_analysis'})
 
     return d
 
@@ -129,6 +150,8 @@ def get_methods4variables(variables):
     hlp.update({'tree' : 'get_tree_fraction()'})
     hlp.update({'grass' : 'get_grass_fraction()'})
     hlp.update({'phenology_faPAR' : 'get_faPAR()'})
+    hlp.update({'temperature' : 'get_temperature_2m()'})
+
 
     res={}
     for k in hlp.keys(): #only use the variables that should be analyzed!
@@ -219,7 +242,7 @@ for i in range(len(CF.models)):
 
 
 #/// prepare global becnhmarking metrices
-#generate a global variable for glecker plot!
+#generate a global variable for gleckler plot!
 global_glecker = GleckerPlot()
 
 ########################################################################
@@ -247,10 +270,10 @@ for variable in variables:
             eval(scripts[variable]+'(' + model_list + ',GP=global_glecker,shift_lon=shift_lon,use_basemap=use_basemap,report=rep)') #run analysis
 
 #/// generate Glecker analysis plot for all variables and models analyzed ///
-global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=15)
+global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=25)
 
-rep.section('Summary')
-rep.figure(global_glecker.fig,caption='Glecker et al. (2008) model preformance index')
+rep.section('Summary error statistics')
+rep.figure(global_glecker.fig,caption='Gleckler et al. (2008) model preformance index')
 
 #/// close report ///
 rep.close()

@@ -1,9 +1,24 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.0"
-__date__ = "0000/00/00"
+__version__ = "0.1"
+__date__ = "2012/10/29"
+__email__ = "alexander.loew@zmaw.de"
+
+'''
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+'''
 
 '''
 module to generate a LaTex report
@@ -54,8 +69,10 @@ class Report():
         '''
         open report
         '''
+
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
+
         if os.path.exists(self.filename):
             os.remove(self.filename)
         self.file = open(self.filename,'w')
@@ -160,7 +177,20 @@ class Report():
         @param s: title of subsection
         @type s: str
         '''
+        self.write('\clearpage')
         self.write('\subsection{' + s.replace('_',' ') + '}')
+
+
+    def subsubsection(self,s):
+        '''
+        write subsection header
+
+        @param s: title of subsection
+        @type s: str
+        '''
+        self.write('\clearpage')
+        self.write('\subsubsection{' + s.replace('_',' ') + '}')
+
 
 #-----------------------------------------------------------------------
 
