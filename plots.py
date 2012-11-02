@@ -1252,7 +1252,7 @@ def map_season(x,year=False,**kwargs):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None, bluemarble = False, **kwargs):
     '''
     produce a nice looking map plot
 
@@ -1309,6 +1309,10 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param vmax_zonal: maximum value for zonal plot
     @type vmax_zonal: float
+
+    @param bluemarble: load bluemarble as background image (does only work if no gridded data is shown!)
+    @type bluemarble: bool
+
 
     '''
 
@@ -1371,6 +1375,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
         #generate map
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
+        if bluemarble:
+            m1.bluemarble()
+
 
 
         if f_kdtree:
@@ -1414,8 +1421,13 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #here is still a problem in the plotting over land; masking does not work properly,
         #while the data as such is o.k.!
         #~ im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-        im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-        __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues)
+
+        if not bluemarble:
+            im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+            __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues)
+
+
+
 
     else: #use_basemap = False
         #- normal plots

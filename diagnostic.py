@@ -311,7 +311,7 @@ class EOF():
         get correlation between original data and PCs
         '''
 
-        c=np.corrcoef(self.x,self.EOF,rowvar=0) #correate PCS and original data
+        c=np.corrcoef(self.x,self.EOF,rowvar=0) #correlate PCS and original data
         c1 = c[self.n:,0:self.n]
         if plot:
             f = plt.figure()
@@ -1508,7 +1508,9 @@ class Diagnostic():
             y = self.y.data.copy()
 
         if np.shape(x) != np.shape(y):
-            raise ValueError, 'slice_corr: shapes not matching!'
+            if np.prod(np.shape(x)) != np.prod(np.shape(y)): #check if flattened arrays would work
+                print np.shape(x), np.shape(y)
+                raise ValueError, 'slice_corr: shapes not matching!'
 
 
 
