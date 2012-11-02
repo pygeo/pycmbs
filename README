@@ -24,3 +24,7 @@ DOCUMENTATION
 * The major pyCMBS documentation is found in the code. A HTML version of the documentation, generated with epydoc is found in the 'doc' subdirectory
 * Examples and detailed documentation can be found on the project website (https://code.zmaw.de/projects/pycmbs); ask the author for access
 * Currently pyCMBS is still in an very early phase. It is therefore not yet accessible via an open code repository. It is however planned to make it full accessible to the community in the future
+
+
+HISTORY:
+v0.1 - 2012/11/02: initial release, based on revision #65
