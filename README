@@ -1,0 +1,26 @@
+pyCMBS - python Climate Model Benchmarking Suite
+
+Version: 0.1
+
+Author: Alexander Loew
+
+Contact: Max-Planck-Institute for Meteorology
+         eMail: alexander.loew@zmaw.de
+
+# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# See COPYING file for copying and redistribution conditions.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+
+DOCUMENTATION
+* The major pyCMBS documentation is found in the code. A HTML version of the documentation, generated with epydoc is found in the 'doc' subdirectory
+* Examples and detailed documentation can be found on the project website (https://code.zmaw.de/projects/pycmbs); ask the author for access
+* Currently pyCMBS is still in an very early phase. It is therefore not yet accessible via an open code repository. It is however planned to make it full accessible to the community in the future
