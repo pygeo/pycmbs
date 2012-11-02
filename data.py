@@ -1835,7 +1835,12 @@ class Data():
         @param step: stepsize for subsampling
         @type step: int
         '''
-        self.data = self.data[:,::step,::step]
+        if self.data.ndim == 3:
+            self.data = self.data[:,::step,::step]
+        elif self.data.ndim == 2:
+            self.data = self.data[::step,::step]
+        else:
+            raise ValueError, 'Data Dimension not supported!'
         self.lat  = self.lat [::step,::step]
         self.lon  = self.lon [::step,::step]
 
