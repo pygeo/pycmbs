@@ -35,6 +35,8 @@ import matplotlib.pylab as pl
 
 from scipy import stats
 
+from pyCDO import *
+
 '''
 @todo: data access via opendap
 '''
@@ -43,7 +45,7 @@ class Data():
     '''
     Data class: main class
     '''
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,weights=None,time_var='time'):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,time_var='time'):
         '''
         Constructor for Data class
 
@@ -103,8 +105,8 @@ class Data():
         @param verbose: verbose mode for printing
         @type verbose: bool
 
-        @param weights: area weighting factor. sum(weights) should be one. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
-        @type weights: numpy array
+        @param cell_area: area size [m**2] of each grid cell. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
+        @type cell_area: numpy array
 
         '''
 
@@ -139,7 +141,7 @@ class Data():
         if time_cycle != None:
             self.time_cycle = time_cycle
 
-        self._areaweights_org = weights #2D areaweights; these are then modified for each valid grid cell
+        self.cell_area = cell_area #[m**2]
 
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
@@ -173,6 +175,36 @@ class Data():
 
         if self.verbose:
             print 'AFTER SQUEEZING data ... ', self.data.ndim, self.data.shape
+
+#-----------------------------------------------------------------------
+
+    def _set_cell_area(self):
+        '''
+        set cell area size. If a cell area was already given (either by user or from file)
+        nothing will happen. Otherwise it will be tried to calculate cell_area from
+        coordinates using the CDO's
+
+        @todo: implement the calculation of cell_area in a pythonic way
+        '''
+
+        if self.cell_area != None:
+            return
+
+        if (self.lat == None) or (self.lon == None):
+            print 'WARNING: cell area can not be calculated (missing coordinates)!'
+            return
+
+        #--- calculate cell area from coordinates ---
+        cell_file = self.filename[:-3]+'_cell_area.nc'
+
+        if not os.path.exists(cell_file): #calculate grid area using CDO's
+            cdo = pyCDO(self.filename,None,None)
+            cell_file = cdo.gridarea()
+
+        #--- read cell_area file ---
+        F=Nio.open_file(cell_file,'r')
+        self.cell_area = F.variables['cell_area'].get_value().astype('float').copy()
+
 
 #-----------------------------------------------------------------------
 
@@ -447,6 +479,10 @@ class Data():
             self._mesh_lat_lon()
         except:
             print 'No lat/lon mesh was generated!'
+
+        #- cell_area
+        #  check if cell_area is already existing. if not, try to calculate from coordinates
+        self._set_cell_area()
 
         #- calculate climatology from ORIGINAL (full dataset)
         if hasattr(self,'time_cycle'):
@@ -918,6 +954,8 @@ class Data():
         if (plt.isvector(self.lat)) & (plt.isvector(self.lon)):
             LON,LAT = np.meshgrid(self.lon,self.lat)
             self.lon = LON; self.lat=LAT
+        else:
+            pass
 
 #-----------------------------------------------------------------------
 
@@ -970,6 +1008,11 @@ class Data():
             offset = 0.
 
         data = data * scal + offset
+
+        #check if file has cell_area attribute
+        if 'cell_area' in F.variables.keys():
+            if self.cell_area == None: #and only use it if it has not been set by the user
+                self.cell_area = F.variables['cell_area'].get_value().astype('float').copy() #unit should be in m**2
 
         #set units if possible; if given by user, this is taken
         #otherwise unit information from file is used if available
@@ -1085,39 +1128,132 @@ class Data():
         #~ self.lat  = np.flipud(self.lat)
 
 
+
 #-----------------------------------------------------------------------
 
-    def fldmean(self,return_data = False):
+    def _get_weighting_matrix(self):
         '''
-        calculate mean of the spatial field
+        get matrix for area weigthing of grid cells. For each timestep
+        the weights are calculated as a function  of the number of valid
+        grid cells.
+
+        The returned array contains weights for each timestep. The sum
+        of these weights is equal to one.
+
+        @return weighting matrix
+        @rtype numpy array
+        '''
+
+        w = np.zeros(self.data.shape)
+
+        if self.data.ndim == 2:
+            m = ~self.data.mask
+            w[m] = self.cell_area[m] / self.cell_area[m].sum()
+            return w
+        elif self.data.ndim == 3:
+            nt = len(self.time)
+
+            #1) repeat cell area nt-times
+            cell_area = self.cell_area.copy()
+            s = np.shape(cell_area)
+            cell_area.shape = (-1)
+            w = cell_area.repeat(nt).reshape((s[0]*s[1],nt)).T
+            w.shape = self.data.shape #geometry is the same now as data
+
+            #2) mask areas that do not contain valid data
+            w = np.ma.array(w,mask=self.data.mask)
+
+            #3) calculate for each time the sum of all VALID grid cells --> normalization factor
+            no = w.reshape(nt,-1).sum(axis=1) #... has size nt
+
+            #4) itterate over all timesteps and calculate weighting matrix
+            for i in xrange(nt):
+                w[i,:,:] /= no[i]
+            return w
+        else:
+            raise ValueError, 'weighting matrix not supported for this data shape'
+
+
+
+#-----------------------------------------------------------------------
+
+    def fldmean(self,return_data = False,apply_weights=True):
+        '''
+        calculate mean of the spatial field using weighted averaging
+        results are exactly the same as one would obtain with the similar
+        cdo function
 
         @param return_data: if True, then a C{Data} object is returned
         @type return_data: bool
 
+        @param apply_weights: apply weights when calculating area weights
+        @type apply_weights: bool
+
         @return: vector of spatial mean array[time]
         '''
-        if return_data: #return data object
-            tmp = np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
-            x = np.zeros((len(tmp),1,1))
 
+        if apply_weights:
+            #area weighting
+            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
+            w *= self.data #multiply the data with the weighting matrix in memory efficient way
+            w.shape = (len(self.data),-1)
+            tmp = w.sum(axis=1) #... gives weighted sum
+        else:
+            #no area weighting
+            tmp = np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
+
+        #////
+        if return_data: #return data object
+            x = np.zeros((len(tmp),1,1))
             x[:,0,0] = tmp
             r = self.copy()
             r.data = np.ma.array(x.copy(),mask=(x-x > 1.) ) #some dummy mask
             return r
         else: #return numpy array
-            return np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
+            return tmp
+
 
 #-----------------------------------------------------------------------
 
-    def fldstd(self,return_data = False):
+    def fldstd(self,return_data = False,apply_weights=True):
         '''
-        calculate stdv of the spatial field
+        calculate stdv of the spatial field using area weighting
+
+        returns exactly same results as the same CDO function
 
         @param return_data: if True, then a C{Data} object is returned
         @type return_data: bool
 
         @return: vector of spatial std array[time]
         '''
+
+        if apply_weights:
+            #calculate weighted standard deviation.
+            #http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
+            #(adapted from http://stackoverflow.com/questions/2413522/weighted-standard-deviation-in-numpy)
+
+            #calculate weighting matrix
+            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
+
+            #some temp. variables
+            h2 = self.data*w  #wx
+            h1 = self.data*h2 #w*x**2
+
+            #do calculation
+            nt,ny,nx = self.data.shape
+
+            s = np.ones(nt)*np.nan #generate output array
+            for i in xrange(nt):
+                s[i] = h1[i,:,:].sum() * w[i,:,:].sum() - h2[i,:,:].sum()**2
+                s[i] /= (w[i,:,:].sum()**2  - (w[i,:,:]*w[i,:,:]).sum()  )
+            tmp = np.sqrt(s)
+
+        else:
+            #no area weighting
+            tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
+
+
+        #--- return either a Data object or a numpy array
         if return_data: #return data object
             tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
             x = np.zeros((len(tmp),1,1))
@@ -1127,7 +1263,7 @@ class Data():
             r.data = np.ma.array(x.copy(),mask=(x-x > 1.) ) #some dummy mask
             return r
         else: #return numpy array
-            return np.reshape(self.data,(len(self.data),-1)).std(axis=1)
+            return tmp
 
 
 #-----------------------------------------------------------------------

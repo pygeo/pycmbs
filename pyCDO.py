@@ -71,6 +71,21 @@ class pyCDO():
         self.run(cmd,oname,force)
         return oname
 
+
+#-----------------------------------------------------------------------
+
+    def gridarea(self,force=False):
+        '''
+        calculate gridarea [m**2]
+
+        @param force: force calculations to be performed
+        @type force: bool
+        '''
+        oname = self.filename[:-3] + '_cell_area.nc'
+        cmd = 'cdo ' + self.options + ' ' + 'gridarea' + ' '  + self.filename + ' ' + oname
+        self.run(cmd,oname,force)
+        return oname
+
 #-----------------------------------------------------------------------
 
     def div(self,file2,force=False,output=None):
