@@ -80,6 +80,40 @@ class ConfigFile():
         else:
             sys.exit('report missing in configuration file!')
 
+        l = self.f.readline().replace('\n','')
+        if 'TEMP_DIR=' in l.upper():
+            s = l[9:]
+            if s[-1] != '/':
+                s = s+'/'
+            self.options.update({'tempdir' : s.replace(' ','') })
+        else:
+            raise ValueError, 'Temporary directory not specified!'
+
+        l = self.f.readline().replace('\n','')
+        if 'CLEAN_TEMPDIR' in l.upper():
+            self.options.update({'cleandir':self.__check_bool(l)})
+        else:
+            raise ValueError, 'Invalid option for clean_tempdir!'
+
+        #//// create / remove directories
+        if not os.path.exists(self.options['tempdir']):
+            print 'Creating temporary output directory: ', self.options['tempdir']
+            os.makedirs(self.options['tempdir'])
+        else:
+            if self.options['cleandir']:
+                print 'Cleaning output directory: ', self.options['tempdir']
+                import glob
+                files = glob.glob(self.options['tempdir'] + '*.nc')
+                for f in files:
+                    os.remove(f)
+            else:
+                print 'Temporary output directory already existing: ', self.options['tempdir']
+
+        #update global variable for CDO temporary directory (needed for CDO processing)
+        os.environ.update({'CDOTEMPDIR' : self.options['tempdir'] } )
+
+
+
 
     def __read_var_block(self):
         #read header of variable plot
@@ -128,12 +162,18 @@ class ConfigFile():
                     experiments.append(experiment); ddirs.append(ddir.replace('\n',''))
             except:
                 has_eof=True
+
         return models,experiments,types,ddirs
 
     def read(self):
         '''
         read configuration files in 3 blocks
         '''
+
+        print '********************************************************'
+        print '* BEGIN Config file'
+        print '********************************************************'
+
         self.__read_options()
         self.variables  = self.__read_var_block()
         self.start_date,self.stop_date  = self.__read_date_block()
@@ -143,3 +183,11 @@ class ConfigFile():
             if k.upper() not in ['CMIP5','JSBACH_BOT','JSBACH_RAW']:
                 print k
                 raise ValueError, 'Unknown model type'
+
+        print '********************************************************'
+        print '* END Config file'
+        print '********************************************************'
+        print ''
+
+
+

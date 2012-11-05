@@ -242,8 +242,8 @@ for i in range(len(CF.models)):
 
 
 #/// prepare global becnhmarking metrices
-#generate a global variable for gleckler plot!
-global_glecker = GleckerPlot()
+#generate a global variable for Gleckler plot!
+global_gleckler = GlecklerPlot()
 
 ########################################################################
 # REPORT
@@ -257,8 +257,8 @@ rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],'Ale
 skeys = scripts.keys()
 for variable in variables:
 
-    #/// register current variable in Glecker Plot
-    global_glecker.add_variable(variable)
+    #/// register current variable in Gleckler Plot
+    global_gleckler.add_variable(variable)
 
     #/// call analysis scripts for each variable
     for k in range(len(skeys)):
@@ -267,13 +267,13 @@ for variable in variables:
             print 'Doing analysis for variable ... ', variable
             print '   ... ', scripts[variable]
             model_list = str(proc_models).replace("'","")  #model list is reformatted so it can be evaluated properly
-            eval(scripts[variable]+'(' + model_list + ',GP=global_glecker,shift_lon=shift_lon,use_basemap=use_basemap,report=rep)') #run analysis
+            eval(scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep)') #run analysis
 
-#/// generate Glecker analysis plot for all variables and models analyzed ///
-global_glecker.plot(vmin=-0.8,vmax=0.8,nclasses=25)
+#/// generate Gleckler analysis plot for all variables and models analyzed ///
+global_gleckler.plot(vmin=-0.8,vmax=0.8,nclasses=25)
 
 rep.section('Summary error statistics')
-rep.figure(global_glecker.fig,caption='Gleckler et al. (2008) model preformance index')
+rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')
 
 #/// close report ///
 rep.close()

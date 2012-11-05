@@ -219,7 +219,7 @@ class ReichlerPlot():
         @param title: title for the plot
         @type title: str
         '''
-        print 'Doing Reichler plot as barplot ...'
+
         self._normalize()
         x = np.arange(len(self.e2_norm))
         y1 = self.e2_norm*100.; y2 = self.e2_norm*100.
@@ -609,10 +609,10 @@ class GlobalMeanPlot():
         '''
 
         if ((label==None) and (D.label in self.labels)):
-            print 'Label already existing: ', D.label, ' skipping analysis'
+            #print 'Label already existing: ', D.label, ' skipping analysis'
             return
         elif ((label != None) and (label in self.labels)):
-            print 'Label already existing: ', label, ' skipping analysis'
+            #print 'Label already existing: ', label, ' skipping analysis'
             return
 
         is_list = False
@@ -695,15 +695,12 @@ class ZonalPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,x,areaweights,xlim=None,timmean = False,show_ylabel=True):
+    def plot(self,x,xlim=None,timmean = False,show_ylabel=True):
         '''
         plot zonal plot
 
         @param x: data to be plotted
         @type x: C{Data} object
-
-        @param areaweights: cell weights for the area
-        @type areaweights: numpy array
 
         @param xlim: limits for the x-axis (e.g. values)
         @type xlim: tuple
@@ -731,9 +728,10 @@ class ZonalPlot():
             thex = x
 
         if self.dir == 'y':
-            dat = thex.get_zonal_statistics(areaweights) #no area weighting performed
+            dat = thex.get_zonal_mean() #no area weighting performed
         else:
             raise ValueError, 'Invalid option'
+
         #return dat
         if timmean:
             pass #todo
@@ -744,20 +742,13 @@ class ZonalPlot():
                 print x.lat.shape
                 sys.exit()
 
-
-
         #--- plot zonal statistics
         if dat.ndim == 1:
             self.ax.plot(dat,x.lat[:,0])
         elif dat.ndim == 2:
             for i in range(len(dat)):
-                #~ print 'Time in zonal: ', i
-                #~ print dat[i,:]
-                #~ self.ax.plot(dat[i,:],label='time='+str(i))
                 self.ax.plot(dat[i,:],x.lat[:,0],label='time='+str(i))
                 self.ax.grid(b='on')
-
-
 
         self.ax.set_ylim(-90.,90.)
 
@@ -774,17 +765,17 @@ class ZonalPlot():
 
 #-----------------------------------------------------------------------
 
-class GleckerPlot():
+class GlecklerPlot():
     '''
     Class to generate a plot that to illustrate multi-model, multi-variable scores
 
-    It was introdcued by Glecker et al (2008)
+    It was introdcued by Gleckler et al (2008)
 
     REFERENCES:
     * ﻿Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008. Performance metrics for climate models. Journal of Geophysical Research, 113(D6). Available at: http://www.agu.org/pubs/crossref/2008/2007JD008972.shtml [Accessed February 29, 2012].
 
     EXAMPLE:
-    G = GleckerPlot()
+    G = GlecklerPlot()
     #register first models
     G.add_model('echam5'); G.add_model('mpi-esm')
     #then register variables
@@ -799,7 +790,7 @@ class GleckerPlot():
 
     def __init__(self,fig=None):
         '''
-        constructor of C{GleckerPlot}
+        constructor of C{GlecklerPlot}
 
         @param fig: figure to which to plot to. If None, then a new figure will be generated
         @type fig: matplotlib figure
@@ -955,7 +946,7 @@ class GleckerPlot():
 
     def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10):
         '''
-        plot Glecker diagram
+        plot Gleckler diagram
 
         @param cmap_name: name of the colormap to be used
         @type cmap_name: str
@@ -1127,8 +1118,15 @@ class GleckerPlot():
         '''
 
         if weights == None:
-            print 'WARNING: no weights when calculating performance index'
-            weights = np.ones(x.data[0,:].shape)
+            #set weights according to cell area
+            if x.cell_area != None:
+                weights = x._get_weighting_matrix()
+            else:
+                print 'WARNING: no weights when calculating performance index'
+                weights = np.ones(x.data.shape)
+        else: #weights are given
+            if x.cell_area != None:
+                print 'WARNING: cell weights are given, while cell_area available from data!!'
 
         from diagnostic import Diagnostic
         D = Diagnostic(x,y=y)
@@ -1237,7 +1235,7 @@ def map_season(x,year=False,**kwargs):
         labels=['JFM','AMJ','JAS','OND']
 
     for i in range(nvals):
-        print i,nvals,year
+        #~ print i,nvals,year
         if year:
             ax = f.add_subplot(4,3,i+1)
         else:
@@ -1525,7 +1523,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
     '''
 
     divider = make_axes_locatable(ax)
-    zax = divider.new_horizontal("15%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+    zax     = divider.new_horizontal("15%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
     ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
 
     ZP = ZonalPlot(ax=zax,dir='y')
@@ -1536,7 +1534,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
         nt,ny,nx = x.data.shape
         weights = np.ones((ny,nx))
     weights = np.ma.array(weights,mask = weights != weights)
-    ZP.plot(x,weights,timmean=timmean,show_ylabel=False) #@todo: area weighting??
+    ZP.plot(x,timmean=timmean,show_ylabel=False) #@todo: area weighting??
 
 
     #- set limits
