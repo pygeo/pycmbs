@@ -40,13 +40,13 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
     '''
 
     if GP == None:
-        GP = GleckerPlot()
+        GP = GlecklerPlot()
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
 
     #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
+    #~ t63_weights = get_T63_weights(shift_lon)
 
 
     #--- initailize Reichler plot
@@ -54,7 +54,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
 
     for model in model_list:
 
-        GP.add_model(model.name) #register model for Glecker Plot
+        GP.add_model(model.name) #register model for Gleckler Plot
 
         #/// GREENING PHASE ANALYSIS STEP 1 ... ///
         #ddir = './external/phenology_benchmarking/' #todo set right directory!
@@ -79,7 +79,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         #~ Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
         #~ Rplot.add(e2,model_data.label,color='red')
 
-        #/// Glecker plot ///
+        #/// Gleckler plot ///
         #~ e2a = GP.calc_index(gpcp,model_data,model,'pheno_faPAR')
         e2a = np.random.rand() #todo
         GP.add_data('pheno_faPAR',model.name,e2a,pos=1)
@@ -181,9 +181,9 @@ def tree_fraction_analysis(model_list,pft='tree'):
         dif.add_axes(zax3)
 
         #--- calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,None,xlim=[vmin,vmax])  #None == no area weighting performed
-        zon2 = ZonalPlot(ax=zax2); zon2.plot(hansen,None,xlim=[vmin,vmax]) #None == no area weighting performed
-        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(hansen),None)  #None == no area weighting performed
+        zon1 = ZonalPlot(ax=zax1); zon1.plot(model_data,xlim=[vmin,vmax])
+        zon2 = ZonalPlot(ax=zax2); zon2.plot(hansen,xlim=[vmin,vmax])
+        zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(hansen))
         zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
 
 
@@ -209,9 +209,20 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     if report == None:
         raise ValueError, 'You need to specify report option!'
 
+    print
+    print '************************************************************'
+    print '* BEGIN ALBEDO analysis ...'
+    print '************************************************************'
+
     report.section('Surface albedo')
     report.subsection('MODIS WSA')
     albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
+
+    print '************************************************************'
+    print '* END ALBEDO analysis ...'
+    print '************************************************************'
+    print
+
 
 def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
     '''
@@ -222,32 +233,33 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
     print 'Doing ALBEDO analysis ...'
 
-    #--- GleckerPlot
+    #--- GlecklerPlot
     if GP == None:
-        GP = GleckerPlot()
+        GP = GlecklerPlot()
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
 
     #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
+    #~ t63_weights = get_T63_weights(shift_lon)
 
     #--- load MODIS data
+
     modis_file     = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_mean.nc'
     modis_file_std = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_std.nc'
     albedo=Data(modis_file,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+
     albedo_std=Data(modis_file_std,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
     albedo.std = albedo_std.data.copy(); del albedo_std
-
 
     #--- initailize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     for model in model_list:
 
-        print 'ALBEDO analysis of model: ', model.name
+        print '    ALBEDO analysis of model: ', model.name
 
-        GP.add_model(model.name) #register model for Glecker Plot
+        GP.add_model(model.name) #register model for Gleckler Plot
 
         #--- get model data
         model_data = model.variables['albedo']
@@ -271,10 +283,10 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         #/// Reichler statistics ///
         Diag = Diagnostic(albedo,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
+        e2   = Diag.calc_reichler_index()
         Rplot.add(e2,model_data.label,color='red')
 
-        #/// Glecker plot ///
+        #/// Gleckler plot ///
         e2a = GP.calc_index(albedo,model_data,model,'albedo')
         GP.add_data('albedo',model.name,e2a,pos=1)
 
@@ -315,11 +327,11 @@ def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=Fals
 
     vmin = 270; vmax = 320.
 
-    #--- Glecker plot
+    #--- Gleckler plot
     model_names = []
 
     #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
+    #~ t63_weights = get_T63_weights(shift_lon)
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
@@ -380,10 +392,10 @@ def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=Fals
         f_season = map_season(model_data.sub(T2),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
 
         #--- calculate Reichler diagnostic for preciptation
-        Diag = Diagnostic(T2,model_data); e2 = Diag.calc_reichler_index(t63_weights)
+        Diag = Diagnostic(T2,model_data); e2 = Diag.calc_reichler_index()
         Rplot.add(e2,model_data.label,color='red')
 
-        #/// Glecker plot ///
+        #/// Gleckler plot ///
         e2a = GP.calc_index(T2,model_data,model,'T2')
         GP.add_data('T2',model.name,e2a,pos=1)
 
@@ -432,18 +444,18 @@ def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=Fa
 
     vmin = 0.; vmax = 10.
 
-    #--- Glecker plot
+    #--- Gleckler plot
     model_names = []
 
     #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
+    #~ t63_weights = get_T63_weights(shift_lon)
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
 
     if obs_type == 'GPCP':
         #--- load GPCP data
-        glecker_pos = 1
+        gleckler_pos = 1
         if interval == 'season': #seasonal comparison
             obs_file      = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasmean.nc'
             obs_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
@@ -454,7 +466,7 @@ def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=Fa
         scale_data = 1.
 
     elif obs_type == 'CRU':
-        glecker_pos = 2
+        gleckler_pos = 2
         s_start_time = '1979-01-01'; s_stop_time = '2006-12-31'
 
         obs_file_raw = get_data_pool_directory() + 'variables/land/precipitation/CRU/cru_ts_3_00.1901.2006.pre_miss.nc'
@@ -474,7 +486,7 @@ def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=Fa
 
         raise ValueError, 'GPCC not supported yet, as no coordinates in OBS file!!' #@todo: coordinates in GPCC observational file!
 
-        glecker_pos = 3
+        gleckler_pos = 3
         s_start_time = '1979-01-01'; s_stop_time = '2007-12-31'
 
         obs_file_raw = get_data_pool_directory() + 'variables/land/precipitation/GPCC/gpcc_full_vs4_1951-2007.nc'
@@ -522,12 +534,12 @@ def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=Fa
         f_season = map_season(model_data.sub(theobs),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
 
         #--- calculate Reichler diagnostic for preciptation
-        Diag = Diagnostic(theobs,model_data); e2 = Diag.calc_reichler_index(t63_weights)
+        Diag = Diagnostic(theobs,model_data); e2 = Diag.calc_reichler_index()
         Rplot.add(e2,model_data.label,color='red')
 
-        #/// Glecker plot ///
+        #/// Gleckler plot ///
         e2a = GP.calc_index(theobs,model_data,model,'rain')
-        GP.add_data('rain',model.name,e2a,pos=glecker_pos)
+        GP.add_data('rain',model.name,e2a,pos=gleckler_pos)
 
         #report
         report.subsubsection(model.name)
@@ -564,7 +576,10 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 
     vmin=0.;vmax=300;dmin=-18.;dmax = 18.
 
-    print '   SIS analysis ...'
+    print
+    print '************************************************************'
+    print '* BEGIN SIS analysis ...'
+    print '************************************************************'
 
     report.section('Shortwave downwelling radiation (SIS)')
     fG = plt.figure(); axg = fG.add_subplot(111)
@@ -585,6 +600,11 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 
     report.figure(fG,caption='Global means for SIS ')
 
+    print '************************************************************'
+    print '* END SIS analysis ...'
+    print '************************************************************'
+    print
+
 
 #-----------------------------------------------------------------------
 
@@ -599,17 +619,17 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
     '''
 
-    print '      ... ' + obs_type
+    print '    ... ' + obs_type
 
-    #--- GleckerPlot
+    #--- GlecklerPlot
     if GP == None:
-        GP = GleckerPlot()
+        GP = GlecklerPlot()
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
 
     #--- T63 weights
-    t63_weights = get_T63_weights(shift_lon)
+    #~ t63_weights = get_T63_weights(shift_lon)
 
     if obs_type == 'ISCCP':
         #--- load ISCCP-SIS data
@@ -618,7 +638,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         y1 = '1984-01-01'; y2='2005-12-31' #todo: specifiy externally
 
         obs_var = 'BfISC84'
-        glecker_pos = 3
+        gleckler_pos = 3
 
     elif obs_type == 'SRB':
         f1 = 'T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
@@ -626,7 +646,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         y1 = '1984-01-01'; y2='2005-12-31'
 
         obs_var = 'BfSRB84'
-        glecker_pos = 4
+        gleckler_pos = 4
 
     elif obs_type == 'CERES':
         #todo EBAF data
@@ -634,14 +654,14 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         y1 = '2001-01-01'; y2='2003-12-31'
 
         obs_var = 'BfCER00'
-        glecker_pos = 2
+        gleckler_pos = 2
 
     elif obs_type == 'CMSAF':
         raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc'
         y1 = '1984-01-01'; y2='2005-12-31'
 
         obs_var = 'SIS'
-        glecker_pos = 1
+        gleckler_pos = 1
 
     else:
         print obs_type
@@ -654,7 +674,6 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         cdo = pyCDO(raw_sis,y1,y2) #todo: start/stop years dynamically !!!
         if interval == 'season':
             seasfile = cdo.seasmean(); del cdo
-            print 'seasfile: ', seasfile
             cdo = pyCDO(seasfile,y1,y2)
             obs_sis_file = cdo.yseasmean()
             obs_sis_std_file  = cdo.yseasstd()
@@ -678,7 +697,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     for model in model_list:
-        GP.add_model(model.name) #register model name in GleckerPlot
+        GP.add_model(model.name) #register model name in GlecklerPlot
 
         if GM != None:
             if 'sis_org' in model.variables.keys():
@@ -698,12 +717,12 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
         #/// Reichler statistics ///
         Diag = Diagnostic(obs_sis,model_data)
-        e2   = Diag.calc_reichler_index(t63_weights)
+        e2   = Diag.calc_reichler_index()
         Rplot.add(e2,model_data.label,color='red')
 
-        #/// Glecker plot ///
+        #/// Gleckler plot ///
         e2a = GP.calc_index(obs_sis,model_data,model,'sis')
-        GP.add_data('sis',model.name,e2a,pos=glecker_pos)
+        GP.add_data('sis',model.name,e2a,pos=gleckler_pos)
 
         #/// report results
         report.subsubsection(model.name)

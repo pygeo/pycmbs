@@ -47,7 +47,17 @@ class pyCDO():
         @type force: bool
 
         '''
+
+        if 'CDOTEMPDIR' in os.environ.keys():
+            self.tempdir = os.environ['CDOTEMPDIR']
+        else:
+            self.tempdir = './'
+        if self.tempdir[-1] != '/':
+            self.tempdir = self.tempdir + '/'
+
+        self.baseoutname = self.tempdir + os.path.basename(filename) #basename of file in temporary directory (used for generation of intermediate filenames)
         self.filename = filename
+
         if not os.path.exists(self.filename):
             print 'WARNING: file not existing ', self.filename
         self.date1=date1; self.date2=date2
@@ -65,7 +75,7 @@ class pyCDO():
         @type force: bool
         '''
 
-        oname = self.filename[:-3] + '_' + self.date1 + '_' + self.date2 + '_' + 'seasmean' + '.nc'
+        oname = self.baseoutname[:-3] + '_' + self.date1 + '_' + self.date2 + '_' + 'seasmean' + '.nc'
         cmd1   = 'seasmean'
         cmd = 'cdo ' + self.options + ' ' + 'seasmean' + ' '  + self.filename + ' ' + oname
         self.run(cmd,oname,force)
@@ -81,7 +91,7 @@ class pyCDO():
         @param force: force calculations to be performed
         @type force: bool
         '''
-        oname = self.filename[:-3] + '_cell_area.nc'
+        oname = self.baseoutname[:-3] + '_cell_area.nc'
         cmd = 'cdo ' + self.options + ' ' + 'gridarea' + ' '  + self.filename + ' ' + oname
         self.run(cmd,oname,force)
         return oname
@@ -109,7 +119,7 @@ class pyCDO():
         if output != None:
             oname = output
         else:
-            oname = self.filename[:-3] + '_' + self.date1 + '_' + self.date2 + '_div_' + file2[:-3] + '.nc'
+            oname = self.baseoutname[:-3] + '_' + self.date1 + '_' + self.date2 + '_div_' + file2[:-3] + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'div' + ' '  + self.filename + ' ' + file2 + ' ' + oname
         self.run(cmd,oname,force)
         return oname
@@ -152,7 +162,7 @@ class pyCDO():
 
         arg = str(months).replace('[','').replace(']','').replace(' ','')
 
-        oname = self.filename[:-3] + '_'  + s + '.nc'
+        oname = self.baseoutname[:-3] + '_'  + s + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'selmon,' + arg + ' ' + self.filename + ' ' + oname
         self.run(cmd,oname,force)
 
@@ -181,7 +191,7 @@ class pyCDO():
         else:
             raise ValueError, 'Unknown remapping method'
 
-        oname = self.filename[:-3] + '_'  + remap_str + '.nc'
+        oname = self.baseoutname[:-3] + '_'  + remap_str + '.nc'
         cmd = 'cdo ' + self.options + ' ' + remap_str + ',' + target_grid +  ' ' + self.filename + ' ' + oname
         self.run(cmd,oname,force)
 
@@ -196,7 +206,7 @@ class pyCDO():
         @param force: force calculation
         @type force: bool
         '''
-        oname = self.filename[:-3] + '_'  + 'yearmean' + '.nc'
+        oname = self.baseoutname[:-3] + '_'  + 'yearmean' + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'yearmean' + ' ' + self.filename + ' ' + oname
         self.run(cmd,oname,force)
         return oname
@@ -210,7 +220,7 @@ class pyCDO():
         @param force: force calculation
         @type force: bool
         '''
-        oname = self.filename[:-3] + '_'  + 'yseasmean' + '.nc'
+        oname = self.baseoutname[:-3] + '_'  + 'yseasmean' + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'yseasmean' + ' ' + self.filename + ' ' + oname
         self.run(cmd,oname,force)
 
@@ -226,7 +236,7 @@ class pyCDO():
         @type force: bool
         '''
 
-        oname = self.filename[:-3] + '_'  + 'yseasstd' + '.nc'
+        oname = self.baseoutname[:-3] + '_'  + 'yseasstd' + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'yseasstd' + ' ' + self.filename + ' ' + oname
         self.run(cmd,oname,force)
 
@@ -274,7 +284,7 @@ class pyCDO():
         returns a string for seldate command
         @return str with seldate command
         '''
-        oname = self.filename[:-3] + '_' + self.date1 + '_' + self.date2 + '.nc'
+        oname = self.baseoutname[:-3] + '_' + self.date1 + '_' + self.date2 + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'seldate,' + str(self.date1) + ',' + str(self.date2) + ' ' + self.filename + ' ' + oname
         self.run(cmd,oname,force)
         return oname

@@ -311,7 +311,9 @@ class CMIP5Data(Model):
             raise ValueError, 'Stop time needs to be specified'
 
         s_start_time = str(self.start_time)[0:10]
-        s_stop_time = str(self.stop_time)[0:10]
+        s_stop_time  = str(self.stop_time )[0:10]
+
+
 
 
         file_down = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -335,8 +337,14 @@ class CMIP5Data(Model):
         tmpu = pyCDO(Fu,s_start_time,s_stop_time,force=force_calc).remap()
         tmpd = pyCDO(Fd,s_start_time,s_stop_time,force=force_calc).remap()
 
+
+
         #calculate monthly albedo
-        albmon = pyCDO(tmpu,s_start_time,s_stop_time,force=force_calc).div(tmpd,output=self.model + '_' + self.experiment + '_albedo_tmp.nc')
+        if 'CDOTEMPDIR' in os.environ.keys(): #check for temp. directory to write albedo file to
+            tdir = os.environ['CDOTEMPDIR']
+        else:
+            tdir = './'
+        albmon = pyCDO(tmpu,s_start_time,s_stop_time,force=force_calc).div(tmpd,output=tdir + self.model + '_' + self.experiment + '_albedo_tmp.nc')
 
         #calculate seasonal mean albedo
         tmp1 = pyCDO(albmon,s_start_time,s_stop_time,force=force_calc).seasmean()
@@ -346,7 +354,6 @@ class CMIP5Data(Model):
         alb._set_valid_range(0.,1.)
 
         alb._apply_mask(ls_mask.data)
-
 
         return alb
 

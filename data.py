@@ -208,35 +208,39 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_zonal_statistics(self,weights,method='mean'):
+    def get_zonal_mean(self):
         '''
-        calculate zonal statistics of the data
+        calculate zonal mean statistics of the data for each timestep
+        returns zonal statistics [time,ny]
 
-        returns zonal statistics
+        uses area weighting of data
 
-        @param weights: grid cell weights for. If weights ARE NOT None, then the aggregation
-                        method is automatically set to I{sum}
-        @type weights: array(ny,nx)
+        gives exact same results as function 'zonmean' in cdo's
 
         @return: returns an array with zonal statistics
-
-        @todo: CAUTION: grid cell weighting for zonal statistic has not yet been properly validated !!; check weighting of zonal statistics
+        @rtype numpy array
         '''
 
-        if weights != None:
-            #method = 'sum' #perform weighted sum in case that weights are provided
-            method = 'mean'
-            print "NOTE! zonal plot calculationmethod was set to -mean- by default: in data.py"
-
-        dat = self._get_weighted_data(weights)
-
-
-        if method == 'mean':
-            r = dat.mean(axis=self.data.ndim-1)
-        elif method == 'sum':
-            r = dat.sum(axis=self.data.ndim-1)
+        if self.cell_area == None:
+            print 'WARNING: no cell area given, zonal means are based on equal weighting!'
+            w = np.ones(self.data.shape)
         else:
-            raise ValueError, 'Invalid option: ' + method
+            w = self._get_weighting_matrix()
+
+        #/// weight data
+        dat = self.data * w
+
+        #/// calculate zonal mean
+        if dat.ndim == 2:
+            r = dat.sum(axis=1) / w.sum() #zonal mean
+        elif dat.ndim == 3:
+            nt,ny,nx = dat.shape
+            r = np.ones((nt,ny))*np.nan
+
+            for i in xrange(nt):
+                r[i] = dat[i,:,:].sum(axis=1) / w[i,:,:].sum(axis=1)
+        else:
+            raise ValueError, 'Unsupported geometry'
 
         return r
 
@@ -354,7 +358,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def _get_weighted_data(self,weights):
+    def __xxxxxxxxxxxxxxxxxxxxxxx_get_weighted_data(self,weights):
         '''
         calculate area weighted data
 
@@ -428,7 +432,8 @@ class Data():
         if not os.path.exists(self.filename):
             sys.exit('Error: file not existing: '+ self.filename)
         else:
-            print 'Reading file ', self.filename
+            print ''
+            print 'FILE: ', self.filename
 
 
         #read data
@@ -816,7 +821,7 @@ class Data():
         input time are supported
         '''
         if self.time_str == None:
-            print 'WARNING: time type can not be determined!'
+            print '        WARNING: time type can not be determined!'
         elif self.time_str == 'day as %Y%m%d.%f':
             self._convert_time()
         elif 'hours since' in self.time_str:
@@ -970,7 +975,7 @@ class Data():
         if self.verbose:
             print 'Reading file ', self.filename
         if not varname in F.variables.keys():
-            print 'Error: data can not be read. Variable not existing! ', varname
+            print '        ERROR  : data can not be read. Variable not existing! ', varname
             F.close()
             return None
 
@@ -1567,7 +1572,6 @@ class Data():
         elif self.data.ndim == 3:
             for i in range(len(self.data)):
                 tmp              = self.data[i,:,:].copy()
-                print tmp.shape, msk.shape
                 tmp[~msk]        = np.nan
                 self.data[i,:,:] = tmp[:,:]
                 del tmp
