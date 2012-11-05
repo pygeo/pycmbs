@@ -1317,7 +1317,7 @@ class Diagnostic():
 
 #-----------------------------------------------------------------------
 
-    def calc_reichler_index(self,weights):
+    def calc_reichler_index(self,weights=None):
         '''
         calculate index after Reichler & Kim (2008)
         for a single model
@@ -1326,14 +1326,27 @@ class Diagnostic():
 
         variable x is assumed to be the reference dataset
 
+        The weights need to be available for each timestep to account
+        for temporally varying gaps in the data. weights can be calculated
+        e.g. with the method _get_weighting_matrix() of the C{Data} class.
 
-        returns E**2
+        returns E**2 as a list whereas each element corresponds to the weighted
+        difference at a timestep. Thus to get the overall score, one still needs
+        to take the sum of all values in the calling program!
         '''
 
         if not hasattr(self,'y'):
             raise ValueError, 'Can not calculate Reichler & Kim index without a second variable!'
 
-        weights = weights.copy()
+
+        if weights == None:
+            if self.x.cell_area == None:
+                print 'WARNING: Reichler: can not calculated weighted index, as no cell_area given!'
+                weights = np.ones(self.x.data.shape)
+            else:
+                weights = self.x._get_weighting_matrix()
+        else:
+            weights = weights.copy()
         x = self.x.data.copy(); y = self.y.data.copy()
         std_x = self.x.std.copy()
 
@@ -1347,15 +1360,16 @@ class Diagnostic():
             n = len(x)
             x.shape = (n,-1) #[time,index]
             y.shape = (n,-1)
-            std_x.shape = (n,-1); weights.shape = (-1)
-            if np.shape(x[0,:]) != np.shape(weights):
+            std_x.shape = (n,-1); weights.shape = (n,-1)
+            if np.shape(x) != np.shape(weights):
+                print x.shape,weights.shape
                 raise ValueError, 'Invalid shape for weights!'
-            e2 = []
-            for i in range(n):
-                d = weights * ( (x[i,:]-y[i,:])**2.)   / std_x[i,:]
-                #~ print d.sum(), np.sum(d)
-                e2.append(np.sum(d)) #sum at end to avoid nan's   #it is important to use np.sum() !!
-            e2 = np.asarray(e2)
+
+            #calculate weighted average for all timesteps
+            e2 = np.ones(n)*np.nan
+            for i in xrange(n):
+                d = weights[i,:] * ( (x[i,:]-y[i,:])**2.)   / std_x[i,:]
+                e2[i] = np.sum(d) #sum at end to avoid nan's   #it is important to use np.sum() !!
 
         if np.any(np.isnan(e2)):
             raise ValueError, 'Reichler: e2 contains NAN, this happens most likely if STDV == 0'
