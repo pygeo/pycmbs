@@ -1063,7 +1063,12 @@ class Data():
             cell_area = self.cell_area.copy()
             s = np.shape(cell_area)
             cell_area.shape = (-1)
-            w = cell_area.repeat(nt).reshape((s[0]*s[1],nt)).T
+            if len(s) == 2:
+                w = cell_area.repeat(nt).reshape((s[0]*s[1],nt)).T
+            elif len(s) == 1:
+                w = cell_area.repeat(nt).reshape((1,nt)).T
+            else:
+                raise ValueError, 'Invalid geometry!'
             w.shape = self.data.shape #geometry is the same now as data
 
             #2) mask areas that do not contain valid data
@@ -1114,6 +1119,10 @@ class Data():
             x[:,0,0] = tmp
             r = self.copy()
             r.data = np.ma.array(x.copy(),mask=(x-x > 1.) ) #some dummy mask
+
+            #return cell area array with same size of data
+            r.cell_area = np.array([1.])
+
             return r
         else: #return numpy array
             return tmp
