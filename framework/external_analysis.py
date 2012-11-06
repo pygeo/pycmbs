@@ -96,6 +96,9 @@ class ExternalAnalysis():
     def run(self,execute=True,remove_extension=False):
         '''
         run external program
+        the execution of the program will be done in the directory where the modified script is located
+        this is done, because programs like e.g. matlab have problems when the scriptname is provided with
+        a pathname
 
         @param execute: execute command = run in shell; if false, then the command is simply printed (good for debugging)
         @type execute: bool
@@ -108,11 +111,18 @@ class ExternalAnalysis():
         filename = self._create_script()
         if remove_extension:
             filename = os.path.splitext(filename)[0]
+            
+        #/// split filename into path and 
+        thedir = os.path.dirname(filename)
+        thefile = os.path.basename(filename)
+        curdir = os.getcwd()
 
         #/// run script
-        cmd = self.exe.replace('<INPUTFILE>',filename)+self.options
+        cmd = self.exe.replace('<INPUTFILE>',thefile)+self.options
         if execute:
-            r = os.system(self.exe) #@todo: use subprocess
+            os.chdir(thedir)  #change to directory where script is located
+            r = os.system(cmd) #@todo: use subprocess
+            os.chdir(curdir) #go back
         else:
             print cmd
 

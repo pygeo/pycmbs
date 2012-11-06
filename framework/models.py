@@ -115,9 +115,12 @@ class CMIP5Data(Model):
         ############################################################################################
         ############################################################################################
         ############################################################################################
-        filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        #filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
+        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'
 
+        filename1 = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!! DUMMY so far for testnig
+        #varname = 'fapar' #todo: set variable name interactively
 
         if self.start_time == None:
             raise ValueError, 'Start time needs to be specified'
@@ -135,7 +138,7 @@ class CMIP5Data(Model):
         if not os.path.exists(filename):
             return None
 
-        sis = Data(filename,'rsds',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
+        sis = Data(filename,'fapar',read=True,label=self.model,unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
         print 'Data read!'
 
         return sis
