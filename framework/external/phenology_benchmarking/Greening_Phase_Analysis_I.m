@@ -35,6 +35,8 @@ fprintf(fid,'FALSE');
 % set paths and important variables %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fftmaskfile = '<FFTMASKFILE>';
+
 ystart     = <STARTYEAR>; % start of data set
 yend       = <STOPYEAR>; % end of data set
 
@@ -212,7 +214,7 @@ end
 if flip == 1;
     fft_mask = flipud(peakmatrix);
 end
-save('fft_mask','fft_mask'); % save variable to workspace
+save(fftmaskfile,'fft_mask'); % save variable to workspace
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
