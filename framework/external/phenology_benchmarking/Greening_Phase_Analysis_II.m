@@ -35,6 +35,8 @@ fprintf(fid,'FALSE');
 % set paths and important variables %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fftmaskfile = '<FFTMASKFILE>';
+
 ystart     = <STARTYEAR>; % start of data set
 yend       = <STOPYEAR>; % end of data set
 
@@ -79,7 +81,7 @@ visible_figures = 0; % fast option: print figures only to png.files
 % Print OK if GPAII starts to run
 fprintf(1, '*** GPAII starts to produce Greening Phase Results from file');
 
-load ('fft_mask','fft_mask'); % run Greening_Phase_Analysis_I before to produce the fft_mask
+load (fftmaskfile,'fft_mask'); % run Greening_Phase_Analysis_I before to produce the fft_mask
 
 pacific_centered = 1; % 1 means pacific centered, 0 means atlantic centered
 

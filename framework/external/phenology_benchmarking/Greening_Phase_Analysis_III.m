@@ -38,6 +38,7 @@ end
 % enter where to find directory with *.h5 results from
 % Greening_Phase_Analysis_II:
 filedir1  = '<INPUTDIRECTORY>';
+sensormaskfile = '<SENSORMASKFILE>';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % enter period of modelled time series: should be similar to entries in
@@ -95,7 +96,7 @@ modefiles1  = dir(fullfile(filedir1,filenames1));
 % modefiles1  = dir(fullfile(filedir1,'Greening_phase_1979-2008_p*'));
 
 %%%%%%% load fft_masks of model and sensors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load('sensor_mask','sensor_mask'); %sensor mask from 4 sensors
+load(sensormaskfile,'sensor_mask'); %sensor mask from 4 sensors
 fft_sensor = sensor_mask(:,:,5);
 % mask(:,:,1) == AVH; mask(:,:,2) == SEA; mask(:,:,3) == CYC;
 % mask(:,:,4) == MCD; mask(:,:,5) == 4; seasonal vegetation
@@ -115,28 +116,28 @@ for sensor = 1:4; % loop over four different sensors
     if sensor == 1; %AVH comparison
         ystrstart = '1993';
         ystrend   = '2000';
-        filedir2 = 'sensors\AVH_T63';
+        filedir2 = '<RESULTDIR_AVHRR>';       %'sensors\AVH_T63';
         modefiles2    = dir(fullfile(filedir2,'Greening_phase_*'));
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if sensor == 2; %SEA comparison
         ystrstart = '1998';
         ystrend   = '2005';
-        filedir2 = 'sensors\SEA_T63\';
+        filedir2 = '<RESULTDIR_SEAWIFS>';    %'sensors\SEA_T63\';
         modefiles2    = dir(fullfile(filedir2,'Greening_phase_*'));
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if sensor == 3; %CYC comparison
         ystrstart = '1999';
         ystrend   = '2007';
-        filedir2 = 'sensors\CYC_T63';
+        filedir2 =   '<RESULTDIR_CYCLOPES>';   %'sensors\CYC_T63';
         modefiles2    = dir(fullfile(filedir2,'Greening_phase_*'));
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if sensor == 4; %MCD comparison
         ystrstart = '2003';
         ystrend   = '2009';
-        filedir2 = 'sensors\MCD_T63';
+        filedir2 =  '<RESULTDIR_MODIS>';  %'sensors\MCD_T63';
         modefiles2    = dir(fullfile(filedir2,'Greening_phase_*'));
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

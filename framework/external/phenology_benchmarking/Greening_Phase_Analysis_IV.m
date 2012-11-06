@@ -50,6 +50,9 @@ figname2 = '<FIG2CAPTION>';
 figname3 = '<FIG3CAPTION>';
 figname4 = '<FIG4CAPTION>';
 
+sensormaskfile = '<SENSORMASKFILE>';
+fftmaskfile = '<FFTMASKFILE>';
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % enter period of modelled time series: should be similar to entries in
 % Greening_Phase_Analysis_I&II&III:
@@ -95,13 +98,14 @@ load('evergreen_stack','evergreen_stack'); % was produced in GPAII
 evergreen_info = mode(evergreen_stack);
 
 %%%%%%% load fft_masks of model and sensors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load('sensor_mask','sensor_mask'); %sensor mask from 4 sensors
+load(sensormaskfile,'sensor_mask'); %sensor mask from 4 sensors
 fft_sensor = sensor_mask(:,:,5);
 % mask(:,:,1) == AVH; mask(:,:,2) == SEA; mask(:,:,3) == CYC;
 % mask(:,:,4) == MCD; mask(:,:,5) == 4; seasonal vegetation
 fft_sensor(fft_sensor < 4) = 0;
 
-load('fft_mask','fft_mask');
+fprintf(1, '*** Loading FFT mask ...');
+load(fftmaskfile,'fft_mask');
 %load('C:\MATLAB\data\JSB\JSBGernot\fft_mask','fft_mask'); % model mask (Greening_Phase_AnalysisI)
 % mask values: mask == 0; masked
 % mask == 1; uni-seasonal vegetation; mask == 2; bi-seasonal vegetation
@@ -116,6 +120,7 @@ ystrend_m = int2str(yend_model);
 %%%%%%%%%%%%%
 % FIGURE 1: %
 %%%%%%%%%%%%%
+fprintf(1, '*** Figure 1 ...');
 if visible_figures == 1;
     figure('name','Fig1:FFT-Mask & Evergreen Overview');
 end
@@ -186,6 +191,8 @@ clear evergreen_stack
 %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % input and settings for Figure 2: Time-Latitude diagram of shifts
+
+fprintf(1, '*** Figure 2 ...');
 
 %filedir2 = 'C:\MATLAB\outputs\Norm\CYC\';
 %filedir_gpa2   = 'C:\MATLAB\outputs\GPA\GPA_II';
@@ -543,6 +550,8 @@ print('-dpng', figpath);
 % SEA, CYC, MCD & AVH       %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fprintf(1, '*** Figure 3 ...');
 
 %mode_hov = 1;
 ksmaps_15 = zeros(xdim,ydim,4);

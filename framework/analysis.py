@@ -62,7 +62,8 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         # GREENING PHASE ANALYSIS - STEP1
         #//////////////////////////////////////
         outdir=ddir + 'GPA-01-' + model.name.replace(' ','')
-        tags = [{'tag':'<STARTYEAR>','value':'1970'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':outdir },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
+        tags = [{'tag':'<STARTYEAR>','value':'2003'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':outdir },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
+        tags.append({'tag':'<FFTMASKFILE>','value':outdir+'/fft_mask.mat'})
 
         template1 = './external/phenology_benchmarking/Greening_Phase_Analysis_I.m'
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template1,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' ) #temporary scripts are stored in directories that have same name as model
@@ -75,13 +76,20 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         tags.append({'tag':'<INPUTSNOWFILE>','value':'/net/nas2/export/eo/workspace/m300028/GPA/input/historical_r1i1p1-LR_snow_fract.nc'})
         tags.append({'tag':'<SNOWVARNAME>','value':'snow_fract'})
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template2,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
-        E.run(execute=f_execute,remove_extension=True)
+        #E.run(execute=f_execute,remove_extension=True)
 
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP3
         #//////////////////////////////////////
         template3 = './external/phenology_benchmarking/Greening_Phase_Analysis_III.m'
         tags.append({'tag':'<INPUTDIRECTORY>','value':outdir + '/'})
+        tags.append({'tag':'<SENSORMASKFILE>','value':os.getcwd() + '/external/phenology_benchmarking/sensor_mask.mat'})
+        
+        tags.append({'tag':'<RESULTDIR_AVHRR>'  ,'value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/AVH_T63'})
+        tags.append({'tag':'<RESULTDIR_SEAWIFS>','value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/SEA_T63'})
+        tags.append({'tag':'<RESULTDIR_CYCLOPES>','value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/CYC_T63'})
+        tags.append({'tag':'<RESULTDIR_MODIS>','value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/MCD_T63'})
+       
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template3,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
         #E.run(execute=f_execute,remove_extension=True)
 
@@ -94,7 +102,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         tags.append({'tag':'<FIG3CAPTION>','value':'Fig3_GPAIII_Shifts_between_Model_Sensors'})
         tags.append({'tag':'<FIG4CAPTION>','value':'Fig4_Time_series_from_various_biomes'})
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template4,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
-        #E.run(execute=f_execute,remove_extension=True)
+        E.run(execute=f_execute,remove_extension=True)
 
         #/// Gleckler plot ///
         #~ e2a = GP.calc_index(gpcp,model_data,model,'pheno_faPAR')
