@@ -285,64 +285,6 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def __xxxxget_percentilxxx(self,p,return_object = True):
-        '''
-        return array of percentil values
-        The calculation is performed using a fast approach without
-        calculating the actual histogram, but relying on the original
-        data
-
-        http://stackoverflow.com/questions/3209362/how-to-plot-empirical-cdf-in-matplotlib-in-python
-
-        routine was validated against median value calculation with np.ma.median(x,axis=0). Results
-        are almost equal (< 0.1% deviation)
-
-        @param p: percentil value to obtain, e.g. 0.05 corresponds to 5% percentil
-        @type p: float
-
-        @param return_object: return C{Data} object
-        @type return_object: bool
-
-        @todo: better handling of masked arrays
-        '''
-
-        raise ValueError, 'Outdated function !!!'
-
-        if self.data.ndim !=3:
-            raise ValueError, 'Pcerentiles can only be calculated for 3D arrays'
-
-        d = self.data.copy()
-
-        #- sort data
-        d = np.ma.sort(d,axis=0); y = np.arange( len(d)*1.0)/len(d) #todo: change y dynamically to adapt for changing valid values
-
-        #- get percentiles
-        i1 = abs(y-p).argmin() #minimum position of data
-        if y[i1] < p:
-            #- calculate weighted value
-            i2 = i1 + 1
-            w = (p-y[i1])/(y[i2]-y[i1])
-            res = d[i1,:,:]*w + d[i2,:,:]*(1.-w)
-
-        elif y[i1] == p:
-            res = d[i1,:,:]
-        else:
-            i2 = i1*1
-            i1 = i2 - 1
-            w = (p-y[i1])/(y[i2]-y[i1])
-            res = d[i1,:,:]*w + d[i2,:,:]*(1.-w)
-
-        #- return
-        if return_object:
-            r = self.copy()
-            r.label = self.label + ' - percentil: ' + str(round(p,2))
-            r.data = res
-            return r
-        else:
-            return res
-
-#-----------------------------------------------------------------------
-
     def _get_unit(self):
         '''
         get a nice looking string for units
@@ -356,47 +298,6 @@ class Data():
 
         return u
 
-#-----------------------------------------------------------------------
-
-    def __xxxxxxxxxxxxxxxxxxxxxxx_get_weighted_data(self,weights):
-        '''
-        calculate area weighted data
-
-        weights are only applied to VALID data
-        thus, the weights are renormalized, thus that
-        sum(weights_of_valid_data) = 1
-        '''
-
-        dat = self.data.copy()
-
-        if weights != None:
-            if dat.ndim == 2:
-                print "dat.ndim= ", dat.ndim
-                print "NOTE! zonal weight normalizat was commented: in data.py"
-                weights[dat.mask] = 0. #set weights to zero where the data is masked
-                #sw = weights.sum(); #print 'Sum of weights: ', sw
-                #weights = weights / sw #normalize thus the sum is one
-                dat = dat*weights.data #todo: renormalize only by valid data!!!
-            elif dat.ndim == 3:
-                print "dat.ndim= ", dat.ndim
-                print "NOTE! zonal weight normalizat was commented: in data.py"
-                for i in range(len(dat)): #for all timesteps set mask
-                    nweights = weights.copy()
-                    #~ print i, dat.shape,range(len(dat)), weights.shape, nweights.shape
-                    nweights[dat[i,:,:].mask] = 0. #set weights to zero where the data is masked
-                    #sw = nweights.sum(); #print 'Sum of weights: ', sw
-                    #nweights = nweights / sw #normalize thus the sum is one
-                    #nweights = nweights*100
-                    #~ print nweights.sum()
-                    dat[i,:,:] = dat[i,:,:]*nweights.data
-
-
-
-            else:
-                raise ValueError, 'Invalid dimensions: not supported yet'
-
-
-        return dat
 
 #-----------------------------------------------------------------------
 
@@ -1453,16 +1354,6 @@ class Data():
 
         msk = msk_lat & msk_lon & msk_region  # valid area
 
-
-        #~ print msk
-        #~ pl.figure(); pl.imshow(msk)
-        #~ pl.figure(); pl.imshow(msk_lat)
-        #~ pl.figure(); pl.imshow(msk_lon)
-        #~ pl.figure(); pl.imshow(msk_region)
-        #~ stop
-
-
-
         self._apply_mask(msk)
 
 #-----------------------------------------------------------------------
@@ -1527,14 +1418,6 @@ class Data():
 
         data = data[:,msk]
         lon  = lon[msk]; lat  = lat[msk]
-        #~ del msk
-
-        #~ msk = np.sum(~np.isnan(data),axis=0) == n
-        #~ print 'shape mask: ', msk.shape
-#~
-        #~ data = data[:,msk]
-        #~ lon  = lon[msk]
-        #~ lat  = lat[msk]
 
         if return_mask:
             return lon,lat,data,msk
@@ -1557,7 +1440,9 @@ class Data():
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()
 
-        #~ print 'Geometry in masking: ', self.data.ndim, self.data.shape
+
+        #~ if self.cell_area != None:
+            #~ self.cell_area = np.ma.array(self.cell_area,mask=msk)
 
         if self.data.ndim == 2:
             tmp1 = self.data.copy().astype('float') #convert to float to allow for nan support
@@ -1567,6 +1452,7 @@ class Data():
                 if self.__oldmask.ndim > 0:
                     tmp1[self.__oldmask] = np.nan
             self.data = np.ma.array(tmp1,mask=np.isnan(tmp1))
+
             del tmp1
 
         elif self.data.ndim == 3:
@@ -1678,6 +1564,7 @@ class Data():
 
 
 #-----------------------------------------------------------------------
+
     def _set_valid_range(self,vmin,vmax):
         '''
         sets the valid range of the data
@@ -1694,8 +1581,6 @@ class Data():
 
 
 #-----------------------------------------------------------------------
-
-
 
     def __shift2D(self,x,n):
         '''
@@ -1860,9 +1745,6 @@ class Data():
         d.data /= x
         return d
 
-
-
-
 #-----------------------------------------------------------------------
 
     def div(self,x,copy=True):
@@ -1914,6 +1796,7 @@ class Data():
 
         return d
 
+#-----------------------------------------------------------------------
 
     def mul(self,x,copy=True):
         '''
@@ -1963,8 +1846,6 @@ class Data():
         d.label = self.label + ' * ' + x.label
 
         return d
-
-
 
 #-----------------------------------------------------------------------
 

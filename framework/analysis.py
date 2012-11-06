@@ -42,17 +42,9 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
     if GP == None:
         GP = GlecklerPlot()
 
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-    #--- T63 weights
-    #~ t63_weights = get_T63_weights(shift_lon)
-
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
     for model in model_list:
+
+        print '*** PHENOLOGY analysis for model: ' + model.name
 
         GP.add_model(model.name) #register model for Gleckler Plot
 
@@ -60,28 +52,53 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         #ddir = './external/phenology_benchmarking/' #todo set right directory!
         ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'
 
-        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!!
+        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!! DUMMY so far for testnig
         varname = 'fapar' #todo: set variable name interactively
 
-        template = ddir + 'Greening_Phase_Analysis_I,quit' #important: no file extension!!! and ',quit' at the end to leave execution in the end!
+        #specify filename to run; here: including quit command so that matlab quits properly!
 
-        tags = [{'tag':'<STARTYEAR>','value':'1970'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':ddir + 'GPA-01-' + model.name.replace(' ','') },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
+        f_execute = False
+        #//////////////////////////////////////
+        # GREENING PHASE ANALYSIS - STEP1
+        #//////////////////////////////////////
+        outdir=ddir + 'GPA-01-' + model.name.replace(' ','')
+        tags = [{'tag':'<STARTYEAR>','value':'1970'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':outdir },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
 
-        E=ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template,tags,output_directory='./tmp_' + model.name.replace(' ','') + '/' ) #temporary scripts are stored in directories that have same name as model
-        E.run()
+        template1 = './external/phenology_benchmarking/Greening_Phase_Analysis_I.m'
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template1,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' ) #temporary scripts are stored in directories that have same name as model
+        E.run(execute=f_execute,remove_extension=True)
 
-        #/// GREENING PHASE ANALYSIS STEP 2 ... ///
+        #//////////////////////////////////////
+        # GREENING PHASE ANALYSIS - STEP2
+        #//////////////////////////////////////
+        template2 = './external/phenology_benchmarking/Greening_Phase_Analysis_II.m'
+        tags.append({'tag':'<INPUTSNOWFILE>','value':'mysnowfile'})
+        tags.append({'tag':'<SNOWVARNAME>','value':'mysnowvar'})
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template2,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
+        E.run(execute=f_execute,remove_extension=True)
 
+        #//////////////////////////////////////
+        # GREENING PHASE ANALYSIS - STEP3
+        #//////////////////////////////////////
+        template3 = './external/phenology_benchmarking/Greening_Phase_Analysis_III.m'
+        tags.append({'tag':'<INPUTDIRECTORY>','value':outdir + '/'})
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template3,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
+        E.run(execute=f_execute,remove_extension=True)
 
-
-
-        #--- calculate Reichler diagnostic for preciptation
-        #~ Diag = Diagnostic(gpcp,model_data); e2 = Diag.calc_reichler_index(t63_weights)
-        #~ Rplot.add(e2,model_data.label,color='red')
+        #//////////////////////////////////////
+        # GREENING PHASE ANALYSIS - STEP4
+        #//////////////////////////////////////
+        template4 = './external/phenology_benchmarking/Greening_Phase_Analysis_IV.m'
+        tags.append({'tag':'<FIG1CAPTION>','value':'Fig1_FFT_Mask_Evergreen_Overview'})
+        tags.append({'tag':'<FIG2CAPTION>','value':'Fig2_GPAII_Results'})
+        tags.append({'tag':'<FIG3CAPTION>','value':'Fig3_GPAIII_Shifts_between_Model_Sensors'})
+        tags.append({'tag':'<FIG4CAPTION>','value':'Fig4_Time_series_from_various_biomes'})
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template4,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
+        E.run(execute=f_execute,remove_extension=True)
 
         #/// Gleckler plot ///
         #~ e2a = GP.calc_index(gpcp,model_data,model,'pheno_faPAR')
-        e2a = np.random.rand() #todo
+        e2a = 0. #todo
         GP.add_data('pheno_faPAR',model.name,e2a,pos=1)
 
 
