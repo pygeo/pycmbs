@@ -22,11 +22,8 @@ __email__ = "alexander.loew@zmaw.de"
 
 import os
 
-
-
-
 class ExternalAnalysis():
-    def __init__(self,executable,template,tags,output_directory='./'):
+    def __init__(self,executable,template,tags,output_directory='./',options=''):
         '''
         constructor for ExternalAnalysis class
 
@@ -44,6 +41,10 @@ class ExternalAnalysis():
 
         @param output_directory: output directory to write output of external analysis to
         @type output_directory: str
+
+        @param options: options that will be appended to the filename in the end
+        @type options: str
+
         '''
 
         if not '<INPUTFILE>' in executable:
@@ -56,6 +57,7 @@ class ExternalAnalysis():
         if not os.path.exists(self.output_directory):
             os.makedirs(self.output_directory)
         self.template = template
+        self.options = options
 
 
     def _create_script(self):
@@ -91,18 +93,28 @@ class ExternalAnalysis():
         return filename
 
 
-    def run(self):
+    def run(self,execute=True,remove_extension=False):
         '''
         run external program
+
+        @param execute: execute command = run in shell; if false, then the command is simply printed (good for debugging)
+        @type execute: bool
+
+        @param remove_extension: remove extension from filename. This is for instance needed for matlab calls from the command line, as matlab does NOT accept script names with a fileextension
+        @type remove_extension: bool
         '''
 
         #/// generate run script (returns filename) ///
         filename = self._create_script()
+        if remove_extension:
+            filename = os.path.splitext(filename)[0]
 
         #/// run script
-        cmd = self.exe.replace('<INPUTFILE>',filename)
-        print cmd
-        #~ r = os.system(self.exe) #@todo: use subprocess
+        cmd = self.exe.replace('<INPUTFILE>',filename)+self.options
+        if execute:
+            r = os.system(self.exe) #@todo: use subprocess
+        else:
+            print cmd
 
 
 
