@@ -20,6 +20,8 @@
 fid = fopen('GPAIII.status','w');
 fprintf(fid,'FALSE');
 
+fftmaskfile = '<FFTMASKFILE>';
+
 %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -102,7 +104,7 @@ fft_sensor = sensor_mask(:,:,5);
 % mask(:,:,4) == MCD; mask(:,:,5) == 4; seasonal vegetation
 fft_sensor(fft_sensor < 4) = 0;
 
-load('fft_mask','fft_mask'); % model mask (Greening_Phase_AnalysisI)
+load(fftmaskfile,'fft_mask'); % model mask (Greening_Phase_AnalysisI)
 % mask values: mask == 0; masked
 % mask == 1; uni-seasonal vegetation; mask == 2; bi-seasonal vegetation
 sensor_model_mask = fft_mask + fft_sensor; % take grid cell only if value >= 5!
