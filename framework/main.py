@@ -248,7 +248,7 @@ global_gleckler = GlecklerPlot()
 ########################################################################
 # REPORT
 ########################################################################
-rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],'Alexander Loew',outdir='./report_' + CF.options['report'] + '/')
+rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],'Alexander Loew',outdir='./report_' + CF.options['report'] + '/',dpi=300,format='pdf')
 
 
 ########################################################################
