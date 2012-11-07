@@ -551,50 +551,12 @@ class JSBACH_RAW(Model):
         if self.stop_time == None:
             raise ValueError, 'Stop time needs to be specified'
 
-
-
-
         sw_down = self.get_surface_shortwave_radiation_down()
         sw_up   = self.get_surface_shortwave_radiation_up()
         alb     = sw_up.div(sw_down)
         alb.label = self.experiment + ' albedo'
         alb.unit = '-'
 
-
-
-
-        #~ s_start_time = str(self.start_time)[0:10]
-        #~ s_stop_time = str(self.stop_time)[0:10]
-#~
-        #~ file_down = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-        #~ file_up   = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-#~
-        #~ if not os.path.exists(file_down):
-            #~ print 'File not existing: ', file_down
-            #~ return None
-        #~ if not os.path.exists(file_up):
-            #~ print 'File not existing: ', file_up
-            #~ return None
-
-        #/// calculate ratio on monthly basis
-        # CAUTION: it might happen that latitudes are flipped. Therefore always apply remapcon!
-
-        #select dates
-        #~ Fu = pyCDO(file_up,s_start_time,s_stop_time).seldate()
-        #~ Fd = pyCDO(file_down,s_start_time,s_stop_time).seldate()
-
-        #remap to T63
-        #~ tmpu = pyCDO(Fu,s_start_time,s_stop_time).remap()
-        #~ tmpd = pyCDO(Fd,s_start_time,s_stop_time).remap()
-
-        #calculate monthly albedo
-        #~ albmon = pyCDO(tmpu,s_start_time,s_stop_time).div(tmpd,output=self.model + '_' + self.experiment + '_albedo_tmp.nc')
-
-        #calculate seasonal mean albedo
-        #~ tmp1 = pyCDO(albmon,s_start_time,s_stop_time).seasmean()
-        #~ albfile = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
-
-        #~ alb = Data(albfile,'rsus',read=True,label=self.model + ' albedo',unit='-',lat_name='lat',lon_name='lon',shift_lon=True)
         return alb
 
 
@@ -613,6 +575,7 @@ class JSBACH_RAW(Model):
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
+            print 'File not existing: ', rawfilename
             return None
 
 
@@ -657,6 +620,7 @@ class JSBACH_RAW(Model):
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
+            print 'File not existing: ', rawfilename
             return None
 
 

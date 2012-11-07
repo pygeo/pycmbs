@@ -41,6 +41,7 @@ from pyCDO import *
 @todo: data access via opendap
 '''
 
+
 class Data():
     '''
     Data class: main class
@@ -1021,19 +1022,6 @@ class Data():
         into account the valid values only
         '''
         return self.timsum() / self.timmean()
-
-#-----------------------------------------------------------------------
-#~
-    #~ def flipud(self):
-        #~ '''
-        #~ flip dataset up/down
-        #~ '''
-#~
-        #~ self.data = np.flipud(self.data)
-        #~ self.lon  = np.flipud(self.lon)
-        #~ self.lat  = np.flipud(self.lat)
-
-
 
 #-----------------------------------------------------------------------
 

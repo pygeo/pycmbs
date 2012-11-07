@@ -40,7 +40,7 @@ def get_significance(correlation,n,pthres=1.01):
 
     @param pthres: (optional) specifies threshold for p-value. Everything
         above this threshold will be masked
-    @type  n: integer
+    @type  pthres: integer
 
     @return: returns the p-value
     @rtype : numpy masked array
