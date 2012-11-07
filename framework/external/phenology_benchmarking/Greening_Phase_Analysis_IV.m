@@ -263,19 +263,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % mode values for all fractions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load('hov_avh','hov_avh');
-load('hov_mcd','hov_mcd');
-load('hov_sea','hov_sea');
-load('hov_cyc','hov_cyc');
+load('<RESULTDIR_AVHRR>/hov_avh','hov_avh');
+load('<RESULTDIR_MODIS>/hov_mcd','hov_mcd');
+load('<RESULTDIR_SEAWIFS>/hov_sea','hov_sea');
+load('<RESULTDIR_CYCLOPES>/hov_cyc','hov_cyc');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % for fractions 30%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load('avhfig30','avhfig30');
-load('mcdfig30','mcdfig30');
-load('seafig30','seafig30');
-load('cycfig30','cycfig30');
+load('<RESULTDIR_AVHRR>/avhfig30','avhfig30');
+load('<RESULTDIR_MODIS>/mcdfig30','mcdfig30');
+load('<RESULTDIR_SEAWIFS>/seafig30','seafig30');
+load('<RESULTDIR_CYCLOPES>/cycfig30','cycfig30');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1155,12 +1155,12 @@ for ai = 1:nr_bioms;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%%%%%%% load sea sensor information %%%%
-    load fullnormstackmin_sea;
+    load <RESULTDIR_SEAWIFS>/fullnormstackmin_sea;
     if sensor_model_mask(xm(ai),ym(ai)) > 4;
         seavec1 = squeeze(fullnormstack_sea(xx(ai),yy(ai),:));
     end
     clear fullnormstack_sea;
-    load fullstack_sea;
+    load <RESULTDIR_SEAWIFS>/fullstack_sea;
     if sensor_model_mask(xm(ai),ym(ai)) > 4;
         seavec2 = squeeze(fullstack_sea(xx(ai),yy(ai),:));
     end
@@ -1168,13 +1168,13 @@ for ai = 1:nr_bioms;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%%%%%%% load cyc sensor information %%%%
-    load fullnormstackmin_cyc;
+    load <RESULTDIR_CYCLOPES>/fullnormstackmin_cyc;
     if sensor_model_mask(xm(ai),ym(ai)) > 4;
         cycvec1 = squeeze(fullnormstack_cyc(xx(ai),yy(ai),:));
     end
     clear fullnormstack_cyc;
 
-    load fullstack_cyc;
+    load <RESULTDIR_CYCLOPES>/fullstack_cyc;
     if sensor_model_mask(xm(ai),ym(ai)) > 4;
         cycvec2 = squeeze(fullstack_cyc(xx(ai),yy(ai),:));
     end
@@ -1182,13 +1182,13 @@ for ai = 1:nr_bioms;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%%%%%%% load mcd sensor information %%%%
-    load fullnormstack_mcd;
+    load <RESULTDIR_MODIS>/fullnormstack_mcd;
     if sensor_model_mask(xm(ai),ym(ai)) > 4;
         mcdvec1 = squeeze(fullnormstack(xx(ai),yy(ai),:));
     end
     clear fullnormstack;
 
-    load fullstack_mcd;
+    load <RESULTDIR_MODIS>/fullstack_mcd;
     if sensor_model_mask(xm(ai),ym(ai)) > 4;
         mcdvec2 = squeeze(fullstack(xx(ai),yy(ai),:));
     end
@@ -1196,13 +1196,13 @@ for ai = 1:nr_bioms;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%%%%%%% load avh sensor information %%%%
-    load fullnormstackmin_avh;
+    load <RESULTDIR_AVHRR>/fullnormstackmin_avh;
     if sensor_model_mask(xm(ai),ym(ai)) > 4; %apply mask
         avhvec1 = squeeze(fullnormstack_avh(xx(ai),yy(ai),:));
     end
     clear fullnormstack_avh;
 
-    load fullstack_avh;
+    load <RESULTDIR_AVHRR>/fullstack_avh;
     if sensor_model_mask(xm(ai),ym(ai)) > 4;
         avhvec2 = squeeze(fullstack_avh(xx(ai),yy(ai),:));
     end

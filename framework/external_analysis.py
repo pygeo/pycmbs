@@ -93,7 +93,7 @@ class ExternalAnalysis():
         return filename
 
 
-    def run(self,execute=True,remove_extension=False):
+    def run(self,execute=True,remove_extension=False,statusfile = None):
         '''
         run external program
         the execution of the program will be done in the directory where the modified script is located
@@ -119,9 +119,24 @@ class ExternalAnalysis():
 
         #/// run script
         cmd = self.exe.replace('<INPUTFILE>',thefile)+self.options
+        
+        rstatus = False
         if execute:
+            
+            #change to working directory and run script ...
             os.chdir(thedir)  #change to directory where script is located
             r = os.system(cmd) #@todo: use subprocess
+            
+            #check status of program execution if desired
+            if statusfile != None:
+                if os.path.exists(statusfile):
+                    xxxx
+                else:
+                    rstatus=False
+            else:
+                rstatus = True #no status file is used; baseline is that it is assumed that everything is o.k.
+                    
+            
             os.chdir(curdir) #go back
         else:
             print cmd

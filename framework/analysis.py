@@ -66,8 +66,9 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         tags.append({'tag':'<FFTMASKFILE>','value':outdir+'/fft_mask.mat'})
 
         template1 = './external/phenology_benchmarking/Greening_Phase_Analysis_I.m'
-        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template1,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' ) #temporary scripts are stored in directories that have same name as model
-        #E.run(execute=f_execute,remove_extension=True)
+        rundir = './tmp_' + model.name.replace(' ','') + '/'
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template1,tags,options=',quit',output_directory=rundir ) #temporary scripts are stored in directories that have same name as model
+        E.run(execute=f_execute,remove_extension=True)
 
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP2
@@ -76,7 +77,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         tags.append({'tag':'<INPUTSNOWFILE>','value':'/net/nas2/export/eo/workspace/m300028/GPA/input/historical_r1i1p1-LR_snow_fract.nc'})
         tags.append({'tag':'<SNOWVARNAME>','value':'snow_fract'})
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template2,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
-        #E.run(execute=f_execute,remove_extension=True)
+        E.run(execute=f_execute,remove_extension=True)
 
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP3
@@ -91,7 +92,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         tags.append({'tag':'<RESULTDIR_MODIS>','value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/MCD_T63'})
        
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template3,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
-        #E.run(execute=f_execute,remove_extension=True)
+        E.run(execute=f_execute,remove_extension=True)
 
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP4
@@ -101,6 +102,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         tags.append({'tag':'<FIG2CAPTION>','value':'Fig2_GPAII_Results'})
         tags.append({'tag':'<FIG3CAPTION>','value':'Fig3_GPAIII_Shifts_between_Model_Sensors'})
         tags.append({'tag':'<FIG4CAPTION>','value':'Fig4_Time_series_from_various_biomes'})
+        tags.append({'tag':'<RUNDIR>','value':rundir})
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template4,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
         E.run(execute=f_execute,remove_extension=True)
 
