@@ -36,7 +36,7 @@ class Report():
     @todo: example how to use report class
     '''
 
-    def __init__(self,filename,title,author,format='png',outdir='./'):
+    def __init__(self,filename,title,author,format='png',outdir='./',dpi=300):
         '''
         constructor for Latex report class
 
@@ -51,6 +51,9 @@ class Report():
 
         @param outdir: output directory to write report and images to
         @type outdir: str
+        
+        @param dpi: specify dots per inch for graphic output
+        @type dpi: int
         '''
         ext = ''
         if filename[:-4] != '.tex':
@@ -62,6 +65,7 @@ class Report():
         self.outdir=outdir
         self.open()
         self.figure_counter = 0
+        self.dpi = dpi
 
 #-----------------------------------------------------------------------
 
@@ -158,7 +162,7 @@ class Report():
         self.write('\\end{figure}')
         self._write_separator()
 
-        f.savefig(self.outdir + figname, bbox_inches='tight')
+        f.savefig(self.outdir + figname, bbox_inches='tight',dpi=self.dpi)
 
     def section(self,s):
         '''
