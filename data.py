@@ -1239,10 +1239,17 @@ class Data():
         #explicit conversion of datestr, instead of using datestr2num(), as datestr2num can NOT
         #handle appropriate basedates like 0001-01-01 00:00:00, as its interpretation is that this
         #corresponds to a date of 01/01/2001 !!!
+        #unfortunately we do not get around splitting the string an putting it together again due
         from datetime import datetime
-        bdate = datetime.strptime(basedate,'%Y-%m-%d %H:%M:%S')
 
-
+        try:
+            b = basedate.split(' ')
+            c = b[0].split('-')
+            d = b[1].split(':')
+            basedate = c[0].zfill(4)+'-'+c[1].zfill(2)+'-'+c[2].zfill(2)+' '+d[0].zfill(2)+':'+d[1].zfill(2)+':'+d[2].zfill(2)
+            bdate = datetime.strptime(basedate,'%Y-%m-%d %H:%M:%S')
+        except:
+            raise ValueError, 'basedate is formatted in an unexpected way: ', basedate
 
         if unit == 'hour':
             scal = 24.
