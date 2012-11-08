@@ -37,6 +37,9 @@ from scipy import stats
 
 from pyCDO import *
 
+
+
+
 '''
 @todo: data access via opendap
 '''
@@ -47,7 +50,7 @@ class Data():
     Data class: main class
     '''
     def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,time_var='time'):
-        '''
+        """
         Constructor for Data class
 
         @param filename: name of the file that contains the data  (specify None if not data from file)
@@ -109,7 +112,7 @@ class Data():
         @param cell_area: area size [m**2] of each grid cell. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
         @type cell_area: numpy array
 
-        '''
+        """
 
         self.filename     = filename
         self.varname      = varname
@@ -147,13 +150,6 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
 
-            #~ todo implement areaweighting assignment when reading the data!
-#~
-            #~ set areaweights_org to the valid mask if no weights are provided initaalilly
-#~
-            #~ and also when applying a mask!!
-
-
     def set_sample_data(self,a,b,c):
         '''
         fill data matrix with some sample data
@@ -188,7 +184,7 @@ class Data():
         @todo: implement the calculation of cell_area in a pythonic way
         '''
 
-        if self.cell_area != None:
+        if not self.cell_area == None:
             return
 
         if (self.lat == None) or (self.lon == None):
@@ -210,7 +206,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_zonal_mean(self):
-        '''
+        """
         calculate zonal mean statistics of the data for each timestep
         returns zonal statistics [time,ny]
 
@@ -220,7 +216,7 @@ class Data():
 
         @return: returns an array with zonal statistics
         @rtype numpy array
-        '''
+        """
 
         if self.cell_area == None:
             print 'WARNING: no cell area given, zonal means are based on equal weighting!'
@@ -249,7 +245,7 @@ class Data():
 
     def get_percentile(self,p,return_object = True):
 
-        '''
+        """
         calculate percentile
 
         uses:
@@ -260,7 +256,7 @@ class Data():
         @type p: float
 
         @todo: get mask of pixls with at least a few valid samples, so performance is better!
-        '''
+        """
 
         if self.data.ndim != 3:
             raise ValueError, 'Percentile calculation only supported for 3D data!'
@@ -287,11 +283,11 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _get_unit(self):
-        '''
+        """
         get a nice looking string for units
 
         @return: string with unit like [unit]
-        '''
+        """
         if self.unit == None:
             u = ''
         else:
@@ -315,7 +311,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def read(self,shift_lon,start_time=None,stop_time=None,time_var='time'):
-        '''
+        """
         read data from file
 
         @param shift_lon: if given, longitudes will be shifted
@@ -330,7 +326,7 @@ class Data():
         @param time_var: name of time variable field
         @type time_var: str
 
-        '''
+        """
         if not os.path.exists(self.filename):
             sys.exit('Error: file not existing: '+ self.filename)
         else:
@@ -363,7 +359,7 @@ class Data():
             self.lat = self.read_netcdf(self.lat_name)
         else:
             self.lat = None
-        if self.lon_name != None:
+        if not self.lon_name == None:
             self.lon = self.read_netcdf(self.lon_name)
             #- shift longitudes such that -180 < lon < 180
             if shift_lon:
@@ -405,7 +401,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_yearmean(self,mask=None,return_data=False):
-        '''
+        """
         This routine calculate the yearly mean of the data field
         A vector with a mask can be provided for further filtering
 
@@ -418,10 +414,10 @@ class Data():
         @param return_data: specifies if results should be returned as C{Data} object
         @type return_data: bool
 
-        '''
+        """
 
         if mask == None:
-            #if not maks is provided, take everything
+            #if not mask is provided, take everything
             mask = np.ones(len(self.time)).astype('bool')
         else:
             if mask.ndim != 1:
@@ -456,7 +452,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_yearsum(self,mask=None):
-        '''
+        """
         This routine calculates the yearly sum of the data field
         A vector with a mask can be provided for further filtering
 
@@ -466,7 +462,7 @@ class Data():
         @param mask: mask [time]
         @type mask : numpy boolean array
 
-        '''
+        """
 
         if mask == None:
             #if not maks is provided, take everything
@@ -497,15 +493,15 @@ class Data():
 #-----------------------------------------------------------------------
 
     def correlate(self,Y,pthres=1.01):
-        '''
+        """
         correlate present data on a grid cell basis
         with another dataset
 
         @todo: more efficient implementation needed
 
-        @param y: dataset to corrleate the present one with. The
+        @param Y: dataset to corrleate the present one with. The
                   data set of self will be used as X in the caluclation
-        @type y: C{Data} object
+        @type Y: C{Data} object
 
         @param pthres: threshold for masking insignificant pixels
         @type pthres: float
@@ -519,7 +515,7 @@ class Data():
         @todo: slope calculation as well ???
         @todo: significance correct ???
 
-        '''
+        """
 
         if Y.data.shape != self.data.shape:
             raise ValueError, 'unequal shapes: correlation not possible!'
@@ -637,10 +633,10 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_climatology(self):
-        '''
-        calculate climatological mean for a timeincrement
+        """
+        calculate climatological mean for a time increment
         specified by self.time_cycle
-        '''
+        """
         if hasattr(self,'time_cycle'):
             pass
         else:
@@ -671,14 +667,14 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_deseasonalized_anomaly(self,base=None):
-        '''
+        """
         calculate deseasonalized anomalies
 
         @param base: specifies the base to be used for the
                      climatology (all: use the WHOLE original dataset
                      as a reference; current: use current data as a reference)
         @type base: str
-        '''
+        """
 
         if base == 'current':
             clim = self.get_climatology()
@@ -782,7 +778,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _get_time_indices(self,start,stop):
-        '''
+        """
         determine time indices start/stop based on data timestamps
         and desired start/stop dates
 
@@ -793,7 +789,7 @@ class Data():
         @type stop: datetime object
 
         @return: returns start/stop indices (int)
-        '''
+        """
 
         #- no subsetting
         if (start == None or stop == None):
@@ -916,16 +912,14 @@ class Data():
 
         data = data * scal + offset
 
-        #check if file has cell_area attribute
-        if 'cell_area' in F.variables.keys():
-            if self.cell_area == None: #and only use it if it has not been set by the user
-                self.cell_area = F.variables['cell_area'].get_value().astype('float').copy() #unit should be in m**2
+        #check if file has cell_area attribute and only use it if it has not been set by the user
+        if 'cell_area' in F.variables.keys() and self.cell_area == None:
+            self.cell_area = F.variables['cell_area'].get_value().astype('float').copy() #unit should be in m**2
 
-        #set units if possible; if given by user, this is taken
+    #set units if possible; if given by user, this is taken
         #otherwise unit information from file is used if available
-        if self.unit == None:
-            if hasattr(var,'units'):
-                self.unit = var.units
+        if self.unit == None and hasattr(var, 'units'):
+            self.unit = var.units
 
         if 'time' in F.variables.keys():
             tvar = F.variables['time']
@@ -1232,7 +1226,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _set_date(self,basedate,unit='hour'):
-        '''
+        """
         set C{Data} object time variable
 
         @param basedate: basis date used for the data;
@@ -1240,15 +1234,25 @@ class Data():
 
         @param unit: specify time unit of the time (hour or day)
         @type unit: str
-        '''
+        """
+
+        #explicit conversion of datestr, instead of using datestr2num(), as datestr2num can NOT
+        #handle appropriate basedates like 0001-01-01 00:00:00, as its interpretation is that this
+        #corresponds to a date of 01/01/2001 !!!
+        from datetime import datetime
+        bdate = datetime.strptime(basedate,'%Y-%m-%d %H:%M:%S')
+
+
 
         if unit == 'hour':
             scal = 24.
-            self.time = (self.time/scal + plt.datestr2num(basedate) )
+            self.time = (self.time/scal + plt.date2num(bdate) )
         elif unit == 'day':
             scal = 1.
-            #~ print self.time
-            self.time = (self.time/scal + plt.datestr2num(basedate) )
+            self.time = (self.time/scal + plt.date2num(bdate) )
+            if self.verbose:
+                print 'print set_time: time', self.time
+                print 'Basedate: ', basedate, bdate
         elif unit == 'month':
             #months since basedate
             from dateutil.rrule import rrule, MONTHLY
@@ -1524,7 +1528,7 @@ class Data():
         @type n: int
         '''
         tmp = x.copy(); y=x.copy()
-        y[:,:,:]=nan
+        y[:,:,:]=np.nan
         y[:,:,0:n] = tmp[:,:,-n:]
         y[:,:,n:]  = tmp[:,:,0:-n]
 
@@ -1533,7 +1537,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def timeshift(self,n):
-        '''
+        """
         shift data in time by n-steps
         positive numbers mean, that the
         data is shifted leftwards (thus towards earlier times)
@@ -1546,7 +1550,7 @@ class Data():
         @type n: int
 
         @todo: support for n < 0
-        '''
+        """
 
         if n == 0:
             return
@@ -1590,7 +1594,7 @@ class Data():
         @type n: int
         '''
         tmp = x.copy(); y=x.copy()
-        y[:,:]=nan
+        y[:,:]=np.nan
         y[:,0:n] = tmp[:,-n:]
         y[:,n:]  = tmp[:,0:-n]
 
@@ -1599,10 +1603,10 @@ class Data():
 #-----------------------------------------------------------------------
 
     def copy(self):
-        '''
+        """
         copy complete C{Data} object including all attributes
         @return C{Data} object
-        '''
+        """
         d = Data(None,None)
 
 
