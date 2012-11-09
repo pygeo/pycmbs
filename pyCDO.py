@@ -85,12 +85,12 @@ class pyCDO():
 #-----------------------------------------------------------------------
 
     def gridarea(self,force=False):
-        '''
+        """
         calculate gridarea [m**2]
 
         @param force: force calculations to be performed
         @type force: bool
-        '''
+        """
         oname = self.baseoutname[:-3] + '_cell_area.nc'
         cmd = 'cdo ' + self.options + ' ' + 'gridarea' + ' '  + self.filename + ' ' + oname
         self.run(cmd,oname,force)
@@ -99,7 +99,7 @@ class pyCDO():
 #-----------------------------------------------------------------------
 
     def div(self,file2,force=False,output=None):
-        '''
+        """
         divide by file 2
 
         @param force: force calculations to be performed
@@ -111,10 +111,9 @@ class pyCDO():
 
         @return: returns name of output file
         @rtype: str
-        '''
+        """
 
-        #@todo: when dividing, it needs to be ensured that both data have same geometry, or warning from CDO must be taken into account!!!!
-        #apply always remapcon before ????
+
 
         if output != None:
             oname = output
@@ -127,12 +126,16 @@ class pyCDO():
 #-----------------------------------------------------------------------
 
     def selmon(self,months,force=False):
-        '''
+        """
         select months from a dataset (cdo selmon)
 
         @param months: list with months; e.g. [1,2,3,4] for JFMA
         @type months: list
-        '''
+
+        @param force: force execution also if file already existing
+        @type force: bool
+
+        """
 
         s=''
         if 1 in months:
@@ -177,8 +180,8 @@ class pyCDO():
         @param method: method to be performed (remapcon,remapbil,remapnn)
         @type method: str
 
-        @param force: force calculations
-        @type: bool
+        @param force: force execution also if file already existing
+        @type force: bool
 
         @param target_grid: specification of the target grid
         @type target_grid: str
@@ -200,12 +203,15 @@ class pyCDO():
 #-----------------------------------------------------------------------
 
     def yearmean(self,force=False):
-        '''
+        """
         cdo yearmean
 
         @param force: force calculation
         @type force: bool
-        '''
+
+        @param force: force execution also if file already existing
+        @type force: bool
+        """
         oname = self.baseoutname[:-3] + '_'  + 'yearmean' + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'yearmean' + ' ' + self.filename + ' ' + oname
         self.run(cmd,oname,force)
@@ -217,7 +223,7 @@ class pyCDO():
         '''
         cdo yearseasmean
 
-        @param force: force calculation
+        @param force: force execution also if file already existing
         @type force: bool
         '''
         oname = self.baseoutname[:-3] + '_'  + 'yseasmean' + '.nc'
@@ -229,12 +235,12 @@ class pyCDO():
 #-----------------------------------------------------------------------
 
     def yseasstd(self,force=False):
-        '''
+        """
         cdo yseasstd
 
-        @param force: force calculation
+        @param force: force execution also if file already existing
         @type force: bool
-        '''
+        """
 
         oname = self.baseoutname[:-3] + '_'  + 'yseasstd' + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'yseasstd' + ' ' + self.filename + ' ' + oname
@@ -254,7 +260,7 @@ class pyCDO():
         @param oname: output file name
         @type oname: str
 
-        @param force: force calculation
+        @param force: force execution also if file already existing
         @type force: bool
 
         @todo: generate output filename such that data is written to temporary directory
@@ -282,7 +288,12 @@ class pyCDO():
         '''
         cdo seldate command
         returns a string for seldate command
-        @return str with seldate command
+
+        @param force: force execution also if file already existing
+        @type force: bool
+
+        @return: str with seldate command
+        @rtype: str
         '''
         oname = self.baseoutname[:-3] + '_' + self.date1 + '_' + self.date2 + '.nc'
         cmd = 'cdo ' + self.options + ' ' + 'seldate,' + str(self.date1) + ',' + str(self.date2) + ' ' + self.filename + ' ' + oname

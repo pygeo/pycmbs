@@ -142,13 +142,12 @@ class hovmoeller:
         else:
             sys.exit('Inconsistent sizes of time and value (hovmoeller)')
 
-        if lat != None:
-            if shape(lat) != shape(value[0,:,:]):
-                print shape(lat), shape(value[0,:,:])
-                sys.exit('Inconsistent latitudes and data (hovmoeller)')
+        if lat is not None and shape(lat) != shape(value[0, :, :]):
+            print shape(lat), shape(value[0,:,:])
+            sys.exit('Inconsistent latitudes and data (hovmoeller)')
 
 
-        #/// set values of class ///
+    #/// set values of class ///
         self.time = time
         self.transpose=transpose
         ntim = len(self.time)
@@ -273,12 +272,6 @@ class hovmoeller:
         if grid: #show grid
             self.ax.grid(color='white',linewidth=1,linestyle='-')
 
-        #~ if climits == None:
-            #~ pass
-        #~ else:
-            #~ clim(climits)
-
-        #~ self.ax.set_ylim(top=5*self.rescaley, bottom=19*self.rescaley) #this CAN NOT WORK!
 
 
 
@@ -298,13 +291,13 @@ class hovmoeller:
 
 
     def set_label(self,nx):
-        '''
+        """
         return labels
-        '''
+        @param nx: number
+        @type nx: int
+        """
         xticks = self.ax.xaxis.get_xticks()
         nticks = len(xticks)
-
-        #self.ax.xaxis.set_xticks([])
 
 
     def time_to_lat(self,dlat=1.,mode='average',monthsamp=1,yticksampling=1,monthly=False,yearonly=False  ):
@@ -350,7 +343,7 @@ class hovmoeller:
         lats = ((lat - 0.5*dlat) / dlat).round() * dlat
         ulats = unique(lats[pixmsk==1.]); nlat = len(ulats)
         #~ print 'Number of lats: ', nlat
-        print ulats
+        #print ulats
 
         d = self.time; tnum = date2num(d)
         t_min = date2num(self.t_min)
@@ -377,16 +370,9 @@ class hovmoeller:
         tidx = arange(len(data_days))
         for i in range(len(all_days)):
             m = data_days == all_days[i] #multiple days possible if sub-day sampling!
-            #~ print sum(m)
-
             actidx = list(tidx[m]) #[0]
-            #~ print 'INDEX: ', actidx, array(value[actidx,:]).shape
-            #~ tmp = value[actidx,:].copy()
-            #~ print mean(tmp), tmp.mean()
             v = mean(value[actidx,:].copy(),axis=0) #average all timestamps of same day
             thelats = lats.copy()
-            #print i,actidx, unique(v), sum(m),tidx[m]
-            #print shape(mean(v,axis=0))
 
 
             #/// loop over all latitudes

@@ -38,17 +38,10 @@ from scipy import stats
 from pyCDO import *
 
 
-
-
-'''
-@todo: data access via opendap
-'''
-
-
 class Data():
-    '''
+    """
     Data class: main class
-    '''
+    """
     def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,time_var='time'):
         """
         Constructor for Data class
@@ -176,13 +169,13 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _set_cell_area(self):
-        '''
+        """
         set cell area size. If a cell area was already given (either by user or from file)
         nothing will happen. Otherwise it will be tried to calculate cell_area from
         coordinates using the CDO's
 
         @todo: implement the calculation of cell_area in a pythonic way
-        '''
+        """
 
         if not self.cell_area == None:
             return
@@ -218,7 +211,7 @@ class Data():
         @rtype numpy array
         """
 
-        if self.cell_area == None:
+        if self.cell_area is None:
             print 'WARNING: no cell area given, zonal means are based on equal weighting!'
             w = np.ones(self.data.shape)
         else:
@@ -254,6 +247,12 @@ class Data():
 
         @param p: percentile value to obtain, e.g. 0.05 corresponds to 5% percentil
         @type p: float
+
+        @param return_object: specifies of a C{Data} object shall be returned [True] or a numpy array [False]
+        @type return_object: bool
+
+        @return returns the percentiles as either C{Data} object or as numpy array
+        @rtype C{Data} object or numpy array
 
         @todo: get mask of pixls with at least a few valid samples, so performance is better!
         """
@@ -299,12 +298,12 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _shift_lon(self):
-        '''
+        """
         shift longitude coordinates. Coordinates given as [0...360] are
         converted to [-180...180]
 
         changes lon field of Data object and sets variable _lon360
-        '''
+        """
         self.lon[self.lon>=180.] = self.lon[self.lon>=180.]-360.
         self._lon360 = False
 
@@ -444,7 +443,7 @@ class Data():
             r = self.copy()
             r.data = np.ma.array(res)
             r.time = pl.datestr2num(np.asarray([str(years[i])+'-01-01' for i in range(len(years))]))
-
+            r.time_cycle = 1
             return r
         else:
             return years, res
@@ -464,7 +463,8 @@ class Data():
 
         """
 
-        if mask == None:
+
+        if mask is None:
             #if not maks is provided, take everything
             mask = np.ones(len(self.time)).astype('bool')
         else:
@@ -517,7 +517,8 @@ class Data():
 
         """
 
-        if Y.data.shape != self.data.shape:
+        if not Y.data.shape == self.data.shape:
+            print Y.data.shape, self.data.shape
             raise ValueError, 'unequal shapes: correlation not possible!'
 
         #- generate a mask of all samples that are valid in BOTH datasets
@@ -593,7 +594,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_temporal_mask(self,v,mtype='monthly'):
-        '''
+        """
         return a temporal mask
 
         @param v: list of values to be analyzed
@@ -607,7 +608,7 @@ class Data():
         will return a mask, where the months of Jan-Mar are set to True
         this can be used e.g. further with the routine get_yearmean()
 
-        '''
+        """
 
         valid_types = ['monthly']
         if mtype in valid_types:
@@ -713,12 +714,12 @@ class Data():
 #-----------------------------------------------------------------------
 
     def set_time(self):
-        '''
+        """
         This routines sets the timestamp of the data
         to a python type timestamp. Different formats of
         input time are supported
-        '''
-        if self.time_str == None:
+        """
+        if self.time_str is None:
             print '        WARNING: time type can not be determined!'
         elif self.time_str == 'day as %Y%m%d.%f':
             self._convert_time()
@@ -739,12 +740,12 @@ class Data():
         else:
             print self.filename
             print self.time_str
-            sys.exit('ERROR: time type could not be determined!')
+            sys.exit("ERROR: time type could not be determined!")
 
 #-----------------------------------------------------------------------
 
     def _temporal_subsetting(self,i1,i2):
-        '''
+        """
         perform temporal subsetting of the data based on given
         time indices i1,i2
 
@@ -753,7 +754,7 @@ class Data():
 
         @param i2: stop time index
         @type i2: int
-        '''
+        """
 
         if i2<i1:
             sys.exit('Invalid indices _temporal_subsetting')
@@ -789,6 +790,7 @@ class Data():
         @type stop: datetime object
 
         @return: returns start/stop indices (int)
+        @rtype: int
         """
 
         #- no subsetting
@@ -810,11 +812,10 @@ class Data():
         m2 = abs(self.time - s2).argmin()
 
         if self.time[m1] < s1:
-            m1=m1+1
+            m1 += 1
         if self.time[m2] > s2:
-            #~ print 'REDUCTION'
-            m2 = m2-1
-        m2 += 1 #increment so that subsetting is o.k. in the end
+            m2 -= 1
+        #m2 += 1 #increment so that subsetting is o.k. in the end
 
         if m2 < m1:
             sys.exit('Something went wrong _get_time_indices')
@@ -824,11 +825,11 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _get_years(self):
-        '''
+        """
         get years from timestamp
 
         @return list of years
-        '''
+        """
         d = plt.num2date(self.time); years = []
         for x in d:
             years.append(x.year)
@@ -863,12 +864,12 @@ class Data():
 #-----------------------------------------------------------------------
 
     def read_netcdf(self,varname):
-        '''
+        """
         read data from netCDF file
 
         @param varname: name of variable to be read
         @type varname: str
-        '''
+        """
         F=Nio.open_file(self.filename,'r')
         if self.verbose:
             print 'Reading file ', self.filename
@@ -934,12 +935,44 @@ class Data():
 
         return data
 
+
+#-----------------------------------------------------------------------
+
+    def temporal_trend(self,return_object=False, pthres=1.01):
+        """
+        calculate temporal trend of the data over time
+        (unittest)
+
+        @param return_object; specifies if a C{Data} object shall be returned [True]
+                              or if a numpy array shall be returned [False]
+        @param normalize_per_day; normalize trend in [units / day]
+        @param pthres: specifies significance threshold; all values above this threshold will be masked
+        @return: returns either C{Data} object or a numpy array
+        """
+        x = self.time
+        R,S,I,P,C = self.corr_single(x,pthres=pthres)
+
+        if return_object:
+            return R,S,I,P
+        else:
+            return R.data,S.data,I.data,P.data
+
+
+
+
+
+
+
 #-----------------------------------------------------------------------
 
     def timmean(self,return_object=False):
-        '''
+        """
         calculate temporal mean of data field
-        '''
+
+        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+        @type return_object: bool
+
+        """
         if self.data.ndim == 3:
             res = self.data.mean(axis=0)
         elif self.data.ndim == 2:
@@ -958,9 +991,13 @@ class Data():
 #-----------------------------------------------------------------------
 
     def timstd(self,return_object=False):
-        '''
+        """
         calculate temporal standard deviation of data field
-        '''
+
+        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+        @type return_object: bool
+
+        """
         if self.data.ndim == 3:
             res = self.data.std(axis=0)
         elif self.data.ndim == 2:
@@ -970,7 +1007,7 @@ class Data():
             sys.exit('Temporal standard deviation can not be calculated as dimensions do not match!')
 
         if return_object:
-            if res == None:
+            if res is None:
                 return res
             else:
                 tmp = self.copy(); tmp.data = res
@@ -981,9 +1018,9 @@ class Data():
 #-----------------------------------------------------------------------
 
     def timvar(self):
-        '''
+        """
         calculate temporal variance of data field
-        '''
+        """
         if self.data.ndim == 3:
             return self.data.var(axis=0)
         if self.data.ndim == 2:
@@ -995,9 +1032,9 @@ class Data():
 #-----------------------------------------------------------------------
 
     def timsum(self):
-        '''
+        """
         calculate temporal sum of data field
-        '''
+        """
         if self.data.ndim == 3:
             pass
         elif self.data.ndim == 1:
@@ -1010,17 +1047,17 @@ class Data():
 #-----------------------------------------------------------------------
 
     def timn(self):
-        '''
+        """
         calculate number of samples
         done via timmean and timsum to take
         into account the valid values only
-        '''
+        """
         return self.timsum() / self.timmean()
 
 #-----------------------------------------------------------------------
 
     def _get_weighting_matrix(self):
-        '''
+        """
         get matrix for area weigthing of grid cells. For each timestep
         the weights are calculated as a function  of the number of valid
         grid cells.
@@ -1030,7 +1067,7 @@ class Data():
 
         @return weighting matrix
         @rtype numpy array
-        '''
+        """
 
         w = np.zeros(self.data.shape)
 
@@ -1071,7 +1108,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def fldmean(self,return_data = False,apply_weights=True):
-        '''
+        """
         calculate mean of the spatial field using weighted averaging
         results are exactly the same as one would obtain with the similar
         cdo function
@@ -1083,7 +1120,8 @@ class Data():
         @type apply_weights: bool
 
         @return: vector of spatial mean array[time]
-        '''
+        @rtype: C{Data} object or numpy array
+        """
 
         if apply_weights:
             #area weighting
@@ -1113,7 +1151,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def fldstd(self,return_data = False,apply_weights=True):
-        '''
+        """
         calculate stdv of the spatial field using area weighting
 
         returns exactly same results as the same CDO function
@@ -1122,7 +1160,7 @@ class Data():
         @type return_data: bool
 
         @return: vector of spatial std array[time]
-        '''
+        """
 
         if apply_weights:
             #calculate weighted standard deviation.
@@ -1166,11 +1204,12 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _get_label(self):
-        '''
+        """
         return a nice looking label
 
-        @return label (str)
-        '''
+        @return: label
+        @rtype: str
+        """
 
         if hasattr(self,'label'):
             pass
@@ -1183,10 +1222,10 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _convert_time(self):
-        '''
+        """
         convert time that was given as YYYYMMDD.f
         and set time variable of Data object
-        '''
+        """
         s = map(str,self.time)
         T=[]
         for t in s:
@@ -1199,16 +1238,16 @@ class Data():
 
 #-----------------------------------------------------------------------
     def adjust_time(self,day=None,month=None):
-        '''
+        """
         correct all timestamps and assign
         same day and/or month
 
         @param day: day to apply to all timestamps
         @type day: int
 
-        @param year: year to apply to all timestamps
-        @type year: int
-        '''
+        @param month: year to apply to all timestamps
+        @type month: int
+        """
 
         o = []
         for t in self.time:
@@ -1239,10 +1278,9 @@ class Data():
         #explicit conversion of datestr, instead of using datestr2num(), as datestr2num can NOT
         #handle appropriate basedates like 0001-01-01 00:00:00, as its interpretation is that this
         #corresponds to a date of 01/01/2001 !!!
-        #unfortunately we do not get around splitting the string an putting it together again due
         from datetime import datetime
 
-        try:
+        try: #check if the date is in the format YYYYDDMM HH:MM:SS, this is needed to avoid that string like YMMDD cause an error
             b = basedate.split(' ')
             c = b[0].split('-')
             d = b[1].split(':')
@@ -1294,15 +1332,14 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_aoi(self,region):
-        '''
+        """
         region of class Region
 
         @todo: documentation
-        '''
+        """
 
         #copy self
         d = self.copy()
-
         d.data = region.get_subset(d.data)
 
         if hasattr(d,'_climatology_raw'):
@@ -1346,7 +1383,7 @@ class Data():
         LON = self.lon.copy()
         if self._lon360:
             tmsk = LON>180.
-            LON[tmsk] = LON[tmsk] - 360
+            LON[tmsk] -= 360.
             del tmsk
 
         msk_lat = (self.lat >= R.latmin) & (self.lat <= R.latmax)
@@ -1367,13 +1404,13 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_valid_mask(self):
-        '''
+        """
         calculate a mask which is True, when all timestamps
         of the field are valid
 
         todo this is still not working properly when the data is
         stored in masked arrays, as the mask is not applied in that case!
-        '''
+        """
 
         if self.data.ndim == 2:
             return np.ones(self.data.shape).astype('bool')
@@ -1394,7 +1431,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_valid_data(self,return_mask=False,mode='all'):
-        '''
+        """
         this routine calculates from the masked array
         only the valid data and returns it together with its
         coordinate as vector
@@ -1404,15 +1441,22 @@ class Data():
         @param return_mask: specifies if the mask applied to the original data should be returned as well
         @type return_mask: bool
 
-        @param mode: analyis mode: 'all'=all timestamps need to be valid, 'one'=at least a single dataset needs to be valid
-        '''
+        @param mode: analysis mode: 'all'=all timestamps need to be valid, 'one'=at least a single dataset needs to be valid
+        """
 
         n = len(self.time)
 
         #- vectorize the data
-        lon  = self.lon.reshape(-1); lat  = self.lat.reshape(-1)
-        data = self.data.reshape(n,-1)
+        if hasattr(self,'lon'):
+            lon  = self.lon.reshape(-1)
+        else:
+            lon = None
+        if hasattr(self,'lat'):
+            lat  = self.lat.reshape(-1)
+        else:
+            lat = None
 
+        data = self.data.reshape(n,-1)
         data.mask[np.isnan(data.data)] = True
 
         #- extract only valid (not masked data)
@@ -1425,7 +1469,10 @@ class Data():
             raise ValueError, 'Invalid option in get_valid_data()'
 
         data = data[:,msk]
-        lon  = lon[msk]; lat  = lat[msk]
+        if lon is not None:
+            lon  = lon[msk]
+        if lat is not None:
+            lat  = lat[msk]
 
         if return_mask:
             return lon,lat,data,msk
@@ -1435,7 +1482,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _apply_mask(self,msk,keep_mask=True):
-        '''
+        """
         apply a mask to C{Data}. All data where mask==True
         will be masked. Former data and mask will be stored
 
@@ -1444,7 +1491,7 @@ class Data():
 
         @param keep_mask: keep old masked
         @type keep_mask : boolean
-        '''
+        """
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()
 
@@ -1487,26 +1534,6 @@ class Data():
                 self._climatology_raw[i,:,:] = tmp[:,:]
                 del tmp
 
-        #.... und hier gehts nicht MEHR!
-
-
-
-        #~ if self.varname == 'BfCER4e':
-            #~
-            #~ for i in range(4):
-                #~ pl.figure()
-                #~ pl.imshow(self.data[i,:,:])
-                #~ pl.title('in maskingxxx ' + str(i))
-                #~
-            #~ print self.__oldmask.shape
-            #~ print self.__oldmask.ndim
-            #~ print self.__olddata.shape
-
-            #~ for i in range(4):
-                #~ pl.figure()
-                #~ pl.imshow(self.__oldmask[i,:,:])
-                #~
-            #~ stop
 
 #-----------------------------------------------------------------------
 
@@ -1525,7 +1552,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def __shift3D(self,x,n):
-        '''
+        """
         shift 3D data
 
         @param x: data to be shifted
@@ -1533,7 +1560,7 @@ class Data():
 
         @param n: shifting step
         @type n: int
-        '''
+        """
         tmp = x.copy(); y=x.copy()
         y[:,:,:]=np.nan
         y[:,:,0:n] = tmp[:,:,-n:]
@@ -1591,7 +1618,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def __shift2D(self,x,n):
-        '''
+        """
         shift 2D data
 
         @param x: data to be shifted
@@ -1599,7 +1626,7 @@ class Data():
 
         @param n: shifting step
         @type n: int
-        '''
+        """
         tmp = x.copy(); y=x.copy()
         y[:,:]=np.nan
         y[:,0:n] = tmp[:,-n:]
@@ -1632,7 +1659,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def add(self,x,copy=True):
-        '''
+        """
         Add a C{Data} object to the current object field
 
         @param x: C{Data} object which will be added
@@ -1641,7 +1668,7 @@ class Data():
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
         @type copy: bool
-        '''
+        """
 
         if np.shape(self.data) != np.shape(x.data):
             raise ValueError, 'Inconsistent geometry (add): can not calculate!'
@@ -1659,7 +1686,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def sub(self,x,copy=True):
-        '''
+        """
         Substract a C{Data} object from the current object field
 
         @param x: C{Data} object which will be substracted
@@ -1668,7 +1695,7 @@ class Data():
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
         @type copy: bool
-        '''
+        """
 
         if np.shape(self.data) != np.shape(x.data):
             raise ValueError, 'Inconsistent geometry (sub): can not calculate!'
@@ -1686,7 +1713,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def subc(self,x,copy=True):
-        '''
+        """
         Substract a constant value from the current object field
 
         @param x: constant (can be either a scalar or a field that has
@@ -1696,7 +1723,7 @@ class Data():
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
         @type copy: bool
-        '''
+        """
 
         if copy:
             d = self.copy()
@@ -1714,8 +1741,9 @@ class Data():
 #-----------------------------------------------------------------------
 
     def addc(self,x,copy=True):
-        '''
+        """
         Add a constant value to the current object field
+        (unittest)
 
         @param x: constant
         @type  x: float
@@ -1723,7 +1751,7 @@ class Data():
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
         @type copy: bool
-        '''
+        """
 
         if copy:
             d = self.copy()
@@ -1735,7 +1763,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def divc(self,x,copy=True):
-        '''
+        """
         Divide current data by a constant
 
         @param x: constant
@@ -1744,7 +1772,7 @@ class Data():
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
         @type copy: bool
-        '''
+        """
 
         if copy:
             d = self.copy()
@@ -1756,7 +1784,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def div(self,x,copy=True):
-        '''
+        """
         Divide current object field by field of a C{Data} object
 
         @param x: C{Data} object in the denominator
@@ -1766,7 +1794,7 @@ class Data():
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
         @type copy: bool
-        '''
+        """
 
         if np.shape(self.data) != np.shape(x.data):
             if self.data.ndim == 3:
@@ -1807,7 +1835,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def mul(self,x,copy=True):
-        '''
+        """
         Multiply current object field by field by a C{Data} object
 
         @param x: C{Data} object in the denominator
@@ -1817,7 +1845,7 @@ class Data():
         @param copy: if True, then a new data object is returned
                      else, the data of the present object is changed
         @type copy: bool
-        '''
+        """
 
         if np.shape(self.data) != np.shape(x.data):
             if self.data.ndim == 3:
@@ -1858,12 +1886,12 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _sub_sample(self,step):
-        '''
+        """
         subsample data of current C{Data} object
 
         @param step: stepsize for subsampling
         @type step: int
-        '''
+        """
         if self.data.ndim == 3:
             self.data = self.data[:,::step,::step]
         elif self.data.ndim == 2:
@@ -1876,7 +1904,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def corr_single(self,x,pthres=1.01,mask=None):
-        '''
+        """
         The routine correlates a data vector with
         all data of the current object.
 
@@ -1898,8 +1926,8 @@ class Data():
         @rtype: list
 
         @todo significance of correlation (is the calculation correct? currently it assumes that all data is valid!)
-        @todo: it is still not ensured that masked data is handeled propertly!!!
-        '''
+        @todo: it is still not ensured that masked data is handled properly!!!
+        """
 
         if self.data.ndim != 3:
             raise ValueError, 'Invalid geometry!'
@@ -1923,30 +1951,20 @@ class Data():
         I=np.ones((ny,nx))*np.nan #output matrix for intercept
         CO=np.ones((ny,nx))*np.nan #output matrix for covariance
 
-        R.shape = (-1)
-        S.shape = (-1)
-        P.shape = (-1)
-        I.shape = (-1)
+        R.shape = (-1); S.shape = (-1)
+        P.shape = (-1); I.shape = (-1)
         CO.shape = (-1)
 
         print 'Calculating correlation ...'
         res = [stats.mstats.linregress(x,dat[:,i]) for i in range(n)] #@todo: still rather inefficient for masked arrays
-        # res = [stats.mstats.linregress(A[168],dat[168,i]) for i in range(18432)]
         res = np.asarray(res)
 
         slope = res[:,0]; intercept = res[:,1]
         r_value = res[:,2]; p_value = res[:,3]
         std_err = res[:,4]
 
-        R[msk] = r_value
-        P[msk] = p_value
-        I[msk] = intercept
-        S[msk] = slope
-
-        R.shape = (ny,nx)
-        P.shape = (ny,nx)
-        I.shape = (ny,nx)
-        S.shape = (ny,nx)
+        R[msk] = r_value; P[msk] = p_value; I[msk] = intercept; S[msk] = slope
+        R.shape = (ny,nx); P.shape = (ny,nx); I.shape = (ny,nx); S.shape = (ny,nx)
 
         #--- prepare output data objects
         Rout = self.copy() #copy obkect to get coordinates
@@ -1970,26 +1988,21 @@ class Data():
         Cout.label = 'covariance'
         Cout.data = np.ma.array(np.ones(P.shape)*np.nan,mask=msk).copy() #currently not supported: covariance!
 
-        if mask != None:
+        if mask is not None:
             #apply a mask
-            Rout._apply_mask(mask)
-            Sout._apply_mask(mask)
-            Iout._apply_mask(mask)
-            Pout._apply_mask(mask)
+            Rout._apply_mask(mask); Sout._apply_mask(mask)
+            Iout._apply_mask(mask); Pout._apply_mask(mask)
             Cout._apply_mask(mask)
 
-            Rout.unit = None
-            Sout.unit = None
-            Iout.unit = None
-            Pout.unit = None
-            Cout.unit = None
+            Rout.unit = None; Sout.unit = None; Iout.unit = None
+            Pout.unit = None; Cout.unit = None
 
         return Rout,Sout,Iout,Pout, Cout
 
 #-----------------------------------------------------------------------
 
     def detrend(self,return_object=True):
-        '''
+        """
         detrend data timeseries by removing linear trend over time.
         It is assumed that the timesamples have equidistant spacing.
         This assumption is important to consider, as regression is calculated
@@ -1997,14 +2010,14 @@ class Data():
 
         @param return_object: specifies if C{Data} object will be returned (default0True)
         @type return_object: bool
-        '''
+        """
 
         print 'Detrending data ...'
 
         if self.data.ndim != 3:
             raise ValueError, 'Can not detrend data other than 3D!'
 
-        #generate dummy vector for linear correlation
+        #generate dummy vector for linear correlation (assumes equally spaced data!!!!!) todo: generate unittest for this
         x = np.arange(len(self.time)) #@todo: replace this by using actual timestamp for regression calcuclation
 
         #correlate and get slope and intercept

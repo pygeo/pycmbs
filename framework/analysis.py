@@ -108,7 +108,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
 
         #/// Gleckler plot ///
         #~ e2a = GP.calc_index(gpcp,model_data,model,'pheno_faPAR')
-        e2a = 0. #todo
+        e2a = 0. #@todo
         GP.add_data('pheno_faPAR',model.name,e2a,pos=1)
 
 
@@ -695,7 +695,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         raise ValueError, 'Unknown observation type for SIS-analysis!'
 
 
-    #--- PREPROESSING ---
+    #--- PREPROCESSING ---
     if interval == 'season':
         #aggregate to seasons
         cdo = pyCDO(raw_sis,y1,y2) #todo: start/stop years dynamically !!!
