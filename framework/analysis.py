@@ -62,7 +62,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         # GREENING PHASE ANALYSIS - STEP1
         #//////////////////////////////////////
         outdir=ddir + 'GPA-01-' + model.name.replace(' ','')
-        tags = [{'tag':'<STARTYEAR>','value':'2003'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':outdir },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
+        tags = [{'tag':'<STARTYEAR>','value':'1995'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':outdir },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
         tags.append({'tag':'<FFTMASKFILE>','value':outdir+'/fft_mask.mat'})
 
         template1 = './external/phenology_benchmarking/Greening_Phase_Analysis_I.m'
