@@ -31,24 +31,17 @@ __email__ = "alexander.loew@zmaw.de"
 #rainfall analysis   |   P   |      P     |      X     |    x   |
 #temperature         |   P   |            |            |    x   |
 #veg. fraction       |       |            |            |        |
-# phenology          |       |            |            |        |  external framework
+#phenology           |       |            |            |        |  external framework
 #snow fraction       |       |            |            |        |
 
 
 
-#todo TIMEPERIODs of model and data in a consistent manner
+#@todo TIMEPERIODs of model and data in a consistent manner
 #    if not available from obs, then take maximum possible timespan
 
-#@todo: implement JSBACH raw data
-#@todo: implement ATM/BOT files
+
 
 #@todo: systematic validation of zonal mean statistics using som reference cases
-
-#todo
-#
-# @todo: implement temperature analysis
-#                 implement more observational datasets!!! for precipitation
-
 
 #
 # @todo: implement temporary directory for pyCMBS processing
@@ -60,9 +53,6 @@ __email__ = "alexander.loew@zmaw.de"
 # - check timestamp!
 
 #todo check datetime; something is wrong! as data starts in Dcember 1978!
-
-
-# area weigting of zonal means and also area weighting of RMS errors etc.
 
 
 # - regional analysis based on an input mask
@@ -92,13 +82,10 @@ from pyCMBS import *
 import matplotlib.pylab as pl
 
 #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-from mpl_toolkits.axes_grid import make_axes_locatable
-import  matplotlib.axes as maxes
 
 #--- framework specific modules ---
 from models   import *
 from config   import *
-from analysis import *
 
 #=======================================================================
 
@@ -107,10 +94,10 @@ from analysis import *
 #=======================================================================
 
 def get_analysis_scripts():
-    '''
+    """
     returns names of analysis scripts for all variables as a dictionary
     in general, these names can be also read from an ASCII file
-    '''
+    """
     d={}
     d.update({'rain':'rainfall_analysis'})
     d.update({'albedo':'albedo_analysis'})
@@ -132,18 +119,17 @@ def get_analysis_scripts():
 #####################################################################
 #####################################################################
 
-from pyCMBS import *
 pl.close('all')
 
 #-----------------------------------------------------------------------
 
 def get_methods4variables(variables):
-    '''
+    """
     for a given list of variables, return a dictionary
     with information on methods how to read the data
-    '''
+    """
 
-    hlp={};
+    hlp={}
     hlp.update({'rain' : 'get_rainfall_data()'})
     hlp.update({'albedo' : 'get_albedo_data()'})
     hlp.update({'sis' : 'get_surface_shortwave_radiation_down()'})
