@@ -104,6 +104,25 @@ class TestData(TestCase):
         self.assertEqual(R[0,0],r_value); self.assertEqual(S[0,0],slope)
         self.assertEqual(I[0,0],intercept)
 
+    def test_get_yearmean(self):
+        #check get_yeartime
+        D = self.D.copy()
+        t1 = pl.datestr2num('2001-01-01') + np.arange(4) #year 2001
+        t2 = pl.datestr2num('2005-05-15') + np.arange(4) #year 2005
+        t3 = pl.datestr2num('2010-07-15') + np.arange(4) #year 2010
+        D.time = np.asarray([t1,t2,t3]).flatten()
+        data = pl.rand(len(D.time),1,1)
+        data[8:,0,0] = np.nan
+        D.data = np.ma.array(data,mask=np.isnan(data))       #generate random data
+        r1 = np.mean(D.data[0:4]); r2 = np.mean(D.data[4:8]); r3=np.mean(D.data[8:])
+        print 'Reference results: ', r1, r2, r3
+        years, res = D.get_yearmean()
+        print 'Result: ', res
+        self.assertEqual(years[0],2001); self.assertEqual(years[1],2005)
+        self.assertEqual(res[0,0,0],r1); self.assertEqual(res[1,0,0],r2)
+        self.assertEqual(res[2,0,0].mask,r3.mask)
+
+
 
 
 
