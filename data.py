@@ -358,7 +358,7 @@ class Data():
             self.lat = self.read_netcdf(self.lat_name)
         else:
             self.lat = None
-        if not self.lon_name == None:
+        if not self.lon_name is None:
             self.lon = self.read_netcdf(self.lon_name)
             #- shift longitudes such that -180 < lon < 180
             if shift_lon:
@@ -406,8 +406,9 @@ class Data():
 
         e.g. if all the months from JAN-March are masked as TRUE, the
         result will correspnd to the JFM mean for each year
+        (unittest)
 
-        @param mask: mask [time]
+        @param mask: temporal mask [time]
         @type mask : numpy boolean array
 
         @param return_data: specifies if results should be returned as C{Data} object
@@ -430,18 +431,32 @@ class Data():
         dat = self.data
 
         #/// calculate mean
-        res = []
-        for y in years:
+        if self.data.ndim == 1:
+            res = np.zeros(len(years))*np.nan
+            su  = np.zeros(len(years))*np.nan
+        elif self.data.ndim == 3:
+            nt,ny,nx = self.data.shape
+            res = np.zeros((len(years),ny,nx))
+            su  = np.zeros((len(years),ny,nx))
+        else:
+            raise ValueError, 'Unsupported dimension!'
+
+        for i in xrange(len(years)):
+            y = years[i]
             hlp = (ye == y) & mask
             if self.data.ndim == 1:
-                res.append( dat[hlp].mean() )
+                res[i] = dat[hlp].mean()
+                su [i] = dat[hlp].sum()  #calculate sum also (needed for masking in the end)
             else:
-                res.append( dat[hlp,:].mean(axis=0) )
-        res = pl.asarray(res)
+                res[i,:,:] = dat[hlp,:].mean(axis=0)
+                su [i,:,:] = dat[hlp].sum(axis=0)  #calculate sum also (needed for masking in the end)
+
+        res = np.ma.array(res,mask= (su == 0.)) #this is still not the best solution, but works
 
         if return_data:
+            #generate data object
             r = self.copy()
-            r.data = np.ma.array(res)
+            r.data = res
             r.time = pl.datestr2num(np.asarray([str(years[i])+'-01-01' for i in range(len(years))]))
             r.time_cycle = 1
             return r
@@ -941,18 +956,21 @@ class Data():
     def temporal_trend(self,return_object=False, pthres=1.01):
         """
         calculate temporal trend of the data over time
+        the slope of the temporal trend
         (unittest)
 
         @param return_object; specifies if a C{Data} object shall be returned [True]
                               or if a numpy array shall be returned [False]
-        @param normalize_per_day; normalize trend in [units / day]
+
         @param pthres: specifies significance threshold; all values above this threshold will be masked
-        @return: returns either C{Data} object or a numpy array
+        @return: returns either C{Data} object or a numpy array. The following variables are returned: correlation, slope, intercept, p-value
+                 the slope which is returned has unit [dataunit/day]
         """
         x = self.time
         R,S,I,P,C = self.corr_single(x,pthres=pthres)
 
         if return_object:
+            S.unit += ' / day'
             return R,S,I,P
         else:
             return R.data,S.data,I.data,P.data
