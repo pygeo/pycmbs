@@ -225,7 +225,7 @@ class ReichlerPlot():
         y1 = self.e2_norm*100.; y2 = self.e2_norm*100.
         y1[y1 < 0.] = np.nan  #posistive values only
         y2[y2 >= 0.] = np.nan #negative values only
-        self.ax.bar(x,y1,color='red',edgecolor='None',**kwargs) #todo hier Farbe ändern!!
+        self.ax.bar(x,y1,color='red' ,edgecolor='None',**kwargs)
         self.ax.bar(x,y2,color='blue',edgecolor='None',**kwargs)
 
         self.ax.set_xticks(x+0.5)
@@ -429,7 +429,7 @@ class LinePlot():
     This class is usefull for plotting timeseries
     '''
     def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.,show_equation=True):
-        '''
+        """
         constructor of LinePlot
 
         @param ax: axis to plot data to. If I{None} then a new figure is generated
@@ -449,7 +449,7 @@ class LinePlot():
 
         @param normx: normalization constant for x-variable (needed e.g. if you want to normalize a timevector for regression analysis)
         @type normx: float
-        '''
+        """
 
         if ax == None:
             f = plt.figure()
@@ -484,15 +484,13 @@ class LinePlot():
         if ax == None:
             ax = self.ax
 
-        #~ for tick in ax.xaxis.get_major_ticks():
-            #~ tick.label.set_fontsize(self.ticksize)
         for tick in ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
 
 #-----------------------------------------------------------------------
 
     def plot(self,x,ax=None,vmin=None,vmax=None,label = None, **kwargs):
-        '''
+        """
         plot LinePlot data. If a spatial field is provided, this is aggregated
         using the fldmean() function of C{Data}
 
@@ -511,7 +509,7 @@ class LinePlot():
         @param label: label to be used for current plot. If None, then
                       the label of the provided C{Data} object is used
         @type label: str
-        '''
+        """
 
         if len(x.time) > 0:
 
@@ -527,8 +525,8 @@ class LinePlot():
                 label = x.label
 
             if self.regress: #calculate linear regression
-                slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time/self.normx,y) #@todo: is it correct to use here time instead of .data?
-                slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y) #@todo: is it correct to use here time instead of .data?
+                slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time/self.normx,y)
+                slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
 
                 if p_value < 0.01:
                     spvalue = 'p < 0.01'
@@ -555,9 +553,8 @@ class LinePlot():
             if self.title != None:
                 ax.set_title(self.title)
 
-            if vmin != None:
-                if vmax != None:
-                    ax.set_ylim(vmin,vmax)
+            if vmin != None and vmax != None:
+                ax.set_ylim(vmin,vmax)
 
             for tl in ax.get_yticklabels():
                 tl.set_color(p.get_color())
@@ -696,7 +693,7 @@ class ZonalPlot():
 #-----------------------------------------------------------------------
 
     def plot(self,x,xlim=None,timmean = False,show_ylabel=True):
-        '''
+        """
         plot zonal plot
 
         @param x: data to be plotted
@@ -708,7 +705,7 @@ class ZonalPlot():
         @param timmean: temporal mean calculation
         @type timmean: bool
 
-        '''
+        """
 
         #check if all latitudes are the same
         lu = x.lat.mean(axis=1)
@@ -766,7 +763,7 @@ class ZonalPlot():
 #-----------------------------------------------------------------------
 
 class GlecklerPlot():
-    '''
+    """
     Class to generate a plot that to illustrate multi-model, multi-variable scores
 
     It was introdcued by Gleckler et al (2008)
@@ -786,7 +783,7 @@ class GlecklerPlot():
     G.add_data('P','echam5',-0.25,pos=2)
     G.add_data('P','mpi-esm',-0.25,pos=1)
     G.plot() #do plot
-    '''
+    """
 
     def __init__(self,fig=None):
         '''
@@ -1534,7 +1531,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
         nt,ny,nx = x.data.shape
         weights = np.ones((ny,nx))
     weights = np.ma.array(weights,mask = weights != weights)
-    ZP.plot(x,timmean=timmean,show_ylabel=False) #@todo: area weighting??
+    ZP.plot(x,timmean=timmean,show_ylabel=False)
 
 
     #- set limits
@@ -1553,22 +1550,13 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
     zax.set_xlim(vmin,vmax)
 
     #set only first and last label
-    #~ lab = zax.get_xticklabels()
-    #~ ti  = zax.get_xticks()
-    #~ zax.set_xticks([ti[0],ti[-1]])
     zax.set_xticks([vmin,vmax])
-    #~ zax.set_xticklabels(zax.get_xticklabels(),fontdict={'size':8})
-
     zax.plot([0,0],zax.get_ylim(),linestyle='-',color='grey')
-
 
     for tick in zax.xaxis.get_major_ticks():
         tick.label.set_fontsize(8)
 
-
     return zax
-
-    #~ zax.set_xlim(vmin,vmax)
 
 #-----------------------------------------------------------------------
 
@@ -1631,45 +1619,26 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
         ax3 = fig.add_subplot(313)
 
     #set all invalid data to NAN
-    xdata = x.data
-    ydata = y.data
-
-    #~ xdata = x.data.data
-    #~ xdata[x.data.mask] = np.nan
-#~
-    #~ ydata = y.data.data
-    #~ ydata[y.data.mask] = np.nan
-
+    xdata = x.data; ydata = y.data
 
     hov1 = hovmoeller(num2date(x.time),xdata,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
     hov2 = hovmoeller(num2date(y.time),ydata,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
 
-
-    hov1.time_to_lat(**kwargs)
-    hov2.time_to_lat(**kwargs)
-
+    hov1.time_to_lat(**kwargs); hov2.time_to_lat(**kwargs)
 
     cmap = plt.cm.get_cmap(data_cmap, nclasses)
-
 
     hov1.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax1,showcolorbar=False,climits=climits,grid=grid)
     hov2.plot(title=y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax2,showcolorbar=False,climits=climits,grid=grid)
 
-    add_nice_legend(ax1,hov1.im,cmap,cticks=cticks)
-    add_nice_legend(ax2,hov2.im,cmap,cticks=cticks)
-
-    #~ plt.colorbar(hov1.im,ax=ax1,shrink = 0.5,orientation='vertical')
-    #~ plt.colorbar(hov2.im,ax=ax2,shrink = 0.5,orientation='vertical')
-
+    add_nice_legend(ax1,hov1.im,cmap,cticks=cticks); add_nice_legend(ax2,hov2.im,cmap,cticks=cticks)
 
     if x.data.shape == y.data.shape:
         hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
         hov3.time_to_lat(**kwargs)
         cmap_diff = plt.cm.get_cmap('RdBu', nclasses)
         hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap_diff,ax=ax3,showcolorbar=False,climits=dlimits,grid=grid)
-        #~ plt.colorbar(hov3.im,ax=ax3,shrink = 0.5,orientation='vertical')
         add_nice_legend(ax3,hov3.im,cmap_diff,cticks=cticks_dif)
-
     else:
         msg = 'Difference plot not possible as data has different shape'
         ax3.text(0.5, 0.5,msg,
@@ -1739,7 +1708,6 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     @param show_zonal: plot zonal statistic plot
     @type show_zonal: bool
 
-
     '''
 
 
@@ -1748,14 +1716,10 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     else:
         cticks_diff = None
 
-
-
     fig = plt.figure()
 
-    ax1 = fig.add_subplot(221)
-    ax2 = fig.add_subplot(222)
-    ax3 = fig.add_subplot(223)
-    ax4 = fig.add_subplot(224)
+    ax1 = fig.add_subplot(221); ax2 = fig.add_subplot(222)
+    ax3 = fig.add_subplot(223); ax4 = fig.add_subplot(224)
 
     #--- get colormap
     cmap = plt.cm.get_cmap(cmap_data, nclasses)
@@ -1775,9 +1739,6 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     adif = x.sub(y) #absolute difference
 
     map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
-
-    #~ map_plot(adif,use_basemap=use_basemap,vmin=dmin,vmax=dmax,cticks=None,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']')
-
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data

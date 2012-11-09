@@ -175,7 +175,7 @@ class CMIP5Data(Model):
 
         pr = Data(filename,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
 
-        prall = Data(filename1,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
+        prall  = Data(filename1,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
         prmean = prall.fldmean()
 
         retval = (prall.time,prmean); del prall
@@ -272,7 +272,7 @@ class CMIP5Data(Model):
 
         return sis,retval
 
-
+#-----------------------------------------------------------------------
 
     def get_surface_shortwave_radiation_up(self):
         filename1 = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -313,11 +313,7 @@ class CMIP5Data(Model):
         if self.stop_time == None:
             raise ValueError, 'Stop time needs to be specified'
 
-        s_start_time = str(self.start_time)[0:10]
-        s_stop_time  = str(self.stop_time )[0:10]
-
-
-
+        s_start_time = str(self.start_time)[0:10]; s_stop_time  = str(self.stop_time )[0:10]
 
         file_down = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         file_up   = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -339,8 +335,6 @@ class CMIP5Data(Model):
         #remap to T63
         tmpu = pyCDO(Fu,s_start_time,s_stop_time,force=force_calc).remap()
         tmpd = pyCDO(Fd,s_start_time,s_stop_time,force=force_calc).remap()
-
-
 
         #calculate monthly albedo
         if 'CDOTEMPDIR' in os.environ.keys(): #check for temp. directory to write albedo file to

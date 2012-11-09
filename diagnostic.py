@@ -462,7 +462,7 @@ class ANOVA():
                 resBa[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=True) #todo: adjust variance
                 resIa[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=True) #todo: adjust variance
 
-                #todo significance
+                #@todo significance
 
 
             else:
@@ -658,7 +658,7 @@ class SVD():
             if np.any(np.isnan(tmp[m1])):
                 print 'nans are not allowed here!'
                 print tmp
-                stop
+                raise ValueError, 'This is an error here'
 
             r[i,:] = tmp[m1]*1.
             del tmp
@@ -905,11 +905,11 @@ class SVD():
 #-----------------------------------------------------------------------
 
     def plot_singular_vectors(self,mode,use_basemap=False,logplot=False,filename=None):
-        '''
+        """
         generate maps of singular vectors U and V
 
         mode (list) : list of modes to be plotted
-        '''
+        """
 
         #--- mode list
         if mode == None: #plot all modes with variance contained
@@ -1150,7 +1150,7 @@ class SVD():
                     s = str(i) + sep + str(np.round(self.scf[i],rnd)) + sep +  str(np.round(self.mcorr[i],rnd)) + ' \\\ ' +  '\n'
                     o.write(s)
 
-        if filename != None:
+        if not filename == None:
             o.close()
 
 #-----------------------------------------------------------------------
@@ -1680,8 +1680,7 @@ class Diagnostic():
                     msk = xmsk | ymsk
 
                 else:
-                    ''' all grid cells at all times '''
-                    #~ xdata = x.data[i1:i2,:]; ydata = y.data[i1:i2,:]
+                    #all grid cells at all times
                     xdata = x.data.copy(); ydata = y.data.copy()
                     xmsk  = x.mask.copy() #  [i1:i2,:]
                     ymsk  = y.mask.copy() #  [i1:i2,:]
