@@ -413,7 +413,6 @@ class Data():
 
         @param return_data: specifies if results should be returned as C{Data} object
         @type return_data: bool
-
         """
 
         if mask == None:
@@ -1666,11 +1665,11 @@ class Data():
             try:
                 #-copy (needed for arrays)
                 cmd = "d." + attr + " = self." + attr + '.copy()'
-                exec(cmd)
+                exec cmd
             except:
                 #-copy
                 cmd = "d." + attr + " = self." + attr
-                exec(cmd)
+                exec cmd
 
         return d
 
@@ -1748,7 +1747,7 @@ class Data():
         else:
             d = self
         if np.isscalar(x):
-            d.data = d.data - x
+            d.data -= x
         elif x.ndim == 2:
             for i in range(len(self.time)):
                 d.data[i,:,:] = d.data[i,:,:] - x[:,:]
