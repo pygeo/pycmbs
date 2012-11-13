@@ -114,13 +114,13 @@ class CorrelationAnalysis():
 #-----------------------------------------------------------------------
 
         def do_analysis(self):
-            '''
+            """
             perform correlation analysis
 
             @todo: implement area weighting
             @todo: implement regional (condition) statisitcs based on a mask
             @todo: return value
-            '''
+            """
 
             #--- calculate diagnostics
             D = Diagnostic(self.x,y=self.y)
@@ -137,15 +137,13 @@ class CorrelationAnalysis():
 #-----------------------------------------------------------------------
 class HovmoellerPlot():
     def __init__(self,D,rescaley=10,rescalex=10,dlat=1,yticksampling=1,monthly=False):
-        '''
-
+        """
         D : C{Data} object
 
         if the argument lat is provided it is assumed that lat/lon are 2D matrices
         In this case the value is expected to be a 3D variables as
         value(time,ny,nx)
-        '''
-        #~ from python.hov import *
+        """
         self.hov = hovmoeller(pl.num2date(D.time),D.data,lat=D.lat,rescaley=rescaley,rescalex=rescalex)
         self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
 
@@ -731,7 +729,7 @@ class ZonalPlot():
 
         #return dat
         if timmean:
-            pass #todo
+            pass
         else:
             if dat.shape[x.data.ndim-2] != x.lat.shape[0]:
                 print 'Inconsistent shapes!'
@@ -942,7 +940,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
     def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10):
-        '''
+        """
         plot Gleckler diagram
 
         @param cmap_name: name of the colormap to be used
@@ -962,7 +960,7 @@ class GlecklerPlot():
 
         @param normalize: normalize data relative to multimodel mean (affects self.data)
         @type normalize: bool
-        '''
+        """
 
         #~ todo implement normalization here per position
 
@@ -979,7 +977,7 @@ class GlecklerPlot():
 
         cnt = 0; cnt_m = 0
 
-        model_list = self.models.sort()
+#        model_list = self.models.sort()
 
         for model in self.models:
             cnt_m += 1; cnt_v  = 0
@@ -997,17 +995,13 @@ class GlecklerPlot():
                 self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left') #left triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right') #right triangle
+                cnt += 1; cnt_v += 1
 
-
-                cnt += 1
-                cnt_v += 1
         #--- legend
-
         #- get positions of subplots to determine optimal position for legend
         def get_subplot_boundaries(g,f):
             x = g.get_grid_positions(f)
-            b = x[0]; t = x[1]
-            l = x[2]; r = x[3]
+            b = x[0]; t = x[1]; l = x[2]; r = x[3]
             return l[0], r[-1], b[-1], t[0]
 
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
@@ -1450,7 +1444,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
 
     def _add_region(m,r,color='red'):
-        '''
+        """
         plot region r on top of basemap map m
 
         @param m: map
@@ -1461,7 +1455,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
         @param color: color to plot region
         @type color: str
-        '''
+        """
         corners = r.get_corners() #get list of corner coordinates
         corners = np.asarray(corners)
         lons = corners[:,0]; lats=corners[:,1]

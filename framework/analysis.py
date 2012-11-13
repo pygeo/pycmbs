@@ -32,12 +32,27 @@ from external_analysis import *
 #=======================================================================
 
 def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
-    '''
+    """
     Analysis of vegetation phenology
+
+    @param model_list: list of model C{Data} objects
+    @param GP: Gleckler plot instance
+    @param shift_lon: shift data in longitude direction
+    @param use_basemap: use basemap for the analysis
+    @param report: instance of Report
 
     Reference:
     - Dahlke, Loew, Reick: ???? @todo: complete reference when paper published
-    '''
+    """
+
+    #/// OPTIONS
+    f_execute = True #execute scripts
+
+    #script names
+    template1 = './external/phenology_benchmarking/Greening_Phase_Analysis_I.m'
+    template2 = './external/phenology_benchmarking/Greening_Phase_Analysis_II.m'
+    template3 = './external/phenology_benchmarking/Greening_Phase_Analysis_III.m'
+    template4 = './external/phenology_benchmarking/Greening_Phase_Analysis_IV.m'
 
     if GP == None:
         GP = GlecklerPlot()
@@ -46,64 +61,69 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
 
         print '*** PHENOLOGY analysis for model: ' + model.name
 
-        GP.add_model(model.name) #register model for Gleckler Plot
+        fapar_data = model.variables['phenology_faPAR'] #data object for phenology variable
+        snow_data  = model.variables['snow']            #data object for snow variable
 
-        #/// GREENING PHASE ANALYSIS STEP 1 ... ///
-        #ddir = './external/phenology_benchmarking/' #todo set right directory!
-        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'   #<<< todo: change this output directory !!!
+        #/// output directory for analysis results of current model
+        outdir=os.getcwd() + '/output/GPA-01-' + model.name.replace(' ','')
 
-        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!! DUMMY so far for testnig
-        varname = 'fapar' #todo: set variable name interactively
+        #/// directory where model simulations are performed and templates are copied to
+        rundir = './output/tmp_' + model.name.replace(' ','') + '/'
 
-        #specify filename to run; here: including quit command so that matlab quits properly!
+        #/// Gleckler plot
+        GP.add_model(model.name)
 
-        f_execute = True
+        #/// file and variable names ///
+        data_file = fapar_data.filename
+        varname = fapar_data.varname
+
+        snowfilename = snow_data.filename
+        snowvar = snow_data.varname
+
+
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP1
         #//////////////////////////////////////
-        outdir=ddir + 'GPA-01-' + model.name.replace(' ','')
-        tags = [{'tag':'<STARTYEAR>','value':'1995'},{'tag':'<STOPYEAR>','value':'2005'},{'tag':'<OUTDIR>','value':outdir },{'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')},{'tag':'<INPUTDATAFILE>','value':data_file},{'tag':'<DATAVARNAME>','value':varname} ]
+        tags = []
+        tags.append({'tag':'<STARTYEAR>','value':'1995'})
+        tags.append({'tag':'<STOPYEAR>','value':'2005'})
+        tags.append({'tag':'<OUTDIR>','value':outdir })
+        tags.append({'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')})
+        tags.append({'tag':'<INPUTDATAFILE>','value':data_file})
+        tags.append({'tag':'<DATAVARNAME>','value':varname})
         tags.append({'tag':'<FFTMASKFILE>','value':outdir+'/fft_mask.mat'})
-
-        template1 = './external/phenology_benchmarking/Greening_Phase_Analysis_I.m'
-        rundir = './tmp_' + model.name.replace(' ','') + '/'
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template1,tags,options=',quit',output_directory=rundir ) #temporary scripts are stored in directories that have same name as model
         E.run(execute=f_execute,remove_extension=True)
 
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP2
         #//////////////////////////////////////
-        template2 = './external/phenology_benchmarking/Greening_Phase_Analysis_II.m'
-        tags.append({'tag':'<INPUTSNOWFILE>','value':'/net/nas2/export/eo/workspace/m300028/GPA/input/historical_r1i1p1-LR_snow_fract.nc'})
-        tags.append({'tag':'<SNOWVARNAME>','value':'snow_fract'})
-        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template2,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
+        tags.append({'tag':'<INPUTSNOWFILE>','value': snowfilename })
+        tags.append({'tag':'<SNOWVARNAME>','value':snowvar})
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template2,tags,options=',quit',output_directory=rundir )
         E.run(execute=f_execute,remove_extension=True)
 
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP3
         #//////////////////////////////////////
-        template3 = './external/phenology_benchmarking/Greening_Phase_Analysis_III.m'
         tags.append({'tag':'<INPUTDIRECTORY>','value':outdir + '/'})
         tags.append({'tag':'<SENSORMASKFILE>','value':os.getcwd() + '/external/phenology_benchmarking/sensor_mask.mat'})
-        
-        tags.append({'tag':'<RESULTDIR_AVHRR>'  ,'value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/AVH_T63'})
+        tags.append({'tag':'<RESULTDIR_AVHRR>'  ,'value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/AVH_T63'}) #@todo this needs to compe from POOL SEP !!!!
         tags.append({'tag':'<RESULTDIR_SEAWIFS>','value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/SEA_T63'})
         tags.append({'tag':'<RESULTDIR_CYCLOPES>','value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/CYC_T63'})
         tags.append({'tag':'<RESULTDIR_MODIS>','value':'/net/nas2/export/eo/workspace/m300028/GPA/sensors/MCD_T63'})
-       
-        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template3,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template3,tags,options=',quit',output_directory=rundir )
         E.run(execute=f_execute,remove_extension=True)
 
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP4
         #//////////////////////////////////////
-        template4 = './external/phenology_benchmarking/Greening_Phase_Analysis_IV.m'
         tags.append({'tag':'<FIG1CAPTION>','value':'Fig1_FFT_Mask_Evergreen_Overview'})
         tags.append({'tag':'<FIG2CAPTION>','value':'Fig2_GPAII_Results'})
         tags.append({'tag':'<FIG3CAPTION>','value':'Fig3_GPAIII_Shifts_between_Model_Sensors'})
-        tags.append({'tag':'<FIG4CAPTION>','value':'Fig4_Time_series_from_various_biomes'})
+        tags.append({'tag': '<FIG4CAPTION>', 'value': 'Fig4_Time_series_from_various_biomes'})
         tags.append({'tag':'<RUNDIR>','value':rundir})
-        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template4,tags,options=',quit',output_directory='./tmp_' + model.name.replace(' ','') + '/' )
+        E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template4,tags,options=',quit',output_directory=rundir )
         E.run(execute=f_execute,remove_extension=True)
 
         #/// Gleckler plot ///
@@ -126,9 +146,6 @@ def grass_fraction_analysis(model_list):
 
 
 def tree_fraction_analysis(model_list,pft='tree'):
-    '''
-    '''
-
 
     def fraction2netcdf(pft):
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/' + pft + '_05.dat'
@@ -156,8 +173,6 @@ def tree_fraction_analysis(model_list,pft='tree'):
 
         #todo: lon 0 ... 360 ****
 
-
-        #~ print t.shape
         F.close()
 
         return outname
@@ -189,7 +204,7 @@ def tree_fraction_analysis(model_list,pft='tree'):
             print 'WARNING Inconsistent geometries for GPCP'
             print model_data.data.shape; print hansen.data.shape
 
-        dmin=-1;dmax=1.
+        dmin=-1; dmax=1.
         dif = map_difference(model_data,hansen,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0.,0.25,0.5,0.75,1.])
 
         #/// ZONAL STATISTICS
@@ -299,7 +314,8 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         if model_data.data.shape != albedo.data.shape:
             print 'Inconsistent geometries for ALBEDO'
-            print model_data.data.shape; print albedo.data.shape; stop
+            print model_data.data.shape; print albedo.data.shape
+            raise ValueError, "Invalid geometries"
 
         #--- generate difference map
         dmin = -0.09; dmax = 0.09
@@ -378,12 +394,7 @@ def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=Fals
         obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean() #seasonal mean
 
         obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #seasonal std
-
-
         obs_var = 'tmp'
-
-
-
     else:
         sys.exit('Unknown interval for rainfall_analyis()')
 

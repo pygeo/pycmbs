@@ -86,6 +86,7 @@ import matplotlib.pylab as pl
 #--- framework specific modules ---
 from models   import *
 from config   import *
+from analysis import *
 
 #=======================================================================
 
@@ -137,12 +138,21 @@ def get_methods4variables(variables):
     hlp.update({'grass' : 'get_grass_fraction()'})
     hlp.update({'phenology_faPAR' : 'get_faPAR()'})
     hlp.update({'temperature' : 'get_temperature_2m()'})
-
+    hlp.update({'snow' : 'get_snow_fraction()'})
 
     res={}
     for k in hlp.keys(): #only use the variables that should be analyzed!
         if k in variables:
             res.update({k:hlp[k]})
+
+    #--- implement here also dependencies between variables for anylssi
+    #e.g. phenology needs faPAR and snow cover fraction. Ensure here that
+    # snow cover is also read, even if only phenology option is set
+    if ('phenology_faPAR' in variables) and not ('snow' in variables):
+        res.update({'snow' : 'get_snow_fraction()'})
+
+
+
 
     return res
 
@@ -253,7 +263,8 @@ for variable in variables:
             print 'Doing analysis for variable ... ', variable
             print '   ... ', scripts[variable]
             model_list = str(proc_models).replace("'","")  #model list is reformatted so it can be evaluated properly
-            eval(scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep)') #run analysis
+            cmd = scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep)'
+            eval(cmd) #run analysis
 
 #/// generate Gleckler analysis plot for all variables and models analyzed ///
 global_gleckler.plot(vmin=-0.8,vmax=0.8,nclasses=25)
