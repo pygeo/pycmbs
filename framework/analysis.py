@@ -228,7 +228,6 @@ def tree_fraction_analysis(model_list,pft='tree'):
         zon3 = ZonalPlot(ax=zax3); zon3.plot(model_data.sub(hansen))
         zon3.ax.plot([0.,0.],zon3.ax.get_ylim(),color='k')
 
-
         #--- calculate RMSE statistics etc.
         ES = CorrelationAnalysis(model_data,hansen)
         ES.do_analysis()
