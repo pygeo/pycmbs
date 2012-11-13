@@ -33,12 +33,12 @@ from utils import *
 
 
 class Model(Data):
-    '''
+    """
     This class is the main class, specifying a climate model or a particular run
     Sub-classes for particular models or experiments are herited from this class
-    '''
+    """
     def __init__(self,data_dir,dic_variables,name='',**kwargs):
-        '''
+        """
         constructor for Model class
 
         INPUT
@@ -48,7 +48,7 @@ class Model(Data):
 
         dic_variables: dictionary specifiying variable names for a model
         e.g. 'rainfall','var4'
-        '''
+        """
 
         #--- set a list with different datasets for different models
         self.dic_vars = dic_variables
@@ -68,17 +68,19 @@ class Model(Data):
 
 
     def get_data(self):
-        '''
+        """
         central routine to extract data for all variables
         using functions specified in derived class
-        '''
+        """
 
         self.variables={}
         for k in self.dic_vars.keys():
             routine = self.dic_vars[k] #get name of routine to perform data extraction
             cmd = 'dat = self.' + routine
-            #~ print cmd
-            #~ if hasattr(self,routine):
+#            print cmd
+#            print routine[0:routine.index('(')]
+#            print hasattr(self,routine[0:routine.index('(')])
+            #~ if hasattr(self,routine)
             if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
                 exec(cmd)
 
@@ -90,7 +92,7 @@ class Model(Data):
                     self.variables.update({ k : dat }) #update field with data
 
             else:
-                print 'WARNING: unknown function to read data (skip!) ', routine
+                print 'WARNING: unknown function to read data (skip!) '
                 self.variables.update({ k : None })
                 #~ sys.exit()
 
@@ -98,50 +100,57 @@ class Model(Data):
 
 
 class CMIP5Data(Model):
+    """
+    Class for CMIP5 model simulations. This class is derived from C{Model}.
+    """
     def __init__(self,data_dir,model,experiment,dic_variables,name='',shift_lon=False,**kwargs):
+        """
+
+        @param data_dir: directory that specifies the root directory where the data is located
+        @param model: TBD tood
+        @param experiment: specifies the ID of the experiment (str)
+        @param dic_variables:
+        @param name: TBD todo
+        @param shift_lon: specifies if longitudes of data need to be shifted
+        @param kwargs: other keyword arguments
+        @return:
+        """
         Model.__init__(self,None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
 
-        self.model = model
-        self.experiment = experiment
-        self.data_dir = data_dir
-        self.shift_lon = shift_lon
-        self.type = 'CMIP5'
+        self.model      = model; self.experiment = experiment
+        self.data_dir   = data_dir; self.shift_lon  = shift_lon
+        self.type       = 'CMIP5'
+
+#-----------------------------------------------------------------------
 
     def get_faPAR(self):
-        ############################################################################################
-        ############################################################################################
-        ############################################################################################
-        ###  todo: this is just a DUMMY copy at the moment!!! Replace with faPAR reading routine!!!
-        ############################################################################################
-        ############################################################################################
-        ############################################################################################
-        #filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        """
+        Specifies how to read faPAR information for CMIP5 data
+        @return: C{Data} object for faPAR
+        """
 
-        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'
-
-        filename1 = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!! DUMMY so far for testnig
-        #varname = 'fapar' #todo: set variable name interactively
-
-        if self.start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
-
-        s_start_time = str(self.start_time)[0:10]
-        s_stop_time = str(self.stop_time)[0:10]
-
-        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
-        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'   #<<< todo: change this output directory !!!
+        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc' #todo set inputfilename interactiveley !!!! DUMMY so far for testnig
 
 
-        if not os.path.exists(filename):
-            return None
+        #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
 
-        sis = Data(filename,'fapar',read=True,label=self.model,unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        print 'Data read!'
+        return Data(data_file,'fapar')
 
-        return sis
+#-----------------------------------------------------------------------
+
+    def get_snow_fraction(self):
+        """
+        Specifies for CMIP5 class how to read SNOWFRACTION
+
+        @return: C{Data} object for snow
+        """
+        data_file = '/net/nas2/export/eo/workspace/m300028/GPA/input/historical_r1i1p1-LR_snow_fract.nc' #todo change this !!!
+
+        #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
+
+        return Data(data_file,'snow_fract')
+
 
 #-----------------------------------------------------------------------
 
