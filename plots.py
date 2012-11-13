@@ -62,7 +62,7 @@ import matplotlib as mpl
 #-----------------------------------------------------------------------
 
 def thin_xticks(ax,n):
-    '''
+    """
     thin xticks of axis
 
     If there are too many xticks in a plot or the labels
@@ -73,20 +73,20 @@ def thin_xticks(ax,n):
 
     @param n: number of ticks to plot
     @type n: int
-    '''
+    """
     ax.xaxis.set_major_locator(MaxNLocator(n+1))
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 class CorrelationAnalysis():
-        '''
+        """
         perform correlation analysis between two datasets
         and plot results
-        '''
+        """
 
         def __init__(self,X,Y,mask=None,ax=None):
-            '''
+            """
             constructor of class
 
             @param X: x dataset (either [time,sample] or [time,sample,sample]
@@ -100,7 +100,7 @@ class CorrelationAnalysis():
 
             @param ax: axis to plot results to; new figure will be generated if ax==None
             @type ax: matplotlib axis
-            '''
+            """
 
             self.x = X; self.y = Y
             self.mask = mask
@@ -124,7 +124,7 @@ class CorrelationAnalysis():
 
             #--- calculate diagnostics
             D = Diagnostic(self.x,y=self.y)
-            D._mat2vec(mask = self.mask) #here is the point fo rregional statistics
+            D._mat2vec(mask = self.mask) #here is the point fo regional statistics
             rmse = D.get_rmse_value()
             r    = D.get_correlation_value()
             n    = D. get_n()
@@ -148,7 +148,7 @@ class HovmoellerPlot():
         self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
 
     def plot(self,title=None,climits=None):
-        if climits == None:
+        if climits is None:
             raise ValueError, 'CLIMITS needs to be specified!'
         self.hov.plot(title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=climits)
 
@@ -156,19 +156,19 @@ class HovmoellerPlot():
 #-----------------------------------------------------------------------
 
 class ReichlerPlot():
-    '''
+    """
     class for Reichler plot generation
 
     @todo: add example how to use Reichler plotting
     @todo: provide references Glecher and Reichler + Kim
-    '''
+    """
     def __init__(self,ax=None):
-        '''
+        """
         constructor for Reichler plot
 
         @param ax: axis to plot data to; if None, new figure will be generated
         @type ax: matplotlib axis
-        '''
+        """
         if ax == None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
@@ -181,7 +181,7 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 
     def add(self,e2,label,color=None):
-        '''
+        """
         register data to be plotted
 
         @param e2: reichler index that was already calculated
@@ -192,7 +192,7 @@ class ReichlerPlot():
 
         @param color: color to be used for plotting
         @type color: str
-        '''
+        """
         self.e2.append(e2)
         self.labels.append(label)
         self.colors.append(color)
@@ -200,7 +200,7 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 
     def bar(self,vmin=None,vmax=None,title='',**kwargs):
-        '''
+        """
         generate barplot which shows results from all diagnostic
         values (e.g. different model results
 
@@ -216,7 +216,7 @@ class ReichlerPlot():
 
         @param title: title for the plot
         @type title: str
-        '''
+        """
 
         self._normalize()
         x = np.arange(len(self.e2_norm))
@@ -715,7 +715,7 @@ class ZonalPlot():
             print x.lat[:,0]
             print x.lat[:,0] - lu
 
-            stop
+            raise ValueError, 'Cannot work with NOT unique latitude values!'
 
         if timmean:
             thex = x.timmean(return_object=True)
@@ -784,12 +784,12 @@ class GlecklerPlot():
     """
 
     def __init__(self,fig=None):
-        '''
+        """
         constructor of C{GlecklerPlot}
 
         @param fig: figure to which to plot to. If None, then a new figure will be generated
         @type fig: matplotlib figure
-        '''
+        """
         if fig == None:
             color='grey'
             fig = plt.figure(facecolor=color,edgecolor=color)
@@ -801,44 +801,44 @@ class GlecklerPlot():
         self.pos = {} #store position of plot
 
     def add_model(self,label):
-        '''
+        """
         register a model in the class
         @param label: string of the model
         @type label: str
-        '''
+        """
         s = label.replace(' ','_')
         if s not in self.models:
             self.models.append(s)
 
     def add_variable(self,label):
-        '''
+        """
         register a variable in the class
         @param label: string of variable
         @type label: str
-        '''
+        """
         self.variables.append(label)
 
     def __set_ax_prop(self,ax):
-        '''
+        """
         set axis properties of a subplot
         @param ax: subplot axis
         @type ax: matplotlib axis
-        '''
+        """
         ax.set_xticks([]); ax.set_yticks([])
 
     def __value2color(self,v):
-        '''
+        """
         return a color based on the value given
         the information on the colormap and its
         normalization is used for that purpose
 
         @param v: value of data
         @type v: float
-        '''
+        """
         return self.cmap(self.norm(v))
 
     def __plot_triangle(self,ax,value,pos='top'):
-        '''
+        """
         Plot a triangle and fill its color in accordance
         with the value given. Information on colormap
         will be obtained from class information
@@ -852,7 +852,7 @@ class GlecklerPlot():
         @param pos: position of the triangle which will be plotted
                     top = plot an upper triangle, else = plot a lower triangle
         @type pos: str
-        '''
+        """
         if value == None:
             return
 
@@ -898,10 +898,10 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
     def _normalize_data(self):
-        '''
+        """
         calculate for each observational data set
         the relative deviation from the average
-        '''
+        """
         pos = np.unique(self.pos.values())
         if hasattr(self,'_raw_data'):
             #data has been already normalized; take original data
@@ -919,7 +919,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
     def _get_mean_value(self,pos,var):
-        '''
+        """
         calculate mean value for a given observational dataset
 
         @param pos: position marker
@@ -927,7 +927,7 @@ class GlecklerPlot():
 
         @param var: name of variable to analyze
         @type var: str
-        '''
+        """
         x = []
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
@@ -1011,7 +1011,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
     def get_data(self,v,m,p):
-        '''
+        """
         return data for a particular model and variable
 
         @param v: name of variable
@@ -1022,7 +1022,7 @@ class GlecklerPlot():
 
         @param p: position
         @type p: int
-        '''
+        """
         r = None
         k = self.__gen_key(m,v,p)
         if k in self.data.keys():
@@ -1041,7 +1041,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
     def __gen_key(self,m,v,p):
-        '''
+        """
         generate a unique key for dictionaries
         comprised of model name, variable name and position
 
@@ -1053,7 +1053,7 @@ class GlecklerPlot():
 
         @param p: position
         @type p: int
-        '''
+        """
         if m == None:
             return None
         if v == None:
@@ -1063,7 +1063,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
     def add_data(self,v,m,x,pos=1):
-        '''
+        """
         add a data for plotting
 
         @param v: name of variable
@@ -1077,7 +1077,7 @@ class GlecklerPlot():
 
         @param pos: position where to plot data 1=top triangle, 2=lower triangle
         @type pos: int
-        '''
+        """
 
         if v in self.variables:
             if m in self.models:
@@ -1589,7 +1589,7 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=6):
 #-----------------------------------------------------------------------
 
 def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,rescalex=1,**kwargs):
-    '''
+    """
 
     class to plot hovmoeller diagrams of two datasets
     and their difference
@@ -1597,7 +1597,7 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
     x,y two Data structures
 
     axextra: plot difference on separate axis
-    '''
+    """
 
     if climits == None:
         sys.exit('Please specify climits for hovmoeller')
@@ -1648,7 +1648,7 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 
 
 def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, **kwargs):
-    '''
+    """
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets
 
@@ -1702,7 +1702,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     @param show_zonal: plot zonal statistic plot
     @type show_zonal: bool
 
-    '''
+    """
 
 
     if 'cticks_diff' in kwargs:

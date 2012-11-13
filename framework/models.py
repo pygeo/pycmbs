@@ -307,10 +307,10 @@ class CMIP5Data(Model):
         return sis
 
     def get_albedo_data(self):
-        '''
+        """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
-        '''
+        """
 
         force_calc = False
 
@@ -373,9 +373,6 @@ class CMIP5Data(Model):
 
 
 class JSBACH_BOT(Model):
-    '''
-
-    '''
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
 
@@ -386,11 +383,11 @@ class JSBACH_BOT(Model):
         self.type = 'JSBACH_BOT'
 
     def get_albedo_data(self):
-        '''
+        """
         get albedo data for JSBACH
 
         returns Data object
-        '''
+        """
 
         v = 'var176'
 
@@ -407,9 +404,9 @@ class JSBACH_BOT(Model):
 
 
     def get_tree_fraction(self):
-        '''
+        """
         todo implement this for data from a real run !!!
-        '''
+        """
 
         ls_mask = get_T63_landseamask()
 
@@ -423,9 +420,9 @@ class JSBACH_BOT(Model):
         return tree
 
     def get_grass_fraction(self):
-        '''
+        """
         todo implement this for data from a real run !!!
-        '''
+        """
 
         ls_mask = get_T63_landseamask()
 
@@ -433,7 +430,7 @@ class JSBACH_BOT(Model):
         v = 'var12'
         grass = Data(filename,v,read=True,
         label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
-        shift_lon=shift_lon,
+        #shift_lon=shift_lon,
         mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')) , squeeze=True  )
 
 
@@ -448,11 +445,11 @@ class JSBACH_BOT(Model):
 
 
     def get_surface_shortwave_radiation_down(self,interval = 'season'):
-        '''
+        """
         get surface shortwave incoming radiation data for JSBACH
 
         returns Data object
-        '''
+        """
 
         v = 'var176'
 
@@ -479,17 +476,17 @@ class JSBACH_BOT(Model):
         #--- read SIS data
         sis = Data(filename,v,read=True,
         label='MPI-ESM SIS ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
-        shift_lon=shift_lon,
+        #shift_lon=shift_lon,
         mask=ls_mask.data.data)
 
         return sis
 
 
     def get_rainfall_data(self,interval='season'):
-        '''
+        """
         get rainfall data for JSBACH
         returns Data object
-        '''
+        """
 
         if interval == 'season':
             pass
@@ -531,9 +528,9 @@ class JSBACH_BOT(Model):
 #-----------------------------------------------------------------------
 
 class JSBACH_RAW(Model):
-    '''
-    RAW JSBACH model output
-    '''
+    """
+    Class for RAW JSBACH model output
+    """
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
 
@@ -544,14 +541,14 @@ class JSBACH_RAW(Model):
         self.type = 'JSBACH_RAW'
 
     def get_albedo_data(self):
-        '''
+        """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
-        '''
+        """
 
-        if self.start_time == None:
+        if self.start_time is None:
             raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
+        if self.stop_time is None:
             raise ValueError, 'Stop time needs to be specified'
 
         sw_down = self.get_surface_shortwave_radiation_down()
@@ -566,11 +563,15 @@ class JSBACH_RAW(Model):
 
 
     def get_surface_shortwave_radiation_down(self,interval = 'season'):
-        '''
+        """
         get surface shortwave incoming radiation data for JSBACH
 
-        returns Data object
-        '''
+        @param interval: specifies the aggregation interval. Possible options: ['season']
+        @type interval: str
+
+        @return: returns a C{Data} object
+        @rtype: C{Data}
+        """
 
         v = 'swdown_acc'
 
@@ -581,16 +582,6 @@ class JSBACH_RAW(Model):
             print 'File not existing: ', rawfilename
             return None
 
-
-        #--- read data
-        #~ cdo = pyCDO(rawfilename,y1,y2)
-        #~ if interval == 'season':
-            #~ seasfile = cdo.seasmean(); del cdo
-            #~ print 'seasfile: ', seasfile
-            #~ cdo = pyCDO(seasfile,y1,y2)
-            #~ filename = cdo.yseasmean()
-        #~ else:
-            #~ raise ValueError, 'Invalid interval option ', interval
         filename = rawfilename
 
         #--- read land-sea mask
@@ -608,34 +599,24 @@ class JSBACH_RAW(Model):
 #-----------------------------------------------------------------------
 
     def get_surface_shortwave_radiation_up(self,interval = 'season'):
-        '''
+        """
         get surface shortwave upward radiation data for JSBACH
 
         returns Data object
 
         todo CDO preprocessing of seasonal means
         todo temporal aggregation of data --> or leave it to the user!
-        '''
+        """
 
         v = 'swdown_reflect_acc'
 
-        y1 = '1992-01-01'; y2 = '2001-12-31'
+        y1 = '1992-01-01'; y2 = '2001-12-31' #@todo years !!
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
             print 'File not existing: ', rawfilename
             return None
 
-
-        #--- read data
-        #~ cdo = pyCDO(rawfilename,y1,y2)
-        #~ if interval == 'season':
-            #~ seasfile = cdo.seasmean(); del cdo
-            #~ print 'seasfile: ', seasfile
-            #~ cdo = pyCDO(seasfile,y1,y2)
-            #~ filename = cdo.yseasmean()
-        #~ else:
-            #~ raise ValueError, 'Invalid interval option ', interval
         filename = rawfilename
 
         #--- read land-sea mask
@@ -652,33 +633,23 @@ class JSBACH_RAW(Model):
 #-----------------------------------------------------------------------
 
     def get_rainfall_data(self,interval = 'season'):
-        '''
+        """
         get surface rainfall data for JSBACH
 
         returns Data object
 
         todo CDO preprocessing of seasonal means
         todo temporal aggregation of data --> or leave it to the user!
-        '''
+        """
 
         v = 'precip_acc'
 
-        y1 = '1992-01-01'; y2 = '2001-12-31' #todo
+        y1 = '1992-01-01'; y2 = '2001-12-31' #todo years
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
             return None
 
-
-        #--- read data
-        #~ cdo = pyCDO(rawfilename,y1,y2)
-        #~ if interval == 'season':
-            #~ seasfile = cdo.seasmean(); del cdo
-            #~ print 'seasfile: ', seasfile
-            #~ cdo = pyCDO(seasfile,y1,y2)
-            #~ filename = cdo.yseasmean()
-        #~ else:
-            #~ raise ValueError, 'Invalid interval option ', interval
         filename = rawfilename
 
         #--- read land-sea mask
