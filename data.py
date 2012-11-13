@@ -20,7 +20,6 @@ __email__ = "alexander.loew@zmaw.de"
 # GNU General Public License for more details.
 '''
 
-
 import os,sys
 
 import Nio
@@ -107,35 +106,27 @@ class Data():
 
         """
 
-        self.filename     = filename
-        self.varname      = varname
-        self.scale_factor = scale_factor
-        self.lat_name     = lat_name
-        self.lon_name     = lon_name
-        self.squeeze      = squeeze
-        self.squeezed     = False
-
-        self.detrended    = False
+        self.filename     = filename; self.varname      = varname
+        self.scale_factor = scale_factor; self.lat_name     = lat_name
+        self.lon_name     = lon_name; self.squeeze      = squeeze
+        self.squeezed     = False; self.detrended    = False
 
         self.verbose = verbose
-
         self._lon360 = True #assume that coordinates are always in 0 < lon < 360
 
-        self.inmask = mask
+        self.inmask = mask; self.level = level
 
-        self.level = level
-
-        if label == None:
+        if label is None:
             self.label = self.filename
         else:
             self.label = label
 
-        if unit == None:
+        if unit is None:
             self.unit = None
         else:
             self.unit = unit
 
-        if time_cycle != None:
+        if time_cycle is not None:
             self.time_cycle = time_cycle
 
         self.cell_area = cell_area #[m**2]
@@ -143,10 +134,10 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
 
-    def set_sample_data(self,a,b,c):
-        '''
+    def __set_sample_data(self,a,b,c):
+        """
         fill data matrix with some sample data
-        '''
+        """
         self.data = plt.rand(a,b,c)
 
 #-----------------------------------------------------------------------
@@ -689,6 +680,9 @@ class Data():
                      climatology (all: use the WHOLE original dataset
                      as a reference; current: use current data as a reference)
         @type base: str
+
+        @return: returns a C{Data} object with the anomalies
+        @rtype: C{Data}
         """
 
         if base == 'current':
@@ -696,7 +690,7 @@ class Data():
         elif base == 'all':
             clim = self._climatology_raw
         else:
-            raise ValueError, 'Anomalies can not be calculated'
+            raise ValueError, 'Anomalies can not be calculated, invalid BASE'
 
         if hasattr(self,'time_cycle'):
             pass
@@ -719,7 +713,7 @@ class Data():
 
         ret = np.ma.array(ret,mask=(np.isnan(ret) | self.data.mask) )
 
-        #return a data object
+        #--- return a data object
         res = self.copy(); res.data = ret.copy()
         res.label = self.label + ' anomaly'
 
@@ -783,7 +777,6 @@ class Data():
                 print 'Data was already squeezed: not temporal subsetting is performed!'
                 pass
             else:
-                #~ print 'Temporal subsetting for 2D variable ...', self.squeezed
                 self.data = self.data[i1:i2,:]
         elif self.data.ndim == 1: #single temporal vector assumed
             self.data = self.data[i1:i2]
@@ -810,11 +803,9 @@ class Data():
         #- no subsetting
         if (start == None or stop == None):
             return 0, len(self.time)
-
         if stop < start:
             sys.exit('Error: startdate > stopdate')
 
-        #print start,stop
         s1 = plt.date2num(start); s2=plt.date2num(stop)
 
         #- check that time is increasing only
@@ -822,15 +813,12 @@ class Data():
             sys.exit('Error _get_time_indices: Time is not increasing')
 
         #- determine indices
-        m1 = abs(self.time - s1).argmin()
-        m2 = abs(self.time - s2).argmin()
+        m1 = abs(self.time - s1).argmin(); m2 = abs(self.time - s2).argmin()
 
         if self.time[m1] < s1:
             m1 += 1
         if self.time[m2] > s2:
             m2 -= 1
-        #m2 += 1 #increment so that subsetting is o.k. in the end
-
         if m2 < m1:
             sys.exit('Something went wrong _get_time_indices')
 
@@ -864,11 +852,11 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _mesh_lat_lon(self):
-        '''
+        """
         In case that the Data object lat/lon is given in vectors
         the coordinates are mapped to a 2D field. This routine
         resets the Data object coordinates
-        '''
+        """
         if (plt.isvector(self.lat)) & (plt.isvector(self.lon)):
             LON,LAT = np.meshgrid(self.lon,self.lat)
             self.lon = LON; self.lat=LAT
@@ -1587,7 +1575,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def timeshift(self,n):
+    def timeshift(self,n,return_data = False):
         """
         shift data in time by n-steps
         positive numbers mean, that the
@@ -1600,6 +1588,9 @@ class Data():
         @param n: lag to shift data (n>=0)
         @type n: int
 
+        @param return_data: specifies if a NEW C{Data} object shall be returned
+        @type return_data: bool
+
         @todo: support for n < 0
         """
 
@@ -1608,10 +1599,21 @@ class Data():
         if self.data.ndim != 3:
             raise ValueError, 'array of size [time,ny,nx] is needed for temporal shifting!'
 
+        #--- copy data
         tmp = self.data.copy()
-        self.data[:,:,:]=np.nan
-        self.data[:-n:,:,:] = tmp[n:,:,:]
-        self.data[-n:,:,:]  = tmp[0:n,:,:]
+
+        #--- generate output
+        if return_data: #... a new data object is returned
+            res           = self.copy()
+            res.data[:,:,:]    = np.nan
+            res.data[:-n:,:,:] = tmp[n:,:,:]
+            res.data[-n:,:,:]  = tmp[0:n,:,:]
+            return res
+        else: #... the data object is changed
+            self.data[:,:,:]    = np.nan
+            self.data[:-n:,:,:] = tmp[n:,:,:]
+            self.data[-n:,:,:]  = tmp[0:n,:,:]
+            return None
 
 
 
@@ -1748,9 +1750,9 @@ class Data():
             d = self
         if np.isscalar(x):
             d.data -= x
-        elif x.ndim == 2:
-            for i in range(len(self.time)):
-                d.data[i,:,:] = d.data[i,:,:] - x[:,:]
+        elif x.ndim == 2: #x is an array
+            for i in xrange(len(self.time)):
+                d.data[i,:,:] -= x[:,:]
         else:
             raise ValueError, 'Invalid geometry in detrend()'
         return d
