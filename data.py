@@ -275,7 +275,6 @@ class Data():
     def _get_unit(self):
         """
         get a nice looking string for units
-
         @return: string with unit like [unit]
         """
         if self.unit == None:
@@ -303,7 +302,6 @@ class Data():
     def read(self,shift_lon,start_time=None,stop_time=None,time_var='time'):
         """
         read data from file
-
         @param shift_lon: if given, longitudes will be shifted
         @type shift_lon: bool
 
@@ -840,10 +838,10 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _get_months(self):
-        '''
+        """
         get months from timestamp
         @return: returns a list of months
-        '''
+        """
         d = plt.num2date(self.time); months = []
         for x in d:
             months.append(x.month)
@@ -897,7 +895,7 @@ class Data():
             data[msk] = np.nan #set to nan, as otherwise problems with masked and scaled data
             data = np.ma.array(data,mask=np.isnan(data))
         else:
-            data = np.ma.array(data)
+            data = np.ma.array(data,mask=np.zeros(data.shape).astype('bool'))
 
         #scale factor
         if hasattr(var,'scale_factor'):
@@ -963,11 +961,6 @@ class Data():
             return R.data,S.data,I.data,P.data
 
 
-
-
-
-
-
 #-----------------------------------------------------------------------
 
     def timmean(self,return_object=False):
@@ -976,7 +969,6 @@ class Data():
 
         @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
         @type return_object: bool
-
         """
         if self.data.ndim == 3:
             res = self.data.mean(axis=0)
@@ -1063,6 +1055,8 @@ class Data():
 
     def _get_weighting_matrix(self):
         """
+        (unittest)
+
         get matrix for area weigthing of grid cells. For each timestep
         the weights are calculated as a function  of the number of valid
         grid cells.
@@ -1247,6 +1241,8 @@ class Data():
         correct all timestamps and assign
         same day and/or month
 
+        (unittest)
+
         @param day: day to apply to all timestamps
         @type day: int
 
@@ -1258,9 +1254,9 @@ class Data():
         for t in self.time:
             d = plt.num2date(t)
             s = str(d) #convert to a string
-            if day != None:
+            if day is not None:
                 s = s[0:8] + str(day).zfill(2) + s[10:] #replace day
-            if month != None:
+            if month is not None:
                 s = s[0:5] + str(month).zfill(2) + s[7:] #replace day
             o.append(plt.datestr2num(s))
 
@@ -1367,7 +1363,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def get_aoi_lat_lon(self,R,apply_mask=True):
-        '''
+        """
         get aoi given lat/lon coordinates
 
         the routine masks all area which
@@ -1378,7 +1374,7 @@ class Data():
         given a region R
 
         @todo: documentation needed
-        '''
+        """
 
         #oldmask = self.data.mask[].copy()
 
@@ -1500,10 +1496,6 @@ class Data():
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()
 
-
-        #~ if self.cell_area != None:
-            #~ self.cell_area = np.ma.array(self.cell_area,mask=msk)
-
         if self.data.ndim == 2:
             tmp1 = self.data.copy().astype('float') #convert to float to allow for nan support
             tmp1[~msk] = np.nan
@@ -1543,12 +1535,12 @@ class Data():
 #-----------------------------------------------------------------------
 
     def shift_x(self,nx):
-        '''
+        """
         shift data array in x direction by nx steps
 
         @param nx: shift by nx steps
         @type nx: int
-        '''
+        """
 
         self.data = self.__shift3D(self.data,nx)
         self.lat  = self.__shift2D(self.lat,nx)
@@ -1620,7 +1612,7 @@ class Data():
 #-----------------------------------------------------------------------
 
     def _set_valid_range(self,vmin,vmax):
-        '''
+        """
         sets the valid range of the data
 
         only data with vmin <= data <= vmax will be kept as valid
@@ -1629,8 +1621,7 @@ class Data():
         @type vmin: float
         @param vmax: maximum valid value
         @type vmax: float
-        '''
-
+        """
         self.data = np.ma.array(self.data,mask = ((self.data < vmin) | (self.data > vmax))   )
 
 
@@ -1748,6 +1739,7 @@ class Data():
             d = self.copy()
         else:
             d = self
+
         if np.isscalar(x):
             d.data -= x
         elif x.ndim == 2: #x is an array
@@ -1893,7 +1885,7 @@ class Data():
         if np.shape(d.data) == np.shape(x.data):
             d.data = d.data * x.data
         elif np.shape(d.data[0,:,:]) == np.shape(x.data):
-            for i in range(len(self.time)):
+            for i in xrange(len(self.time)):
                 d.data[i,:,:] = d.data[i,:,:] * x.data
         else:
             raise ValueError, 'Can not handle this geometry in div()'
