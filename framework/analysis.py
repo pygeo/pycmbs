@@ -266,9 +266,9 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
 
 
 def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
-    '''
+    """
     model_list = list which contains objects of data type MODEL
-    '''
+    """
 
     vmin = 0.; vmax = 0.6
 

@@ -1242,7 +1242,7 @@ def map_season(x,year=False,**kwargs):
 #-----------------------------------------------------------------------
 
 def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None, bluemarble = False, **kwargs):
-    '''
+    """
     produce a nice looking map plot
 
     @param x: data to plot
@@ -1303,7 +1303,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @type bluemarble: bool
 
 
-    '''
+    """
 
     #--- create new figure
     if ax == None:
@@ -1312,8 +1312,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #with timeseries plot?
         if show_timeseries:
             gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
-            ax  = fig.add_subplot(gs[0])
-            ax2 = fig.add_subplot(gs[1])
+            ax  = fig.add_subplot(gs[0]); ax2 = fig.add_subplot(gs[1])
         else:
             ax = fig.add_subplot(111)
     else:
@@ -1366,8 +1365,6 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
         if bluemarble:
             m1.bluemarble()
-
-
 
         if f_kdtree:
             #use KDTRee nearest neighbor resampling to avoid stripes in plotting
@@ -1483,7 +1480,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
 
 
-    ax.set_title(title,size=12)
+    ax.set_title(title,size=14)
 
 
     #/// show timeseries? ///
