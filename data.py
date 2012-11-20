@@ -140,6 +140,9 @@ class Data():
         """
         self.data = plt.rand(a,b,c)
 
+
+
+
 #-----------------------------------------------------------------------
 
     def _squeeze(self):
@@ -453,7 +456,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_yearsum(self,mask=None):
+    def get_yearsum(self,mask=None,return_data=False):
         """
         This routine calculates the yearly sum of the data field
         A vector with a mask can be provided for further filtering
@@ -491,7 +494,23 @@ class Data():
                 res.append( dat[hlp,:].sum(axis=0) )
         res = pl.asarray(res)
 
-        return years, res
+        #return years, res xxxxxxxxxxxxxx
+
+
+
+        if return_data:
+            #generate data object
+            r = self.copy()
+            r.data = res
+            r.time = pl.datestr2num(np.asarray([str(years[i])+'-01-01' for i in range(len(years))]))
+            r.time_cycle = 1
+            return r
+        else:
+            return years, res
+
+
+
+
 
 #-----------------------------------------------------------------------
 
@@ -1062,9 +1081,9 @@ class Data():
         grid cells.
 
         The returned array contains weights for each timestep. The sum
-        of these weights is equal to one.
+        of these weights is equal to one for each timestep.
 
-        @return weighting matrix
+        @return weighting matrix in same geometry as original data
         @rtype numpy array
         """
 
@@ -1288,7 +1307,7 @@ class Data():
             basedate = c[0].zfill(4)+'-'+c[1].zfill(2)+'-'+c[2].zfill(2)+' '+d[0].zfill(2)+':'+d[1].zfill(2)+':'+d[2].zfill(2)
             bdate = datetime.strptime(basedate,'%Y-%m-%d %H:%M:%S')
         except:
-            raise ValueError, 'basedate is formatted in an unexpected way: ', basedate
+            raise ValueError, 'basedate is formatted in an unexpected way: ' + basedate
 
         if unit == 'hour':
             scal = 24.
@@ -1720,7 +1739,76 @@ class Data():
 
         return d
 
-#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+
+    def diff(self,x,axis=0,equal_var=True,mask_data = False,pthres=0.05):
+        """
+        Difference between two C{Data} objects
+
+        This routine calculates the difference between the data of two
+        datasets. It calculates the significance and returns
+        the mean differences and their corresponding significances
+
+        The significance is calculated using a two-tailored t-test or a welch test
+        in case of different variances. Independent samples are assumed!
+        (unittest test_diff)
+
+        @param x: C{Data} object which will be substracted from self
+        @type  x: Data object
+
+        @param axis: axis along which the data will be aggregated (typically axis=0 corresponds to time)
+        @type axis: int
+
+        @param equal_var: specifies if the two input datasets (self,x) are expected to have same variance.
+                          dependent on this parameter. If the variance is equal, then a t-test is applied,
+                          if not, then a welch test is used.
+        @type equal_var: bool
+
+        @param mask_data: specifies if the data field which is returned should be masked for all areas that do *not* show significant changes!
+        @type mask_data: bool
+
+        @param pthres: threshold for significant p-value; a value of e.g. 0.05 corresponds to the 95% significance level.
+                       this threshold will be used for the generation of a mask that might be used e.g. as an overlay in map_plot()
+        @type pthres: float
+
+        @return: returns a C{Data} object that includes a) the difference map, b) the p-value, c) a mask that can be used e.g. as an overlay for map_plot()
+        @rtype: C{Data}
+
+        @todo: implementation of welch test. This should be actually already be implemented in stats.ttest_ind, but is not available in my python installation!
+        http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html#scipy.stats.ttest_ind
+        but the code would be available here: https://github.com/scipy/scipy/blob/v0.11.0/scipy/stats/stats.py#L2957
+
+
+        """
+
+        #/// check consistency
+        if np.shape(self.data) != np.shape(x.data):
+            raise ValueError, 'Inconsistent geometry (sub): can not calculate!'
+        if axis > len(self.data.shape)-1:
+            raise ValueError, 'Invalid axis parameter: ' + str(axis)
+        if axis < 0:
+            raise ValueError, 'Invalid axis parameter: ' + str(axis)
+
+        #/// create new data object
+        d = self.copy(); d.label = self.label + ' - ' + x.label
+
+        #/// calculate statistical significance of the difference
+        t,p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
+        p   = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
+
+        #/// mean difference masked if p-value too low
+        mask      = p <= pthres
+        if mask_data:
+            d.data    = np.ma.array(self.timmean() - x.timmean(),mask=~mask) #mean difference as masked array
+        else:
+            d.data    = np.ma.array(self.timmean() - x.timmean(),mask=np.zeros(self.timmean().shape).astype('bool') ) #mean difference as masked array
+        d.p_value = p
+        d.p_mask  = mask #masks the grid cells that show significant changes (todo check this again!) needs additional validation
+
+        return d
+
+
+#-----------------------------------------------------------------------------------------------------------------------
 
     def subc(self,x,copy=True):
         """
