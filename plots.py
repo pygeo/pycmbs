@@ -421,11 +421,11 @@ class ScatterPlot():
 #-----------------------------------------------------------------------
 
 class LinePlot():
-    '''
+    """
     class for a pyCMBS Line Plot
 
     This class is usefull for plotting timeseries
-    '''
+    """
     def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.,show_equation=True):
         """
         constructor of LinePlot
@@ -470,11 +470,11 @@ class LinePlot():
 
 #-----------------------------------------------------------------------
 
-    def legend(self):
-        '''
+    def legend(self,prop={'size':8},**kwargs):
+        """
         plot legend
-        '''
-        self.ax.legend(self.lines,self.labels,prop={'size':10})
+        """
+        self.ax.legend(self.lines,self.labels,prop=prop,**kwargs)
 
 #-----------------------------------------------------------------------
 
@@ -487,7 +487,7 @@ class LinePlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,x,ax=None,vmin=None,vmax=None,label = None, **kwargs):
+    def plot(self,x,ax=None,vmin=None,vmax=None,label = None, norm_std = False, set_ytickcolor=True, **kwargs):
         """
         plot LinePlot data. If a spatial field is provided, this is aggregated
         using the fldmean() function of C{Data}
@@ -507,6 +507,9 @@ class LinePlot():
         @param label: label to be used for current plot. If None, then
                       the label of the provided C{Data} object is used
         @type label: str
+
+        @param norm_std: normalize timeseries with its stdv. This is a useful option when comparing trends of variables with different amplitudes
+        @type norm_std: bool
         """
 
         if len(x.time) > 0:
@@ -518,13 +521,20 @@ class LinePlot():
                 ax = ax
                 set_axiscolor=True
 
-            y = x.fldmean()
+            y = x.fldmean() #gives timeseries
+
+            if norm_std:
+                y /= y.std()
+
+
             if label == None:
                 label = x.label
 
             if self.regress: #calculate linear regression
                 slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time/self.normx,y)
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time,y)
+                self.tmp_slope = slope
+                self.tmp_corr = r_value
 
                 if p_value < 0.01:
                     spvalue = 'p < 0.01'
@@ -549,13 +559,14 @@ class LinePlot():
                 ax.set_xlabel('time',size=self.ticksize)
 
             if self.title != None:
-                ax.set_title(self.title)
+                ax.set_title(self.title,size=10)
 
             if vmin != None and vmax != None:
                 ax.set_ylim(vmin,vmax)
 
-            for tl in ax.get_yticklabels():
-                tl.set_color(p.get_color())
+            if set_ytickcolor:
+                for tl in ax.get_yticklabels():
+                    tl.set_color(p.get_color())
 
 
             self._change_ticklabels(ax)
@@ -1178,6 +1189,40 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None):
 
 #-----------------------------------------------------------------------
 
+def pm_bar(x,y=None,pcolor='red',ncolor='blue',ax=None,**kwargs):
+    """
+    generate a nice looking barchart with different color for positive/negative numbers
+
+    @param x: x-variable or variable to plot (if y is not given)
+    @param y: y-variable (optional)
+    @param ax: axis handle
+    @return: returns handle axis
+    """
+
+    if ax is None:
+        f = pl.figure(); ax = f.add_subplot(111)
+    else:
+        ax = ax
+
+    if y == None:
+        y = x*1.
+        x = np.arange(len(y))
+    else:
+        pass
+
+    yp = y*1.; yp[y<0.] = 0.
+    yn = y*1.; yn[y>0.] = 0.
+
+    #--- plot
+    ax.bar(x,yp,color=pcolor,edgecolor='None',**kwargs)
+    ax.bar(x,yn,color=ncolor,edgecolor='None',**kwargs)
+
+    return ax
+
+
+
+#-----------------------------------------------------------------------
+
 def map_season(x,year=False,**kwargs):
     '''
     generate a seasonal plot
@@ -1241,7 +1286,7 @@ def map_season(x,year=False,**kwargs):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None, bluemarble = False, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None, bluemarble = False, contours=False, overlay=None, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1302,8 +1347,27 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @param bluemarble: load bluemarble as background image (does only work if no gridded data is shown!)
     @type bluemarble: bool
 
+    @param contours: specifies if plot is done as contour plot
+    @type contours: bool
+
+    @param overlay: overlay for plot (e.g. significance)
+
 
     """
+
+    #--- checks
+    if overlay != None:
+        if x.data.ndim == 2:
+            if overlay.shape != x.data.shape:
+                print overlay.shape, x.data.shape
+                raise ValueError, 'Invalid geometry for overlay !'
+        elif x.data.ndim == 3:
+            if overlay.shape != x.data[0,:,:].shape:
+                print overlay.shape, x.data.shape
+                raise ValueError, 'Invalid geometry for overlay !'
+        else:
+            raise ValueError, 'Overlay for this geometry not supported!'
+
 
     #--- create new figure
     if ax == None:
@@ -1409,15 +1473,32 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #~ im1=m1.pcolormesh(xmap,ymap,xm,cmap=cmap,**kwargs) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
 
         if not bluemarble:
-            im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+            if contours:
+                if 'levels' in kwargs1.keys():
+                    levels = kwargs1.pop('levels')
+                else:
+                    raise ValueError, 'When plotting with contours, you need to specify the levels option (see contour documnetation)'
+                im1=m1.contour(X,Y,Z,levels,cmap=cmap,**kwargs1)
+                ax.clabel(im1, inline=1, fontsize=10) #contour label
+            else:
+
+                im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
             __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues)
+
+            if overlay != None:
+                xcoordnew=X[overlay]; ycoordnew=Y[overlay]
+                m1.scatter(xcoordnew,ycoordnew,marker='+',s=50,c='white',edgecolors='white',linewidth=1)
 
 
 
 
     else: #use_basemap = False
         #- normal plots
-        im1=ax.imshow(xm,cmap=cmap,interpolation='nearest', **kwargs1)
+        if contours:
+            im1 = ax.contour(xm,cmap=cmap,**kwargs1)
+            ax.clabel(im1, inline=1, fontsize=10) #contour label
+        else:
+            im1=ax.imshow(xm,cmap=cmap,interpolation='nearest', **kwargs1)
         ax.set_xticks([]); ax.set_yticks([])
 
 

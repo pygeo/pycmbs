@@ -67,6 +67,23 @@ class pyCDO():
 
 #-----------------------------------------------------------------------
 
+    def seasmean_djf(self,force=False):
+        '''
+        calculate seasmean for DJF season
+
+        @param force: force calculations to be performed
+        @type force: bool
+        '''
+
+        oname = self.baseoutname[:-3] + '_' + self.date1 + '_' + self.date2 + '_' + 'seasmean_djf' + '.nc'
+        cmd = 'cdo ' + self.options + ' ' + 'seasmean' + ' -selseas,djf '  + self.filename + ' ' + oname
+        self.run(cmd,oname,force)
+        return oname
+
+
+#-----------------------------------------------------------------------
+
+
     def seasmean(self,force=False):
         '''
         calculate seasmean
