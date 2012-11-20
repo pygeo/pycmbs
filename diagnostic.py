@@ -37,7 +37,7 @@ import  matplotlib.axes as maxes
 import matplotlib as  mpl
 
 
-from plots import map_plot
+from plots import map_plot, pm_bar
 from data import Data
 
 from scipy import linalg, dot;
@@ -53,12 +53,12 @@ class EOF():
     main class to perform an EOF analysis
     """
 
-    def __init__(self,x,allow_gaps=False,normalize=False,cov_norm = True):
+    def __init__(self,x0,allow_gaps=False,normalize=False,cov_norm = True,anomalies=False,area_weighting=True,use_corr=False,use_svd=True):
         """
         constructor for EOF analysis
 
-        @param x: C{Data} object with a 3D data. The data is assumed to have structure [time,ny,nx]
-        @type x: C{Data} object
+        @param x0: C{Data} object with a 3D data. The data is assumed to have structure [time,ny,nx]
+        @type x0: C{Data} object
 
         @param allow_gaps: specifies if data gaps are allowed. If True, then temporal gaps are allowed
                            and are considered approprately when calculating the covariance matrix
@@ -73,12 +73,34 @@ class EOF():
                          This is especially needed for testing!
         @type cov_norm: bool
 
+        @param use_corr: use correlation matrix for EOF calculations instead of covariance matrix (default = False)
+        @type use_corr: bool
+
+        @param anomalies: specifies if calculation should be performed based on anomalies (mean removed)
+        @type anomalies: bool
+
+        @param area_weighting: perform area weighting of data prior to analysis
+        @type area_weighting: bool
+
+        @param use_svd: use SVD for decomposition; if False, then eigenvalue decomposition for symmetric matrices (eigh) is used
+        @type use_svd: bool
+
         @todo: how to deal with negative eigenvalues, which sometimes occur?
+
+
+        REFERENCES
+        ==========
+        (1) Bjoernsson, H., Venegas, S.A. (1997): A Manual for EOF and SVD analyses of Climate Data. online available
+        (2) NCL EOF example: http://www.ncl.ucar.edu/Applications/eof.shtml
         """
 
+        print '*** EOF ANALYSIS ***'
+
         #/// check geometries
-        if x.data.ndim != 3:
+        if x0.data.ndim != 3:
             raise ValueError, 'EOF analysis currently only supported for 3D data matrices of type [time,ny,nx]'
+
+        x = x0.copy() #copy input data object as the data will be weighted!
 
         self._x0 = x #preserve information on original data
 
@@ -86,6 +108,23 @@ class EOF():
         self._shape0 = x.data[0,:,:].shape #original data shape
         n = len(x.data) #number of timestamps
         self.n = n
+
+        #--- area weighting
+        if area_weighting:
+            wmat= np.sqrt(x._get_weighting_matrix())
+            #wmat = np.zeros(x.data.shape) #weighting for gaussian grid
+            #clat = np.sqrt(np.ma.array(x.lat.copy(),mask=x.data[0,:,:].mask))
+
+            #for i in xrange(len(wmat)):
+            #    wmat[i,:,:] = clat*1.
+            #plt.imshow(clat)
+            #del clat
+
+        else:
+            print '    WARNING: it is recommended to use area weighting for EOFs'
+            wmat= np.sqrt(np.ones(x.data.shape))
+        self._sum_weighting = np.sum(wmat)
+        x.data *= wmat; del wmat
 
 
         #-estimate only valid data, discard any masked values
@@ -96,50 +135,73 @@ class EOF():
 
         self._x0mask = msk.copy() #store mask applied to original data
 
-        self.x = vdata.copy()
-        self.x.shape = (n,-1)
+        #--- reshape data
+        self.x = vdata.copy(); self.x.shape = (n,-1)
+
+        if anomalies:
+            self._calc_anomalies()
+        else:
+            print '    WARNING: it is recommended that EOFs are calculated based on anomalies'
 
         if normalize:
-            self.__time_normalization()
+            self.__time_normalization() #results in unit variance for all data points
 
-        #transpose data
+        #--- transpose data
         self.x = self.x.T #[npoints,time]
-
-        print 'Shape is now ...', self.x.shape
+        npoints,ntime = self.x.shape
+        print '   EOF analysis with %s timesteps and %s grid cells ...' % (ntime,npoints)
 
         #/// calculate covariance matrix ///
-
         if allow_gaps:
-            if cov_norm:
-                self.C = np.ma.cov(self.x,rowvar=0)
+            if use_corr:
+                self.C = np.ma.corrcoef(self.x,rowvar=0)
             else:
-                raise ValueError, 'gappy data not supported for cov_norm option'
+                #--- calculation using covariance matrix
+                if cov_norm:
+                    self.C = np.ma.cov(self.x,rowvar=0)
+                else:
+                    raise ValueError, 'gappy data not supported for cov_norm option'
         else:
-            if cov_norm:
-                self.C = np.cov(self.x,rowvar=0)
+            if use_corr:
+                self.C = np.corrcoef(self.x,rowvar=0)
             else:
-                self.C = np.dot(self.x.T,self.x)
-
-
-
+                #--- covariance matrix for calculations
+                if cov_norm:
+                    self.C = np.cov(self.x,rowvar=0)
+                else:
+                    self.C = np.dot(self.x.T,self.x)
 
         #/// solve eigenvalue problem ///
-        #eigval,eigvec = np.linalg.eig(self.C) # complex numbers in output matrices
-        eigvec,eigval,v = linalg.svd( self.C ) # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
-
-        self.eigval = eigval
-        self.eigvec = eigvec
-
-        #/// calculate expansion coefficients == PC (projection of original data to new parameter space)
-        if allow_gaps:
-            A = np.ma.dot(self.x,eigvec)
+        # The SVD implementation was validated by comparing U,l,V = svd(cov(x,rowvar=0)) against the results from
+        # eigh(cov(x,rowvar=0)). Results are similar, WHICH IS A BIT STRANGE actually as after
+        # Bjoernosson and Venegas, 1997, p. 17, the eigenvalues should correspond to the square of the singular values.
+        # in the validdation, the eigenvalues however corresponded directly to the singular values!
+        if use_svd:
+            self.eigvec,self.eigval,v = linalg.svd( self.C ) # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
         else:
-            A = np.dot(self.x,eigvec)
-        self.EOF = A
+            #returns the eigenvalues in ASCENDING order (or no order at all!)
+            self.eigval,self.eigvec = np.linalg.eigh(self.C) # complex numbers in output matrices (eigenvalues not necessarily increasing!)
+
+
+        #self.eigvec /= self._sum_weighting #normalize Eigenvector with the sum of the weights that have been applied. This gives the timeseries mean amplitude (see NCL EOF example)
+
+
+
+
+        #--- check if Eigenvalues are in descending order
+        if np.any(np.diff(self.eigval) > 0. ):
+            print self.eigval
+            raise ValueError, 'Eigenvalues are not in descending order. This is not supported yet so far. Needs ordering of results!'
+
+        #/// calculate EOF expansion coefficients == PC (projection of original data to new parameter space)
+        if allow_gaps:
+            self.EOF = np.ma.dot(self.x,self.eigvec) #A
+        else:
+            self.EOF = np.dot(self.x,self.eigvec) #A
 
         #/// explained variance
-        evar = eigval/sum(eigval)
-        self._var = evar #explained variance
+        self._var = self.eigval/sum(self.eigval) #explained variance
+
 
 
     def __time_normalization(self):
@@ -152,7 +214,14 @@ class EOF():
         S = np.repeat(s,nt).reshape(nx,nt).T #generate array with all same std
         self.x /= S; del S,s
 
-
+    def _calc_anomalies(self):
+        """
+        calculate anomalies by removing temporal x [time,position]
+        """
+        nt,nx = np.shape(self.x)
+        m = self.x.mean(axis=0) #temporal mean
+        M = np.repeat(m,nt).reshape(nx,nt).T
+        self.x -= M; del M,m
 
     def get_explained_variance(self):
         """
@@ -173,7 +242,6 @@ class EOF():
 
         @param norm: normalize coefficients by stdv. to allow better plotting (default=True)
         @type norm: bool
-
         """
         if all:
             k=range(self.n)
@@ -194,15 +262,22 @@ class EOF():
         for i in k:
             y = self.eigvec[:,i].copy()
             if norm:
-                y = (y-y.mean() ) / y.std()
+                y -= y.mean(); y /= y.std() #normalize to zero mean and unit std
+
+            #print len(k)
+            #if len(k)>1: #lineplot
             ax.plot(plt.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
+            #else: #nice plot with different colors for pos/neg. values
+            #yupper = np.ma.masked_where(y < 0., y); ylower = np.ma.masked_where(y > 0., y)
+            #ax.plot(plt.num2date(self._x0.time),yupper,color='red',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
+            #ax.plot(plt.num2date(self._x0.time),ylower,color='blue',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
 
         if show_legend:
             ax.legend()
 
         return ax
 
-    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,show_coef=False,cmap=None,title=None,norm=False):
+    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,show_coef=False,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10):
         """
         plot multiple eof patterns
 
@@ -218,8 +293,15 @@ class EOF():
         @param show_coef: show coefficients in a separate plot
         @param show_coef: bool
 
-        @param norm: normalize the EOF map, by correlating expansion coefficients with the data
+        @param corr_plot: normalize the EOF map, by correlating expansion coefficients with the data
+        @type corr_plot: bool
+
+        @param contours: specifies if contour plot shall be made instead of image
+        @type contours: bool
+
+        @param norm: normalize EOFs like in NCDL ((former: data to plot EOFs in data units (see von Storch p. 298) NOT VALID ANY MORE)
         @type norm: bool
+
         """
 
         if all:
@@ -234,9 +316,9 @@ class EOF():
                 gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
                 ax  = f.add_subplot(gs[0]); ax2 = f.add_subplot(gs[1])
 
-            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax,cmap=cmap,title=title,norm=norm)
+            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax,cmap=cmap,title=title,corr_plot=corr_plot,contours=contours,norm=norm,nclasses=nclasses)
             if show_coef:
-                self.plot_eof_coefficients(i,ax=ax2,show_legend=False)
+                self.plot_eof_coefficients(i,ax=ax2,show_legend=False,norm=False)
                 ax2.grid()
                 ti = ax2.get_yticks(); n=len(ti) / 2
                 ax2.set_yticks([ti[0],ti[n],ti[-1]])
@@ -246,9 +328,10 @@ class EOF():
         else:
             return None
 
+#-----------------------------------------------------------------------------------------------------------------------
 
 
-    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,cmap=None,title=None,norm=False):
+    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10):
         """
         plot principal component k
 
@@ -261,8 +344,18 @@ class EOF():
         @param logplot: take log of data for plotting
         @type logplot: bool
 
-        @param norm: normalize the EOF map, by correlating expansion coefficients with the data
+        @param corr_plot: normalize the EOF map, by correlating expansion coefficients with the data
+        @type corr_plot: bool
+
+        @param contours: specifies if contour plot shall be made instead of image
+        @type contours: bool
+
+        @param norm: normalize data to plot EOFs in data units (see von Storch p. 298) todo: validate if this really works
         @type norm: bool
+
+        @param nclasses: number of classes for plotting
+        @type nclasses: int
+
         """
         if k<0:
             raise ValueError, 'k<0'
@@ -284,9 +377,23 @@ class EOF():
         hlp.shape = self._shape0
         hlp = np.ma.array(hlp,mask=np.isnan(hlp))
 
+        if norm:
+            ########normalize EOF pattern to represent physical units (see von Storch, p.298) NOT USED!!!
+            #print '    WARNING: normalization is not validated yet!' #todo
+            #hlp *= np.sqrt(self.eigval[k]) #von STORCH !!!
+
+            #normalization like in NCL
+            #The returned values are normalized such that the sum of squares for each EOF pattern equals one.
+            #To denormalize the returned EOFs multiply by the square root of the associated eigenvalue (aka,the singular value).
+            hlp /= np.sqrt(self.eigval[k])
+
+            print 'Variance of EOF: ', hlp.var()
+
 
         #/// calculate normalized EOFs by correlation of data with expansion coefficients ///
-        if norm:
+        if corr_plot:
+            if norm:
+                raise ValueError, 'Data normalization and correlation plot does not make sense and is not supported therefore'
             Rout,Sout,Iout,Pout, Cout = self._x0.corr_single(self.eigvec[:,k]) #todo that can be done also more efficiently using matrix methods I guess
             D = Rout.copy()
             D.unit = None
@@ -299,7 +406,7 @@ class EOF():
 
         D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100.,2)) + '%)' #caution: labeling is always k+1!
 
-        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,cmap_data=cmap,title=title)
+        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,cmap_data=cmap,title=title,contours=contours,nclasses=nclasses)
 
     def reconstruct_data(self,maxn=None,input=None):
         """
@@ -315,8 +422,6 @@ class EOF():
 
         sh = (self.n,np.prod(self._shape0))
         F = np.zeros(sh)
-
-
 
         #- reconsturction list
         if input == None:

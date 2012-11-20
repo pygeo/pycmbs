@@ -31,6 +31,7 @@ class TestData(TestCase):
         self.D.data = np.ma.array(self.D.data,mask=self.D.data != self.D.data)
         self.D.verbose = True
         self.D.unit = 'myunit'
+        self.D.label = 'testlabel'
 
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01') - 1
 
@@ -125,9 +126,9 @@ class TestData(TestCase):
         data[8:,0,0] = np.nan
         D.data = np.ma.array(data,mask=np.isnan(data))       #generate random data
         r1 = np.mean(D.data[0:4]); r2 = np.mean(D.data[4:8]); r3=np.mean(D.data[8:])
-        print 'Reference results: ', r1, r2, r3
+        #print 'Reference results: ', r1, r2, r3
         years, res = D.get_yearmean()
-        print 'Result: ', res
+        #print 'Result: ', res
         self.assertEqual(years[0],2001); self.assertEqual(years[1],2005)
         self.assertEqual(res[0,0,0],r1); self.assertEqual(res[1,0,0],r2)
         self.assertEqual(res[2,0,0].mask,r3.mask)
@@ -158,9 +159,29 @@ class TestData(TestCase):
             self.assertEqual(pl.num2date(D.time[i]).month,10)
 
 
+    def test_diff(self):
+        #test diff() function
+
+        D = self.D.copy()
+        D.data[:,0,0] = sc.randn(len(D.time))
+        D.label='test2'
+
+        x=D.data[:,0,0]; y=self.D.data[:,0,0]
+        t,p = stats.ttest_ind(x,y,axis=0)
+
+        s  = self.D.diff(D,pthres=0.05)
+        s1 = self.D.diff(self.D,pthres=0.05) #test with the same data
+
+        #checks
+        self.assertEqual(s.p_value[0,0],1.-p)
+        if p <= 0.05:
+            self.assertEqual(s.p_mask[0,0],True)
+        else:
+            self.assertEqual(s.p_mask[0,0],False)
+
+        self.assertEqual(s1.p_value,0.)
 
 
-#        stop
 
 
 
