@@ -28,7 +28,7 @@ import numpy as np
 
 from matplotlib import pylab as plt
 
-from statistic import get_significance
+from statistic import get_significance, ttest_ind
 
 import matplotlib.pylab as pl
 
@@ -1799,13 +1799,9 @@ class Data():
         #/// calculate statistical significance of the difference
         if isinstance(d.data,np.ma.masked_array):
             sta = stats.mstats
-            print 'using masked array!!!'
+            t,p = ttest_ind(d.data, x.data ,axis=axis) #use routine is pyCMBS.statistic.py
         else:
-            sta = stats
-
-
-        t,p = sta.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
-
+            t,p = stas.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
 
         p   = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
 
