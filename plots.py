@@ -1224,7 +1224,7 @@ def pm_bar(x,y=None,pcolor='red',ncolor='blue',ax=None,**kwargs):
 #-----------------------------------------------------------------------
 
 def map_season(x,year=False,**kwargs):
-    '''
+    """
     generate a seasonal plot
     all arguments are parsed directly to map_plot function
 
@@ -1240,7 +1240,7 @@ def map_season(x,year=False,**kwargs):
     @return: returns the figure where plot was done
     @rtype: C{figure}
 
-    '''
+    """
     if year:
         nvals = 12
     else:
@@ -1271,7 +1271,6 @@ def map_season(x,year=False,**kwargs):
         labels=['JFM','AMJ','JAS','OND']
 
     for i in range(nvals):
-        #~ print i,nvals,year
         if year:
             ax = f.add_subplot(4,3,i+1)
         else:
@@ -1352,7 +1351,6 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param overlay: overlay for plot (e.g. significance)
 
-
     """
 
     #--- checks
@@ -1367,6 +1365,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 raise ValueError, 'Invalid geometry for overlay !'
         else:
             raise ValueError, 'Overlay for this geometry not supported!'
+
+
 
 
     #--- create new figure
@@ -1387,6 +1387,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     kwargs1 = kwargs.copy()
     if 'cmap' in kwargs:
         cmap_data = kwargs1.pop('cmap')
+    if ('levels' in kwargs) and (contours == False): #levels not needed
+        dummy = kwargs1.pop('levels')
+
 
     #--- create colormap
     cmap = plt.cm.get_cmap(cmap_data, nclasses)
