@@ -359,14 +359,18 @@ class Data():
             self.lon = None
 
         #- read time
-        self.time = self.read_netcdf(time_var) #returns either None or a masked array
-        if hasattr(self.time,'mask'):
-            self.time = self.time.data
+        if time_var != None:
+            self.time = self.read_netcdf(time_var) #returns either None or a masked array
+            if hasattr(self.time,'mask'):
+                self.time = self.time.data
+            else:
+                self.time = None
         else:
             self.time = None
 
         #- determine time
-        self.set_time()
+        if self.time != None:
+            self.set_time()
 
         #- lat lon to 2D matrix
         try:
@@ -1793,7 +1797,16 @@ class Data():
         d = self.copy(); d.label = self.label + ' - ' + x.label
 
         #/// calculate statistical significance of the difference
-        t,p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
+        if isinstance(d.data,np.ma.masked_array):
+            sta = stats.mstats
+            print 'using masked array!!!'
+        else:
+            sta = stats
+
+
+        t,p = sta.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
+
+
         p   = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
 
         #/// mean difference masked if p-value too low
@@ -1804,6 +1817,7 @@ class Data():
             d.data    = np.ma.array(self.timmean() - x.timmean(),mask=np.zeros(self.timmean().shape).astype('bool') ) #mean difference as masked array
         d.p_value = p
         d.p_mask  = mask #masks the grid cells that show significant changes (todo check this again!) needs additional validation
+        d.t_value = t
 
         return d
 

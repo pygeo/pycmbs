@@ -51,6 +51,16 @@ from anova import *
 class EOF():
     """
     main class to perform an EOF analysis
+
+    the concept of the EOF analysis implemented here is that the vector space defined by the data is a spatial space!
+    It is therefore contrary to what is described in terms of terminology in von Storch and Zwiers, 1999.
+
+    The EOF coefficients or principal components are therefore spatial fields, while the eigenvectors correspond to the
+    temporal evolution of the field. Thus don't get confused when reading the reference!
+
+    REFERENCES:
+    -----------
+    [1] ﻿von Storch, H. & Zwiers, F.W., 1999. Statistical Analysis in Climate Research, chapter 13
     """
 
     def __init__(self,x0,allow_gaps=False,normalize=False,cov_norm = True,anomalies=False,area_weighting=True,use_corr=False,use_svd=True):
@@ -136,7 +146,7 @@ class EOF():
         self._x0mask = msk.copy() #store mask applied to original data
 
         #--- reshape data
-        self.x = vdata.copy(); self.x.shape = (n,-1)
+        self.x = vdata.copy(); self.x.shape = (n,-1) #time x npixels
 
         if anomalies:
             self._calc_anomalies()
@@ -230,7 +240,7 @@ class EOF():
         """
         return self._var
 
-    def plot_eof_coefficients(self,k,all=False,norm=True,ax=None,label=None,show_legend=True):
+    def plot_eof_coefficients(self,k,all=False,norm=False,ax=None,label=None,show_legend=True):
         """
         plot EOF coefficients = time series
 
@@ -262,7 +272,7 @@ class EOF():
         for i in k:
             y = self.eigvec[:,i].copy()
             if norm:
-                y -= y.mean(); y /= y.std() #normalize to zero mean and unit std
+                y -= y.mean(); y /= y.std() #normalize to zero mean and unit std #todo: this kind of noramlization is not a standard. needs revision!
 
             #print len(k)
             #if len(k)>1: #lineplot
@@ -277,7 +287,7 @@ class EOF():
 
         return ax
 
-    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,show_coef=False,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10):
+    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,show_coef=False,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10,levels=None):
         """
         plot multiple eof patterns
 
@@ -302,6 +312,9 @@ class EOF():
         @param norm: normalize EOFs like in NCDL ((former: data to plot EOFs in data units (see von Storch p. 298) NOT VALID ANY MORE)
         @type norm: bool
 
+        @param levels: levels used for contour plotting (works only together with contours = True)
+        @type levels: list
+
         """
 
         if all:
@@ -316,7 +329,7 @@ class EOF():
                 gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
                 ax  = f.add_subplot(gs[0]); ax2 = f.add_subplot(gs[1])
 
-            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax,cmap=cmap,title=title,corr_plot=corr_plot,contours=contours,norm=norm,nclasses=nclasses)
+            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax,cmap=cmap,title=title,corr_plot=corr_plot,contours=contours,norm=norm,nclasses=nclasses,levels=levels)
             if show_coef:
                 self.plot_eof_coefficients(i,ax=ax2,show_legend=False,norm=False)
                 ax2.grid()
@@ -331,7 +344,7 @@ class EOF():
 #-----------------------------------------------------------------------------------------------------------------------
 
 
-    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10):
+    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10,levels=None):
         """
         plot principal component k
 
@@ -355,6 +368,13 @@ class EOF():
 
         @param nclasses: number of classes for plotting
         @type nclasses: int
+
+        @param levels: levels used for contour plotting (works only together with contours = True)
+        @type levels: list
+
+        REFERENCES:
+        -----------
+        [1] NCAR EOF example: http://www.ncl.ucar.edu/Applications/eof.shtml
 
         """
         if k<0:
@@ -385,9 +405,13 @@ class EOF():
             #normalization like in NCL
             #The returned values are normalized such that the sum of squares for each EOF pattern equals one.
             #To denormalize the returned EOFs multiply by the square root of the associated eigenvalue (aka,the singular value).
-            hlp /= np.sqrt(self.eigval[k])
+            hlp /= np.sqrt(self.eigval[k]) #todo not sure if this really works!
 
-            print 'Variance of EOF: ', hlp.var()
+
+
+        #/// normalize EOF timeseries by multiplying with the stdv of the principal components
+        #this gives results which are similar to what the CDOs do (@todo: validate again, but fits well with NCL example [1])
+        hlp *= self.eigvec[:,k].std()
 
 
         #/// calculate normalized EOFs by correlation of data with expansion coefficients ///
@@ -406,7 +430,7 @@ class EOF():
 
         D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100.,2)) + '%)' #caution: labeling is always k+1!
 
-        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,cmap_data=cmap,title=title,contours=contours,nclasses=nclasses)
+        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,cmap_data=cmap,title=title,contours=contours,nclasses=nclasses,levels=levels)
 
     def reconstruct_data(self,maxn=None,input=None):
         """

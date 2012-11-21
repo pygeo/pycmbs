@@ -182,7 +182,18 @@ class TestData(TestCase):
         self.assertEqual(s1.p_value,0.)
 
 
+        #another test of the t-test, taken from http://web.mst.edu/~psyworld/texample.htm
+        x = np.asarray([5.,7.,5.,3.,5.,3.,3.,9.])
+        y = np.asarray([8.,1.,4.,6.,6.,4.,1.,2.])
 
+        A=self.D.copy(); B=self.D.copy()
+        X = np.zeros((len(x),1,1)); Y = np.zeros((len(y),1,1))
+        X[:,0,0] = x; Y[:,0,0] = y
+        A.data = np.ma.array(X,mask=X!=X); B.data = np.ma.array(Y,mask=Y!=Y)
+
+        u = A.diff(B,pthres=0.05)
+        self.assertAlmostEqual(u.t_value[0,0],0.847,places=3)
+        self.assertEqual(u.data[0,0],1.)
 
 
 
