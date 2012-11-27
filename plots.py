@@ -1664,7 +1664,7 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=6):
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
         for t in cb.ax.get_yticklabels():
-            t.set_fontsize(6)
+            t.set_fontsize(fontsize)
 
 
 #-----------------------------------------------------------------------
