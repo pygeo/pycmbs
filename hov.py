@@ -262,7 +262,7 @@ class hovmoeller:
         @type ax: matplotlib axis
 
 
-
+        todo: enable to set boundaries tmin,tmax for x-axis!!!
 
 
         plot result

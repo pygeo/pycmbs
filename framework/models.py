@@ -87,7 +87,7 @@ class Model(Data):
                 #if a tuple is returned, then it is the data + a tuple for the original global mean field
                 if 'tuple' in str(type(dat)):
                     self.variables.update({ k : dat[0] }) #update field with data
-                    self.variables.update({ k + '_org' : dat[1]})
+                    self.variables.update({ k + '_org' : dat[1]}) #(time, meanfield, originalfield)
                 else:
                     self.variables.update({ k : dat }) #update field with data
 
@@ -274,7 +274,7 @@ class CMIP5Data(Model):
         sisall = Data(filename1,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False)
         sismean = sisall.fldmean()
 
-        retval = (sisall.time,sismean); del sisall
+        retval = (sisall.time,sismean,sisall); del sisall
 
         #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
         sis.data = np.ma.array(sis.data,mask=sis.data < 1.)

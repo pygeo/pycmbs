@@ -722,12 +722,11 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
     obs_sis_std = Data(obs_sis_std_file,obs_var,read=True,label=obs_type + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
     obs_sis.std = obs_sis_std.data.copy(); del obs_sis_std
 
-    #read monthly data if global means desired
-    if GM != None:
-        obs_monthly = Data(raw_sis,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
-        GM.plot(obs_monthly,linestyle='--')
-        del obs_monthly
+    #read monthly data (needed for global means and hovmoeller plots)
+    obs_monthly = Data(raw_sis,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
 
+    if GM != None:
+        GM.plot(obs_monthly,linestyle='--')
 
 
     #--- initialize Reichler plot
@@ -750,6 +749,22 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
             raise ValueError, 'Inconsistent geometries for SIS'
 
         #--- generate hovmoeller plot ---
+        f_hov = plt.figure(); ax1=f_hov.add_subplot(2,1,1); ax2=f_hov.add_subplot(2,1,2)
+
+        #hovmoeller for model
+        tmp = model.variables['sis_org'][2]
+        hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+        hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=30,cmap='jet',ax=ax1,showcolorbar=False)
+        del hov_model, tmp
+
+        #hovmoeller for observations
+        hov_obs = hovmoeller(num2date(obs_monthly.time),None,rescaley=20,rescalex=20)
+        hov_obs.plot(climits=[0.,300.],input=obs_monthly,xtickrotation=30,cmap='jet',ax=ax2,showcolorbar=False)
+        del hov_obs
+
+        report.figure(f_hov,caption='Time-latitude diagram of SIS (top: ' + model.name + ', bottom: ' + obs_type + ')' )
+        del f_hov
+
 
 
         #--- generate difference map
@@ -767,6 +782,8 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         #/// report results
         report.subsubsection(model.name)
         report.figure(f_dif,caption='Mean and relative differences ' + obs_type + ' ' + model.name)
+
+    del obs_monthly
 
     f_reich = Rplot.bar(title='relative model error: SIS')
     report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
