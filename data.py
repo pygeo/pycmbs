@@ -20,22 +20,17 @@ __email__ = "alexander.loew@zmaw.de"
 # GNU General Public License for more details.
 '''
 
-import os,sys
+import os
+
+import sys
 
 import Nio
-
 import numpy as np
-
 from matplotlib import pylab as plt
-
 from statistic import get_significance, ttest_ind
-
 import matplotlib.pylab as pl
-
 from scipy import stats
-
 from pyCDO import *
-
 
 class Data():
     """
@@ -134,11 +129,101 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
 
+#-----------------------------------------------------------------------
+
     def __set_sample_data(self,a,b,c):
         """
         fill data matrix with some sample data
         """
         self.data = plt.rand(a,b,c)
+
+#-----------------------------------------------------------------------
+
+    def save(self,filename,varname=None,format='nc',delete=False):
+        """
+
+        saves the data object to a file
+
+        @param filename: filename of output file
+        @param varname: name of output variable
+        @param delete: delete file if existing without asking
+        @param format: output format ['nc','txt']
+        @return:
+        """
+
+        if format == 'nc':
+            self._save_netcdf(filename,varname=varname,delete=delete)
+        else:
+            raise ValueError, 'This output format is not defined yet!'
+
+#-----------------------------------------------------------------------
+
+    def _save_netcdf(self,filename,varname=None,delete=False):
+        """
+
+        saves the data object to a netCDF file
+        (unittest)
+
+        @param filename: filename of output file
+        @param varname: name of output variable; this explicitely overwrites self.varname, which is tried to be used as a first order
+        @param delete: delete file if existing without asking
+        @return:
+        """
+
+        #/// check if output file already there
+        if os.path.exists(filename):
+            if delete:
+                os.remove(filename)
+            else:
+                raise ValueError, 'File already existing. Please delete manually or use DELETE option: ' + filename
+
+        #/// variable name
+        if varname == None:
+            if self.varname is None:
+                varname = 'var1'
+            else:
+                varname = self.varname
+
+        #/// create new file
+        F = Nio.open_file(filename,mode='w')
+
+        #/// create dimensions
+        if self.data.ndim == 3:
+            if self.time == None:
+                raise ValueError, 'No time variable existing! Can not write 3D data!'
+            nt,ny,nx = self.data.shape
+            F.create_dimension('time',nt)
+        elif self.data.ndim == 2:
+            ny,nx = self.data.shape
+
+        F.create_dimension('ny',ny)
+        F.create_dimension('nx',nx)
+
+        #/// create variable
+        if self.time != None:
+            F.create_variable('time','d',('time',))
+            F.variables['time'].units = 'days since 0001-01-01 00:00:00 UTC'
+
+        if self.data.ndim == 3:
+            F.create_variable(varname,'d',('time','ny','nx'))
+        elif self.data.ndim == 2:
+            F.create_variable(varname,'d',('ny','nx'))
+
+        #/// write data
+        F.variables['time'] .assign_value(self.time)
+        F.variables[varname].assign_value(self.data)
+        F.variables[varname].long_name = self.label
+        F.variables[varname].units      = self.unit
+        F.variables[varname].scale_factor  = 1.
+        F.variables[varname].add_offset  = 0.
+
+        F.source = self.filename #store original filename
+
+        #/// close file
+        F.close()
+
+
+
 
 
 
@@ -175,7 +260,7 @@ class Data():
             return
 
         if (self.lat == None) or (self.lon == None):
-            print 'WARNING: cell area can not be calculated (missing coordinates)!'
+            print '        WARNING: cell area can not be calculated (missing coordinates)!'
             return
 
         #--- calculate cell area from coordinates ---
@@ -376,7 +461,8 @@ class Data():
         try:
             self._mesh_lat_lon()
         except:
-            print 'No lat/lon mesh was generated!'
+            if self.verbose:
+                print '        WARNING: No lat/lon mesh was generated!'
 
         #- cell_area
         #  check if cell_area is already existing. if not, try to calculate from coordinates
@@ -496,7 +582,17 @@ class Data():
                 res.append( dat[hlp].sum() )
             else:
                 res.append( dat[hlp,:].sum(axis=0) )
+
         res = pl.asarray(res)
+        msk = dat.count(0) == 0
+
+        for i in xrange(len(res)):
+            res[i,msk] = np.nan
+
+        res = np.ma.array(res,mask=np.isnan(res)) #mask all data that contained no single valid value!
+
+
+        #res = pl.asarray(res)
 
         #return years, res xxxxxxxxxxxxxx
 
@@ -897,7 +993,8 @@ class Data():
         if self.verbose:
             print 'Reading file ', self.filename
         if not varname in F.variables.keys():
-            print '        ERROR  : data can not be read. Variable not existing! ', varname
+            if self.verbose:
+                print '        WARNING: data can not be read. Variable not existing! ', varname
             F.close()
             return None
 

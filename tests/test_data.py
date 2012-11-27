@@ -17,6 +17,7 @@ import scipy as sc
 import pylab as pl
 import numpy as np
 from scipy import stats
+import Nio
 
 class TestData(TestCase):
 
@@ -32,6 +33,8 @@ class TestData(TestCase):
         self.D.verbose = True
         self.D.unit = 'myunit'
         self.D.label = 'testlabel'
+        self.D.filename = 'testinputfilename.nc'
+        self.D.varname = 'testvarname'
 
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01') - 1
 
@@ -211,6 +214,33 @@ class TestData(TestCase):
         u = A.diff(B,pthres=0.05)
         self.assertAlmostEqual(u.t_value[0,0],0.847,places=3)
         self.assertEqual(u.data[0,0],1.)
+
+
+    def test_save_netCDF(self):
+        """
+        test netCDF save routine
+        """
+        testfile='mytestfile.nc'
+        self.D.save(testfile,varname='testvar',format='nc',delete=True)
+
+        #read data again
+        F = Data(testfile,'testvar',read=True,verbose=False)
+
+        self.assertEqual(len(F.time),len(self.D.time))
+        self.assertFalse(np.any(self.D.data-F.data) != 0. )
+
+        del F
+
+        #read data from default, this should then have the same variable name as self.D
+        self.D.save(testfile,format='nc',delete=True)
+        F = Data(testfile,'testvarname',read=True,verbose=False)
+
+        self.assertEqual(len(F.time),len(self.D.time))
+        self.assertFalse(np.any(self.D.data-F.data) != 0. )
+
+
+
+
 
 
 

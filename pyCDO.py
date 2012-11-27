@@ -85,12 +85,12 @@ class pyCDO():
 
 
     def seasmean(self,force=False):
-        '''
+        """
         calculate seasmean
 
         @param force: force calculations to be performed
         @type force: bool
-        '''
+        """
 
         oname = self.baseoutname[:-3] + '_' + self.date1 + '_' + self.date2 + '_' + 'seasmean' + '.nc'
         cmd1   = 'seasmean'
@@ -268,7 +268,7 @@ class pyCDO():
 #-----------------------------------------------------------------------
 
     def run(self,cmd,oname,force=False):
-        '''
+        """
         run command using shell command of CDO
 
         @param cmd: command to run
@@ -282,7 +282,7 @@ class pyCDO():
 
         @todo: generate output filename such that data is written to temporary directory
 
-        '''
+        """
 
         f_calc=False
         if os.path.exists(oname):

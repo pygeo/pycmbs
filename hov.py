@@ -33,7 +33,7 @@ import sys
 import matplotlib.pyplot as pyplot
 
 def agg_hourly(d,v,timestamp='mid',mode='mean'):
-    '''
+    """
     calculate hourly mean values in a very efficient way
 
     INPUT
@@ -49,7 +49,7 @@ def agg_hourly(d,v,timestamp='mid',mode='mean'):
 
     example from
     http://stackoverflow.com/questions/6467832/how-to-get-the-correlation-between-two-timeseries-using-pandas
-    '''
+    """
 
     import pandas as pa
     s = pa.Series(v,index=d)
@@ -108,20 +108,41 @@ def generate_monthly_timeseries(t,sday='01'):
 
 class hovmoeller:
     def __init__(self,time,value,var_unc=None,rescalex=1,rescaley=1,lat=None,lon=None,transpose=False):
-        '''
-        construction of hovmoeller class
+        """
+        Hovmoeller class
 
-        time: datetime structure
-        value: timeseries to be used
+        This class implements the functionality to generate hovmoeller plots. It allows to calculate all relevant data
+        by itself or using the CDO's for calculation of e.g. zonal means
 
-        if the argument lat is provided it is assumed that lat/lon are 2D matrices
-        In this case the value is expected to be a 3D variables as
-        value(time,ny,nx)
+        @param time: vector with time information
+        @type time: datetime
 
+        @param value: data to be analyzed. if the argument lat is provided it is assumed that lat/lon are 2D matrices
+                      In this case the value is expected to be a 3D variables as value(time,ny,nx)
+        @type value: numpy array
 
-        EXAMPLES:
+        @param var_unc: additional array with variance information (can be used to show uncertainties) - not really validated so far
+        @type var_unc: numpy array
 
-        1) a minimum example for a time-latitude plot
+        @param rescalex: rescaling factor for x-variable (used to blow up the plot)
+        @type rescalex: int
+
+        @param rescaley: rescaling factor for y-variable (used to blow up the plot)
+        @type rescaley: int
+
+        @param lat: latitude coordinates
+        @type lat: numpy array
+
+        @param lon: longitude coordinates
+        @type lon: numpy array
+
+        @param transpose: transpose the data matrix
+        @type transpose: bool
+
+        EXAMPLES
+        ========
+
+        #a minimum example for a time-latitude plot
         #get data from e.g. file; here random data
         t1=datestr2num('2011-05-01'); t2=datestr2num('2011-08-31')
 
@@ -130,11 +151,7 @@ class hovmoeller:
         ## hov2.time_to_lat(dlat=200.,yticksampling=1)
         ## hov2.plot(title='HI alex',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30)
         ## show()
-
-
-        var: additional array with variance information (can be used to show uncertainties)
-
-        '''
+        """
 
         #/// check consistency ///
         if len(time) == len(value):
@@ -147,7 +164,7 @@ class hovmoeller:
             sys.exit('Inconsistent latitudes and data (hovmoeller)')
 
 
-    #/// set values of class ///
+        #/// set values of class ///
         self.time = time
         self.transpose=transpose
         ntim = len(self.time)
@@ -177,23 +194,22 @@ class hovmoeller:
         else:
             self.lat = None
 
-
         if lon != None:
             self.lon = lon.copy()
             self.lon.shape = (-1)
         else:
             self.lon = None
 
-
+#-----------------------------------------------------------------------------------------------------------------------
 
     def plot(self,xticks=None,xlabel=None,ylabel=None,title='',grid=True,climits=None,figsize=None,origin=None,xtickrotation=0,cmap='jet',showcolorbar=True,ax=None,show_uncertainties=False,norm_uncertainties=False) :
 
-        '''
+        """
         plot result
         clim: tuple
 
         norm_uncertainties: divide value by variance ==> contourplot of self.hov / self.hov_var is generated
-        '''
+        """
 
 
         if climits == None:
@@ -301,7 +317,7 @@ class hovmoeller:
 
 
     def time_to_lat(self,dlat=1.,mode='average',monthsamp=1,yticksampling=1,monthly=False,yearonly=False  ):
-        '''
+        """
         convert timeseries and latitude to a hovmoeller matrix
 
         dlat: sampling of latitudes [degree]
@@ -313,7 +329,7 @@ class hovmoeller:
         todo: implement more properly handling with masked arrays!
 
         todo: implement area weighting!
-        '''
+        """
 
         self.yearonly = yearonly
 

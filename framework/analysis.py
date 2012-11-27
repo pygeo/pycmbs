@@ -705,12 +705,12 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         raise ValueError, 'Unknown observation type for SIS-analysis!'
 
 
-    #--- PREPROCESSING ---
+    #--- PREPROCESSING of observational data (assumes already monthly mean data) ---
     if interval == 'season':
         #aggregate to seasons
         cdo = pyCDO(raw_sis,y1,y2) #todo: start/stop years dynamically !!!
         if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
+            seasfile = cdo.seasmean(); del cdo   #todo here names of files and CDO processing with Ralf muellers interface
             cdo = pyCDO(seasfile,y1,y2)
             obs_sis_file = cdo.yseasmean()
             obs_sis_std_file  = cdo.yseasstd()

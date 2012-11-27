@@ -406,6 +406,7 @@ class EOF():
             #The returned values are normalized such that the sum of squares for each EOF pattern equals one.
             #To denormalize the returned EOFs multiply by the square root of the associated eigenvalue (aka,the singular value).
             hlp /= np.sqrt(self.eigval[k]) #todo not sure if this really works!
+            print 'WARNING, not sure if this normalization of EOF makes sense!'
 
 
 
