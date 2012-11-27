@@ -107,7 +107,7 @@ def generate_monthly_timeseries(t,sday='01'):
 
 
 class hovmoeller:
-    def __init__(self,time,value,var_unc=None,rescalex=1,rescaley=1,lat=None,lon=None,transpose=False):
+    def __init__(self,time,value,var_unc=None,rescalex=1,rescaley=1,lat=None,lon=None,transpose=False,use_cdo=True):
         """
         Hovmoeller class
 
@@ -145,19 +145,39 @@ class hovmoeller:
         #a minimum example for a time-latitude plot
         #get data from e.g. file; here random data
         t1=datestr2num('2011-05-01'); t2=datestr2num('2011-08-31')
+        d = num2date(linspace(t1,t2,1000.))
+        lats=linspace(-90.,90.,181) + 0.5; lats = lats[:-1]
+        lons = linspace(-180.,180.,361) + 0.5; lons = lons[:-1]
+
+        LONS,LATS = meshgrid(lons,lats)
+        ny,nx = LATS.shape; nt = len(d)
+        dat = rand(nt,ny,nx)
 
         #create a hovmoeller object
-        myhov = hovmoeller(d,dat,lat=LATS,rescaley=10,rescalex=10)
-        ## hov2.time_to_lat(dlat=200.,yticksampling=1)
-        ## hov2.plot(title='HI alex',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30)
-        ## show()
+        myhov = hovmoeller(d,dat,lat=LATS,rescaley=20,rescalex=10)
+        myhov.time_to_lat(dlat=1.,yticksampling=1)
+        myhov.plot(title='Test Hovmoeller plot',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=[-1.,1.])
+        show()
+
+
+        Another example, that does NOT calculate the hovmoeller plot by itself, but uses functionality from pyCMBS Data object
+
+        file='/home/m300028/shared/dev/svn/pyCMBS/example/wachmos_sm_1978-2010_int_monthly_t63.nc'
+        D = Data(file,'var100',read=True)
+
+        myhov = hovmoeller(num2date(D.time),None,rescaley=20,rescalex=20)
+        myhov.plot(climits=[0.,0.5],input=D,xtickrotation=90,cmap='jet_r')
+        show()
+
+
         """
 
         #/// check consistency ///
-        if len(time) == len(value):
-            pass
-        else:
-            sys.exit('Inconsistent sizes of time and value (hovmoeller)')
+        if value != None:
+            if len(time) == len(value):
+                pass
+            else:
+                sys.exit('Inconsistent sizes of time and value (hovmoeller)')
 
         if lat is not None and shape(lat) != shape(value[0, :, :]):
             print shape(lat), shape(value[0,:,:])
@@ -173,9 +193,10 @@ class hovmoeller:
         self.t_min=num2date(floor(t.min()))
         self.t_max=num2date(ceil(t.max()))
 
-        self.value = value.copy()
-        self.value = ma.array(self.value,mask=isnan(self.value))
-        self.value.shape = (ntim,-1) #now reshape everything to [time,ngridcells]
+        if value != None:
+            self.value = value.copy()
+            self.value = ma.array(self.value,mask=isnan(self.value))
+            self.value.shape = (ntim,-1) #now reshape everything to [time,ngridcells]
 
         if var_unc == None:
             self.var_unc = None
@@ -185,8 +206,7 @@ class hovmoeller:
 
         self.hov_var = None
 
-        self.rescalex = rescalex
-        self.rescaley = rescaley
+        self.rescalex = rescalex; self.rescaley = rescaley
 
         if lat != None:
             self.lat = lat.copy()
@@ -200,20 +220,132 @@ class hovmoeller:
         else:
             self.lon = None
 
+        self.hov = None
+
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def plot(self,xticks=None,xlabel=None,ylabel=None,title='',grid=True,climits=None,figsize=None,origin=None,xtickrotation=0,cmap='jet',showcolorbar=True,ax=None,show_uncertainties=False,norm_uncertainties=False) :
+    def plot(self,xticks=None,xlabel=None,ylabel=None,title='',grid=True,climits=None,figsize=None,origin=None,xtickrotation=0,cmap='jet',showcolorbar=True,ax=None,show_uncertainties=False,norm_uncertainties=False,input=None):
 
         """
+        Generates a Hovmoeller plot
+
+        Two different options are available to generate the plot. The plot can be either based on caluclation from
+        the Hovmoeller class itself. This requires that self.hov was calculated already using e.g. time_to_lat().
+        The second option is, that a Data object is provided by the *input* variable. In this case, the zonal mean is calculated from
+        the Data object all required processing is done in this routine.
+
+        @param input: C{Data} object that is used for the generation of the hovmoeller plot
+        @type input: Data object
+
+        @param grid: plot tick grid in hovmoeller plot
+        @type grid: bool
+
+        @param ylabel: ylabel for plot
+        @type ylabel: str
+
+        @param title: title for the plot
+        @type title: str
+
+        @param climits: limits for the colorbar; [vmin,vmax]
+        @type climits: list
+
+        @param cmap: colormap to be used
+        @type cmap: str or colormap
+
+        @param xtickrotation: rotation of xticklabels 0 ... 90
+        @type xtickrotation: float
+
+        @param showcolorbar: show colorbar in plot
+        @type showcolorbar: bool
+
+        @param ax: axis to plot to. If not specified (default), then a new figure will be created
+        @type ax: matplotlib axis
+
+
+
+
+
         plot result
         clim: tuple
 
         norm_uncertainties: divide value by variance ==> contourplot of self.hov / self.hov_var is generated
+
+
+        input is expected to have timensions [nlat,ntime] and can be precalculated using Data.get_zonal_mean().T
+        input is expected to be a Data object!
+
         """
+
+        if input != None:
+            if self.hov != None:
+                raise ValueError, 'If precalculated dat is provided as input, the data MUST not be calculated already by the class!'
+            else:
+                #////////////////////////////////////////////////
+                # HOVMOELLER PLOT FROM DATA OBJECT
+                #////////////////////////////////////////////////
+
+                input1 = input.get_zonal_mean(return_object=True)
+                input1.adjust_time(day=1,month=1)
+
+
+                nlat,nt = input1.data.shape
+                if nt != len(self.time):
+                    print nt, len(self.time)
+                    raise ValueError, 'inconsistent time shape!'
+
+                self.hov = input1.data
+                self.yearonly = True #todo
+
+
+                #/// check if latitudes are in increasing order ?
+                lats = input1.lat*1.
+                if np.all(np.diff(lats) > 0):
+                    f_invert=False
+
+                else:
+                    f_invert=True
+                    #change sequence of data!
+                    lats = lats[::-1]
+
+                    if not np.all(np.diff(lats) > 0):
+                        raise ValueError, 'Latitudes can not be put into ascending order!!!!'
+
+
+                #/// monthly ticks ///
+                data_days = generate_monthly_timeseries(input1.time) #convert times to monthly
+                all_days  = unique(data_days)
+                self.generate_xticks(all_days,monthsamp=1) #todo
+
+                dlat = 30. #todo
+
+                lat_tick = arange(-90.,90+dlat,dlat) #positions for yticks (degree)
+
+                #interpolate the tick grid to the data grid
+                lat_pos  = interp(lat_tick, lats,arange(len(lats))) #index positions
+
+                if f_invert: #invert position back
+                    #lat_tick = lat_tick[::-1]
+                    lat_pos  = lat_pos[::-1]
+
+                yticklabels = asarray(map(str,lat_tick))
+
+
+
+                if self.transpose:
+                    scal = self.rescalex
+                else:
+                    scal = self.rescaley
+
+                yticks = lat_pos * scal
+
+                self.y_major_locator=FixedLocator(yticks)
+                self.y_major_formatter=FixedFormatter(yticklabels)
+
+                ylabel = 'latitude [degree]'
 
 
         if climits == None:
-            sys.exit('Hovmoeller, please specify climits')
+            raise ValueError, 'Hovmoeller, please specify climits'
 
         if xlabel == None:
             self.xlabel='x-label'
@@ -288,9 +420,6 @@ class hovmoeller:
         if grid: #show grid
             self.ax.grid(color='white',linewidth=1,linestyle='-')
 
-
-
-
         #/// colorbar
         if showcolorbar:
             if self.transpose:
@@ -304,7 +433,6 @@ class hovmoeller:
 
     def show(self):
         self.fig.show()
-
 
     def set_label(self,nx):
         """
@@ -347,11 +475,10 @@ class hovmoeller:
             sys.exit()
 
         pixmsk=ones(npix)
-        for i in range(npix):
+        for i in xrange(npix):
             if all(value[:,i].mask): #check if whole timeseries is masked
                 pixmsk[i]=0.
 
-        #~ print len(pixmsk),sum(pixmsk)
 
         #print pixmsk
 
@@ -402,11 +529,6 @@ class hovmoeller:
                     if hasattr(v1,'mask'):
                         #~ print 'has mask v1'
                         v1 = v1.data[~v1.mask] #subset data only for valid data; important  to calculate approp. the mean value!
-
-                    #~ print ''
-                    #~ print num2date(all_days[i])
-                    #~ print 'latmask', sum(ml)
-                    #~ print v1
 
                     #print unique(v1), ulats[j]
                     if len(v1)>0.:
