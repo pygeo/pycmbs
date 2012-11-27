@@ -334,6 +334,7 @@ class Data():
             r = np.ma.array(r,mask=W==0.)
 
         else:
+            print dat.shape
             raise ValueError, 'Unsupported geometry'
 
         if return_object:
