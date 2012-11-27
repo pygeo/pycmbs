@@ -741,13 +741,16 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
                 GM.plot(model.variables['sis_org'],label=model.name) #(time,meandata)
 
         #--- get model data
-        model_data = model.variables['sis']
+        model_data = model.variables['sis'] #model_data is a Data object!
         if model_data == None: #data file was not existing
             print 'Data not existing for model: ', model.name; continue
 
         if model_data.data.shape != obs_sis.data.shape:
             print model_data.data.shape; print obs_sis.data.shape
             raise ValueError, 'Inconsistent geometries for SIS'
+
+        #--- generate hovmoeller plot ---
+
 
         #--- generate difference map
         f_dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=6,show_zonal=True,zonal_timmean=False,cticks=[0.,50.,100.,150.,200.,250.,300.],cticks_diff=[-18.,-12.,-6.,0.,6.,12.,18.],rmin=-0.25,rmax=0.25)

@@ -126,6 +126,9 @@ class Data():
 
         self.cell_area = cell_area #[m**2]
 
+        self.lat = None
+        self.lon = None
+
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
 
@@ -141,15 +144,15 @@ class Data():
 
     def save(self,filename,varname=None,format='nc',delete=False):
         """
-
         saves the data object to a file
 
         @param filename: filename of output file
         @param varname: name of output variable
         @param delete: delete file if existing without asking
         @param format: output format ['nc','txt']
-        @return:
         """
+
+        print 'Saving object in file ' + filename
 
         if format == 'nc':
             self._save_netcdf(filename,varname=varname,delete=delete)
@@ -160,14 +163,12 @@ class Data():
 
     def _save_netcdf(self,filename,varname=None,delete=False):
         """
-
         saves the data object to a netCDF file
         (unittest)
 
         @param filename: filename of output file
         @param varname: name of output variable; this explicitely overwrites self.varname, which is tried to be used as a first order
         @param delete: delete file if existing without asking
-        @return:
         """
 
         #/// check if output file already there
@@ -209,23 +210,37 @@ class Data():
         elif self.data.ndim == 2:
             F.create_variable(varname,'d',('ny','nx'))
 
+        if self.lat != None:
+            F.create_variable('lat','d',('ny','nx'))
+            F.variables['lat'].units = 'degrees_north'
+            F.variables['lat'].axis  = "Y"
+            F.variables['lat'].long_name  = "latitude"
+
+        if self.lon != None:
+            F.create_variable('lon','d',('ny','nx'))
+            F.variables['lon'].units = 'degrees_east'
+            F.variables['lon'].axis  = "X"
+            F.variables['lon'].long_name  = "longitude"
+
+
         #/// write data
         F.variables['time'] .assign_value(self.time)
         F.variables[varname].assign_value(self.data)
-        F.variables[varname].long_name = self.label
-        F.variables[varname].units      = self.unit
-        F.variables[varname].scale_factor  = 1.
-        F.variables[varname].add_offset  = 0.
+        if self.lat != None:
+            F.variables['lat'].assign_value(self.lat)
+        if self.lon != None:
+            F.variables['lon'].assign_value(self.lon)
 
+        F.variables[varname].long_name    = self.long_name
+        F.variables[varname].units        = self.unit
+        F.variables[varname].scale_factor = 1.
+        F.variables[varname].add_offset   = 0.
+
+        #/// global attributes
         F.source = self.filename #store original filename
 
         #/// close file
         F.close()
-
-
-
-
-
 
 
 #-----------------------------------------------------------------------
@@ -277,7 +292,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_zonal_mean(self):
+    def get_zonal_mean(self,return_object=False):
         """
         calculate zonal mean statistics of the data for each timestep
         returns zonal statistics [time,ny]
@@ -288,6 +303,11 @@ class Data():
 
         @return: returns an array with zonal statistics
         @rtype numpy array
+
+        @param return_object: return Data object
+        @type return_object: bool
+
+        @todo: implement check if latitudes in y-axis direction are all the same! Otherwise the routine does not make sense
         """
 
         if self.cell_area is None:
@@ -305,13 +325,27 @@ class Data():
         elif dat.ndim == 3:
             nt,ny,nx = dat.shape
             r = np.ones((nt,ny))*np.nan
+            W = np.ones((nt,ny))*np.nan
 
             for i in xrange(nt):
                 r[i] = dat[i,:,:].sum(axis=1) / w[i,:,:].sum(axis=1)
+                W[i] = w[i,:,:].sum(axis=1)
+
+            r = np.ma.array(r,mask=W==0.)
+
         else:
             raise ValueError, 'Unsupported geometry'
 
-        return r
+        if return_object:
+            res = self.copy()
+            res.label = self.label + ' zonal mean'
+            res.data  =  r.T #[lat,time]
+            res.lat   = self.lat[:,0] #latitudes as a vector
+        else:
+            res = r
+
+
+        return res
 
 #-----------------------------------------------------------------------
 
@@ -1032,6 +1066,13 @@ class Data():
             offset = 0.
 
         data = data * scal + offset
+
+
+        if hasattr(var,'long_name'):
+            self.long_name = var.long_name
+        else:
+            self.long_name = '-'
+
 
         #check if file has cell_area attribute and only use it if it has not been set by the user
         if 'cell_area' in F.variables.keys() and self.cell_area == None:
