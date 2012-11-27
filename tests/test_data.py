@@ -35,6 +35,7 @@ class TestData(TestCase):
         self.D.label = 'testlabel'
         self.D.filename = 'testinputfilename.nc'
         self.D.varname = 'testvarname'
+        self.D.long_name = 'This is the longname'
 
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01') - 1
 
@@ -237,6 +238,9 @@ class TestData(TestCase):
 
         self.assertEqual(len(F.time),len(self.D.time))
         self.assertFalse(np.any(self.D.data-F.data) != 0. )
+
+        os.remove(testfile)
+
 
 
 
