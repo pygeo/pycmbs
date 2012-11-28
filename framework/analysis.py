@@ -465,6 +465,8 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
     report.subsection('CRU')
     rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='CRU')
 
+    report.subsection('HOAPS')
+    rainfall_analysis_template(model_list, interval = interval, GP = GP, shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='HOAPS')
     #~ report.subsection('GPCC')
     #~ rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='GPCC')
 
@@ -538,6 +540,20 @@ def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=Fa
         scale_data = 12./365. #scale factor to scale from mm/month to mm/day #@todo: revise scale factor in precipitation analysis (not taking care yet for different month lengths!)
 
         obs_var = 'var260'
+
+    elif obs_type == 'HOAPS':
+        # we expect the data units to be mm/day
+
+        glecker_pos = 1
+        s_start_time = '1988-01-01'; s_stop_time = '2007-12-31'
+        obs_file_raw = '/data/share/mpiles/TRS/m300036/data/HOAPS/rain/hoaps-g.t63.m01.rain.1987-2008.nc'
+        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
+        tmp1     = pyCDO(obs_file_raw,s_start_time, s_stop_time).remap()
+        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
+        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean()
+        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #standard deviation of seasonal mean
+        obs_var = 'rain'
+        scale_data = 1.
 
 
     else:
