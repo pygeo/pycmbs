@@ -187,10 +187,6 @@ class TestData(TestCase):
         s1 = D.diff(D,pthres=0.05) #test with the same data
 
         #checks
-
-#        print 'P: ', s.p_value, p, 1.-p
-#        print s.p_value.shape
-#        print s.p_value[0,0]
         self.assertAlmostEqual(s.p_value[0,0],1.-p,places=8)
         self.assertAlmostEqual(s.p_value[0,1],1.-p1,places=8)
         if p <= 0.05:
@@ -242,8 +238,37 @@ class TestData(TestCase):
         os.remove(testfile)
 
 
+    def test_interp_time(self):
+        D = self.D
 
+        #time is from 2001-01-01 for 1000 days as default
 
+        #case 1: interpolate to half daily values for a small timeperiod
+        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
+        #print 'Minimum/Maximum ' \
+        #      ' date target: ', pl.num2date(tref.min()), pl.num2date(tref.max())
+        #print 'Minimum/Maximum  date source: ', pl.num2date(D.time.min()), pl.num2date(D.time.max())
+
+        #... interpolate data object for time period specified by tref
+        I = D.interp_time(tref)
+
+        #... original data
+        y = D.data[:,0,0]
+
+        #... generate reference solution using numpy
+        yy = np.interp(tref, D.time, y)
+
+        #... optional: plotting (good for validation of test routine)
+        if False:
+            pl.figure()
+            pl.plot(D.time,y,color='blue')
+            pl.plot(I.time,I.data[:,0,0],color='red',label='interpolated')
+            pl.plot(tref,yy,color='green',label='reference interp',linestyle='--')
+            pl.legend()
+            pl.show()
+
+        d = yy - I.data[:,0,0]
+        self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) ) #boundary effects at end of period, therefore last value not used
 
 
 

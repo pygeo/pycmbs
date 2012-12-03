@@ -95,3 +95,56 @@ def ttest_ind(a, b, axis=0):
 
 
 #----------------------- END OF SCIPY IMPORT
+
+
+
+
+def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
+    '''
+    REFERENCES:
+    http://econpy.googlecode.com/svn/trunk/pytrix/stat.py
+    http://comments.gmane.org/gmane.comp.python.scientific.user/12907
+
+    Welch''s approximate t-test for the difference of two means of
+    heteroscedasctic populations.
+
+    :see: Biometry, Sokal and Rohlf, 3rd ed., 1995, Box 13.4
+
+    :Parameters:
+        n1 : int
+            number of variates in sample 1
+        n2 : int
+            number of variates in sample 2
+        mean1 : float
+            mean of sample 1
+        mean2 : float
+            mean of sample 2
+        sem1 : float
+            standard error of mean1
+        sem2 : float
+            standard error of mean2
+        alpha : float
+            desired level of significance of test
+
+    :Returns:
+        significant : bool
+            True if means are significantly different, else False
+        t_s_prime : float
+            t_prime value for difference of means
+        t_alpha_prime : float
+            critical value of t_prime at given level of significance
+
+    :author: Angus McMorland
+    :license: BSD_
+
+    .. BSD: http://www.opensource.org/licenses/bsd-license.php
+    '''
+    svm1 = sem1**2 * n1
+    svm2 = sem2**2 * n2
+    t_s_prime = (mean1 - mean2)/np.sqrt(svm1/n1+svm2/n2)
+
+    t_alpha_df1 = Sstats.t.ppf(1-alpha/2, n1 - 1)
+    t_alpha_df2 = Sstats.t.ppf(1-alpha/2, n2 - 1)
+    t_alpha_prime = (t_alpha_df1 * sem1**2 + t_alpha_df2 * sem2**2) /\
+                    (sem1**2 + sem2**2)
+    return abs(t_s_prime) > t_alpha_prime, t_s_prime, t_alpha_prime

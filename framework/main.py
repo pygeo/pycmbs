@@ -128,17 +128,20 @@ def get_methods4variables(variables):
     """
     for a given list of variables, return a dictionary
     with information on methods how to read the data
+
+    IMPORTANT: all options provided to the routines need to be
+    specified here and arguments must be set in calling routine get_data()
     """
 
     hlp={}
-    hlp.update({'rain' : 'get_rainfall_data()'})
-    hlp.update({'albedo' : 'get_albedo_data()'})
-    hlp.update({'sis' : 'get_surface_shortwave_radiation_down()'})
-    hlp.update({'tree' : 'get_tree_fraction()'})
-    hlp.update({'grass' : 'get_grass_fraction()'})
-    hlp.update({'phenology_faPAR' : 'get_faPAR()'})
-    hlp.update({'temperature' : 'get_temperature_2m()'})
-    hlp.update({'snow' : 'get_snow_fraction()'})
+    hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
+    hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
+    hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
+    hlp.update({'tree' : 'get_tree_fraction(interval=interval)'})
+    hlp.update({'grass' : 'get_grass_fraction(interval=interval)'})
+    hlp.update({'phenology_faPAR' : 'get_faPAR(interval=interval)'})
+    hlp.update({'temperature' : 'get_temperature_2m(interval=interval)'})
+    hlp.update({'snow' : 'get_snow_fraction(interval=interval)'})
 
     res={}
     for k in hlp.keys(): #only use the variables that should be analyzed!
@@ -218,11 +221,11 @@ for i in range(len(CF.models)):
     #--- create model object and read data ---
     # results are stored in individual variables namex modelXXXXX
     if CF.dtypes[i].upper() == 'CMIP5':
-        themodel = CMIP5Data(data_dir,model,experiment,varmethods,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time,shift_lon=shift_lon)
+        themodel = CMIP5Data(data_dir,model,experiment,varmethods,intervals=CF.intervals,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time,shift_lon=shift_lon)
     elif CF.dtypes[i].upper() == 'JSBACH_BOT':
-        themodel = JSBACH_BOT(data_dir,varmethods,experiment,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
+        themodel = JSBACH_BOT(data_dir,varmethods,experiment,intervals=CF.intervals,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
     elif CF.dtypes[i].upper() == 'JSBACH_RAW':
-        themodel = JSBACH_RAW(data_dir,varmethods,experiment,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
+        themodel = JSBACH_RAW(data_dir,varmethods,experiment,intervals=CF.intervals,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
     else:
         print CF.dtypes[i]
         raise ValueError, 'Invalid model type!'
@@ -263,7 +266,7 @@ for variable in variables:
             print 'Doing analysis for variable ... ', variable
             print '   ... ', scripts[variable]
             model_list = str(proc_models).replace("'","")  #model list is reformatted so it can be evaluated properly
-            cmd = scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep)'
+            cmd = scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep,interval=CF.intervals[variable])'
             eval(cmd) #run analysis
 
 #/// generate Gleckler analysis plot for all variables and models analyzed ///

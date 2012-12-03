@@ -30,14 +30,14 @@ import os,sys
 from matplotlib import pylab as pl
 
 class Report():
-    '''
+    """
     A class to generate latex based report
 
     @todo: example how to use report class
-    '''
+    """
 
     def __init__(self,filename,title,author,format='png',outdir='./',dpi=300):
-        '''
+        """
         constructor for Latex report class
 
         @param filename: name of output file
@@ -51,10 +51,11 @@ class Report():
 
         @param outdir: output directory to write report and images to
         @type outdir: str
-        
+
         @param dpi: specify dots per inch for graphic output
         @type dpi: int
-        '''
+        """
+
         ext = ''
         if filename[:-4] != '.tex':
             ext='.tex'
@@ -70,9 +71,9 @@ class Report():
 #-----------------------------------------------------------------------
 
     def open(self):
-        '''
+        """
         open report
-        '''
+        """
 
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
@@ -85,18 +86,18 @@ class Report():
 #-----------------------------------------------------------------------
 
     def close(self):
-        '''
+        """
         close report
-        '''
+        """
         self._write_footer()
         self.file.close()
 
 #-----------------------------------------------------------------------
 
     def _write_header(self):
-        '''
+        """
         write document header
-        '''
+        """
         self.write('\documentclass{article}')
         self.write('\usepackage{fancyhdr}')
         self.write('\usepackage{graphicx}')
@@ -123,18 +124,18 @@ class Report():
 #-----------------------------------------------------------------------
 
     def _write_footer(self):
-        '''
+        """
         write document footer
-        '''
+        """
         self._write_separator()
         self.write('\end{document}')
 
 #-----------------------------------------------------------------------
 
     def _write_separator(self):
-        '''
+        """
         write line with comments (useful to structure document sections)
-        '''
+        """
         self.write('')
         self.write('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
         self.write('')
@@ -142,12 +143,15 @@ class Report():
 #-----------------------------------------------------------------------
 
     def figure(self,f,caption=''):
-        '''
+        """
         add a figure string to the report
 
         @param f: figure that will be incuded into the report
         @type f: matplotlib figure object
-        '''
+
+        @param caption: caption for the figure to be put in the report
+        @type caption: str
+        """
 
         self.figure_counter +=1
         figname = 'fig_' + str(self.figure_counter).zfill(5) + '.' + self.format
@@ -155,7 +159,6 @@ class Report():
         self._write_separator()
         self.write('\\begin{figure}[htp]')
         self.write('   \centering')
-        #self.write('   \includegraphics[width=12cm]{' + figname + '} \\\ ')
         self.write('   \includegraphics[width=12cm]{' + figname + '} ')
         self.write('   \caption{' + caption.replace('_','-') + '}')
         self.write('   \label{fig:' + str(self.figure_counter) + '}')
@@ -164,45 +167,49 @@ class Report():
 
         f.savefig(self.outdir + figname, bbox_inches='tight',dpi=self.dpi)
 
+#-----------------------------------------------------------------------
+
     def section(self,s):
-        '''
+        """
         write section header
 
         @param s: title of section
         @type s: str
-        '''
+        """
         self.write('\clearpage')
         self.write('\section{' + s.replace('_',' ') + '}')
 
+#-----------------------------------------------------------------------
+
     def subsection(self,s):
-        '''
+        """
         write subsection header
 
         @param s: title of subsection
         @type s: str
-        '''
+        """
         self.write('\clearpage')
         self.write('\subsection{' + s.replace('_',' ') + '}')
 
+#-----------------------------------------------------------------------
 
     def subsubsection(self,s):
-        '''
+        """
         write subsection header
 
         @param s: title of subsection
         @type s: str
-        '''
+        """
         self.write('\clearpage')
         self.write('\subsubsection{' + s.replace('_',' ') + '}')
-
 
 #-----------------------------------------------------------------------
 
     def capture_figures(self):
-        '''
+        """
         captures all figures that are plotted and
         store them in the report
-        '''
+        """
 
         print 'Capturing figures and writing to report ...'
         for i in pl.get_fignums():
@@ -213,33 +220,35 @@ class Report():
 #-----------------------------------------------------------------------
 
     def newpage(self):
-        '''
+        """
         create a new page
-        '''
+        """
         self.write('\clearpage')
         self.write('\\newpage')
 
+#-----------------------------------------------------------------------
+
     def clearpage(self):
-        '''
+        """
         create a new page
-        '''
+        """
         self.write('\clearpage')
 
 #-----------------------------------------------------------------------
 
     def write(self,s):
-        '''
+        """
         write a string to the file
 
         @param s: string to be written to the file
         @type: str
-        '''
+        """
         self.file.write(s.replace('\f','\\f').replace('\n','\\n').replace('\t','\\t').replace('\r','\\r') + '\n')
 
 #-----------------------------------------------------------------------
 
     def compile(self):
-        '''
+        """
         compile latex document
-        '''
+        """
         os.system('pdflatex ' + self.filename)

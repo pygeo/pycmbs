@@ -37,7 +37,7 @@ import  matplotlib.axes as maxes
 import matplotlib as  mpl
 
 
-from plots import map_plot, pm_bar
+from plots import map_plot, pm_bar, add_nice_legend
 from data import Data
 
 from scipy import linalg, dot;

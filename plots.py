@@ -147,10 +147,10 @@ class HovmoellerPlot():
         self.hov = hovmoeller(pl.num2date(D.time),D.data,lat=D.lat,rescaley=rescaley,rescalex=rescalex)
         self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
 
-    def plot(self,title=None,climits=None):
+    def plot(self,title=None,climits=None,ax=None):
         if climits is None:
             raise ValueError, 'CLIMITS needs to be specified!'
-        self.hov.plot(title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=climits)
+        self.hov.plot(title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=climits,ax=ax)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -590,7 +590,7 @@ class GlobalMeanPlot():
         self.plots=[]
 
     def plot(self,D,color=None,linewidth=1,show_std=False,label=None,linestyle='-'):
-        '''
+        """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
 
@@ -612,7 +612,7 @@ class GlobalMeanPlot():
 
         @param show_std: shows standard deviation
         @type show_std: bool
-        '''
+        """
 
         if ((label==None) and (D.label in self.labels)):
             #print 'Label already existing: ', D.label, ' skipping analysis'
@@ -1098,7 +1098,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
     def calc_index(self,x,y,model,variable,weights=None):
-        '''
+        """
         calculate model performance index
         the model and the variable need to have been registered
         already using add_model and add_variable
@@ -1115,9 +1115,12 @@ class GlecklerPlot():
         @param variable: variable name
         @type variable: str
 
+        @param weights: weights to be applied to the data before index calculation; dedicated for spatial area weights
+        @type weights: numpy array
+
         @return: returns performance index aggregated over time
         @rtype float
-        '''
+        """
 
         if weights == None:
             #set weights according to cell area
@@ -1134,14 +1137,12 @@ class GlecklerPlot():
         D = Diagnostic(x,y=y)
         e2 = D.calc_reichler_index(weights) #reichler performance index (might return a list if multiple times analyzed)
 
-        r = np.nansum(e2) #temporal aggregation
-
-        return r
+        return np.nansum(e2) #temporal aggregation
 
 #-----------------------------------------------------------------------
 
     def _draw_legend(self,left,width):
-        '''
+        """
         draw legend for Glecker plot. Requires information on
         the positioning of the colormap axis which can be obtained from
 
@@ -1152,7 +1153,7 @@ class GlecklerPlot():
 
         @param width: width of the axis to plot colorbar
         @type width: float
-        '''
+        """
         cax = self.fig.add_axes([left,0.05,width,0.05]) #left, bottom, width, height
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
                                    norm=self.norm,
@@ -1162,7 +1163,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 
 def __basemap_ancillary(m,latvalues = None, lonvalues = None):
-    '''
+    """
     routine to plot ancillary data like coastlines
     or meridians on a basemap plot
 
@@ -1175,7 +1176,7 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None):
     @param lonvalues: longitude values for drawing grid (optional)
     @type lonvalues: list or numpy array
 
-    '''
+    """
 
     if latvalues == None:
         latvalues=np.arange(-90.,120.,30.)
@@ -1277,7 +1278,13 @@ def map_season(x,year=False,**kwargs):
             ax = f.add_subplot(2,2,i+1)
         d = x.copy(); d.data = x.data[i,:,:]
         d.label = labels[i]
-        map_plot(d,ax=ax,**kwargs); del d
+        if hasattr(d,'p_mask'):
+            #The data object was generated using the Data.diff() function.
+            #In this case, the grid cells with significant changes are marked with an overlay
+            overlay = d.p_mask
+        else:
+            overlay = None
+        map_plot(d,ax=ax,overlay=overlay,**kwargs); del d
 
     f.suptitle(tit,size=12)
 
@@ -1350,6 +1357,13 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @type contours: bool
 
     @param overlay: overlay for plot (e.g. significance)
+    @type overlay: numpy array
+
+    @param show_colorbar: specifies if colorbar should be plotted
+    @type show_colorbar: bool
+
+    @param show_zonal: specifies if zonal plots should be shown
+    @type show_zonal: bool
 
     """
 
@@ -1365,9 +1379,6 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 raise ValueError, 'Invalid geometry for overlay !'
         else:
             raise ValueError, 'Overlay for this geometry not supported!'
-
-
-
 
     #--- create new figure
     if ax == None:
@@ -1407,7 +1418,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         else:
             logoffset = logoffset
 
-        print 'logoffset: ', logoffset
+        print '     logoffset: ', logoffset
 
         xm = np.log10( xm + logoffset )
 
@@ -1581,7 +1592,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 #-----------------------------------------------------------------------
 
 def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
-    '''
+    """
     add a zonal plot to the axis
 
     @param ax: axis where zonal plot should be added to
@@ -1592,7 +1603,15 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
 
     @param timmean: temporal mean for zonal plot?
     @type timmean: bool
-    '''
+
+    @param vmin: minimum value for y-axis
+    @type vmin: float
+
+    @param vmax: maximum value for y-axis
+    @type vmax: float
+
+
+    """
 
     divider = make_axes_locatable(ax)
     zax     = divider.new_horizontal("15%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
@@ -1635,8 +1654,8 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
 
 #-----------------------------------------------------------------------
 
-def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=6):
-    '''
+def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8):
+    """
     add a nice looking legend
 
     @param ax: major axis with plot
@@ -1649,7 +1668,16 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=6):
                   this is useful if you have multiple subplots which should
                   have the same size. Adding a colorbar will slightly change the size
     @type dummy: bool
-    '''
+
+    @param fontsize: fontsize for colorbar ticks
+    @type fontsize: int
+
+    @param cmap: colormap
+    @type cmap: str or colorbar class
+
+    @param cticks: colorbar ticks; if None, then default setup is used
+    @type cticks: list
+    """
 
     #set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
@@ -1671,7 +1699,6 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=6):
 
 def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,rescalex=1,**kwargs):
     """
-
     class to plot hovmoeller diagrams of two datasets
     and their difference
 
@@ -1811,7 +1838,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,  **kwargs)
 
     #-first minus second dataset
-    adif = x.sub(y) #absolute difference
+    adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
 
@@ -1829,12 +1856,20 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 #-----------------------------------------------------------------------
 
 def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=None,climits=None,xtickrotation=0):
-    '''
+    """
     plot hovmoeller plots given a C{Data} object
 
     @param x: C{Data} object
     @type x: C{Data} object
-    '''
+
+    @param rescalex: rescaling parameter for x-axis for hovmoeller plot
+    @type rescalex: int
+
+    @param rescaley: rescaling parameter for y-axis for hovmoeller plot
+    @type rescaley: int
+
+
+    """
 
     if climits == None:
         raise ValueError, 'climits need to be given!'

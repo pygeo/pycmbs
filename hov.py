@@ -31,6 +31,7 @@ import pylab as pl
 import matplotlib.dates as mdates
 import sys
 import matplotlib.pyplot as pyplot
+#from plots import add_nice_legend
 
 def agg_hourly(d,v,timestamp='mid',mode='mean'):
     """
@@ -224,7 +225,7 @@ class hovmoeller:
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def plot(self,xticks=None,xlabel=None,ylabel=None,title='',grid=True,climits=None,figsize=None,origin=None,xtickrotation=0,cmap='jet',showcolorbar=True,ax=None,show_uncertainties=False,norm_uncertainties=False,input=None):
+    def plot(self,xticks=None,xlabel=None,ylabel=None,title='',grid=True,climits=None,figsize=None,origin=None,xtickrotation=0,cmap='jet',showcolorbar=True,ax=None,show_uncertainties=False,norm_uncertainties=False,input=None,showxticks=True,nclasses=11):
 
         """
         Generates a Hovmoeller plot
@@ -261,6 +262,11 @@ class hovmoeller:
         @param ax: axis to plot to. If not specified (default), then a new figure will be created
         @type ax: matplotlib axis
 
+        @param showxticks: show the xticks in the Hovmoeller plot
+        @type showxticks: bool
+
+        @param nclasses: number of classes for colorbar
+        @type nclasses: int
 
         todo: enable to set boundaries tmin,tmax for x-axis!!!
 
@@ -271,7 +277,7 @@ class hovmoeller:
         norm_uncertainties: divide value by variance ==> contourplot of self.hov / self.hov_var is generated
 
 
-        input is expected to have timensions [nlat,ntime] and can be precalculated using Data.get_zonal_mean().T
+        input is expected to have dimensions [nlat,ntime] and can be precalculated using Data.get_zonal_mean().T
         input is expected to be a Data object!
 
         """
@@ -314,7 +320,8 @@ class hovmoeller:
                 #/// monthly ticks ///
                 data_days = generate_monthly_timeseries(input1.time) #convert times to monthly
                 all_days  = unique(data_days)
-                self.generate_xticks(all_days,monthsamp=1) #todo
+                if showxticks:
+                    self.generate_xticks(all_days,monthsamp=1) #todo
 
                 dlat = 30. #todo
 
@@ -373,15 +380,14 @@ class hovmoeller:
             self.ax = ax
             self.fig = self.ax.figure
 
+
         if self.transpose:
             arr = self.hov.repeat(self.rescalex,axis=0).repeat(self.rescaley,axis=1)
-            #~ print 'HOVMOELLER SHAPE ARRAY1: ', arr.shape
-            self.im=self.ax.imshow(arr.T,interpolation='Nearest',origin=origin,vmin=climits[0],vmax=climits[1],cmap=pyplot.get_cmap(cmap) )
+            self.im=self.ax.imshow(arr.T,interpolation='Nearest',origin=origin,vmin=climits[0],vmax=climits[1],cmap=pyplot.get_cmap(cmap,nclasses) )
         else:
             #rescale array for visualization
             arr = self.hov.repeat(self.rescaley,axis=0).repeat(self.rescalex,axis=1)
-            #~ print 'HOVMOELLER SHAPE ARRAY2: ', arr.shape
-            self.im=self.ax.imshow(arr,interpolation='Nearest',origin=origin,cmap=pyplot.get_cmap(cmap),vmin=climits[0],vmax=climits[1])
+            self.im=self.ax.imshow(arr,interpolation='Nearest',origin=origin,cmap=pyplot.get_cmap(cmap,nclasses),vmin=climits[0],vmax=climits[1])
 
             if (show_uncertainties) & (self.hov_var != None):
                 arr1 = self.hov_var.repeat(self.rescaley,axis=0).repeat(self.rescalex,axis=1)
@@ -394,7 +400,6 @@ class hovmoeller:
 
         if xlabel != None: self.ax.set_xlabel(self.xlabel)
         if ylabel != None: self.ax.set_ylabel(self.ylabel)
-        #self.fig.colorbar()
         self.ax.set_title(self.title)
 
         #/// ticks
@@ -408,10 +413,16 @@ class hovmoeller:
             self.ax.yaxis.set_major_locator(self.y_major_locator)
             self.ax.yaxis.set_major_formatter(self.y_major_formatter)
 
-            self.ax.xaxis.set_major_locator(self.x_major_locator)
-            self.ax.xaxis.set_major_formatter(self.x_major_formatter)
+            if showxticks:
+                self.ax.xaxis.set_major_locator(self.x_major_locator)
+                self.ax.xaxis.set_major_formatter(self.x_major_formatter)
 
-        pl.xticks(rotation=xtickrotation)
+        if showxticks:
+            #pl.xticks(rotation=xtickrotation)
+            for t in self.ax.get_xticklabels():
+                t.set_rotation(xtickrotation)
+        else:
+            self.ax.set_xticks([])
 
         if xticks != None:
             nx = 2
@@ -425,7 +436,9 @@ class hovmoeller:
             if self.transpose:
                 self.fig.colorbar(self.im,orientation='vertical',shrink=0.5)
             else:
-                self.fig.colorbar(self.im,orientation='horizontal',shrink=0.5,aspect=30)
+                from plots import add_nice_legend #only do import here, as it does not work otherwise (todo)
+                add_nice_legend(self.ax,self.im,pyplot.get_cmap(cmap,nclasses))
+                #self.fig.colorbar(self.im,orientation='horizontal',shrink=0.5,aspect=30)
 
 
         #        cax = fig.add_axes([0.2, 0.05, 0.5, 0.03])
@@ -730,24 +743,20 @@ class hovmoeller:
 
 
     def generate_xticks(self,all_days,monthsamp=1):
-        '''
+        """
         generate xticks
 
         all_days: array of times (days since 01-0-0)
-        '''
-
-        #~ print all_days
+        """
 
         dd=num2date(all_days)
-        xticks=[]
-        xticklabels=[]
+        xticks=[]; xticklabels=[]
         last_month = dd[0].month
         last_year  = dd[0].year
 
         xticks.append(all_days[0])
         strmon = str(dd[0].month).zfill(2)
-        #if dd[0].month < 10:
-        #    strmon = '0' + strmon
+
         if self.yearonly:
             xticklabels.append(str(dd[0].year))
         else:
@@ -755,19 +764,13 @@ class hovmoeller:
         for d in dd:
             #~ print d, last_month
             if (d.month != last_month) | (d.year != last_year):
-                #~ print d
                 xticks.append(date2num(d)) #save tick location
                 mstr = str(d.month).zfill(2)
-                #if d.month < 10:
-                #    mstr = '0'+mstr
                 if self.yearonly:
                     xticklabels.append(str(d.year))
                 else:
                     xticklabels.append(mstr + '/' + str(d.year))
-                last_month = d.month
-                last_year  = d.year
-
-        #~ print 'XTICKS: ', xticks
+                last_month = d.month; last_year  = d.year
 
         if self.transpose:
             scal = self.rescaley
@@ -784,15 +787,10 @@ class hovmoeller:
         xticks = xticks[::monthsamp]
         xticklabels=xticklabels[::monthsamp]
 
-
-        #~ print 'xticklabels: ', xticklabels
-
         self.x_major_locator   = FixedLocator(xticks)
         self.x_major_formatter = FixedFormatter(xticklabels)
 
 
-
-        #xlabels could be made with matplotlib.dates
 
 
 
