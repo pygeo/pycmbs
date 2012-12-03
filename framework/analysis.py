@@ -22,6 +22,11 @@ __email__ = "alexander.loew@zmaw.de"
 
 from utils import *
 from external_analysis import *
+from datetime import *
+from dateutil.rrule import *
+from cdo import *
+
+
 
 #///////////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////
@@ -194,7 +199,6 @@ def tree_fraction_analysis(model_list,pft='tree'):
 
 
     #//// PERFORM ANALYSIS ///
-
     vmin = 0.; vmax = 1.
     for model in model_list:
 
@@ -465,8 +469,8 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
     report.subsection('CRU')
     rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='CRU')
 
-    report.subsection('HOAPS')
-    rainfall_analysis_template(model_list, interval = interval, GP = GP, shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='HOAPS')
+    #todo add TMPA data
+
     #~ report.subsection('GPCC')
     #~ rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='GPCC')
 
@@ -540,20 +544,6 @@ def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=Fa
         scale_data = 12./365. #scale factor to scale from mm/month to mm/day #@todo: revise scale factor in precipitation analysis (not taking care yet for different month lengths!)
 
         obs_var = 'var260'
-
-    elif obs_type == 'HOAPS':
-        # we expect the data units to be mm/day
-
-        glecker_pos = 1
-        s_start_time = '1988-01-01'; s_stop_time = '2007-12-31'
-        obs_file_raw = '/data/share/mpiles/TRS/m300036/data/HOAPS/rain/hoaps-g.t63.m01.rain.1987-2008.nc'
-        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
-        tmp1     = pyCDO(obs_file_raw,s_start_time, s_stop_time).remap()
-        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
-        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean()
-        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #standard deviation of seasonal mean
-        obs_var = 'rain'
-        scale_data = 1.
 
 
     else:
@@ -639,14 +629,14 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
     GM = GlobalMeanPlot(ax=axg) #global mean plot
 
     #isccp
-    report.subsection('ISCCP')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    #report.subsection('ISCCP')
+    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #srb
-    report.subsection('SRB')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    #report.subsection('SRB')
+    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #ceres
-    report.subsection('CERES')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    #report.subsection('CERES')
+    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #cm-saf
     report.subsection('CMSAF')
     sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
@@ -662,15 +652,12 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 #-----------------------------------------------------------------------
 
 def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None,report=None):
-    '''
+    """
     model_list = list which contains objects of data type MODEL
-
 
     @param GM: global mean plot
     @type GM: C{GlobalMeanPlot}
-
-
-    '''
+    """
 
     print '    ... ' + obs_type
 
@@ -680,9 +667,6 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
-
-    #--- T63 weights
-    #~ t63_weights = get_T63_weights(shift_lon)
 
     if obs_type == 'ISCCP':
         #--- load ISCCP-SIS data
@@ -721,29 +705,55 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         raise ValueError, 'Unknown observation type for SIS-analysis!'
 
 
-    #--- PREPROCESSING of observational data (assumes already monthly mean data) ---
-    if interval == 'season':
-        #aggregate to seasons
-        cdo = pyCDO(raw_sis,y1,y2) #todo: start/stop years dynamically !!!
-        if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo   #todo here names of files and CDO processing with Ralf muellers interface
-            cdo = pyCDO(seasfile,y1,y2)
-            obs_sis_file = cdo.yseasmean()
-            obs_sis_std_file  = cdo.yseasstd()
-        else:
-            raise ValueError, 'Invalid interval option ', interval
+    #--- PREPROCESSING of observational data  ---
+    cdo = Cdo()
+    #1) generate monthly mean file projected to T63
+    obs_mon_file     = get_temporary_directory() + os.path.basename(raw_sis)
+    obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
+    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_sis,force=False)
+
+    #todo: selection of timeperiod
+
+    #2) generate monthly mean or seasonal mean climatology as well as standard deviation
+    if interval == 'monthly':
+        obs_sis_file     = obs_mon_file[:-3] + '_ymonmean.nc'
+        obs_sis_std_file = obs_mon_file[:-3] + '_ymonstd.nc'
+        obs_sis_sum_file = obs_mon_file[:-3] + '_ymonsum.nc'
+        obs_sis_N_file   = obs_mon_file[:-3] + '_ymonN.nc'
+        cdo.ymonmean(options='-f nc -b 32',output=obs_sis_file,     input=obs_mon_file,force=False)
+        cdo.ymonsum (options='-f nc -b 32',output=obs_sis_sum_file, input=obs_mon_file,force=False)
+        cdo.ymonstd (options='-f nc -b 32',output=obs_sis_std_file, input=obs_mon_file,force=False)
+        cdo.div(options='-f nc -b 32',output = obs_sis_N_file,input=obs_sis_sum_file + ' ' + obs_sis_file, force=False) #number of samples
+
+        time_cycle = 12
+    elif interval == 'season':
+        obs_sis_file     = obs_mon_file[:-3] + '_yseasmean.nc'
+        obs_sis_std_file = obs_mon_file[:-3] + '_yseasstd.nc'
+        obs_sis_sum_file = obs_mon_file[:-3] + '_yseassum.nc'
+        obs_sis_N_file   = obs_mon_file[:-3] + '_yseasN.nc'
+        cdo.yseasmean(options='-f nc -b 32',output=obs_sis_file,     input=obs_mon_file,force=False)
+        cdo.yseassum (options='-f nc -b 32',output=obs_sis_sum_file, input=obs_mon_file,force=False)
+        cdo.yseasstd (options='-f nc -b 32',output=obs_sis_std_file, input=obs_mon_file,force=False)
+        cdo.div(options='-f nc -b 32',output = obs_sis_N_file,input=obs_sis_sum_file + ' ' + obs_sis_file, force=False) #number of samples
+
+        time_cycle = 4
+
+    else:
+        print interval
+        raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
 
     #--- READ DATA ---
-    obs_sis     = Data(obs_sis_file,obs_var,read=True,label=obs_type,unit = '$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
-    obs_sis_std = Data(obs_sis_std_file,obs_var,read=True,label=obs_type + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
+    obs_sis     = Data(obs_sis_file,obs_var,read=True,label=obs_type,unit = '$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
+    obs_sis_std = Data(obs_sis_std_file,obs_var,read=True,label=obs_type + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
     obs_sis.std = obs_sis_std.data.copy(); del obs_sis_std
+    obs_sis_N = Data(obs_sis_N_file,obs_var,read=True,label=obs_type + ' N',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
+    obs_sis.n = obs_sis_N.data.copy(); del obs_sis_N
 
     #read monthly data (needed for global means and hovmoeller plots)
-    obs_monthly = Data(raw_sis,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
+    obs_monthly = Data(obs_mon_file,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=12) #,mask=ls_mask.data.data)
 
     if GM != None:
         GM.plot(obs_monthly,linestyle='--')
-
 
     #--- initialize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -764,24 +774,65 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
             print model_data.data.shape; print obs_sis.data.shape
             raise ValueError, 'Inconsistent geometries for SIS'
 
+
+        #--- generate difference maps for each month/season
+
+        #todo: implement statistical significance test here!!!
+        #print model_data.data.ndim
+        #print obs_sis.data.ndim
+
+        #xxx = model_data.diff(obs_sis)
+        # print xxx.data.shape
+
+        #for
+        #welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
+        #f_season = map_season(model_data.sub(obs_sis))
+
+        #report.figure(f_season,caption='Difference between ' + model.name + ' and ' + obs_type + '; significant changes are indicated by crosses' )
+        #del f_season
+        #stop
+
         #--- generate hovmoeller plot ---
-        f_hov = plt.figure(); ax1=f_hov.add_subplot(2,1,1); ax2=f_hov.add_subplot(2,1,2)
+        f_hov = plt.figure(figsize=(8,12))
+        ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
+        ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
 
         #hovmoeller for model
+        start_time = pl.num2date(pl.datestr2num('1980-01-01')) #common period of data
+        stop_time = pl.num2date(pl.datestr2num('2012-12-31'))
+
+        #generate a reference monthly timeseries (datetime)
+        tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
+
+        #perform temporal subsetting and interpolation for hovmoeller plot
         tmp = model.variables['sis_org'][2]
+        #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+        #tmp._temporal_subsetting(i1,i2)
+        tmp = tmp.interp_time(pl.date2num(tref))
+        print '      interpol done 1'
+
         hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
-        hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=30,cmap='jet',ax=ax1,showcolorbar=False)
+        hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
+        hov_model.hov = None
+        hov_model.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
         del hov_model, tmp
 
         #hovmoeller for observations
-        hov_obs = hovmoeller(num2date(obs_monthly.time),None,rescaley=20,rescalex=20)
-        hov_obs.plot(climits=[0.,300.],input=obs_monthly,xtickrotation=30,cmap='jet',ax=ax2,showcolorbar=False)
-        del hov_obs
+        tmp = obs_monthly.copy()
+        #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+        #tmp._temporal_subsetting(i1,i2)
+        tmp = tmp.interp_time(pl.date2num(tref))
+        print 'interpol done 2'
 
-        report.figure(f_hov,caption='Time-latitude diagram of SIS (top: ' + model.name + ', bottom: ' + obs_type + ')' )
+
+        hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+        hov_obs.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
+        hov_obs.hov = None
+        hov_obs.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
+        del hov_obs, tmp
+
+        report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_type + ')' )
         del f_hov
-
-
 
         #--- generate difference map
         f_dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=6,show_zonal=True,zonal_timmean=False,cticks=[0.,50.,100.,150.,200.,250.,300.],cticks_diff=[-18.,-12.,-6.,0.,6.,12.,18.],rmin=-0.25,rmax=0.25)
@@ -790,6 +841,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         Diag = Diagnostic(obs_sis,model_data)
         e2   = Diag.calc_reichler_index()
         Rplot.add(e2,model_data.label,color='red')
+        #print e2
 
         #/// Gleckler plot ///
         e2a = GP.calc_index(obs_sis,model_data,model,'sis')
@@ -800,6 +852,8 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         report.figure(f_dif,caption='Mean and relative differences ' + obs_type + ' ' + model.name)
 
     del obs_monthly
+
+
 
     f_reich = Rplot.bar(title='relative model error: SIS')
     report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')

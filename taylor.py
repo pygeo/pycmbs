@@ -119,9 +119,9 @@ class taylor:
 
 
     def plot_r_meshlines(self,step=0.1):
-        '''
+        """
         plots mesh lines for correlation
-        '''
+        """
 
         color = self.r_color
 
@@ -146,9 +146,9 @@ class taylor:
 
 
     def plot_circle(self,x,y,r,color='grey',label=None,size=8):
-        '''
+        """
         plot a circle at point x,y with radius r
-        '''
+        """
 
         X = np.linspace(-r,+r,1000.)
         Y = np.sqrt(r*r - X*X)

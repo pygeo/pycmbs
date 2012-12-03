@@ -24,6 +24,7 @@ __email__ = "alexander.loew@zmaw.de"
 
 from pyCMBS import *
 from utils import *
+from cdo import *
 
 '''
 @todo: implement reading of air temperature fields
@@ -37,9 +38,14 @@ class Model(Data):
     This class is the main class, specifying a climate model or a particular run
     Sub-classes for particular models or experiments are herited from this class
     """
-    def __init__(self,data_dir,dic_variables,name='',**kwargs):
+    def __init__(self,data_dir,dic_variables,name='',intervals=None,**kwargs):
         """
         constructor for Model class
+
+        @param intervals: a dictionary from configuration, that specifies the temporal interval to be used within each analyis
+        @type intervals: dict
+
+
 
         INPUT
         -----
@@ -50,8 +56,13 @@ class Model(Data):
         e.g. 'rainfall','var4'
         """
 
+        #--- check
+        if intervals == None:
+            raise ValueError, 'Invalid intervals for Model data: needs specification!'
+
         #--- set a list with different datasets for different models
         self.dic_vars = dic_variables
+        self.intervals = intervals
 
         #--- set some metadata
         self.name = name
@@ -76,6 +87,7 @@ class Model(Data):
         self.variables={}
         for k in self.dic_vars.keys():
             routine = self.dic_vars[k] #get name of routine to perform data extraction
+            interval = self.intervals[k]
             cmd = 'dat = self.' + routine
 #            print cmd
 #            print routine[0:routine.index('(')]
@@ -239,13 +251,13 @@ class CMIP5Data(Model):
 
 
 
-    def get_surface_shortwave_radiation_down(self):
+    def get_surface_shortwave_radiation_down(self,interval = 'season'):
 
-        '''
+        """
         return data object of
         a) seasonal means for SIS
         b) global mean timeseries for SIS at original temporal resolution
-        '''
+        """
 
         #original data
         filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -257,23 +269,56 @@ class CMIP5Data(Model):
         if self.stop_time == None:
             raise ValueError, 'Stop time needs to be specified'
 
+
+
+        #/// PREPROCESSING ///
+        cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
         s_stop_time = str(self.stop_time)[0:10]
 
-        tmp  = pyCDO(filename1,s_start_time,s_stop_time,force=force_calc).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
-        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+        #1) select timeperiod and generate monthly mean file
+        file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
+        file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
+        cdo.monmean(options='-f nc',output=file_monthly,input = '-remapcon,t63grid -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1,force=force_calc)
 
+        #2) calculate monthly or seasonal climatology
+        if interval == 'monthly':
+            sis_clim_file     = file_monthly[:-3] + '_ymonmean.nc'
+            sis_sum_file      = file_monthly[:-3] + '_ymonsum.nc'
+            sis_N_file        = file_monthly[:-3] + '_ymonN.nc'
+            sis_clim_std_file = file_monthly[:-3] + '_ymonstd.nc'
+            cdo.ymonmean(options='-f nc -b 32',output = sis_clim_file,input=file_monthly, force=force_calc)
+            cdo.ymonsum(options='-f nc -b 32',output = sis_sum_file,input=file_monthly, force=force_calc)
+            cdo.ymonstd(options='-f nc -b 32',output = sis_clim_std_file,input=file_monthly, force=force_calc)
+            cdo.div(options='-f nc',output = sis_N_file,input=sis_sum_file + ' ' + sis_clim_file, force=force_calc) #number of samples
+        elif interval == 'season':
+            sis_clim_file     = file_monthly[:-3] + '_yseasmean.nc'
+            sis_sum_file      = file_monthly[:-3] + '_yseassum.nc'
+            sis_N_file        = file_monthly[:-3] + '_yseasN.nc'
+            sis_clim_std_file = file_monthly[:-3] + '_yseasstd.nc'
+            cdo.yseasmean(options='-f nc -b 32',output = sis_clim_file,input=file_monthly, force=force_calc)
+            cdo.yseassum(options='-f nc -b 32',output = sis_sum_file,input=file_monthly, force=force_calc)
+            cdo.yseasstd(options='-f nc -b 32',output = sis_clim_std_file,input=file_monthly, force=force_calc)
+            cdo.div(options='-f nc -b 32',output = sis_N_file,input=sis_sum_file + ' ' + sis_clim_file, force=force_calc) #number of samples
+        else:
+            print interval
+            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
 
-        if not os.path.exists(filename):
+        if not os.path.exists(sis_clim_file):
             return None
 
-        sis = Data(filename,'rsds',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
-        #print 'Data read!'
+        #3) read data
+        sis = Data(sis_clim_file,'rsds',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
+        sis_std = Data(sis_clim_std_file,'rsds',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
+        sis.std = sis_std.data.copy(); del sis_std
+        sis_N = Data(sis_N_file,'rsds',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
+        sis.n = sis_N.data.copy(); del sis_N
 
-        sisall = Data(filename1,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False)
+        #4) read monthly data
+        sisall = Data(file_monthly,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12) #todo check timecycle
         sismean = sisall.fldmean()
 
+        #/// return data as a tuple list
         retval = (sisall.time,sismean,sisall); del sisall
 
         #/// mask areas without radiation (set to invalid): all data < 1 W/m**2

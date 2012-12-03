@@ -23,25 +23,25 @@ __email__ = "alexander.loew@zmaw.de"
 import os
 
 class ConfigFile():
-    '''
+    """
     class to read pyCMBS configuration file
-    '''
+    """
     def __init__(self,file):
-        '''
-        file: name of configuration file
-        '''
+        """
+        @param file: name of parameter file to parse
+        @type file: str
+        """
         self.file = file
         if not os.path.exists(self.file):
             raise ValueError, 'Configuration file not existing: ', self.file
         else:
             self.f=open(file,'r')
-
         self.read()
 
     def __read_header(self):
-        '''
+        """
         read commented lines until next valid line
-        '''
+        """
         x = '####'
         while x[0] == '#':
             a = self.f.readline().replace('\n','')
@@ -60,9 +60,9 @@ class ConfigFile():
     def __check_var(self,x):
         s=x.split(',')
         if int(s[1]) == 1:
-            return s[0]
+            return s[0],s[2] #name,interval
         else:
-            return None
+            return None,None
 
     def __read_options(self):
         #read header of variable plot
@@ -113,29 +113,26 @@ class ConfigFile():
         os.environ.update({'CDOTEMPDIR' : self.options['tempdir'] } )
 
 
-
-
     def __read_var_block(self):
         #read header of variable plot
-        vars=[];
+        vars=[]; vars_interval={}
         l=self.__read_header()
-        r=self.__check_var(l)
+        r,interval=self.__check_var(l)
         if r != None:
-            vars.append(r)
+            vars.append(r); vars_interval.update({r:interval})
         while l[0] != '#':
             l = self.f.readline().replace('\n','')
             l = l.lstrip()
-
             if (len(l) > 0):
                 if l[0] == '#':
                     pass
                 else:
-                    r=self.__check_var(l)
+                    r,interval=self.__check_var(l)
                     if r != None:
-                        vars.append(r)
+                        vars.append(r); vars_interval.update({r:interval})
             else:
                 l=' '
-        return vars
+        return vars,vars_interval
 
     def __get_model_details(self,s):
         return s.split(',')
@@ -166,16 +163,16 @@ class ConfigFile():
         return models,experiments,types,ddirs
 
     def read(self):
-        '''
+        """
         read configuration files in 3 blocks
-        '''
+        """
 
         print '********************************************************'
         print '* BEGIN Config file'
         print '********************************************************'
 
         self.__read_options()
-        self.variables  = self.__read_var_block()
+        self.variables,self.intervals  = self.__read_var_block()
         self.start_date,self.stop_date  = self.__read_date_block()
         self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
 
