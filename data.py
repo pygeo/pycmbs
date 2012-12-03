@@ -156,8 +156,56 @@ class Data():
 
         if format == 'nc':
             self._save_netcdf(filename,varname=varname,delete=delete)
+        elif format == 'ascii':
+            self._save_ascii(filename,varname=varname,delete=delete)
         else:
             raise ValueError, 'This output format is not defined yet!'
+
+
+#-----------------------------------------------------------------------
+
+    def _save_ascii(self,filename,varname=None,delete=False):
+        """
+        saves the data object to an ASCII file
+        (unittest)
+
+        @param filename: filename of output file
+        @param varname: name of output variable; this explicitely overwrites self.varname, which is tried to be used as a first order
+        @param delete: delete file if existing without asking
+        """
+
+        raise ValueError, 'This is not implemented yet!!!'
+
+        #/// check if output file already there
+        if os.path.exists(filename):
+            if delete:
+                os.remove(filename)
+            else:
+                raise ValueError, 'File already existing. Please delete manually or use DELETE option: ' + filename
+
+        #/// variable name
+        if varname == None:
+            if self.varname is None:
+                varname = 'var1'
+            else:
+                varname = self.varname
+
+
+        F = open(filename,'w')
+
+        F.write(str(len(self.time)) + '\n'   ) #number of timesteps
+        for i in xrange(len(self.time)):
+            F.write(str(pl.num2date(self.time[i])) + ' , ' + str(self.data[i,:,:]) )
+
+        F.close()
+
+
+        #write 2D field for each timestep
+
+
+
+
+
 
 #-----------------------------------------------------------------------
 
@@ -241,6 +289,33 @@ class Data():
 
         #/// close file
         F.close()
+
+#-----------------------------------------------------------------------
+
+    def _get_bounding_box(self):
+        """
+        estimates bounding box of valid data. It returns the indices
+        of the bounding box which frames all valid data
+
+        @return: returns indices for bounding box
+        """
+
+        msk = self.get_valid_mask() #gives a 2D mask
+
+        #estimate boundary box indices
+        xb = msk.sum(axis=0)
+        yb = msk.sum(axis=1)
+
+        j1=None; j2=None
+        for i in xrange(len(xb)):
+            if (j1 == None) and (xb[i]> 0.):
+                j1 = i
+            if (j2 == None) and (xb[i]> 0.) and (j1 != i):
+                j2 = i
+
+        raise ValueError, 'Not finished yet!!!' #todo
+
+        return yb,xb,j1,j2
 
 
 #-----------------------------------------------------------------------
@@ -937,6 +1012,138 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def interp_time(self,t,method='linear'):
+        """
+        interpolate data matrix in time. The existing data is interpolated to a new temporal spaceing that
+        is specified by the time vector argument 't'
+        The interpolation is done, by constructing a weighting matrix which basically performs a linear
+        interpolation as y = w*x(1) + (1-w)*x(2)
+
+        @param t: vector of time where the data should be interpolated to. The vector is expected to correspond
+                  to numbers which correspond to the python standard for time (see datestr2num documentation). The array
+                  needs to be in ascending order, otherwise an error occurs.
+        @type t: numpy array
+
+        @param method: option to specify interpolation method. At the moment, only linear interpolation is supported!
+        @type method: str
+
+        @return: returns a new C{Data} object that contains the interpolated values
+        @rtype: Data
+
+        @todo: still some boundary effects for last timestep
+        """
+
+        if method != 'linear':
+            raise ValueError, 'Only linear interpolation supported at the moment so far!'
+
+        #/// checks
+        if self.data.ndim !=3:
+            raise ValueError, 'Interpolation currently only supported for 3D arrays!'
+        if not np.all(np.diff(t) > 0):
+            raise ValueError, 'Input time array is not in ascending order! This must not happen! Please ensure ascending order'
+        if not np.all(np.diff(self.time) > 0):
+            raise ValueError, 'Time array of data is not in ascending order! This must not happen! Please ensure ascending order'
+
+        nt0,ny,nx = self.data.shape #original dimensions
+        nt = len(t) #target length of time
+
+        #/// copy data
+        X = self.data.copy(); X.shape = (nt0,-1) #[time,npix]
+        nt0,npix = X.shape
+
+        #/// preliminary checks
+        f_err = False
+
+        #A) all data is BEFORE desired period
+        if self.time.max() < t.min():
+            print 'WARNING: specified time period is BEFORE any data availability. NO INTERPOLATION CAN BE DONE!'
+            f_err = True
+
+        #B) all data is AFTER desired period
+        if self.time.min() > t.max():
+            print 'WARNING: specified time period is AFTER any data availability. NO INTERPOLATION CAN BE DONE!'
+            f_err = True
+
+        if f_err:
+            r = self.copy(); r.data = np.zeros(nt,ny,nx)
+            return r
+
+        #/// construct weighting matrix
+        W = np.zeros((nt,nt0))
+        i1 = 0; i2 = 1 #indices in original data
+        f_init=True
+        for i in xrange(nt-1):
+            #1) find start of interpolation period
+            if f_init:
+                while self.time[i2] <= t[0]: #do nothing while data coverage not reached yet
+                    i2+=1
+                    continue
+            f_init=False
+            i1 = i2 - 1
+            if i1 < 0:
+                raise ValueError, 'Invalid index i1:'
+
+
+            #/// increment
+            if i2 < nt0:
+                if self.time[i2] < t[i]:
+                    if i2 <= nt0-1:
+                        i2 += 1
+            if i1 < nt0-1:
+                if self.time[i1+1]< t[i]:
+                    i1 += 1
+            else:
+                continue
+
+
+            #2) check consistency
+            if self.time[i1] > t[i]:
+                #the first timeperiod with valid data has not been reached yet
+                # ... loop
+                continue
+            if i2 >=nt0:
+                continue
+
+
+
+
+            if self.time[i2] < t[i]:
+                print self.time[i1], t[i], self.time[i2]
+                print i1,i,i2
+                raise ValueError, 'interp_time: this should not happen!'
+
+
+            if i2 > nt0-1:
+                break
+
+            #... here we have valid data
+            #print i,i1,i2, nt0
+            t1   = self.time[i1]; t2=self.time[i2]
+            W[i,i1] = (t2 - t[i]) / (t2-t1)
+            W[i,i2] = 1.-W[i,i1]
+
+            #... now increment if needed
+            if i < (nt0-1):
+                if t2 < t[i+1]:
+                    i1 +=1; i2+=1
+
+        #/// generate interpolation Matrix and perform interpolation
+        N = np.ma.dot(W,X) #could become a problem for really large matrices!
+        N[nt-1,:] = np.nan #avoid boundary problem (todo: where is the problem coming from ??)
+        #mask all data that is outside of valid time period
+        msk = (t < self.time.min()) | (t > self.time.max())
+        N[msk,:] = np.nan
+        N.shape = (nt,ny,nx)
+
+        res = self.copy()
+        res.time = t
+        res.data = np.ma.array(N,mask=np.isnan(N))
+        del N
+
+        return res
+
+    #-----------------------------------------------------------------------
+
     def _get_time_indices(self,start,stop):
         """
         determine time indices start/stop based on data timestamps
@@ -1097,7 +1304,6 @@ class Data():
 
         return data
 
-
 #-----------------------------------------------------------------------
 
     def temporal_trend(self,return_object=False, pthres=1.01):
@@ -1121,7 +1327,6 @@ class Data():
             return R,S,I,P
         else:
             return R.data,S.data,I.data,P.data
-
 
 #-----------------------------------------------------------------------
 
@@ -1298,8 +1503,9 @@ class Data():
         if return_data: #return data object
             x = np.zeros((len(tmp),1,1))
             x[:,0,0] = tmp
+            assert(isinstance(tmp,np.ma.masked_array))
             r = self.copy()
-            r.data = np.ma.array(x.copy(),mask=(x-x > 1.) ) #some dummy mask
+            r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
 
             #return cell area array with same size of data
             r.cell_area = np.array([1.])
@@ -1356,7 +1562,7 @@ class Data():
 
             x[:,0,0] = tmp
             r = self.copy()
-            r.data = np.ma.array(x.copy(),mask=(x-x > 1.) ) #some dummy mask
+            r.data = np.ma.array(x.copy(),mask=tmp.mask )
             return r
         else: #return numpy array
             return tmp
@@ -1611,11 +1817,17 @@ class Data():
 
         #- vectorize the data
         if hasattr(self,'lon'):
-            lon  = self.lon.reshape(-1)
+            if self.lon != None:
+                lon  = self.lon.reshape(-1)
+            else:
+                lon = None
         else:
             lon = None
         if hasattr(self,'lat'):
-            lat  = self.lat.reshape(-1)
+            if self.lat != None:
+                lat  = self.lat.reshape(-1)
+            else:
+                lat = None
         else:
             lat = None
 
@@ -1938,7 +2150,7 @@ class Data():
         #/// calculate statistical significance of the difference
         if isinstance(d.data,np.ma.masked_array):
             sta = stats.mstats
-            t,p = ttest_ind(d.data, x.data ,axis=axis) #use routine is pyCMBS.statistic.py
+            t,p = ttest_ind(d.data, x.data ,axis=axis) #use routine in pyCMBS.statistic.py
         else:
             t,p = stas.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
 

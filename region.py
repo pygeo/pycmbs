@@ -21,13 +21,13 @@ __email__ = "alexander.loew@zmaw.de"
 '''
 
 class Region():
-    '''
+    """
     class to specify a Region in pyCMBS. A region defines either
     a rectangle in the data matrix or it can be defined by
     lat/lon coordinates
-    '''
+    """
     def __init__(self,x1,x2,y1,y2,label,type='index',mask=None):
-        '''
+        """
         constructor of class
 
         @param x1: start position in x-direction (either x index or longitude)
@@ -50,7 +50,8 @@ class Region():
 
         @param mask: mask that will be applied in addition to the coordinates/indices
         @type mask: array(:,:)
-        '''
+
+        """
 
         if x2 < x1:
             raise ValueError, 'Invalid X boundaries for region' #, x1, x2
@@ -71,11 +72,11 @@ class Region():
 #-----------------------------------------------------------------------
 
     def get_corners(self):
-        '''
+        """
         return a list of corner coordinates (either indices or lat/lon, dependent on the data)
 
         @return list of coordinates
-        '''
+        """
         if self.type == 'latlon':
             return self._get_corners_latlon()
         else:
@@ -84,9 +85,9 @@ class Region():
 #-----------------------------------------------------------------------
 
     def _get_corners_latlon(self):
-        '''
+        """
         return a list of corner lat/lon
-        '''
+        """
         l = []
         l.append( (self.lonmin,self.latmin)   )
         l.append( (self.lonmin,self.latmax)   )
@@ -97,9 +98,9 @@ class Region():
 #-----------------------------------------------------------------------
 
     def _get_corners_index(self):
-        '''
+        """
         return a list of corner indices
-        '''
+        """
         l = []
         l.append( (self.x1,self.y1)   )
         l.append( (self.x1,self.y2)   )
@@ -110,12 +111,12 @@ class Region():
 #-----------------------------------------------------------------------
 
     def get_subset(self,x):
-        '''
+        """
         extract region subset from data array x
 
         @param x: array where the data is extracted from
         @type x: array
-        '''
+        """
         if x.ndim == 3:
             return x[:,self.y1:self.y2,self.x1:self.x2]
         elif x.ndim == 2:
