@@ -1604,7 +1604,7 @@ class Data():
         self.time = plt.datestr2num(T)
 
 #-----------------------------------------------------------------------
-    def adjust_time(self,day=None,month=None):
+    def adjust_time(self,day=None,month=None,year=None):
         """
         correct all timestamps and assign
         same day and/or month
@@ -1626,10 +1626,68 @@ class Data():
                 s = s[0:8] + str(day).zfill(2) + s[10:] #replace day
             if month is not None:
                 s = s[0:5] + str(month).zfill(2) + s[7:] #replace day
+            if year is not None:
+                s = str(year).zfill(4) + s[4:]
             o.append(plt.datestr2num(s))
 
         o = np.asarray(o)
         self.time = o.copy()
+
+#-----------------------------------------------------------------------
+
+    def timsort(self,return_object = False):
+        """
+        sorts a C{Data} object in accordance with its time axis.
+
+        A typical application of this function would be for climatological mean
+        values. If one calculates a climatology using the cdo ymonmean command,
+        it is *not* guarantued that the data is actually in ascending order, namely, that
+        January is the first dataset. The reason is, that the cdo's start with the dataset
+        of the first month!
+
+        by using timsort() one can ensure a proper sequence of the data.
+        In case of a climatology, it is recommended that you first set the day and year to a common
+        date to get in the end a sorting of the months. An example would look like
+
+        self.adjust_time(day=15,year=2000) #sets year to a dummy = 2000 and day = 15
+        self.timsort() #results in a sorted climatology
+
+        (unittest)
+
+        @param return_object: return a C{Data} object as result
+        @type return_object: bool
+
+        @return: either a C{Data} object is returned or the current data object is modified
+        """
+
+        #- checks
+        if self.time == None:
+            raise ValueError, 'Time array needed for timsort()'
+        if self.data.ndim != 3:
+            raise ValueError, '3D array needed for timsort()'
+
+        #- specify object ot work on
+        if return_object:
+            x = self.copy()
+        else:
+            x = self
+
+        #- do the sorting
+        s = np.argsort(x.time)
+        x.data = x.data[s,:,:]
+        x.time = x.time[s]
+        if hasattr(x,'std'): #standard deviation
+            x.std = x.std[s,:,:]
+        if hasattr(x,'n'):   #number of datasets
+            x.n = x.n[s,:,:]
+
+        #- result
+        if return_object:
+            return x
+
+
+
+
 
 #-----------------------------------------------------------------------
 

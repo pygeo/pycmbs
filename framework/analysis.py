@@ -635,11 +635,11 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
     #report.subsection('SRB')
     #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #ceres
-    #report.subsection('CERES')
-    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    report.subsection('CERES')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #cm-saf
-    report.subsection('CMSAF')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    #report.subsection('CMSAF')
+    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
 
     report.figure(fG,caption='Global means for SIS ')
 
@@ -687,10 +687,12 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
     elif obs_type == 'CERES':
         #todo EBAF data
-        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
-        y1 = '2001-01-01'; y2='2003-12-31'
+        #raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
+        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
+        #y1 = '2001-01-01'; y2='2003-12-31'
 
-        obs_var = 'BfCER00'
+        #obs_var = 'BfCER00'
+        obs_var = 'sfc_sw_down_all_mon'
         gleckler_pos = 2
 
     elif obs_type == 'CMSAF':
@@ -749,6 +751,10 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
     obs_sis_N = Data(obs_sis_N_file,obs_var,read=True,label=obs_type + ' N',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
     obs_sis.n = obs_sis_N.data.copy(); del obs_sis_N
 
+    #sort climatology to be sure that it starts always with January
+    obs_sis.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+    obs_sis.timsort()
+
     #read monthly data (needed for global means and hovmoeller plots)
     obs_monthly = Data(obs_mon_file,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=12) #,mask=ls_mask.data.data)
 
@@ -777,62 +783,63 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
         #--- generate difference maps for each month/season
 
-        #todo: implement statistical significance test here!!!
-        #print model_data.data.ndim
-        #print obs_sis.data.ndim
+        #todo test for calculation ????
 
-        #xxx = model_data.diff(obs_sis)
-        # print xxx.data.shape
+        #use welch test to calculate significant different areas
+        isdifferent , t1, t2 = welchs_approximate_ttest(model_data.n, model_data.data, model_data.std, obs_sis.n, obs_sis.data, obs_sis.std, 0.95)
 
-        #for
-        #welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
-        #f_season = map_season(model_data.sub(obs_sis))
+        f_season1 = map_season(model_data,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
+        f_season2 = map_season(obs_sis,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
+        f_season3 = map_season(model_data.sub(obs_sis),overlay=~isdifferent,titlefontsize=10,cmap='RdBu_r',vmin=-50.,vmax=50.,cticks=[-50.,-25.,0.,25.,50.],nclasses=8,use_basemap=use_basemap)
 
-        #report.figure(f_season,caption='Difference between ' + model.name + ' and ' + obs_type + '; significant changes are indicated by crosses' )
-        #del f_season
-        #stop
+        report.figure(f_season1,caption='SSI climatology of  ' + model.name)
+        report.figure(f_season2,caption='SSI climatology of  ' + obs_type)
+        report.figure(f_season3,caption='Difference between ' + model.name + ' and ' + obs_type + '; areas with significant differences ($p<0.05$) are shown, while areas with the same means are marked/shaded ' )
+        del f_season1, f_season2, f_season3
+
 
         #--- generate hovmoeller plot ---
-        f_hov = plt.figure(figsize=(8,12))
-        ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
-        ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
+        if False:
+            f_hov = plt.figure(figsize=(8,12))
+            ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
+            ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
 
-        #hovmoeller for model
-        start_time = pl.num2date(pl.datestr2num('1980-01-01')) #common period of data
-        stop_time = pl.num2date(pl.datestr2num('2012-12-31'))
+            #hovmoeller for model
+            start_time = pl.num2date(pl.datestr2num('1980-01-01')) #common period of data
+            stop_time  = pl.num2date(pl.datestr2num('2012-12-31'))
 
-        #generate a reference monthly timeseries (datetime)
-        tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
+            #generate a reference monthly timeseries (datetime)
+            tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
 
-        #perform temporal subsetting and interpolation for hovmoeller plot
-        tmp = model.variables['sis_org'][2]
-        #i1,i2 = tmp._get_time_indices(start_time,stop_time)
-        #tmp._temporal_subsetting(i1,i2)
-        tmp = tmp.interp_time(pl.date2num(tref))
-        print '      interpol done 1'
+            #perform temporal subsetting and interpolation for hovmoeller plot
+            tmp = model.variables['sis_org'][2]
+            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+            #tmp._temporal_subsetting(i1,i2)
+            tmp = tmp.interp_time(pl.date2num(tref))
+            print '      interpol done 1'
 
-        hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
-        hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
-        hov_model.hov = None
-        hov_model.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
-        del hov_model, tmp
+            hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
+            hov_model.hov = None
+            hov_model.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
+            del hov_model, tmp
 
-        #hovmoeller for observations
-        tmp = obs_monthly.copy()
-        #i1,i2 = tmp._get_time_indices(start_time,stop_time)
-        #tmp._temporal_subsetting(i1,i2)
-        tmp = tmp.interp_time(pl.date2num(tref))
-        print 'interpol done 2'
+            #hovmoeller for observations
+            tmp = obs_monthly.copy()
+            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+            #tmp._temporal_subsetting(i1,i2)
+            tmp = tmp.interp_time(pl.date2num(tref))
+            print 'interpol done 2'
 
 
-        hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
-        hov_obs.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
-        hov_obs.hov = None
-        hov_obs.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
-        del hov_obs, tmp
+            hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_obs.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
+            hov_obs.hov = None
+            hov_obs.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
+            del hov_obs, tmp
 
-        report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_type + ')' )
-        del f_hov
+            report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_type + ')' )
+            del f_hov
 
         #--- generate difference map
         f_dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=6,show_zonal=True,zonal_timmean=False,cticks=[0.,50.,100.,150.,200.,250.,300.],cticks_diff=[-18.,-12.,-6.,0.,6.,12.,18.],rmin=-0.25,rmax=0.25)
@@ -850,6 +857,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         #/// report results
         report.subsubsection(model.name)
         report.figure(f_dif,caption='Mean and relative differences ' + obs_type + ' ' + model.name)
+        del f_dif
 
     del obs_monthly
 
