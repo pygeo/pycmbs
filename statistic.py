@@ -28,6 +28,7 @@ statistical module for pyCMBS
 from scipy import stats
 import numpy as np
 import scipy.special as special
+from scipy import stats as Sstats
 
 def get_significance(correlation,n,pthres=1.01):
     """

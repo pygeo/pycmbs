@@ -1224,7 +1224,7 @@ def pm_bar(x,y=None,pcolor='red',ncolor='blue',ax=None,**kwargs):
 
 #-----------------------------------------------------------------------
 
-def map_season(x,year=False,**kwargs):
+def map_season(x,**kwargs):
     """
     generate a seasonal plot
     all arguments are parsed directly to map_plot function
@@ -1235,24 +1235,22 @@ def map_season(x,year=False,**kwargs):
     @param x: C{Data} object
     @type x : C{Data}
 
-    @param year: specify of yearly data or (TRUE) or seasonal data (False) should be used
-    @type year : bool
-
     @return: returns the figure where plot was done
     @rtype: C{figure}
 
     """
-    if year:
-        nvals = 12
+
+    nvals = len(x.data)
+    if nvals == 12:
+        year = True
+    elif nvals == 4:
+        year = False
     else:
-        nvals = 4
+        raise ValueError, 'Only data for 4-seasons or monthly data is supported!'
 
     #/// checks ///
     if x.data.ndim != 3:
         raise ValueError, 'only 3D data supported'
-
-    if len(x.data) != nvals:
-        raise ValueError, 'only data with four seasons supported'
 
     #/// figure and axes
     if 'figure' in kwargs:
@@ -1267,24 +1265,35 @@ def map_season(x,year=False,**kwargs):
 
     #/// plot
     if year:
-        labels=['J','F','M','A','M','J','J','A','S','O','N','D']
+        labels=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     else:
         labels=['JFM','AMJ','JAS','OND']
+
+
+    #/// in case that an overlay is provided, this needs to be processed for each timestep individually
+    if 'overlay' in kwargs.keys():
+        overlays = kwargs.pop('overlay')
+    else:
+        overlays = None
 
     for i in range(nvals):
         if year:
             ax = f.add_subplot(4,3,i+1)
+            if i % 3 == 2:
+                show_colorbar = True
+            else:
+                show_colorbar=False
         else:
             ax = f.add_subplot(2,2,i+1)
         d = x.copy(); d.data = x.data[i,:,:]
         d.label = labels[i]
-        if hasattr(d,'p_mask'):
-            #The data object was generated using the Data.diff() function.
-            #In this case, the grid cells with significant changes are marked with an overlay
-            overlay = d.p_mask
-        else:
+
+        if overlays == None:
             overlay = None
-        map_plot(d,ax=ax,overlay=overlay,**kwargs); del d
+        else:
+            overlay = overlays[i,:,:]
+
+        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay, **kwargs); del d
 
     f.suptitle(tit,size=12)
 
@@ -1292,7 +1301,11 @@ def map_season(x,year=False,**kwargs):
 
 #-----------------------------------------------------------------------
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet', title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False, f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None, bluemarble = False, contours=False, overlay=None, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet',
+             title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False,
+             f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
+             zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
+             bluemarble = False, contours=False, overlay=None,titlefontsize=14, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1365,10 +1378,15 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @param show_zonal: specifies if zonal plots should be shown
     @type show_zonal: bool
 
+    @param titlefontsize: fontsize of the figure title
+    @type titlefontsize: int
+
     """
 
     #--- checks
+
     if overlay != None:
+
         if x.data.ndim == 2:
             if overlay.shape != x.data.shape:
                 print overlay.shape, x.data.shape
@@ -1503,9 +1521,6 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 xcoordnew=X[overlay]; ycoordnew=Y[overlay]
                 m1.scatter(xcoordnew,ycoordnew,marker='+',s=50,c='white',edgecolors='white',linewidth=1)
 
-
-
-
     else: #use_basemap = False
         #- normal plots
         if contours:
@@ -1513,10 +1528,17 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             ax.clabel(im1, inline=1, fontsize=10) #contour label
         else:
             im1=ax.imshow(xm,cmap=cmap,interpolation='nearest', **kwargs1)
+
+        #--- overlay
+        if overlay != None:
+            ny,nx = xm.shape
+            xnew = arange(nx); ynew = arange(ny)
+            XN,YN = np.meshgrid(xnew,ynew)
+            del xnew,ynew
+            xcoordnew=XN[overlay]; ycoordnew=YN[overlay]
+            pl.scatter(xcoordnew,ycoordnew,marker='.',s=1,c='white',edgecolors='white',alpha=1.)
+
         ax.set_xticks([]); ax.set_yticks([])
-
-
-
 
     #set legend aligned with plot (nice looking)
     if show_colorbar:
@@ -1575,7 +1597,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
 
 
-    ax.set_title(title,size=14)
+    ax.set_title(title,size=titlefontsize)
 
 
     #/// show timeseries? ///
@@ -1589,7 +1611,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     return fig
 
-#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 
 def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
     """
