@@ -314,6 +314,10 @@ class CMIP5Data(Model):
         sis_N = Data(sis_N_file,'rsds',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
         sis.n = sis_N.data.copy(); del sis_N
 
+        #ensure that climatology always starts with January, therefore set date and then sort
+        sis.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        sis.timsort()
+
         #4) read monthly data
         sisall = Data(file_monthly,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12) #todo check timecycle
         sismean = sisall.fldmean()

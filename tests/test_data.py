@@ -154,6 +154,13 @@ class TestData(TestCase):
         self.assertFalse(np.any(r != 1.))
 
     def test_adjust_time(self):
+        '''
+        test the adjust_time function
+        @return:
+        '''
+        '''
+        @return:
+        '''
         D = self.D.copy()
         D.adjust_time(day=17)
         for i in xrange(len(D.time)):
@@ -161,6 +168,53 @@ class TestData(TestCase):
         D.adjust_time(month=10)
         for i in xrange(len(D.time)):
             self.assertEqual(pl.num2date(D.time[i]).month,10)
+        D.adjust_time(year=2025)
+        for i in xrange(len(D.time)):
+            self.assertEqual(pl.num2date(D.time[i]).year,2025)
+
+    def test_timsort(self):
+        D=self.D.copy()
+        D.adjust_time(day=15)
+
+        #- generate some sample data
+        D.time = pl.datestr2num('2001-05-03') + np.arange(5)
+        D.data = D.data[0:5,:,:]
+        D.data[:,0,0] = np.arange(5)
+
+        D.std = D.data.copy()+2.2
+
+
+        #- reshuffle the data
+        t1=D.time[1]*1.; t2=D.time[3]*1.
+        D.time[3] = t1; D.time[1] = t2
+
+        #save reference solutions before sorting
+        y = D.data[:,0,0]*1.
+        t = D.time*1.
+
+        s = np.argsort(t)
+        y1 = y[s]
+
+        print 'Time BEFORE sorting: ', D.time
+        print 'Data BEFORE sorting: ', D.data[:,0,0]
+
+
+        #sort data
+        D.timsort()
+
+
+        print 'Time AFTER sorting: ', D.time
+        print 'Data AFTER sorting: ', D.data[:,0,0]
+        print '                    ', y1
+
+        #/// checks
+
+        #a) check if time is sorted
+        self.assertTrue(np.all(np.diff(D.time) > 0))
+
+        #b) check if data was sorted also appropriately
+        self.assertTrue(   np.all(y1-D.data[:,0,0]) == 0.   )
+        self.assertTrue(   np.all(y1+2.2-D.std [:,0,0]) == 0.   )
 
 
     def test_diff(self):
