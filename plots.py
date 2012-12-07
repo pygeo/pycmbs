@@ -575,21 +575,42 @@ class LinePlot():
 #-----------------------------------------------------------------------
 
 class GlobalMeanPlot():
-    '''
+    """
     plots timeseries of global mean field
-    '''
+    """
 
-    def __init__(self,ax=None):
+    def __init__(self,ax=None,climatology=True,ax1=None):
+        """
+        @param ax: specifies axis to plot the data to
+        @type ax: axis
+
+        @param climatology: specifies if a second plot for a climatological mean value shall be generated
+        @type climatology: bool
+        """
+        if climatology:
+            nplots = 2
+        else:
+            nplots = 1
+        self.climatology = climatology
+
         if ax == None:
             f = plt.figure()
-            self.ax = f.add_subplot(111)
+            self.ax = f.add_subplot(nplots,1,1)
+            if self.climatology:
+                if ax1 == None:
+                    raise ValueError, 'For climatology plot, we need a ax1 as an argument!'
+                else:
+                    self.ax1 = ax1
         else:
-            self.ax = ax
+            if self.climatology:
+                self.ax  = ax.figure.add_subplot(nplots,1,1)
+                self.ax1 = ax.figure.add_subplot(nplots,1,2)
+            else:
+                self.ax = ax
 
-        self.labels=[]
-        self.plots=[]
+        self.labels=[]; self.plots=[]
 
-    def plot(self,D,color=None,linewidth=1,show_std=False,label=None,linestyle='-'):
+    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-'):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -601,7 +622,7 @@ class GlobalMeanPlot():
         the Data label. In case of a duplication of the data labels,
         no plot will be done!
 
-        @param: D data field to be plotted
+        @param: D1 data field to be plotted
         @type: C{Data} or (time,data) tuple
 
         @param color: color of the line
@@ -614,30 +635,27 @@ class GlobalMeanPlot():
         @type show_std: bool
         """
 
-        if ((label==None) and (D.label in self.labels)):
+        if ((label==None) and (D1.label in self.labels)):
             #print 'Label already existing: ', D.label, ' skipping analysis'
             return
         elif ((label != None) and (label in self.labels)):
             #print 'Label already existing: ', label, ' skipping analysis'
             return
 
-        is_list = False
-        if 'tuple' in str(type(D)): #only a vector is provided as data together with time (time,data)
-            is_list = True
-            t = D[0]
-            mdata = D[1]
-            if show_std:
-                raise ValueError, 'This combination is not supported yet!'
+        if 'tuple' in str(type(D1)): #only a vector is provided as data together with time (time,data)
+            D = D1[2] #(time,data,orgdata)
         else:
-            if D.data.ndim != 3:
-                raise ValueError, 'Global plot only supported for 3D data'
+            D = D1
 
-            #mean field
-            m = D.fldmean(return_data=True) #mean
-            mdata = m.data.flatten()
+        if D.data.ndim != 3:
+            raise ValueError, 'Global plot only supported for 3D data'
 
-            #time
-            t = plt.num2date(m.time)
+        #mean field
+        m = D.fldmean(return_data=True) #mean
+        mdata = m.data.flatten()
+
+        #time
+        t = plt.num2date(m.time)
 
         #--- plot generation ---
         if color == None:
@@ -650,19 +668,30 @@ class GlobalMeanPlot():
             sdata = s.data.flatten()
             self.ax.fill_between(t,mdata-sdata,y2=mdata+sdata,color=p[0].get_color(),alpha=0.5)
 
-        #store information for legend
+        #- plot climatology if desired
+        if self.climatology:
+            tmp = D.get_climatology(return_object=True)
+            tmp.adjust_time(year=1700,day=15)
+            tmp.timsort()
+            m = tmp.fldmean(return_data=False).flatten()
+
+            self.ax1.plot(np.arange(1,13),m,linestyle=linestyle)
+            self.ax1.set_xlim(0.,13.)
+            self.ax1.set_ylabel(tmp._get_unit())
+            del tmp
+
+        #- store information for legend
         self.plots.append(p[0])
         if label==None:
             self.labels.append(D.label)
         else:
             self.labels.append(label)
 
-        #labels
-        if not is_list:
-            self.ax.set_ylabel(D._get_unit())
+        #- labels
+        self.ax.set_ylabel(D._get_unit())
         self.ax.set_xlabel('time')
 
-        #legend
+        #- legend
         self.ax.legend(self.plots,self.labels,loc='lower center',ncol=2,fancybox=True)
 
 

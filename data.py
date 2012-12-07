@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from jockey.ui import bool
 
 __author__ = "Alexander Loew"
 __version__ = "0.1"
@@ -526,6 +527,7 @@ class Data():
         #due to data compression
         if self.verbose:
             print 'scale_factor : ', self.scale_factor
+
         self.data = self.data * self.scale_factor
 
         #--- squeeze data to singletone
@@ -865,37 +867,71 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_climatology(self):
+    def get_climatology(self,return_object=False,nmin=1):
         """
         calculate climatological mean for a time increment
         specified by self.time_cycle
+
+        Note: one can not assume that the climatology starts from January if you use a time_cycle = 12
+        Instead, the climatology simply starts with the value which corresponds to the first value of the data
+
+        @param return_object: specifies if a C{Data} object shall be returned
+        @type return_object: bool
+
+        @param nmin: specifies the minimum number of datasets used for climatology; else the result is masked
+        @type nmin: bool
         """
         if hasattr(self,'time_cycle'):
             pass
         else:
             raise ValueError, 'Climatology can not be calculated without a valid time_cycle'
 
+        #generate output fields
         if self.data.ndim > 1:
             clim = np.ones(np.shape(self.data[0:self.time_cycle,:])) * np.nan #output grid
+            slim = np.ones(np.shape(self.data[0:self.time_cycle,:])) * np.nan #output grid
         else:
             clim = np.ones(np.shape(self.data[0:self.time_cycle])) * np.nan #output grid
+            slim = np.ones(np.shape(self.data[0:self.time_cycle])) * np.nan #output grid
 
         if clim.ndim == 1:
             for i in xrange(self.time_cycle):
                 clim[i::self.time_cycle] = self.data[i::self.time_cycle].mean(axis=0)
+                slim[i::self.time_cycle] = self.data[i::self.time_cycle].sum(axis=0)
         elif clim.ndim == 2:
             for i in xrange(self.time_cycle):
                 clim[i::self.time_cycle,:] = self.data[i::self.time_cycle,:].mean(axis=0)
+                slim[i::self.time_cycle,:] = self.data[i::self.time_cycle,:].sum(axis=0)
         elif clim.ndim ==3:
             for i in xrange(self.time_cycle):
                 clim[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:].mean(axis=0)
+                slim[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:].sum(axis=0)
         else:
             raise ValueError, 'Invalid dimension when calculating climatology'
 
-        clim = np.ma.array(clim,mask=np.isnan(clim))
-        #todo take also into account the mask from the original data set
+        n = slim / clim; del slim #number of data taken into account for climatology
+        clim = np.ma.array(clim,mask=( np.isnan(clim) | (n < nmin) | np.isnan(n)) ); del n
 
-        return clim
+        if return_object:
+            r = self.copy()
+            r.label = r.label + ' - climatology'
+            r.data = clim
+            r.time = []
+            for i in xrange(self.time_cycle):
+                r.time.append(self.time[i])
+            r.time = np.asarray(r.time)
+
+            if len(r.time) != len(r.data):
+                print len(r.time)
+                print len(r.data)
+                raise ValueError, 'Data and time are inconsistent in get_climatology()'
+
+            return r
+        else:
+            return clim
+
+
+
 
 #-----------------------------------------------------------------------
 
@@ -1442,7 +1478,7 @@ class Data():
             w[m] = self.cell_area[m] / self.cell_area[m].sum()
             return w
         elif self.data.ndim == 3:
-            nt = len(self.time)
+            nt = len(self.data)
 
             #1) repeat cell area nt-times
             cell_area = self.cell_area.copy()
@@ -1454,6 +1490,9 @@ class Data():
                 w = cell_area.repeat(nt).reshape((1,nt)).T
             else:
                 raise ValueError, 'Invalid geometry!'
+            print self.label
+            print w.shape
+            print self.data.shape
             w.shape = self.data.shape #geometry is the same now as data
 
             #2) mask areas that do not contain valid data
@@ -1914,17 +1953,23 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def _apply_mask(self,msk,keep_mask=True):
+    def _apply_mask(self,msk1,keep_mask=True):
         """
         apply a mask to C{Data}. All data where mask==True
         will be masked. Former data and mask will be stored
 
         @param msk: mask
-        @type msk : numpy boolean array
+        @type msk : numpy boolean array or Data
 
         @param keep_mask: keep old masked
         @type keep_mask : boolean
         """
+
+        if isinstance(msk1,Data):
+            msk = msk1.data
+        else:
+            msk = msk1
+
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()
 
@@ -2284,6 +2329,8 @@ class Data():
         """
         Divide current data by a constant
 
+        (unittest)
+
         @param x: constant
         @type  x: float
 
@@ -2304,6 +2351,8 @@ class Data():
     def div(self,x,copy=True):
         """
         Divide current object field by field of a C{Data} object
+
+        (unittest)
 
         @param x: C{Data} object in the denominator
         @type  x: C{Data} object (data needs to have either same geometry
@@ -2339,10 +2388,10 @@ class Data():
         else:
             d = self
         if np.shape(d.data) == np.shape(x.data):
-            d.data = d.data / x.data
+            d.data /=  x.data
         elif np.shape(d.data[0,:,:]) == np.shape(x.data):
-            for i in range(len(self.time)):
-                d.data[i,:,:] = d.data[i,:,:] / x.data
+            for i in xrange(len(self.time)):
+                d.data[i,:,:] /=  x.data
         else:
             raise ValueError, 'Can not handle this geometry in div()'
 
