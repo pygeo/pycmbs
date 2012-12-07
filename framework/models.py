@@ -269,8 +269,6 @@ class CMIP5Data(Model):
         if self.stop_time == None:
             raise ValueError, 'Stop time needs to be specified'
 
-
-
         #/// PREPROCESSING ///
         cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
@@ -320,7 +318,16 @@ class CMIP5Data(Model):
 
         #4) read monthly data
         sisall = Data(file_monthly,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12) #todo check timecycle
+        sisall.adjust_time(day=15)
+
+        sis._apply_mask(get_T63_landseamask(False))
+        sisall._apply_mask(get_T63_landseamask(False))
+
         sismean = sisall.fldmean()
+
+
+
+
 
         #/// return data as a tuple list
         retval = (sisall.time,sismean,sisall); del sisall
@@ -332,30 +339,83 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_up(self):
+    def get_surface_shortwave_radiation_up(self,interval='season'):
+
+        #original data
         filename1 = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+        force_calc = False
 
         if self.start_time == None:
             raise ValueError, 'Start time needs to be specified'
         if self.stop_time == None:
             raise ValueError, 'Stop time needs to be specified'
 
+        #/// PREPROCESSING ///
+        cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
-        s_stop_time  = str(self.stop_time)[0:10]
+        s_stop_time = str(self.stop_time)[0:10]
 
-        tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
-        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
+        #1) select timeperiod and generate monthly mean file
+        file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
+        file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
+        cdo.monmean(options='-f nc',output=file_monthly,input = '-remapcon,t63grid -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1,force=force_calc)
 
-        if not os.path.exists(filename):
+        #2) calculate monthly or seasonal climatology
+        if interval == 'monthly':
+            sup_clim_file     = file_monthly[:-3] + '_ymonmean.nc'
+            sup_sum_file      = file_monthly[:-3] + '_ymonsum.nc'
+            sup_N_file        = file_monthly[:-3] + '_ymonN.nc'
+            sup_clim_std_file = file_monthly[:-3] + '_ymonstd.nc'
+            cdo.ymonmean(options='-f nc -b 32',output = sup_clim_file,input=file_monthly, force=force_calc)
+            cdo.ymonsum(options='-f nc -b 32',output = sup_sum_file,input=file_monthly, force=force_calc)
+            cdo.ymonstd(options='-f nc -b 32',output = sup_clim_std_file,input=file_monthly, force=force_calc)
+            cdo.div(options='-f nc',output = sup_N_file,input=sup_sum_file + ' ' + sup_clim_file, force=force_calc) #number of samples
+        elif interval == 'season':
+            sup_clim_file     = file_monthly[:-3] + '_yseasmean.nc'
+            sup_sum_file      = file_monthly[:-3] + '_yseassum.nc'
+            sup_N_file        = file_monthly[:-3] + '_yseasN.nc'
+            sup_clim_std_file = file_monthly[:-3] + '_yseasstd.nc'
+            cdo.yseasmean(options='-f nc -b 32',output = sup_clim_file,input=file_monthly, force=force_calc)
+            cdo.yseassum(options='-f nc -b 32',output = sup_sum_file,input=file_monthly, force=force_calc)
+            cdo.yseasstd(options='-f nc -b 32',output = sup_clim_std_file,input=file_monthly, force=force_calc)
+            cdo.div(options='-f nc -b 32',output = sup_N_file,input=sup_sum_file + ' ' + sup_clim_file, force=force_calc) #number of samples
+        else:
+            print interval
+            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+
+        if not os.path.exists(sup_clim_file):
             return None
 
-        sis = Data(filename,'rsus',read=True,label=self.model,unit='W/m**2',lat_name='lat',lon_name='lon',shift_lon=False)
-        print 'Data read!'
 
-        return sis
+        #3) read data
+        sup = Data(sup_clim_file,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
+        sup_std = Data(sup_clim_std_file,'rsus',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
+        sup.std = sup_std.data.copy(); del sup_std
+        sup_N = Data(sup_N_file,'rsus',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
+        sup.n = sup_N.data.copy(); del sup_N
 
-    def get_albedo_data(self):
+        #ensure that climatology always starts with January, therefore set date and then sort
+        sup.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        sup.timsort()
+
+        #4) read monthly data
+        supall = Data(file_monthly,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12) #todo check timecycle
+        supmean = supall.fldmean()
+
+        #/// return data as a tuple list
+        retval = (supall.time,supmean,supall); del supall
+
+        #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
+        #sup.data = np.ma.array(sis.data,mask=sis.data < 1.)
+
+        return sup,retval
+
+
+#-------------------------------------------------------------------------------------------------------------
+
+
+    def get_albedo_data(self,interval='season'):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
@@ -371,46 +431,45 @@ class CMIP5Data(Model):
         if self.stop_time == None:
             raise ValueError, 'Stop time needs to be specified'
 
-        s_start_time = str(self.start_time)[0:10]; s_stop_time  = str(self.stop_time )[0:10]
 
-        file_down = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-        file_up   = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        #--- get fluxes
+        Fu = self.get_surface_shortwave_radiation_up  (interval=interval); Fu_i = Fu[0]
+        lab = Fu_i.label
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval); Fd_i = Fd[0]
 
-        if not os.path.exists(file_down):
-            print 'File not existing: ', file_down
-            return None
-        if not os.path.exists(file_up):
-            print 'File not existing: ', file_up
-            return None
+        #albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
+        Fu_i.div(Fd_i,copy=False); del Fd_i #Fu contains now the albedo
+        Fu_i._apply_mask(ls_mask.data)
 
-        #/// calculate ratio on monthly basis
-        # CAUTION: it might happen that latitudes are flipped. Therefore always apply remapcon!
+        #albedo for monthly data (needed for global mean plots )
+        Fu_m = Fu[1][2]; del Fu
+        Fd_m = Fd[1][2]; del Fd
 
-        #select dates
-        Fu = pyCDO(file_up,s_start_time,s_stop_time,force=force_calc).seldate()
-        Fd = pyCDO(file_down,s_start_time,s_stop_time,force=force_calc).seldate()
+        #print Fu_m.data.shape
+        #print Fd_m.data.shape
+        #stop
+        Fu_m.div(Fd_m,copy=False); del Fd_m
+        Fu_m._apply_mask(ls_mask.data)
+        Fu_m._set_valid_range(0.,1.)
+        Fu_m.label = lab + 'albedo'
+        Fu_i.label = lab + 'albedo'
 
-        #remap to T63
-        tmpu = pyCDO(Fu,s_start_time,s_stop_time,force=force_calc).remap()
-        tmpd = pyCDO(Fd,s_start_time,s_stop_time,force=force_calc).remap()
+        #/// center dates of months
+        Fu_m.adjust_time(day=15)
+        Fu_i.adjust_time(day=15)
 
-        #calculate monthly albedo
-        if 'CDOTEMPDIR' in os.environ.keys(): #check for temp. directory to write albedo file to
-            tdir = os.environ['CDOTEMPDIR']
-        else:
-            tdir = './'
-        albmon = pyCDO(tmpu,s_start_time,s_stop_time,force=force_calc).div(tmpd,output=tdir + self.model + '_' + self.experiment + '_albedo_tmp.nc')
+        #/// return data as a tuple list
+        retval = (Fu_m.time,Fu_m.fldmean(),Fu_m)
 
-        #calculate seasonal mean albedo
-        tmp1 = pyCDO(albmon,s_start_time,s_stop_time,force=force_calc).seasmean()
-        albfile = pyCDO(tmp1,s_start_time,s_stop_time,force=force_calc).yseasmean()
 
-        alb = Data(albfile,'rsus',read=True,label=self.model + ' albedo',unit='-',lat_name='lat',lon_name='lon',shift_lon=True)
-        alb._set_valid_range(0.,1.)
+        print 'TODOTODOTODO' #todo
+        #downward geht nur bis Jahr 2000: warum ????
+        #und upward bis 2008 ???? warum ????
 
-        alb._apply_mask(ls_mask.data)
 
-        return alb
+        return Fu_i, retval
+
+
 
 
 

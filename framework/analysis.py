@@ -32,6 +32,106 @@ from cdo import *
 #///////////////////////////////////////////////////////////////////////
 
 
+def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,obs_var=None,label='',shift_lon=None):
+    """
+    This subroutine performs pre-processing of some raw data file. It does
+
+    1) generate monthly timeseries
+    2) generate seasonal timeseries
+    3) remaps data to T63 grid
+    4) calculates standard deviation and number of valid data
+    5) returns seasonal/monthly climatology as well as monthly mean raw data
+
+    ALL generated data will be stored in temporary data directory
+
+    @param raw_file: name of original data file to be processed
+    @type raw_file: str
+
+    @param interval: [season,monthly]
+    @type interval: str
+
+    @param force: force caluclations
+    @type force: bool
+
+    @param themask: mask to be applied to the data (default=None)
+    @type themask: numpy bool array or Data
+
+    @param obs_var: variable to analyze
+    @type obs_var: str
+    """
+
+    print 'Preprocessing ' + raw_file
+
+    if obs_var == None:
+        raise ValueError, 'Name of variable to be processed needs to be specified!'
+    if shift_lon == None:
+        raise ValueError, 'Lon shift parameter needs to be specified!'
+
+    #--- PREPROCESSING of observational data  ---
+    cdo = Cdo()
+
+    #1) generate monthly mean file projected to T63
+    obs_mon_file     = get_temporary_directory() + os.path.basename(raw_file)
+    obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
+    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_file,force=force)
+
+    #2) generate monthly mean or seasonal mean climatology as well as standard deviation
+    if interval == 'monthly':
+        obs_ymonmean_file     = obs_mon_file[:-3] + '_ymonmean.nc'
+        obs_ymonstd_file = obs_mon_file[:-3] + '_ymonstd.nc'
+        obs_ymonsum_file = obs_mon_file[:-3] + '_ymonsum.nc'
+        obs_ymonN_file   = obs_mon_file[:-3] + '_ymonN.nc'
+        cdo.ymonmean(options='-f nc -b 32',output=obs_ymonmean_file,     input=obs_mon_file,force=force)
+        cdo.ymonsum (options='-f nc -b 32',output=obs_ymonsum_file, input=obs_mon_file,force=force)
+        cdo.ymonstd (options='-f nc -b 32',output=obs_ymonstd_file, input=obs_mon_file,force=force)
+        cdo.div(options='-f nc -b 32',output = obs_ymonN_file,input=obs_ymonsum_file + ' ' + obs_ymonmean_file, force=force) #number of samples
+
+        time_cycle = 12
+    elif interval == 'season':
+        obs_alb_file     = obs_mon_file[:-3] + '_yseasmean.nc'
+        obs_alb_std_file = obs_mon_file[:-3] + '_yseasstd.nc'
+        obs_alb_sum_file = obs_mon_file[:-3] + '_yseassum.nc'
+        obs_alb_N_file   = obs_mon_file[:-3] + '_yseasN.nc'
+        cdo.yseasmean(options='-f nc -b 32',output=obs_ymonmean_file,     input=obs_mon_file,force=force)
+        cdo.yseassum (options='-f nc -b 32',output=obs_ymonsum_file, input=obs_mon_file,force=force)
+        cdo.yseasstd (options='-f nc -b 32',output=obs_ymonstd_file, input=obs_mon_file,force=force)
+        cdo.div(options='-f nc -b 32',output = obs_ymonN_file,input=obs_ymonsum_file + ' ' + obs_ymonmean_file, force=force) #number of samples
+
+        time_cycle = 4
+
+    else:
+        print interval
+        raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+
+    #--- READ DATA ---
+    obs     = Data(obs_ymonmean_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
+    obs_std = Data(obs_ymonstd_file,obs_var,read=True,label=label + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
+    obs.std = obs_std.data.copy(); del obs_std
+    obs_N = Data(obs_ymonN_file,obs_var,read=True,label=label + ' N',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
+    obs.n = obs_N.data.copy(); del obs_N
+
+    #sort climatology to be sure that it starts always with January
+    obs.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+    obs.timsort()
+
+    #read monthly data (needed for global means and hovmoeller plots)
+    obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=12) #,mask=ls_mask.data.data)
+
+    #/// center dates of months
+    obs_monthly.adjust_time(day=15)
+    obs.adjust_time(day=15)
+
+    if themask != None:
+        obs._apply_mask(themask)
+        obs_monthly._apply_mask(themask)
+
+    return obs,obs_monthly
+
+    #--- preprocessing END ---
+
+
+
+
 #=======================================================================
 # VEGETATION COVER FRACTION -- begin
 #=======================================================================
@@ -246,7 +346,9 @@ def tree_fraction_analysis(model_list,pft='tree'):
 # ALBEDO -- begin
 #=======================================================================
 
-def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
+def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season'):
+    #todo: for a proper albedo analyis it would be useful to actually compare the all-sky albedo !
+
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
     if use_basemap == None:
@@ -260,8 +362,22 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     print '************************************************************'
 
     report.section('Surface albedo')
+
+    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
+    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
+
+
+    #- MODIS white sky albedo
     report.subsection('MODIS WSA')
-    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
+    report.write('MODIS albedo is based on the MODIS white-sky albedo product. Snow covered areas remain in the data product, but all pixels flagged as invalid was discarded.')
+    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='MODIS',GM=GM)
+
+    #- CERES surface albedo from all sky fluxes
+    report.subsection('CERES albedo')
+    report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
+    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
+
+    report.figure(fG,caption='Global means for land surface albedo')
 
     print '************************************************************'
     print '* END ALBEDO analysis ...'
@@ -269,12 +385,17 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     print
 
 
-def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None):
+def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
     """
     model_list = list which contains objects of data type MODEL
     """
 
     vmin = 0.; vmax = 0.6
+
+    if interval == None:
+        raise ValueError, 'Interval period in albedo analyis not specified!'
+    if obs_type == None:
+        raise ValueError, 'Observation type for albedo was not specified!'
 
     print 'Doing ALBEDO analysis ...'
 
@@ -285,17 +406,41 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
 
-    #--- T63 weights
-    #~ t63_weights = get_T63_weights(shift_lon)
+    #--- loading observation data
+    if obs_type == 'MODIS':
+        #--- load MODIS data
+        #use file which was already mapped to T63; anything else takes too long!
+        obs_raw_file     = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged.nc'
+        obs_var = 'surface_albedo_WSA'
+        gleckler_pos = 1
 
-    #--- load MODIS data
+    elif obs_type == 'CERES':
+        #CERES EBAF ... calculate albedo from raw files
+        up_file   = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_up_all_mon__1x1__200003-201002.nc'
+        down_file = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
 
-    modis_file     = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_mean.nc'
-    modis_file_std = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged_2001_2010_seas_std.nc'
-    albedo=Data(modis_file,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
+        #- calculate albedo using cdos
+        cdo = Cdo()
+        obs_raw_file = get_temporary_directory() + os.path.basename(up_file)[:-3]+'_albedo.nc'
+        cdo.div(options='-f nc', output=obs_raw_file,force=False,input=up_file + ' ' + down_file)
 
-    albedo_std=Data(modis_file_std,'surface_albedo_WSA',read=True,label='albedo',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    albedo.std = albedo_std.data.copy(); del albedo_std
+        obs_var = 'sfc_sw_up_all_mon'
+        gleckler_pos = 2
+
+
+    #todo integrate CLARA SAL DATA and CERES DATA
+    else:
+        raise ValueError, 'Invalid option for observation type in albedo analysis: ' + obs_type
+
+
+
+
+    #/// do data preprocessing ///
+    obs_alb,obs_monthly = preprocess_seasonal_data(obs_raw_file,interval=interval,themask=ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
+
+
+    if GM != None:
+        GM.plot(obs_monthly,linestyle='--')
 
     #--- initailize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -306,40 +451,51 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         GP.add_model(model.name) #register model for Gleckler Plot
 
+        if GM != None:
+            if 'albedo_org' in model.variables.keys():
+                GM.plot(model.variables['albedo_org'][2],label=model.name) #(time,meandata)
+
         #--- get model data
         model_data = model.variables['albedo']
 
         #--- use only valid albedo data (invalid values might be due to polar night effects)
-        model_data.data = np.ma.array(model_data.data,mask = ((model_data.data<0.) | (model_data.data > 1.)) )
+        #model_data.data = np.ma.array(model_data.data,mask = ((model_data.data<0.) | (model_data.data > 1.)) )
 
         if model_data == None: #data file was not existing
             print 'Data not existing for model: ', model.name; continue
 
-        if model_data.data.shape != albedo.data.shape:
+        if model_data.data.shape != obs_alb.data.shape:
             print 'Inconsistent geometries for ALBEDO'
-            print model_data.data.shape; print albedo.data.shape
+            print model_data.data.shape; print obs_alb.data.shape
             raise ValueError, "Invalid geometries"
 
         #--- generate difference map
         dmin = -0.09; dmax = 0.09
-        f_dif  = map_difference(model_data ,albedo,nclasses=6,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,0.1,0.2,0.3,0.4,0.5,0.6],cticks_diff=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09])
+        f_dif  = map_difference(model_data ,obs_alb,nclasses=6,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,0.1,0.2,0.3,0.4,0.5,0.6],cticks_diff=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09])
 
         #seasonal map
-        f_season = map_season(model_data.sub(albedo),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09],nclasses=6)
+        f_season = map_season(model_data.sub(obs_alb),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09],nclasses=6)
+
+
+        #todo hovmoeller plots !!!!
+
 
         #/// Reichler statistics ///
-        Diag = Diagnostic(albedo,model_data)
+        Diag = Diagnostic(obs_alb,model_data)
         e2   = Diag.calc_reichler_index()
         Rplot.add(e2,model_data.label,color='red')
 
         #/// Gleckler plot ///
-        e2a = GP.calc_index(albedo,model_data,model,'albedo')
+        e2a = GP.calc_index(obs_alb,model_data,model,'albedo')
         GP.add_data('albedo',model.name,e2a,pos=1)
 
         #/// report results
         report.subsubsection(model.name)
         report.figure(f_season,caption='Seasonal differences')
         report.figure(f_dif,caption='Mean and relative differences')
+
+
+    del obs_monthly
 
     f_reich = Rplot.bar(title='relative model error: ALBEDO')
     report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
@@ -605,11 +761,11 @@ def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=Fa
 
 
 def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None):
-    '''
+    """
     main routine for SIS analysis
 
     calls currently 4 different analyses with different observational datasets
-    '''
+    """
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
     if use_basemap == None:
@@ -625,21 +781,22 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
     print '************************************************************'
 
     report.section('Shortwave downwelling radiation (SIS)')
-    fG = plt.figure(); axg = fG.add_subplot(111)
-    GM = GlobalMeanPlot(ax=axg) #global mean plot
+    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
+    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
 
     #isccp
-    #report.subsection('ISCCP')
-    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    report.subsection('ISCCP')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #srb
-    #report.subsection('SRB')
-    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    report.subsection('SRB')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #ceres
     report.subsection('CERES')
     sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
     #cm-saf
-    #report.subsection('CMSAF')
-    #sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    report.subsection('CMSAF')
+    report.write('Please note that the CMSAF analysis is limited to the Meteosat spatial domain!')
+    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
 
     report.figure(fG,caption='Global means for SIS ')
 
@@ -706,57 +863,8 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         print obs_type
         raise ValueError, 'Unknown observation type for SIS-analysis!'
 
-
-    #--- PREPROCESSING of observational data  ---
-    cdo = Cdo()
-    #1) generate monthly mean file projected to T63
-    obs_mon_file     = get_temporary_directory() + os.path.basename(raw_sis)
-    obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
-    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_sis,force=False)
-
-    #todo: selection of timeperiod
-
-    #2) generate monthly mean or seasonal mean climatology as well as standard deviation
-    if interval == 'monthly':
-        obs_sis_file     = obs_mon_file[:-3] + '_ymonmean.nc'
-        obs_sis_std_file = obs_mon_file[:-3] + '_ymonstd.nc'
-        obs_sis_sum_file = obs_mon_file[:-3] + '_ymonsum.nc'
-        obs_sis_N_file   = obs_mon_file[:-3] + '_ymonN.nc'
-        cdo.ymonmean(options='-f nc -b 32',output=obs_sis_file,     input=obs_mon_file,force=False)
-        cdo.ymonsum (options='-f nc -b 32',output=obs_sis_sum_file, input=obs_mon_file,force=False)
-        cdo.ymonstd (options='-f nc -b 32',output=obs_sis_std_file, input=obs_mon_file,force=False)
-        cdo.div(options='-f nc -b 32',output = obs_sis_N_file,input=obs_sis_sum_file + ' ' + obs_sis_file, force=False) #number of samples
-
-        time_cycle = 12
-    elif interval == 'season':
-        obs_sis_file     = obs_mon_file[:-3] + '_yseasmean.nc'
-        obs_sis_std_file = obs_mon_file[:-3] + '_yseasstd.nc'
-        obs_sis_sum_file = obs_mon_file[:-3] + '_yseassum.nc'
-        obs_sis_N_file   = obs_mon_file[:-3] + '_yseasN.nc'
-        cdo.yseasmean(options='-f nc -b 32',output=obs_sis_file,     input=obs_mon_file,force=False)
-        cdo.yseassum (options='-f nc -b 32',output=obs_sis_sum_file, input=obs_mon_file,force=False)
-        cdo.yseasstd (options='-f nc -b 32',output=obs_sis_std_file, input=obs_mon_file,force=False)
-        cdo.div(options='-f nc -b 32',output = obs_sis_N_file,input=obs_sis_sum_file + ' ' + obs_sis_file, force=False) #number of samples
-
-        time_cycle = 4
-
-    else:
-        print interval
-        raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
-
-    #--- READ DATA ---
-    obs_sis     = Data(obs_sis_file,obs_var,read=True,label=obs_type,unit = '$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
-    obs_sis_std = Data(obs_sis_std_file,obs_var,read=True,label=obs_type + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
-    obs_sis.std = obs_sis_std.data.copy(); del obs_sis_std
-    obs_sis_N = Data(obs_sis_N_file,obs_var,read=True,label=obs_type + ' N',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
-    obs_sis.n = obs_sis_N.data.copy(); del obs_sis_N
-
-    #sort climatology to be sure that it starts always with January
-    obs_sis.adjust_time(year=1700,day=15) #set arbitrary time for climatology
-    obs_sis.timsort()
-
-    #read monthly data (needed for global means and hovmoeller plots)
-    obs_monthly = Data(obs_mon_file,obs_var,read=True,label=obs_type,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=12) #,mask=ls_mask.data.data)
+    #/// do data preprocessing ///
+    obs_sis, obs_monthly = preprocess_seasonal_data(raw_sis,interval=interval,themask = ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
 
     if GM != None:
         GM.plot(obs_monthly,linestyle='--')
@@ -769,7 +877,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
         if GM != None:
             if 'sis_org' in model.variables.keys():
-                GM.plot(model.variables['sis_org'],label=model.name) #(time,meandata)
+                GM.plot(model.variables['sis_org'][2],label=model.name) #(time,meandata)
 
         #--- get model data
         model_data = model.variables['sis'] #model_data is a Data object!

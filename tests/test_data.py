@@ -324,7 +324,21 @@ class TestData(TestCase):
         d = yy - I.data[:,0,0]
         self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) ) #boundary effects at end of period, therefore last value not used
 
+    def test_div(self):
+        #unittest for division
 
+        D = self.D.copy()
+        R = D.div(D)
+
+        self.assertTrue(np.all(R.data == 1.))
+
+    def test_divc(self):
+
+        D = self.D.copy()
+        R = D.divc(2.)
+
+        d = D.data[:,0,0] *0.5
+        self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
 
 
