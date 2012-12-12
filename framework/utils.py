@@ -64,10 +64,10 @@ def get_T63_landseamask(shift_lon,mask_antarctica=True):
 
     return ls_mask
 
+
 def get_T63_weights(shift_lon):
     """
     get JSBACH T63 cell weights
-
     @todo: put this to the JSBACH model class
     """
     w_file = get_data_pool_directory() + 'variables/land/land_sea_mask/t63_weights.nc'

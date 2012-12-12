@@ -1390,13 +1390,32 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def timcv(self,return_object=True):
+        """
+        calculate temporal coefficient of variation
+
+        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+        @type return_object: bool
+        """
+        res = self.timstd (return_object=False) / self.timmean(return_object=False)
+        if return_object:
+            if res is None:
+                return res
+            else:
+                tmp = self.copy(); tmp.data = res; tmp.label=self.label + ' (CV)'; tmp.unit='-'
+                return tmp
+        else:
+            return res
+
+
+#-----------------------------------------------------------------------
+
     def timstd(self,return_object=False):
         """
         calculate temporal standard deviation of data field
 
         @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
         @type return_object: bool
-
         """
         if self.data.ndim == 3:
             res = self.data.std(axis=0)
@@ -1509,12 +1528,29 @@ class Data():
             raise ValueError, 'weighting matrix not supported for this data shape'
 
 
+#-----------------------------------------------------------------------
+
+    def mean(self,apply_weights=True):
+        """
+        calculate mean of the spatial field using weighted averaging
+
+        @param apply_weights: apply weights when calculating area weights
+        @type apply_weights: bool
+        """
+        if apply_weights:
+            #area weighting
+            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
+            w *= self.data #multiply the data with the weighting matrix in memory efficient way
+            return w.sum() #... gives weighted sum = mean
+        else:
+            #no area weighting
+            return self.data.mean()
 
 #-----------------------------------------------------------------------
 
     def fldmean(self,return_data = False,apply_weights=True):
         """
-        calculate mean of the spatial field using weighted averaging
+        calculate mean of the spatial field for each time using weighted averaging
         results are exactly the same as one would obtain with the similar
         cdo function
 

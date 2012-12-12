@@ -103,6 +103,7 @@ def get_analysis_scripts():
     d.update({'rain':'rainfall_analysis'})
     d.update({'albedo':'albedo_analysis'})
     d.update({'sis':'sis_analysis'})
+    d.update({'surface_upward_flux':'surface_upward_flux_analysis'})
     d.update({'tree':'tree_fraction_analysis'})
     d.update({'grass':'grass_fraction_analysis'})
     d.update({'phenology_faPAR':'phenology_faPAR_analysis'})
@@ -137,11 +138,15 @@ def get_methods4variables(variables):
     hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
     hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
+    hlp.update({'surface_upward_flux' : 'get_surface_shortwave_radiation_up(interval=interval)'})
     hlp.update({'tree' : 'get_tree_fraction(interval=interval)'})
     hlp.update({'grass' : 'get_grass_fraction(interval=interval)'})
     hlp.update({'phenology_faPAR' : 'get_faPAR(interval=interval)'})
     hlp.update({'temperature' : 'get_temperature_2m(interval=interval)'})
     hlp.update({'snow' : 'get_snow_fraction(interval=interval)'})
+
+
+
 
     res={}
     for k in hlp.keys(): #only use the variables that should be analyzed!
