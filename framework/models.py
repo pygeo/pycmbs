@@ -325,10 +325,6 @@ class CMIP5Data(Model):
 
         sismean = sisall.fldmean()
 
-
-
-
-
         #/// return data as a tuple list
         retval = (sisall.time,sismean,sisall); del sisall
 
@@ -451,8 +447,10 @@ class CMIP5Data(Model):
         Fu_m.div(Fd_m,copy=False); del Fd_m
         Fu_m._apply_mask(ls_mask.data)
         Fu_m._set_valid_range(0.,1.)
-        Fu_m.label = lab + 'albedo'
-        Fu_i.label = lab + 'albedo'
+        Fu_m.label = lab + ' albedo'
+        Fu_i.label = lab + ' albedo'
+        Fu_m.unit = '-'
+        Fu_i.unit = '-'
 
         #/// center dates of months
         Fu_m.adjust_time(day=15)

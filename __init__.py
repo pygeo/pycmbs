@@ -40,6 +40,9 @@ __url__ = "http://www.mpimet.mpg.de/en/science/the-land-in-the-earth-system/terr
 __version__ = 0.1
 """Version number of pyCMBS."""
 
+__revision__ = filter(str.isdigit, "$Revision$")
+"""SVN repository number, set SVN using svn propset (see here: http://stackoverflow.com/questions/1449935/getting-svn-revision-number-into-a-program-automatically)"""
+
 __date__ = "2012-06-14"
 """The release date of this version of pyCMBS."""
 

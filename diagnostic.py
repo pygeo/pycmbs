@@ -1517,8 +1517,10 @@ class Diagnostic():
                 e2[i] = np.sum(d) #sum at end to avoid nan's   #it is important to use np.sum() !!
 
         if np.any(np.isnan(e2)):
-            raise ValueError, 'Reichler: e2 contains NAN, this happens most likely if STDV == 0'
-        return e2
+            print 'Reichler: e2 contains NAN, this happens most likely if STDV == 0'
+            return None
+        else:
+            return e2
 
 #-----------------------------------------------------------------------
 

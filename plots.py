@@ -218,6 +218,10 @@ class ReichlerPlot():
         @type title: str
         """
 
+        if len(self.e2) == 0: #no valid data
+            return self.ax.figure
+
+        #- normalize results (relative modle performance)
         self._normalize()
         x = np.arange(len(self.e2_norm))
         y1 = self.e2_norm*100.; y2 = self.e2_norm*100.
@@ -293,10 +297,10 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 
     def _normalize(self):
-        '''
+        """
         normalize results from different models
         Glecker et al, eq. 2
-        '''
+        """
 
         n  = len(self.e2[0])
         E2 = []
@@ -610,7 +614,7 @@ class GlobalMeanPlot():
 
         self.labels=[]; self.plots=[]
 
-    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-'):
+    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-',mask=None):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -633,6 +637,9 @@ class GlobalMeanPlot():
 
         @param show_std: shows standard deviation
         @type show_std: bool
+
+        @param mask: mask to be applied to the data prior to final analyis
+        @type mask: either numpy bool array or C{Data} object
         """
 
         if ((label==None) and (D1.label in self.labels)):
@@ -642,6 +649,7 @@ class GlobalMeanPlot():
             #print 'Label already existing: ', label, ' skipping analysis'
             return
 
+        #ensure to work with a data object
         if 'tuple' in str(type(D1)): #only a vector is provided as data together with time (time,data)
             D = D1[2] #(time,data,orgdata)
         else:
@@ -649,6 +657,9 @@ class GlobalMeanPlot():
 
         if D.data.ndim != 3:
             raise ValueError, 'Global plot only supported for 3D data'
+
+        if mask != None:
+            D._apply_mask(mask)
 
         #mean field
         m = D.fldmean(return_data=True) #mean
@@ -679,6 +690,8 @@ class GlobalMeanPlot():
             self.ax1.set_xlim(0.,13.)
             self.ax1.set_ylabel(tmp._get_unit())
             del tmp
+
+            self.ax1.set_xlabel('months')
 
         #- store information for legend
         self.plots.append(p[0])
@@ -1112,17 +1125,19 @@ class GlecklerPlot():
         @param m: model name
         @type m: str
 
-        @param x: value
+        @param x: value to be plotted in Gleckler plot
         @type x: float
 
         @param pos: position where to plot data 1=top triangle, 2=lower triangle
         @type pos: int
         """
 
-        if v in self.variables:
-            if m in self.models:
-                self.data.update({ self.__gen_key(m,v,pos) :x})
-                self.pos.update({ self.__gen_key(m,v,pos) : pos})
+        if x != None:
+            #- only use valid data
+            if v in self.variables:
+                if m in self.models:
+                    self.data.update({ self.__gen_key(m,v,pos) :x})
+                    self.pos.update({ self.__gen_key(m,v,pos) : pos})
 
 #-----------------------------------------------------------------------
 
@@ -1165,8 +1180,10 @@ class GlecklerPlot():
         from diagnostic import Diagnostic
         D = Diagnostic(x,y=y)
         e2 = D.calc_reichler_index(weights) #reichler performance index (might return a list if multiple times analyzed)
-
-        return np.nansum(e2) #temporal aggregation
+        if e2 == None:
+            return None
+        else:
+            return np.nansum(e2) #temporal aggregation
 
 #-----------------------------------------------------------------------
 
