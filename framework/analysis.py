@@ -341,6 +341,194 @@ def tree_fraction_analysis(model_list,pft='tree'):
 # VEGETATION COVER FRACTION -- end
 #=======================================================================
 
+#=======================================================================
+# ALBEDO -- begin
+#=======================================================================
+
+def surface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season'):
+
+    if shift_lon == None:
+        raise ValueError, 'You need to specify shift_lon option!'
+    if use_basemap == None:
+        raise ValueError, 'You need to specify use_basemap option!'
+    if report == None:
+        raise ValueError, 'You need to specify report option!'
+
+    print
+    print '************************************************************'
+    print '* BEGIN SURFACE UPWARD FLUX analysis ...'
+    print '************************************************************'
+
+    report.section('Surface upward flux')
+
+    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
+    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
+
+    #- MODIS white sky albedo
+    report.subsection('xxxxxxxxxxxxxx')
+    report.write('The upward flux observations are calculated using the downward shortwave radiation flux from CERES and the surface albedo from MODIS white sky albedo (WSA).')
+    surface_upward_flux_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='MODIS_ceres',GM=GM)
+
+
+    #DIRECT COMPARISON WITH CERES UPWARD FLUX
+    report.subsection('CERES upward flux')
+    surface_upward_flux_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
+
+
+
+    #CERES ALBEDO scaled with MODEL downward
+
+
+    #- CERES surface albedo from all sky fluxes
+    #report.subsection('CERES albedo')
+    #report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
+    #albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
+
+    report.figure(fG,caption='Global means for land surface upward flux')
+
+    print '************************************************************'
+    print '* END SURFACE UPWARD FLUX analysis ...'
+    print '************************************************************'
+    print
+
+
+
+def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
+    """
+    model_list = list which contains objects of data type MODEL
+    """
+
+    vmin = 0.; vmax = 150.
+
+    if interval == None:
+        raise ValueError, 'Interval period in surface_upward_flux_analyis not specified!'
+    if obs_type == None:
+        raise ValueError, 'Observation type for surface_upward_flux_analyis was not specified!'
+
+    print 'Doing surface_upward_flux_analyis analysis ...'
+
+    #--- GlecklerPlot
+    if GP == None:
+        GP = GlecklerPlot()
+
+    #--- get land sea mask
+    ls_mask = get_T63_landseamask(shift_lon)
+
+    #--- loading observation data
+    if obs_type == 'CERES':
+        #CERES EBAF ...
+        up_file   = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_up_all_mon__1x1__200003-201002.nc'
+        obs_raw_file = up_file
+        obs_var = 'sfc_sw_up_all_mon'
+        gleckler_pos = 1
+
+    elif obs_type == 'MODIS_ceres':
+        cdo = Cdo()
+
+        down_file = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
+
+        #remap CERES data first
+        obs_down, obs_down_monthly = preprocess_seasonal_data(down_file,interval=interval,themask = ls_mask,force=False,obs_var='sfc_sw_down_all_mon',label='CERES down flux',shift_lon=shift_lon)
+
+        #--- Albedo data
+        alb_file_raw  = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged.nc'
+        alb_data, alb_monthly = preprocess_seasonal_data(alb_file_raw,interval=interval,themask = ls_mask,force=False,obs_var='surface_albedo_WSA',label='MODIS WSA',shift_lon=shift_lon)
+
+        #--- get climatological mean upward flux (not for monthly data, as it is not ensured that same timeperiod is covered)
+        # climatologies are already sorted with timsort()
+        up_flux = alb_data.mul(obs_down)
+        obs_raw_file = get_temporary_directory() + 'MODIS_CERES_surface_upward_flux.nc'
+        obs_var = 'surface_shortwave_upward_flux'
+        up_flux.unit = 'W/m**2'
+        up_flux.save(obs_raw_file,varname=obs_var,delete=True)
+
+        del obs_down, obs_down_monthly, alb_data, alb_monthly, up_flux
+
+    else:
+        raise ValueError, 'Invalid option for observation type in surface_upward_flux_analyis: ' + obs_type
+
+    #/// do data preprocessing ///
+    obs_up,obs_monthly = preprocess_seasonal_data(obs_raw_file,interval=interval,themask=ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
+
+    if GM != None:
+        GM.plot(obs_monthly,linestyle='--')
+
+    #--- initialize Reichler plot
+    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
+
+    for model in model_list:
+
+        print '    SURFACE UPWARD FLUX analysis of model: ', model.name
+
+        GP.add_model(model.name) #register model for Gleckler Plot
+
+        if GM != None:
+
+
+            if 'surface_upward_flux_org' in model.variables.keys():
+                GM.plot(model.variables['surface_upward_flux_org'][2],label=model.name,mask=ls_mask) #(time,meandata)
+
+        #--- get model data
+        model_data = model.variables['surface_upward_flux']
+        model_data._apply_mask(ls_mask)
+
+        #--- use only valid albedo data (invalid values might be due to polar night effects)
+        #model_data.data = np.ma.array(model_data.data,mask = ((model_data.data<0.) | (model_data.data > 1.)) )
+
+        if model_data == None: #data file was not existing
+            print 'Data not existing for model: ', model.name; continue
+
+        if model_data.data.shape != obs_up.data.shape:
+            print 'Inconsistent geometries for surface_upward_flux'
+            print model_data.data.shape; print obs_up.data.shape
+            raise ValueError, "Invalid geometries"
+
+        #--- generate difference map
+        dmin = -20.; dmax = 20.
+        f_dif  = map_difference(model_data ,obs_up,nclasses=6,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,50.,100.,150.],cticks_diff=[-20.,-10.,0.,10.,20.])
+
+        #seasonal map
+        f_season = map_season(model_data.sub(obs_up),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-20.,-10.,0.,10.,20.],nclasses=6)
+
+
+        #todo hovmoeller plots !!!!
+
+
+        #/// Reichler statistics ///
+        Diag = Diagnostic(obs_up,model_data)
+        e2   = Diag.calc_reichler_index()
+        if e2 != None:
+            Rplot.add(e2,model_data.label,color='red')
+
+        #/// Gleckler plot ///
+        e2a = GP.calc_index(obs_up,model_data,model,'surface_upward_flux')
+        GP.add_data('surface_upward_flux',model.name,e2a,pos=1)
+
+        #/// report results
+        report.subsubsection(model.name)
+        report.figure(f_season,caption='Seasonal differences')
+        report.figure(f_dif,caption='Mean and relative differences')
+
+
+    del obs_monthly
+
+    f_reich = Rplot.bar(title='relative model error: surface_upward_flux')
+    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
+    report.newpage()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #=======================================================================
 # ALBEDO -- begin
@@ -365,7 +553,6 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
 
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
-
 
     #- MODIS white sky albedo
     report.subsection('MODIS WSA')
@@ -898,7 +1085,8 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
 
         f_season1 = map_season(model_data,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
         f_season2 = map_season(obs_sis,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
-        f_season3 = map_season(model_data.sub(obs_sis),overlay=~isdifferent,titlefontsize=10,cmap='RdBu_r',vmin=-50.,vmax=50.,cticks=[-50.,-25.,0.,25.,50.],nclasses=8,use_basemap=use_basemap)
+        #f_season3 = map_season(model_data.sub(obs_sis),overlay=~isdifferent,titlefontsize=10,cmap='RdBu_r',vmin=-50.,vmax=50.,cticks=[-50.,-25.,0.,25.,50.],nclasses=8,use_basemap=use_basemap)
+        f_season3 = map_season(model_data.sub(obs_sis),titlefontsize=10,cmap='RdBu_r',vmin=-50.,vmax=50.,cticks=[-50.,-25.,0.,25.,50.],nclasses=8,use_basemap=use_basemap)
 
         report.figure(f_season1,caption='SSI climatology of  ' + model.name)
         report.figure(f_season2,caption='SSI climatology of  ' + obs_type)
