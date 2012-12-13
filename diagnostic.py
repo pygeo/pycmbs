@@ -1632,7 +1632,7 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def slice_corr(self,timmean=True,spearman=False,partial=False,z=None):
-        '''
+        """
         perform correlation analysis for
         different starting times and length
         of the correlation period
@@ -1644,7 +1644,7 @@ class Diagnostic():
 
         partial: do partial correlation
         z: condition in case of partial correlation
-        '''
+        """
 
         if partial:
             if spearman:

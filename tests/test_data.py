@@ -340,6 +340,30 @@ class TestData(TestCase):
         d = D.data[:,0,0] *0.5
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
+    def test_partial_correlation(self):
+        """Test of partial correlation """
+
+        x = self.D;
+        nt,ny,nx = x.data.shape
+        y = x.copy(); y.data = y.data + pl.rand(nt,ny,nx)*1000.
+        z = x.copy(); z.data = z.data * pl.rand(nt,ny,nx)*100.
+
+        res = x.partial_correlation(y,z)
+
+        #generate reference solution
+        slope, intercept, rxy, p_value, std_err = stats.linregress(x.data[:,0,0],y.data[:,0,0])
+        slope, intercept, rxz, p_value, std_err = stats.linregress(x.data[:,0,0],z.data[:,0,0])
+        slope, intercept, rzy, p_value, std_err = stats.linregress(z.data[:,0,0],y.data[:,0,0])
+
+        ref = (rxy - rxz*rzy) / (np.sqrt(1.-rxz*rxz)*np.sqrt(1.-rzy*rzy))
+
+        self.assertAlmostEqual(ref,res.data[0,0],places=5)
+
+
+
+
+
+
 
 
 
