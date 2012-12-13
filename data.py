@@ -284,6 +284,7 @@ class Data():
         F.variables[varname].units        = self.unit
         F.variables[varname].scale_factor = 1.
         F.variables[varname].add_offset   = 0.
+        F.variables[varname].coordinates  = "lon lat"
 
         #/// global attributes
         F.source = self.filename #store original filename
@@ -722,6 +723,66 @@ class Data():
 
 
 
+#-----------------------------------------------------------------------
+
+    def partial_correlation(self,Y,Z,pthres=1.01,return_object=True):
+        """
+        perform partial correlation analysis.
+
+        This function calculates the partial correlation between variables (self) and Y, removing
+        the effect of variable Z before (condition). The partial correlation represents the correlation
+        between X and Y, when the common effect, related to Z has been removed
+
+        (unittest)
+
+        REFERENCES
+        ==========
+        [1] http://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
+
+        @param Y: variable to calculate with
+        @type Y: Data
+
+        @param Z: condition
+        @type Z: Data
+
+        @param pthres: threshold to flag insignificant correlations
+        @type pthres: float
+
+        @param return_object: specifies if a C{Data} object shall be returned
+        @type return_object: bool
+
+        @return: returns C{Data} objects with partial correlation parameters
+        """
+
+        assert isinstance(Y,Data); assert isinstance(Z,Data)
+
+        #--- calculate correlations
+        rxy,pxy = self.correlate(Y,pthres=pthres)
+        rxz,pxz = self.correlate(Z,pthres=pthres)
+        rzy,pzy = Z.correlate(Y,pthres=pthres)
+
+        #--- calculate partial correlation coefficients
+        res = (rxy.data - (rxz.data*rzy.data)) / (np.sqrt(1.-rxz.data*rxz.data) * np.sqrt(1.-rzy.data*rzy.data))
+
+        if return_object:
+            r = self.copy(); r.time = None; r.unit=''
+            r.data = res
+            r.label='partial correlation coefficient'
+            return r
+        else:
+            return res
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #-----------------------------------------------------------------------
@@ -734,7 +795,7 @@ class Data():
         @todo: more efficient implementation needed
 
         @param Y: dataset to corrleate the present one with. The
-                  data set of self will be used as X in the caluclation
+                  data set of self will be used as X in the calculation
         @type Y: C{Data} object
 
         @param pthres: threshold for masking insignificant pixels
@@ -1509,9 +1570,6 @@ class Data():
                 w = cell_area.repeat(nt).reshape((1,nt)).T
             else:
                 raise ValueError, 'Invalid geometry!'
-            print self.label
-            print w.shape
-            print self.data.shape
             w.shape = self.data.shape #geometry is the same now as data
 
             #2) mask areas that do not contain valid data
@@ -1563,6 +1621,9 @@ class Data():
         @return: vector of spatial mean array[time]
         @rtype: C{Data} object or numpy array
         """
+
+        if self.data.ndim != 3:
+            raise ValueError, 'fldmean currently only supported for 3D data'
 
         if apply_weights:
             #area weighting
@@ -2035,7 +2096,7 @@ class Data():
             #self._climatology_raw = np.ma.array(self._climatology_raw,mask=np.isnan(self._climatology_raw))
         else:
             print np.shape(self.data)
-            sys.exit('unsupported geometry _apply_mask')
+            raise ValueError, 'Unsupported geometry _apply_mask'
 
         if hasattr(self,'_climatology_raw'):
             for i in range(len(self._climatology_raw)):

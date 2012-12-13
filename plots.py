@@ -30,6 +30,8 @@ Module that contains relevant classes for diagnostic plots
 
 '''
 
+from data import *
+
 from hov import *
 
 from matplotlib import pylab as plt
@@ -136,7 +138,7 @@ class CorrelationAnalysis():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 class HovmoellerPlot():
-    def __init__(self,D,rescaley=10,rescalex=10,dlat=1,yticksampling=1,monthly=False):
+    def __init__(self,D,rescaley=10,rescalex=10,dlat=1,yticksampling=1,monthly=False,ax=None):
         """
         D : C{Data} object
 
@@ -144,13 +146,22 @@ class HovmoellerPlot():
         In this case the value is expected to be a 3D variables as
         value(time,ny,nx)
         """
-        self.hov = hovmoeller(pl.num2date(D.time),D.data,lat=D.lat,rescaley=rescaley,rescalex=rescalex)
-        self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
+        if ax == None:
+            self.figure = pl.figure()
+            self.ax = self.figure.add_subplot(111)
+        else:
+            self.figure = self.ax.figure
 
-    def plot(self,title=None,climits=None,ax=None):
+        self.hov = hovmoeller(pl.num2date(D.time),None,rescaley=rescaley,rescalex=rescalex)
+        #self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
+        self.x = D
+
+    def plot(self,title=None,climits=None,showxticks=True,showcolorbar=True,cmap='jet',xtickrotation=90,ylim=None):
         if climits is None:
             raise ValueError, 'CLIMITS needs to be specified!'
-        self.hov.plot(title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=climits,ax=ax)
+        self.hov.plot(input=self.x,ax=self.ax,title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=xtickrotation,climits=climits,showxticks=showxticks,showcolorbar=showcolorbar,cmap=cmap)
+        if ylim != None:
+            self.ax.set_ylim(ylim)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -706,6 +717,69 @@ class GlobalMeanPlot():
 
         #- legend
         self.ax.legend(self.plots,self.labels,loc='lower center',ncol=2,fancybox=True)
+
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+
+class HistogrammPlot():
+    """
+    class to plot histograms based on C{Data} objects
+    """
+    def __init__(self,ax=None,bins=10):
+        """
+        @param ax: axis to plot data to. If not specified, then a new figure is created
+        @type: ax: axis
+
+        @param bins: bins for histogram calculation, either int or a list
+        @type bins: int or list or array
+        """
+
+        #- Figure init
+        if ax == None:
+            self.figure = pl.figure()
+            self.ax = self.figure.add_subplot(111)
+        else:
+            self.ax = ax
+            self.figure = self.ax.figure
+
+        self.bins = bins
+
+    def plot(self,X,color='black',linestyle='-',linewidth=1.,label=None,**kwargs):
+        """
+        plot data to histogram
+
+        @param X: data to be plotted as histogram
+        @type X: Data or np.array
+
+        @param color: color for line plot
+        @type color: str
+
+        @param linestyle: style of line to plot
+        @type linestyle: str
+
+        @param linewidth: width of line to plot
+        @type linewidth: float
+
+        @param kwargs: arguments for np.histogram function
+        """
+
+        #-check if Data object
+        if isinstance(X,Data):
+            x = X.data
+        else:
+            x = X
+
+        if isinstance(x,np.ma.masked_array):
+            x = x.data[~x.mask]
+
+        x = x[~np.isnan(x)]
+
+        #- REMOVE BINS ARGUMENT IF in kwargs, as global argument of class is used
+        if 'bins' in kwargs.keys():
+            bb = kwargs.pop('bins')
+
+        f,b = np.histogram(x,bins = self.bins,**kwargs)
+        self.ax.plot(b[0:-1],f,color=color,linestyle=linestyle,linewidth=linewidth,label=label)
 
 
 #-----------------------------------------------------------------------
@@ -1391,7 +1465,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                       logarithmic plotting. Useful if negative data
     @type logoffset:  bool
 
-    @param show_stat: show statistic of field in figure title
+    @param show_stat: show statistic of field in figure title. The mean and std correspond to the
+                      SPATIAL mean and stdv of the temporal mean field. It is thus NOT the overall mean
+                      and std.!
     @type show_stat: bool
 
     @param f_kdtree: use kdTree for interpolation of data to grid (might be slow, but might solve problem of stripes in plots)
@@ -1465,25 +1541,19 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     if ('levels' in kwargs) and (contours == False): #levels not needed
         dummy = kwargs1.pop('levels')
 
-
     #--- create colormap
     cmap = plt.cm.get_cmap(cmap_data, nclasses)
 
-    #--- temporal mean fields
+    #--- temporal mean fields as data to plot
     xm = x.timmean()
 
     #--- logscale plot ?
     if logplot:
         if logoffset == None:
-            if xm.min() < 0.:
-                logoffset = abs(xm.min())*1.01
-            else:
-                logoffset = 0.
-        else:
-            logoffset = logoffset
-
+            if xm.min() < 0.: logoffset = abs(xm.min())*1.01
+            else: logoffset = 0.
+        else: logoffset = logoffset
         print '     logoffset: ', logoffset
-
         xm = np.log10( xm + logoffset )
 
     #--- set projection parameters
@@ -1492,6 +1562,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #--- plot using basemap
     if use_basemap:
         llcrnrlon=None; llcrnrlat=None; urcrnrlon=None; urcrnrlat=None
+
+        """ if a region is specfied, then the plotting boundarie are set """
         if region !=None:
             if not hasattr(region,'lonmin'):
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
@@ -1542,7 +1614,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             Z[omask] = np.nan
             Z = np.reshape(Z,shape0); Z = np.ma.array(Z,mask=np.isnan(Z))
 
-        else: #f_kdtree
+        else: #f_kdtree --> not kdtree
+
             X,Y = m1(x.lon,x.lat)
             Z = xm
 
@@ -1638,8 +1711,16 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         pass
 
     #--- show field statistics in title ?
+    # calculates first the temporal mean and results shown then
+    # are the means and std of the temporal mean fields which are weighted
+    # appropriately according to the cell area
     if show_stat:
-        me = xm.mean(); st=xm.std()
+        tmp_xm = x.copy()
+        tmp_xm.data = xm.reshape(1,xm.shape[0],xm.shape[1]) #make a 3D object thus fldmean works appropriately
+        me = tmp_xm.fldmean(); st=tmp_xm.fldstd()
+        assert(len(me) == 1)
+        assert(len(st) == 1)
+        me = me[0]; st=st[0]
         title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
 
 
@@ -1745,6 +1826,9 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8):
 
     @param cticks: colorbar ticks; if None, then default setup is used
     @type cticks: list
+
+
+    #todo: add option to add units
     """
 
     #set legend aligned with plot (nice looking)
@@ -1923,7 +2007,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
 #-----------------------------------------------------------------------
 
-def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=None,climits=None,xtickrotation=0):
+def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=None,climits=None,xtickrotation=0,showxticks=True,title=None,cticks=None,ylabel=None):
     """
     plot hovmoeller plots given a C{Data} object
 
@@ -1948,11 +2032,26 @@ def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=N
         f = plt.figure()
         ax = f.add_subplot(111)
 
+    if title == None:
+        tit=x._get_label()
+    else:
+        tit = title
+
+    if showxticks:
+        xlab = 'time'
+    else:
+        xlab=None
+
+    if ylabel == None:
+        ylabel = 'lat'
+
+
+
     h = hovmoeller(pl.num2date(x.time),x.data,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
     h.time_to_lat(dlat=dlat,monthly = True, yearonly = True,monthsamp=monthsamp)
-    h.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=xtickrotation,cmap=cmap,ax=ax,showcolorbar=False,climits=climits,grid=False)
+    h.plot(title=tit,xlabel=xlab,ylabel=ylabel,origin='lower',xtickrotation=xtickrotation,cmap=cmap,ax=ax,showcolorbar=False,climits=climits,grid=False,showxticks=showxticks)
 
-    add_nice_legend(ax,h.im,cmap,cticks=None)
+    add_nice_legend(ax,h.im,cmap,cticks=cticks)
 
     return h
 
