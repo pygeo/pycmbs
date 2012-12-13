@@ -294,6 +294,55 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def _equal_lon(self):
+        """
+        This routine identifies if all longitudes in the dataset
+        are the same (except for numerical uncertainties)
+
+        (unittest)
+
+        @rtype: bool
+        """
+        if self.lon.ndim == 1: #vector
+            return True
+        elif self.lon.ndim == 2:
+            lu = self.lon.mean(axis=0)
+            if any( np.abs(lu - self.lon[0,:]) > 1.E-5): #this corresponds to an accuracy of 1m
+                return False
+            else:
+                return True
+        else:
+            raise ValueError, 'Unsupported geometry for longitude'
+
+
+#-----------------------------------------------------------------------
+
+    def _get_unique_lon(self):
+        """
+        estimate if the Data contains unique longitudes and if so, returns a vector
+        with these longitudes
+
+        (unittest)
+
+        @return: unique longitudes
+        """
+
+        if self.lon == None:
+            raise ValueError, 'Can not estimate longitude, as no longitudes existing!'
+
+        if self.lon.ndim == 1:
+            return self.lon
+        elif self.lon.ndim == 2:
+            if self._equal_lon(): #... check for unique lons
+                return self.lon[0,:]
+            else:
+                raise ValueError, 'The dataset does not contain unique LONGITUDES!'
+        else:
+            raise ValueError, 'Data dimension for longitudes not supported yet!'
+
+#-----------------------------------------------------------------------
+
+
     def _get_bounding_box(self):
         """
         estimates bounding box of valid data. It returns the indices
