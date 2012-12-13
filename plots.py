@@ -1563,7 +1563,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     if use_basemap:
         llcrnrlon=None; llcrnrlat=None; urcrnrlon=None; urcrnrlat=None
 
-        """ if a region is specfied, then the plotting boundarie are set """
+        """ if a region is specfied, then the plotting boundaries are set """
         if region !=None:
             if not hasattr(region,'lonmin'):
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
@@ -1573,10 +1573,12 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
                 proj='tmerc' #use mercator projection at regional scale as robinson does not work!
-                #~ proj = 'cyl'
 
-        #generate map
+        ############################################
+        # generate Basemap map
+        ############################################
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
+
         if bluemarble:
             m1.bluemarble()
 
@@ -1616,8 +1618,25 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
         else: #f_kdtree --> not kdtree
 
-            X,Y = m1(x.lon,x.lat)
-            Z = xm
+            #/// in the following, we check if the longitudes are in the right order
+            #    to allow for an appropirate plotting. Basemap assumes ascending order
+            #    of longitudes. For global projections, problems occur if lon are given
+            #    as 0...360 deg. It needs to be shifted then. Otherwise the data will produce
+            #    strange stripes when plotting.
+            #
+            #    REFERENCES:
+            #    * http://pl.digipedia.org/usenet/thread/15998/16891/
+
+            if x._lon360: #if lon 0 ... 360, then shift data
+                tmp_lon = x._get_unique_lon() #get unique longitudes
+                Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
+                lon, lat = np.meshgrid(tmp_lon, np.arange(Z.shape[0]))
+                lat = x.lat
+            else:
+                print '*** WARNING: not lon360 not validated yet, try KDTREE option if stripes in plot ***'
+                lon = x.lon; lat=x.lat
+
+            X, Y = m1(lon, lat)
 
         #here is still a problem in the plotting over land; masking does not work properly,
         #while the data as such is o.k.!
