@@ -360,6 +360,38 @@ class TestData(TestCase):
         self.assertAlmostEqual(ref,res.data[0,0],places=5)
 
 
+    def test__equal_lon(self):
+        D=self.D
+
+        #1) not equal longitudes
+        D.lon = pl.rand(100,200)
+        self.assertFalse(D._equal_lon())
+
+        #2) equal longitudes
+        x=np.arange(100)
+        D.lon = np.zeros((2,100))
+        D.lon[0,:] = x
+        D.lon[1,:] = x
+        self.assertTrue(D._equal_lon())
+
+    def test__get_unique_lon(self):
+        D = self.D
+        #equal longitudes
+        x=np.arange(100)
+        D.lon = np.zeros((2,100))
+        D.lon[0,:] = x; D.lon[1,:] = x
+
+        r = D._get_unique_lon()
+        self.assertTrue(np.all((x-r) == 0.))
+
+
+
+
+
+
+
+
+
 
 
 
