@@ -2679,10 +2679,6 @@ class Data():
         @param mask: mask to flag invalid data
         @type mask: array(:,:)
 
-        For efficiency reasons, the calculations are
-        performed row-wise for all grid cells using
-        corrcoef()
-
         @return: list of C{Data} objects for correlation, slope, intercept, p-value, covariance
         @rtype: list
 
@@ -2701,10 +2697,8 @@ class Data():
         #--- get data with at least one valid value
         lo,la,dat,msk = self.get_valid_data(return_mask=True,mode='one')
         xx,n = dat.shape
-        #~ print msk.shape, sum(msk)
         if self.verbose:
             print '   Number of grid points: ', n
-        #~ print dat.shape
 
         R=np.ones((ny,nx))*np.nan #output matrix for correlation
         P=np.ones((ny,nx))*np.nan #output matrix for p-value

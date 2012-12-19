@@ -1445,7 +1445,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False,
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
-             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True, **kwargs):
+             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,show_histogram=False, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1522,6 +1522,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param titlefontsize: fontsize of the figure title
     @type titlefontsize: int
+
+    @param show_histogram: show a histogram below the map
+    @type show_histogram: bool
 
     """
 
@@ -1714,9 +1717,15 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
 
+
+    #--- add a histogram below the map plot
+    if show_histogram:
+        add_histogram(ax,x)
+
     #Zonal plot
     if show_zonal:
         add_zonal_plot(ax,x,timmean=zonal_timmean,vmin=vmin_zonal,vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+
 
 
 
@@ -1783,6 +1792,30 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         ax2.set_ylabel(x._get_unit())
 
     return fig
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+def add_histogram(ax,x):
+    """
+    add a histogram to an axis
+
+    @param ax: axis to add the histogram plot to
+    @type ax: axis
+
+    @param x: Data that should be vizualized as histogram
+    @type x: Data
+    """
+
+    divider = make_axes_locatable(ax)
+    #zax     = divider.new_vertical("30%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+    zax = divider.append_axes("bottom","30%",pad=0.1)
+
+
+    ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
+
+    H = HistogrammPlot(ax=zax) #bins ???
+    H.plot(x) #plot options ????
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -1879,7 +1912,11 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8):
 
     #set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
-    cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+    #cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
+
+    cax = divider.append_axes("right","5%",pad=0.05)
+
+
     ax.figure.add_axes(cax,axisbg=ax.figure.get_facecolor())
     if dummy:
         cax.set_xticks([])
