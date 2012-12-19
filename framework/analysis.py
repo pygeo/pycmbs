@@ -88,10 +88,10 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
         time_cycle = 12
     elif interval == 'season':
-        obs_alb_file     = obs_mon_file[:-3] + '_yseasmean.nc'
-        obs_alb_std_file = obs_mon_file[:-3] + '_yseasstd.nc'
-        obs_alb_sum_file = obs_mon_file[:-3] + '_yseassum.nc'
-        obs_alb_N_file   = obs_mon_file[:-3] + '_yseasN.nc'
+        obs_ymonmean_file     = obs_mon_file[:-3] + '_yseasmean.nc'
+        obs_ymonstd_file = obs_mon_file[:-3] + '_yseasstd.nc'
+        obs_ymonsum_file = obs_mon_file[:-3] + '_yseassum.nc'
+        obs_ymonN_file   = obs_mon_file[:-3] + '_yseasN.nc'
         cdo.yseasmean(options='-f nc -b 32',output=obs_ymonmean_file,     input=obs_mon_file,force=force)
         cdo.yseassum (options='-f nc -b 32',output=obs_ymonsum_file, input=obs_mon_file,force=force)
         cdo.yseasstd (options='-f nc -b 32',output=obs_ymonstd_file, input=obs_mon_file,force=force)
@@ -745,7 +745,7 @@ def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=Fals
         sys.exit('Unknown interval for rainfall_analyis()')
 
     T2 = Data(obs_file,obs_var,read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,level=0)
-    T2.data = T2.data + 273.15 #Kelvin
+    T2.data +=  273.15 #Kelvin
     T2_std = Data(obs_file_std,obs_var,read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,level=0)
     T2.std = T2_std.data.copy(); del T2_std
 

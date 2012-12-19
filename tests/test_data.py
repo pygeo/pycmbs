@@ -386,6 +386,80 @@ class TestData(TestCase):
 
 
 
+    def generate_tuple(self,n=None,mask=True):
+        #generate perturbed tuple of data
+        x = self.D.copy(); y = self.D.copy()
+        nt,ny,nx = x.data.shape
+        z = pl.randn(nt,ny,nx)
+        y.data = y.data*z
+        if mask:
+            y.data = np.ma.array(y.data,mask=z>0.5) #mask some data so we have data with different masks
+        else:
+            y.data = np.ma.array(y.data,mask=y.data != y.data) #mask some data so we have data with different masks
+
+        if n != None:
+            if n < len(x.data)-1:
+                x._temporal_subsetting(0,n)
+                y._temporal_subsetting(0,n)
+
+        return x,y
+
+
+    #-----------------------------------------------------------
+
+    def test_correlate(self):
+        #test correlation
+
+        for n in [None,100,10,5]: #different size
+
+            x,y = self.generate_tuple(n=n,mask=True)
+            x1=x.data[:,0,0]; y1=y.data[:,0,0]
+            msk = (x1.mask == False) & (y1.mask == False)
+            x2 = x1[msk]; y2 = y1[msk] #this is only the valid data
+
+            print 'Number of masked pixels: ', sum(y.data.mask), n
+
+            ##################################################################
+            # PEARSON CORRELATION
+            ##################################################################
+            slope, intercept, r_value1, p_value1, std_err = stats.mstats.linregress(x1,y1) #masked
+            slope, intercept, r_value2, p_value2, std_err = stats.linregress(x2,y2) #not masked
+            r,p = x.correlate(y)
+
+            #1) test if scipy functions return similar results
+            self.assertAlmostEqual(r_value1,r_value2,places=15)
+            #self.assertAlmostEqual(p_value1,p_value2,places=15) #not used, as BUG in stats.mstats.linregress!
+
+            #2) test data.correlate() results
+            self.assertAlmostEqual(r.data[0,0],r_value2,places=10) #results from stats.linregress are used, as mstats is BUGGY!!
+            self.assertAlmostEqual(p.data[0,0],p_value2,places=10)
+
+
+            ##################################################################
+            # SPEARMAN RANK CORRELATION
+            ##################################################################
+
+            # 1) test if scipy functions return similar results for masked/not masked arrays
+            r_value1, p_value1 = stats.mstats.spearmanr(x1,y1) #masked
+            r_value2, p_value2 = stats.spearmanr(x2,y2) #not masked
+
+            self.assertAlmostEqual(r_value1,r_value2,places=10)
+            self.assertAlmostEqual(p_value1,p_value2,places=10)
+
+            #2) test data.correlate() function
+            r,p = x.correlate(y,spearman=True)
+            self.assertAlmostEqual(r.data[0,0],r_value1,places=10)
+            self.assertAlmostEqual(p.data[0,0],p_value1,places=10)
+            self.assertAlmostEqual(r.data[0,0],r_value2,places=10)
+            self.assertAlmostEqual(p.data[0,0],p_value2,places=10)
+
+
+
+
+
+
+
+
 
 
 

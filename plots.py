@@ -137,8 +137,9 @@ class CorrelationAnalysis():
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
+
 class HovmoellerPlot():
-    def __init__(self,D,rescaley=10,rescalex=10,dlat=1,yticksampling=1,monthly=False,ax=None):
+    def __init__(self,D,rescaley=10,rescalex=10,yticksampling=1,monthly=False,ax=None):
         """
         D : C{Data} object
 
@@ -427,9 +428,9 @@ class ScatterPlot():
 #-----------------------------------------------------------------------
 
     def legend(self):
-        '''
+        """
         plot legend
-        '''
+        """
         self.ax.legend(self.lines,self.labels,prop={'size':8})
 
 #-----------------------------------------------------------------------
@@ -441,7 +442,7 @@ class LinePlot():
 
     This class is usefull for plotting timeseries
     """
-    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.,show_equation=True):
+    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.,show_equation=True,xtickrotation=90):
         """
         constructor of LinePlot
 
@@ -462,10 +463,14 @@ class LinePlot():
 
         @param normx: normalization constant for x-variable (needed e.g. if you want to normalize a timevector for regression analysis)
         @type normx: float
+
+        @param xtickrotation: rotation for xtick labels
+        @type xtickrotation: float
+
         """
 
         if ax == None:
-            f = plt.figure()
+            f = plt.figure(figsize=(8,7))
             self.ax = f.add_subplot(111)
         else:
             self.ax = ax
@@ -483,6 +488,10 @@ class LinePlot():
         self.normx=normx
         self.show_equation = show_equation
 
+        self.xtickrotation = xtickrotation
+
+        #~ self.showxticks = showxticks
+
 #-----------------------------------------------------------------------
 
     def legend(self,prop={'size':8},**kwargs):
@@ -497,8 +506,13 @@ class LinePlot():
         if ax == None:
             ax = self.ax
 
+        #yaxis
         for tick in ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
+        #xaxis
+        for tick in ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(self.ticksize)
+            tick.label.set_rotation(self.xtickrotation)
 
 #-----------------------------------------------------------------------
 
@@ -585,6 +599,11 @@ class LinePlot():
 
 
             self._change_ticklabels(ax)
+
+            #~ if not self.showxticks: #showxticklabels?
+                #~ for tick in ax.xaxis.get_major_ticks():
+                    #~ print 'tick'
+                    #~ tick.label.set_label('')
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -1282,7 +1301,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-def __basemap_ancillary(m,latvalues = None, lonvalues = None):
+def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True):
     """
     routine to plot ancillary data like coastlines
     or meridians on a basemap plot
@@ -1305,8 +1324,9 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None):
     m.drawcountries(); m.drawcoastlines()
     m.drawlsmask(lakes=True)
     m.drawmapboundary() # draw a line around the map region
-    m.drawparallels(latvalues,labels=[1, 0, 0, 0])
-    m.drawmeridians(lonvalues,labels=[0, 0, 0, 1]) # draw meridians
+    if drawparallels:
+        m.drawparallels(latvalues,labels=[1, 0, 0, 0])
+        m.drawmeridians(lonvalues,labels=[0, 0, 0, 1]) # draw meridians
 
 #-----------------------------------------------------------------------
 
@@ -1425,7 +1445,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False,
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
-             bluemarble = False, contours=False, overlay=None,titlefontsize=14, **kwargs):
+             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1629,12 +1649,16 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
             if x._lon360: #if lon 0 ... 360, then shift data
                 tmp_lon = x._get_unique_lon() #get unique longitudes
+                tmplon1 = tmp_lon.copy()
                 Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
+                if overlay != None:
+                    overlay, nope = shiftgrid(180, overlay, tmplon1, start=False)
                 lon, lat = np.meshgrid(tmp_lon, np.arange(Z.shape[0]))
                 lat = x.lat
             else:
                 print '*** WARNING: not lon360 not validated yet, try KDTREE option if stripes in plot ***'
                 lon = x.lon; lat=x.lat
+                Z = xm
 
             X, Y = m1(lon, lat)
 
@@ -1651,13 +1675,16 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 im1=m1.contour(X,Y,Z,levels,cmap=cmap,**kwargs1)
                 ax.clabel(im1, inline=1, fontsize=10) #contour label
             else:
-
                 im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
-            __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues)
 
             if overlay != None:
+                #print 'Doing overlay plot! ...'
                 xcoordnew=X[overlay]; ycoordnew=Y[overlay]
-                m1.scatter(xcoordnew,ycoordnew,marker='+',s=50,c='white',edgecolors='white',linewidth=1)
+                m1.scatter(xcoordnew,ycoordnew,marker='x',s=50,c='white',edgecolors='white',linewidth=1)
+                #todo: there is still a problem that the coordinates are not properly aligned with the grid cells!!!
+
+            #/// ANCILLARY PLOT FOR BASEMAP ///
+            __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues,drawparallels=drawparallels)
 
     else: #use_basemap = False
         #- normal plots
