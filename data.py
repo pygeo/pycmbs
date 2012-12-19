@@ -851,7 +851,7 @@ class Data():
         with another dataset
 
         The routine currently supports to calculate either the Pearson product-moment
-        correlation coefficient (default) or to calculate the spearman rank correlation coefficient
+        correlation coefficient (default) or to calculate the Spearman Rank correlation coefficient
 
         (unittest)
 
@@ -915,21 +915,19 @@ class Data():
 
         #do correlation calculation; currently using np.ma.corrcoef as this
         #supports masked arrays, while stats.linregress doesn't!
-        for i in xrange(sum(mskvalid)): #todo: this loop could be replaced by some list or matrix operation!
-            if spearman:
-                r_value, p_value = stats.mstats.spearmanr(xn[:,i],yn[:,i])
-                r[i] = r_value
-                p[i] = p_value
-                if p[i] > pthres:
-                    r[i] = np.nan
-            else:
-                #~ slope, intercept, r_value, p_value, std_err = sci.stats.linregress(xn[:,i],yn[:,i])
-                r_value = np.ma.corrcoef(xn[:,i],yn[:,i])[0,1]  #<<<< as an alternative one could use stats.mstats.linregress ; results are however equal, see unittests
-                r[i]=r_value
 
-                p[i] = get_significance(r_value,nv[i]) #calculate p-value
-                if p[i] > pthres:
-                    r[i] = np.nan
+        if spearman:
+            res = [stats.mstats.spearmanr(xn[:,i],yn[:,i]) for i in xrange(sum(mskvalid))]
+            res = np.asarray(res)
+            r = res[:,0]; p = res[:,1]
+            r[p>pthres] = np.nan
+
+        else: #Pearson product-moment correlation
+            res = [np.ma.corrcoef(xn[:,i],yn[:,i]) for i in xrange(sum(mskvalid))]  #<<<< as an alternative one could use stats.mstats.linregress ; results are however equal for R-VALUE, but NOT for P-value, here mstats.linregress seems to be buggy!, see unittests
+            res = np.asarray(res)
+            r = res[:,0,1] #correlation coefficient
+            p = get_significance(r,nv)
+
 
         #remap to original geometry
         R = np.ones(xv.shape[1]) * np.nan #matrix for results
