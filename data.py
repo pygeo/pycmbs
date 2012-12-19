@@ -1115,6 +1115,110 @@ class Data():
 
         return res
 
+
+#-----------------------------------------------------------------------
+
+    def condstat(self,M):
+        """
+        Conditional statistics of data
+
+        This routine calculates conditions statistics over the current data. Given a mask M, the routine calculates for
+        each unique value in M the mean, stdv, min and max from the current data
+
+        (unittest)
+
+        Example
+        =======
+        > Let us assume you have a data object D and we assign some sample data to it and generate a mask with a few pixels
+        > D.data = pl.randn(100,3,1) #some sample data
+        > msk = np.asarray([[1,1,3],]).T #(3,1) mask
+        > res = D.condstat(msk) #calculate conditional statistics
+        > This returns a dictionary with the following keys ['max', 'sum', 'min', 'id', 'mean']
+
+        @param M: mask to be used. Needs to be a 2D array of dimension ny x nx
+        @type M: Data or numpy array
+
+        @return: dictionary with results where each entry has shape (nt,nvals) with nvals beeing the number of unique ID values in the mask
+        @rtype: dict
+        """
+
+        if isinstance(M,Data):
+            m = M.data
+        else:
+            m = M
+
+        #--- checks ---
+        if self.data.ndim == 2:
+            if self.data.shape != m.shape:
+                print self.data.shape
+                print m.shape
+                raise ValueError, 'Invalid geometry!'
+        elif self.data.ndim == 3:
+            if self.data[0,:,:].shape != m.shape:
+                print self.data.shape
+                print m.shape
+                raise ValueError, 'Invalid geometry!'
+        else:
+            raise ValueError, 'Unsupported Data geometry!'
+
+        #--- calculate conditional statistics ---
+        vals = np.unique(m)
+
+
+        #===
+        def _get_stat(a,msk,v):
+            #get statistics of a single 2D field and a specific value v
+            # a: masked array
+            # msk: mask to use for analysis
+            # v: float
+            x = a[msk==v].flatten()
+            m = np.nan; s=np.nan; mi=np.nan; ma=np.nan; su=np.nan
+
+            if len(x) > 0:
+                m = x.mean()
+                mi = x.min()
+                ma = x.max()
+                su = x.sum()
+            if len(x) > 2:
+                s = x.std()
+
+            return m,s,su,mi,ma
+        #===
+
+
+
+        if self.data.ndim == 2:
+            means = np.ones((1,len(vals)))*np.nan; sums = np.ones((1,len(vals)))*np.nan
+            stds = np.ones((1,len(vals)))*np.nan; mins = np.ones((1,len(vals)))*np.nan
+            maxs = np.ones((1,len(vals)))*np.nan
+
+            for i in xrange(len(vals)):
+                means[0,i],stds[0,i],sums[0,i],mins[0,i],maxs[0,i] = _get_stat(self.data,m,vals[i])
+
+        elif self.data.ndim == 3:
+            nt = len(self.data)
+            means = np.ones((nt,len(vals)))*np.nan; sums = np.ones((nt,len(vals)))*np.nan
+            stds = np.ones((nt,len(vals)))*np.nan; mins = np.ones((nt,len(vals)))*np.nan
+            maxs = np.ones((nt,len(vals)))*np.nan
+
+            #calculate for each timestep and value the conditional statistic
+            for t in xrange(nt):
+                for i in xrange(len(vals)):
+                    means[t,i],stds[t,i],sums[t,i],mins[t,i],maxs[t,i] = _get_stat(self.data[t,:,:],m,vals[i])
+
+        else:
+            raise ValueError, 'Invalid geometry!'
+
+        #output arrays are all of shape (nt,nvals)
+        res = {'id':vals,'mean':means,'sum':sums,'min':mins,'max':maxs}
+
+        return res
+
+
+
+
+
+
 #-----------------------------------------------------------------------
 
     def set_time(self):

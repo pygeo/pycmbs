@@ -454,6 +454,36 @@ class TestData(TestCase):
             self.assertAlmostEqual(p.data[0,0],p_value2,places=10)
 
 
+    def test_condstat(self):
+        """
+        conditional statistics unittest
+        @return:
+        """
+
+        #sample data
+        D = self.D.copy()
+        D.data = pl.randn(100,3,1) #some sample data
+        msk = np.asarray([[1,1,3],]).T #sample mask
+
+        #calculate conditional statistics
+        res = D.condstat(msk)
+
+        #test for mask value == 1 (2 pixels)
+        rm = 0.5*(D.data[:,0,0] + D.data[:,1,0])
+        rs = (D.data[:,0,0] + D.data[:,1,0])
+        self.assertTrue(np.all( (res['mean'][:,0]-rm) == 0. ))
+        self.assertTrue(np.all( (res['sum'][:,0]-rs) == 0. ))
+
+        #test for mask value == 3 (1 pixel)
+        rm = rs = D.data[:,2,0]
+        self.assertTrue(np.all( (res['mean'][:,1]-rm) == 0. ))
+        self.assertTrue(np.all( (res['sum'][:,1]-rs) == 0. ))
+
+
+
+
+
+
 
 
 
