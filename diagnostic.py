@@ -77,7 +77,7 @@ class EOF():
 
         @param normalize: normalize timeseries of data to unity
         @type normalize: bool
-        
+
         @param cov_norm: normalize covariance by sample size (uses np.cov() ). This is the standard.
                          If FALSE, then the covariance is estimated from matrix multiplication.
                          This is especially needed for testing!
@@ -1684,9 +1684,6 @@ class Diagnostic():
             z = z.data.copy()
             z.shape = (n,-1)
 
-
-
-
         R=np.ones((n,n))*np.nan; P=np.ones((n,n))*np.nan
         L=np.ones((n,n))*np.nan; S=np.ones((n,n))*np.nan
 
@@ -1843,10 +1840,8 @@ class Diagnostic():
 
                 #use spearman correlation
                 if spearman:
-                    tmpx = xdata.argsort()
-                    tmpy = ydata.argsort()
-                    xdata = tmpx
-                    ydata = tmpy
+                    tmpx = xdata.argsort(); tmpy = ydata.argsort()
+                    xdata = tmpx; ydata = tmpy
 
                 slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
                 R[gap,i1] = r
@@ -1871,7 +1866,7 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def _set_year_ticks(self,years,ax,axis='x',size=10,rotation=0.):
-        '''
+        """
         set ticks of timeline with
         yearly ticks
 
@@ -1883,7 +1878,13 @@ class Diagnostic():
 
         @param axis: specify which axis to handle 'x' or 'y'
         @type axis: str
-        '''
+
+        @param size: fontisze for ticks
+        @type size: int
+
+        @param rotation: rotation angle for ticks
+        @type rotation: float
+        """
         ticks = ax.get_xticks()
 
         #- calculate ticks from year
@@ -1906,13 +1907,14 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def plot_slice_correlation(self,pthres = 1.01):
-        '''
+        """
         plot slice correlation results
 
         @param pthres: significance threshold. All results with p-values
                        below this threshold will be plotted
         @type pthres: float
-        '''
+        """
+
         cmap1 = plt.cm.get_cmap('RdBu_r', 10)
         cmap2 = plt.cm.get_cmap('jet', 10)
 

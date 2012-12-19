@@ -133,6 +133,19 @@ class Data():
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
 
+        #--- check if longitudes are from 0 ... 360
+        if self.lon != None:
+            if self._lon360:
+                if self.lon.min() < 0.:
+                    #self._shift_lon_360() #shift coordinates to [0 ... 360.]
+                    #here we assume that the coordinates are between -180 ... 180
+                    self._lon360 = False
+                if self.lon.max() > 360.:
+                    print self.lon.max()
+                    raise ValueError, 'invalid longitudes needs shifting !!!'
+            else:
+                raise ValueError, 'plotting etc not supported for longitudes which are not equal to 0 ... 360'
+
 #-----------------------------------------------------------------------
 
     def __set_sample_data(self,a,b,c):
@@ -202,10 +215,6 @@ class Data():
 
 
         #write 2D field for each timestep
-
-
-
-
 
 
 #-----------------------------------------------------------------------
@@ -546,6 +555,17 @@ class Data():
         self.lon[self.lon>=180.] = self.lon[self.lon>=180.]-360.
         self._lon360 = False
 
+    def _shift_lon_360(self):
+        """
+        shift longitude coordinates. Coordinates given as [-180...180] are
+        converted to [0 ...180]
+
+        changes lon field of Data object and sets variable _lon360
+        """
+        self.lon[self.lon<0.] = 360. + self.lon[self.lon<0.]
+        self._lon360 = True
+        print 'Longitudes were shifted to 0 ... 360!'
+
 #-----------------------------------------------------------------------
 
     def read(self,shift_lon,start_time=None,stop_time=None,time_var='time'):
@@ -823,41 +843,36 @@ class Data():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 #-----------------------------------------------------------------------
 
-    def correlate(self,Y,pthres=1.01):
+    def correlate(self,Y,pthres=1.01,spearman=False):
         """
         correlate present data on a grid cell basis
         with another dataset
 
+        The routine currently supports to calculate either the Pearson product-moment
+        correlation coefficient (default) or to calculate the spearman rank correlation coefficient
+
+        (unittest)
+
         @todo: more efficient implementation needed
 
-        @param Y: dataset to corrleate the present one with. The
+        @param Y: dataset to correlate the present one with. The
                   data set of self will be used as X in the calculation
         @type Y: C{Data} object
 
         @param pthres: threshold for masking insignificant pixels
         @type pthres: float
 
+        @param spearman: option that specifies if spearman correlation should be calculated
+        @type spearman: bool
+
         @return: returns correlation coefficient and its significance
         @rtype: C{Data} objects
 
-        #test routines tcorr1.py, test_corr.py
-
         @todo: implement faster correlation calculation
         @todo: slope calculation as well ???
-        @todo: significance correct ???
+        @todo: significance correct ??? -- not if stats.mstats.linregress would be used!!!!
 
         """
 
@@ -891,7 +906,6 @@ class Data():
         nvalid = vmask.sum(axis=0)
 
         #- calculate correlation only for grid cells with at least 3 valid samples
-
         mskvalid = nvalid > 2
         r = np.ones(sum(mskvalid)) * np.nan
         p = np.ones(sum(mskvalid)) * np.nan
@@ -901,14 +915,21 @@ class Data():
 
         #do correlation calculation; currently using np.ma.corrcoef as this
         #supports masked arrays, while stats.linregress doesn't!
-        for i in range(sum(mskvalid)):
-            #~ slope, intercept, r_value, p_value, std_err = sci.stats.linregress(xn[:,i],yn[:,i])
-            r_value = np.ma.corrcoef(xn[:,i],yn[:,i])[0,1]
-            r[i]=r_value
+        for i in xrange(sum(mskvalid)): #todo: this loop could be replaced by some list or matrix operation!
+            if spearman:
+                r_value, p_value = stats.mstats.spearmanr(xn[:,i],yn[:,i])
+                r[i] = r_value
+                p[i] = p_value
+                if p[i] > pthres:
+                    r[i] = np.nan
+            else:
+                #~ slope, intercept, r_value, p_value, std_err = sci.stats.linregress(xn[:,i],yn[:,i])
+                r_value = np.ma.corrcoef(xn[:,i],yn[:,i])[0,1]  #<<<< as an alternative one could use stats.mstats.linregress ; results are however equal, see unittests
+                r[i]=r_value
 
-            p[i] = get_significance(r_value,nv[i]) #calculate p-value
-            if p[i] > pthres:
-                r[i] = np.nan
+                p[i] = get_significance(r_value,nv[i]) #calculate p-value
+                if p[i] > pthres:
+                    r[i] = np.nan
 
         #remap to original geometry
         R = np.ones(xv.shape[1]) * np.nan #matrix for results
@@ -922,7 +943,11 @@ class Data():
         P = np.ma.array(P,mask=np.isnan(P))
 
         RO = self.copy()
-        RO.data = R; RO.label = 'correlation' #: ' + self.label + ' ' + y.label
+        RO.data = R
+        if spearman:
+            RO.label = 'spearman correlation' #: ' + self.label + ' ' + y.label
+        else:
+            RO.label = 'pearson correlation' #: ' + self.label + ' ' + y.label
         RO.unit = ''
 
         PO = self.copy()
@@ -1516,7 +1541,6 @@ class Data():
                 return tmp
         else:
             return res
-
 
 #-----------------------------------------------------------------------
 
@@ -2118,15 +2142,29 @@ class Data():
 
         self.__oldmask = self.data.mask.copy()
         self.__olddata = self.data.data.copy()
+        if hasattr(self,'std'):
+            if self.data.shape != self.std.shape:
+                raise ValueError, 'Standard deviation has different geometry than data!'
+            self.__oldstd = self.std.data.copy()
 
         if self.data.ndim == 2:
             tmp1 = self.data.copy().astype('float') #convert to float to allow for nan support
             tmp1[~msk] = np.nan
 
+            if hasattr(self,'std'):
+                tmps = self.std.copy().astype('float')
+
             if keep_mask:
                 if self.__oldmask.ndim > 0:
                     tmp1[self.__oldmask] = np.nan
+
+                    if hasattr(self,'std'):
+                        tmps[self.__oldmask] = np.nan
+
             self.data = np.ma.array(tmp1,mask=np.isnan(tmp1))
+            if hasattr(self,'std'):
+                self.std = np.ma.array(tmps,mask=np.isnan(tmps))
+                del tmps
 
             del tmp1
 
@@ -2137,11 +2175,21 @@ class Data():
                 self.data[i,:,:] = tmp[:,:]
                 del tmp
 
+                if hasattr(self,'std'):
+                    tmps = self.std[i,:,:].copy()
+                    tmps[~msk] = np.nan
+                    self.std[i,:,:] = tmps
+                    del tmps
+
             if keep_mask:
                 if self.__oldmask.ndim > 0:
                     self.data.data[self.__oldmask] = np.nan
+                    if hasattr(self,'std'):
+                        self.std.data[self.__oldmask] = np.nan
 
             self.data = np.ma.array(self.data.data,mask=np.isnan(self.data.data))
+            if hasattr(self,'std'):
+                self.std = np.ma.array(self.std.data,mask=np.isnan(self.std.data))
             #self._climatology_raw = np.ma.array(self._climatology_raw,mask=np.isnan(self._climatology_raw))
         else:
             print np.shape(self.data)
@@ -2401,7 +2449,7 @@ class Data():
             sta = stats.mstats
             t,p = ttest_ind(d.data, x.data ,axis=axis) #use routine in pyCMBS.statistic.py
         else:
-            t,p = stas.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
+            t,p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
 
         p   = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
 
