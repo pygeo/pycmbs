@@ -1222,7 +1222,7 @@ class SVD():
 #-----------------------------------------------------------------------
 
     def _get_variance_field(self,X,E,mode,pthres=1.01):
-        '''
+        """
         calculate variance field for a particular mode
         (explained variance by a particular expansion mode)
         This is obtained by correlating an expansion mode to
@@ -1235,7 +1235,7 @@ class SVD():
         @type E: numpy array
 
         @return: squared correlation as C{Data} object
-        '''
+        """
         Rout,Sout,Iout,Pout = X.corr_single(E[:,mode],pthres=pthres)
         Rout.data = Rout.data*Rout.data
         return Rout #return squared correlation to get variance
@@ -1243,7 +1243,7 @@ class SVD():
 #-----------------------------------------------------------------------
 
     def reconstruct_variance_fraction(self,X,E,mode_list,pthres=1.01):
-        '''
+        """
         reconstruct variance of data based on
         a list of modes that should be used
         for that purpose.
@@ -1258,7 +1258,7 @@ class SVD():
 
         returns:
         array with variance
-        '''
+        """
 
         O = None
         for mode in mode_list:
@@ -1275,12 +1275,12 @@ class SVD():
 #-----------------------------------------------------------------------
 
     def print_mode_statistic(self,filename=None):
-        '''
+        """
         print statistic of modes
 
         @param filename: filename to save table to
         @type filename: str
-        '''
+        """
         sep = ' & '; rnd = 2
         self.__get_mode_correlation() #calculate mode correlations
 
@@ -1301,7 +1301,7 @@ class SVD():
 #-----------------------------------------------------------------------
 
     def plot_expansion_correlation(self,mode,ax=None):
-        '''
+        """
         plot correlation and time series of expansion coeffcients
 
         @param mode: mode to plot
@@ -1309,7 +1309,7 @@ class SVD():
 
         @param ax: axis to plot data
         @type ax: matplotlib axis
-        '''
+        """
         if ax == None:
             fig=plt.figure()
             ax = fig.add_subplot(111)
@@ -1328,7 +1328,7 @@ class SVD():
 
 class Diagnostic():
     def __init__(self,x,y=None):
-        '''
+        """
         constructor for diagnostic class
         diagnostic for one or multiple data sets
 
@@ -1337,7 +1337,7 @@ class Diagnostic():
 
         @param y: y data to be analyzed
         @type y: C{Data} object
-        '''
+        """
         self.x = x
         if y != None:
             self.y = y
@@ -1345,9 +1345,9 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def get_n(self):
-        '''
+        """
         return the number of valid samples
-        '''
+        """
         xm = ~self.xvec.mask #vector with valid sample
         ym = ~self.yvec.mask
         m = xm & ym
@@ -1356,25 +1356,25 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def get_rmse_value(self):
-        '''
+        """
         calculate root-mean-squared error
 
         @param self: Diagnostic object
         @type self : Diagnostic object
-        '''
+        """
         return np.sqrt(np.mean((self.xvec - self.yvec)**2))
 
 #-----------------------------------------------------------------------
 
     def lagged_correlation_vec(self,lags,pthres=1.01,detrend_linear=False,detrend_mean=False):
-        '''
+        """
         lagged correlation for two vectors
 
         x,y Data objects, where data needs to have been pre-processed
         to be a single vector
 
         lags: list of lags
-        '''
+        """
 
         if self.x.data.shape != self.y.data.shape:
             raise ValueError, 'Invalid geometries!'
@@ -1766,7 +1766,6 @@ class Diagnostic():
         on basis of the mean spatial fields, thus
         the timeseries of each pixels is averaged over time
         before the correlation calculation
-
         """
 
         x=self.x.data.copy()
@@ -1774,10 +1773,8 @@ class Diagnostic():
         if not hasattr(self,'y'):
             #if no y value is given, then time is used as independent variable
             print 'No y-value specified. Use time as indpendent variable!'
-
             y = x.copy()
             x = np.ma.array(self.x.time.copy(),mask = self.x.time < 0. )
-
         else:
             y = self.y.data.copy()
 
@@ -1844,10 +1841,8 @@ class Diagnostic():
                     xdata = tmpx; ydata = tmpy
 
                 slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
-                R[gap,i1] = r
-                P[gap,i1] = p
-                L[gap,i1] = gap-1
-                S[gap,i1] = slope
+                R[gap,i1] = r; P[gap,i1] = p
+                L[gap,i1] = gap-1; S[gap,i1] = slope
 
 
             i1 += 1
@@ -1857,10 +1852,8 @@ class Diagnostic():
             R = np.ma.array(R,mask=P>pthres)
             S = np.ma.array(S,mask=P>pthres)
 
-        self.slice_r_gap = R
-        self.slice_p_gap = P
-        self.slice_length_gap = L
-        self.slice_slope_gap = S
+        self.slice_r_gap = R; self.slice_p_gap = P
+        self.slice_length_gap = L; self.slice_slope_gap = S
 
 
 #-----------------------------------------------------------------------

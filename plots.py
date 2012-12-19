@@ -763,7 +763,7 @@ class HistogrammPlot():
 
         self.bins = bins
 
-    def plot(self,X,color='black',linestyle='-',linewidth=1.,label=None,**kwargs):
+    def plot(self,X,color='black',linestyle='-',linewidth=1.,label='',shown=False,show_legend=False,**kwargs):
         """
         plot data to histogram
 
@@ -778,6 +778,9 @@ class HistogrammPlot():
 
         @param linewidth: width of line to plot
         @type linewidth: float
+
+        @param shown: show number of used datasets in legend
+        @type shown: bool
 
         @param kwargs: arguments for np.histogram function
         """
@@ -797,8 +800,18 @@ class HistogrammPlot():
         if 'bins' in kwargs.keys():
             bb = kwargs.pop('bins')
 
+        if shown:
+            show_legend=True
+
+            if label == '':
+                label = 'n='+str(sum(~np.isnan(x)))
+            else:
+                label= label + '(n='+str(sum(~np.isnan(x))) + ')'
+
         f,b = np.histogram(x,bins = self.bins,**kwargs)
         self.ax.plot(b[0:-1],f,color=color,linestyle=linestyle,linewidth=linewidth,label=label)
+        if show_legend:
+            self.ax.legend()
 
 
 #-----------------------------------------------------------------------
