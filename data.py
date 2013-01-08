@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from jockey.ui import bool
 
 __author__ = "Alexander Loew"
 __version__ = "0.1"
