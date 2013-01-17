@@ -1438,6 +1438,11 @@ def map_season(x,**kwargs):
                 show_colorbar=False
         else:
             ax = f.add_subplot(2,2,i+1)
+            if 'show_colorbar' in kwargs:
+                show_colorbar  = kwargs.pop('show_colorbar')
+            else:
+                show_colorbar = True
+
         d = x.copy(); d.data = x.data[i,:,:]
         d.label = labels[i]
 
@@ -1448,7 +1453,7 @@ def map_season(x,**kwargs):
 
         map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay, **kwargs); del d
 
-    f.suptitle(tit,size=12)
+    f.suptitle(tit,size=16)
 
     return f
 
