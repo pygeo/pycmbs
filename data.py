@@ -567,6 +567,34 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def _apply_temporal_mask(self,mask):
+        """
+        apply a temporal mask to data. All timesteps where the mask is True will
+        be masked, but geometry will not be changed, thus no masking will be applied
+
+        the Data.data is changed
+
+        @param mask: boolean numpy array of size [time]
+
+        @return: None
+        """
+
+        if self.data.ndim != 3:
+            raise ValueError, 'temporal masking only possible for 3D data'
+
+        if len(mask) != len(self.data):
+            print len(mask), self.data.shape
+            raise ValueError, 'Inconsistent length of data and mask'
+
+        for i in xrange(len(mask)):
+            if mask[i]:
+                self.data.mask[i,:,:] = True
+
+
+
+#-----------------------------------------------------------------------
+
+
     def read(self,shift_lon,start_time=None,stop_time=None,time_var='time'):
         """
         read data from file
