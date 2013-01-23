@@ -480,6 +480,19 @@ class TestData(TestCase):
         self.assertTrue(np.all( (res['sum'][:,1]-rs) == 0. ))
 
 
+    def test_apply_temporal_mask(self):
+        D=self.D.copy()
+        D.data[:,:,:]=1.
+        m = np.zeros(len(D.data)).astype('bool')
+        m[1] = True; m[5]=True
+
+        print 'BEFORE: ', D.timsum()
+        D._apply_temporal_mask(m)
+        print 'RESULT: ', D.timsum()
+        print D.data
+
+
+
 
 
 
