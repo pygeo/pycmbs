@@ -351,38 +351,58 @@ class Data():
 #-----------------------------------------------------------------------
 
 
-    def _get_bounding_box(self):
+    def get_bounding_box(self):
         """
         estimates bounding box of valid data. It returns the indices
         of the bounding box which frames all valid data
 
-        @return: returns indices for bounding box
+        (unittests o.k.)
+
+        @return: returns indices for bounding box [i1,i2,j1,j2]
         """
 
         msk = self.get_valid_mask() #gives a 2D mask
 
         #estimate boundary box indices
-        xb = msk.sum(axis=0)
-        yb = msk.sum(axis=1)
+        xb = msk.sum(axis=0); yb = msk.sum(axis=1)
 
-        j1=None; j2=None
+        j1 = 0
         for i in xrange(len(xb)):
-            if (j1 == None) and (xb[i]> 0.):
+            if j1 > 0:
+                continue
+            if (xb[i] > 0):
                 j1 = i
-            if (j2 == None) and (xb[i]> 0.) and (j1 != i):
+
+        j2 = 0
+        for i in xrange(len(xb)-1,-1,-1):
+            if j2 > 0:
+                continue
+            if (xb[i]>0):
                 j2 = i
 
-        raise ValueError, 'Not finished yet!!!' #todo
+        i1 = 0
+        for i in xrange(len(yb)):
+            if i1 > 0:
+                continue
+            if (yb[i] > 0):
+                i1 = i
 
-        return yb,xb,j1,j2
+        i2 = 0
+        for i in xrange(len(yb)-1,-1,-1):
+            if i2 > 0:
+                continue
+            if (yb[i]>0):
+                i2 = i
+
+        return i1,i2,j1,j2
 
 
 #-----------------------------------------------------------------------
 
     def _squeeze(self):
-        '''
+        """
         remove singletone dimensions in data variable
-        '''
+        """
 
         if self.verbose:
             print 'SQUEEZING data ... ', self.data.ndim, self.data.shape
@@ -2128,22 +2148,19 @@ class Data():
 
     def get_aoi_lat_lon(self,R,apply_mask=True):
         """
-        get aoi given lat/lon coordinates
+        get area of interst (AOI) given lat/lon coordinates
 
         the routine masks all area which
         is NOT in the given area
 
         coordinates of region are assumed to be in -180 < lon < 180
 
-        given a region R
+        @param R: region object that specifies region
+        @type R: Region
 
-        @todo: documentation needed
+        @param apply_mask: apply former data mask (default)
+        @type apply_mask: bool
         """
-
-        #oldmask = self.data.mask[].copy()
-
-
-        #problem: beim kopieren wird der alte mask value ungültig
 
         LON = self.lon.copy()
         if self._lon360:
