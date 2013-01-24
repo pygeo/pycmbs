@@ -485,15 +485,25 @@ class TestData(TestCase):
         D.data[:,:,:]=1.
         m = np.zeros(len(D.data)).astype('bool')
         m[1] = True; m[5]=True
-
-        print 'BEFORE: ', D.timsum()
         D._apply_temporal_mask(m)
-        print 'RESULT: ', D.timsum()
-        print D.data
 
 
+    def test_bounding_box(self):
+        D = self.D.copy()
+        D.data = np.ma.array(pl.rand(10,5,8),mask=np.zeros((10,5,8)).astype('bool'))
 
+        #generate some sample data with known bounding box
+        D.data.mask[:,:,0] = True
+        D.data.mask[:,:,7] = True
+        D.data.mask[:,0,:] = True
+        D.data.mask[:,4,:] = True
 
+        #validate function
+        i1,i2,j1,j2 = D.get_bounding_box()
+        self.assertEqual(i1,1)
+        self.assertEqual(i2,3)
+        self.assertEqual(j1,1)
+        self.assertEqual(j2,6)
 
 
 
