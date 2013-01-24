@@ -1463,7 +1463,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False,
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
-             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,show_histogram=False, **kwargs):
+             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,show_histogram=False,
+             contourf = False, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1528,6 +1529,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param contours: specifies if plot is done as contour plot
     @type contours: bool
+
+    @param contourf: plot filled contours; is supposed to work only in combination with contours=True
+    @type contourf: bool
 
     @param overlay: overlay for plot (e.g. significance)
     @type overlay: numpy array
@@ -1693,8 +1697,13 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                     levels = kwargs1.pop('levels')
                 else:
                     raise ValueError, 'When plotting with contours, you need to specify the levels option (see contour documnetation)'
-                im1=m1.contour(X,Y,Z,levels,cmap=cmap,**kwargs1)
-                ax.clabel(im1, inline=1, fontsize=10) #contour label
+                if contourf:
+                    im1=m1.contourf(X,Y,Z,levels,cmap=cmap,**kwargs1)
+                else:
+                    im1=m1.contour(X,Y,Z,levels,cmap=cmap,**kwargs1)
+                    ax.clabel(im1, inline=1, fontsize=10) #contour label
+
+
             else:
                 im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
 
@@ -1710,8 +1719,11 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     else: #use_basemap = False
         #- normal plots
         if contours:
-            im1 = ax.contour(xm,cmap=cmap,**kwargs1)
-            ax.clabel(im1, inline=1, fontsize=10) #contour label
+            if contourf:
+                im1 = ax.contourf(xm,cmap=cmap,**kwargs1)
+            else:
+                im1 = ax.contour(xm,cmap=cmap,**kwargs1)
+                ax.clabel(im1, inline=1, fontsize=10) #contour label
         else:
             im1=ax.imshow(xm,cmap=cmap,interpolation='nearest', **kwargs1)
 
