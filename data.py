@@ -2185,6 +2185,30 @@ class Data():
 
 #-----------------------------------------------------------------------
 
+    def cut_bounding_box(self,return_object=False):
+        """
+        estimate bounding box of data and subset dataset such that only valid data
+        is contained in the bounding box
+
+        @param return_object: return data object
+        @type return_object: bool
+        """
+        i1,i2,j1,j2 = self.get_bounding_box()
+
+        if return_object:
+            D = self.copy()
+        else:
+            D = self
+
+        D.data = D.data[:,i1:i2,j1:j2]
+
+        if return_object:
+            return D
+        else:
+            return None
+
+#-----------------------------------------------------------------------
+
     def get_valid_mask(self):
         """
         calculate a mask which is True, when all timestamps
