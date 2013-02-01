@@ -272,7 +272,7 @@ obs_dict = {
               'mask_area': 'ocean',
               'add_to_report': True,
               #'interval': 'monthly',
-              'label': 'Daily rainfall',
+              'label': 'CRU',
               'preprocess': True,
               'parameter': 'rain',
               'report': True
@@ -294,7 +294,7 @@ obs_dict = {
                   'mask_area': 'ocean',
                   'add_to_report': True,
                   #'interval': 'monthly',
-                  'label': 'Daily rainfall',
+                  'label': 'GPCC',
                   'preprocess': True,
                   'parameter': 'rain',
                   'report': True
@@ -316,7 +316,7 @@ obs_dict = {
                    'mask_area': 'ocean',
                    'add_to_report': True,
                    #'interval': 'monthly',
-                   'label': 'Daily rainfall',
+                   'label': 'HOAPS',
                    'preprocess': True,
                    'parameter': 'rain',
                    'report': True
@@ -338,7 +338,7 @@ obs_dict = {
                     'mask_area': 'none',
                     'add_to_report': True,
                     #'interval': 'monthly',
-                    'label': 'Daily rainfall',
+                    'label': 'GPCP',
                     'preprocess': True,
                     'parameter': 'rain',
                     'report': True
@@ -1617,7 +1617,7 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         #todo test for calculation ????
 
         #use welch test to calculate significant different areas
-        isdifferent , t1, t2 = welchs_approximate_ttest(model_data.n, model_data.data, model_data.std, obs_sis.n, obs_sis.data, obs_sis.std, 0.95)
+        #isdifferent , t1, t2 = welchs_approximate_ttest(model_data.n, model_data.data, model_data.std, obs_sis.n, obs_sis.data, obs_sis.std, 0.95)
 
         f_season1 = map_season(model_data,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
         f_season2 = map_season(obs_sis,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
