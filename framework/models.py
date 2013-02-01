@@ -319,13 +319,17 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_temperature_2m(self):
+    def get_temperature_2m(self,interval=None):
 
         '''
         return data object of
         a) seasonal means for air temperature
         b) global mean timeseries for TAS at original temporal resolution
         '''
+
+        if interval != 'season':
+            raise ValueError, 'Other data than seasonal not supported at the moment for CMIP5 data and temperature!'
+
 
         #original data
         filename1 = self.data_dir + 'tas/' +  self.model + '/' + 'tas_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'

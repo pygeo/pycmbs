@@ -506,10 +506,88 @@ obs_dict = {
                    'preprocess': True,
                    'parameter': 'budg',
                    'report': True}
+     },
+
+
+     'sis':{'ISCCP': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/isccp/T63_ISCCP__versD1__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc',
+            'start_time': '1984-01-01',
+            'stop_time': '2005-12-31',
+            'obs_var': 'BfISC84',
+            'scale_data': 1.,
+            'glecker_position': 3,
+            'map_difference': True,
+            'map_seasons': True,
+            'reichler_plot': True,
+            'glecker_plot': True,
+            'units': '$W/m^2$',
+            'mask_area': 'none',
+            'add_to_report': True,
+            #'interval': 'monthly',
+            'label': 'Shortwave downward radiation flux in air',
+            'preprocess': True,
+            'parameter': 'sis',
+            'report': True},
+
+            'SRB': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/srb/T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc',
+                      'start_time': '1984-01-01',
+                      'stop_time': '2005-12-31',
+                      'obs_var': 'BfSRB84',
+                      'scale_data': 1.,
+                      'glecker_position': 4,
+                      'map_difference': True,
+                      'map_seasons': True,
+                      'reichler_plot': True,
+                      'glecker_plot': True,
+                      'units': '$W/m^2$',
+                      'mask_area': 'none',
+                      'add_to_report': True,
+                      #'interval': 'monthly',
+                      'label': 'Shortwave downward radiation flux in air',
+                      'preprocess': True,
+                      'parameter': 'sis',
+                      'report': True},
+
+            'CMSAF': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc',
+                    'start_time': '1984-01-01',
+                    'stop_time': '2005-12-31',
+                    'obs_var': 'SIS',
+                    'scale_data': 1.,
+                    'glecker_position': 1,
+                    'map_difference': True,
+                    'map_seasons': True,
+                    'reichler_plot': True,
+                    'glecker_plot': True,
+                    'units': '$W/m^2$',
+                    'mask_area': 'none',
+                    'add_to_report': True,
+                    #'interval': 'monthly',
+                    'label': 'Shortwave downward radiation flux in air',
+                    'preprocess': True,
+                    'parameter': 'sis',
+                    'report': True},
+
+            'CERES': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc',
+                      'start_time': 'xxxx-01-01',
+                      'stop_time': 'xxxx-12-31',
+                      'obs_var': 'sfc_sw_down_all_mon',
+                      'scale_data': 1.,
+                      'glecker_position': 2,
+                      'map_difference': True,
+                      'map_seasons': True,
+                      'reichler_plot': True,
+                      'glecker_plot': True,
+                      'units': '$W/m^2$',
+                      'mask_area': 'none',
+                      'add_to_report': True,
+                      #'interval': 'monthly',
+                      'label': 'Shortwave downward radiation flux in air',
+                      'preprocess': True,
+                      'parameter': 'sis',
+                      'report': True}
+
+
+
      }
-
-
-
     } #end of dict
 
 
@@ -520,7 +598,7 @@ global_settings_dict = {'landsea_mask':
 
 # dictionary with known observations types?
 
-def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, shift_lon=False, use_basemap=False, report=None,interval=None):
+def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = None, shift_lon=False, use_basemap=False, report=None,interval=None):
     """
     function for performing common analysis actions
     it is not a parameter specific function
@@ -536,23 +614,20 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, shift_lo
 
     local_obs_dict = obs_dict[obs_type][obs_name]
 
-
     # get observations information from the global dictionary
-    s_start_time        = local_obs_dict['start_time']
-    s_stop_time         = local_obs_dict['stop_time']
+    #s_start_time        = local_obs_dict['start_time'] #todo appropriate usage of start/stop times! (from config file ???)
+    #s_stop_time         = local_obs_dict['stop_time']
     obs_raw             = local_obs_dict['obs_file']
     obs_var             = local_obs_dict['obs_var']
     #obs_type = local_obs_dict['obs_provider']
-    scale_data          = local_obs_dict['scale_data']
+    scale_data          = local_obs_dict['scale_data'] #todo: how to best use ???
     #interval            = local_obs_dict['interval'] #does not make sense to take this from dictionary, as information needs to come from config file!!!
-    mask_area           = local_obs_dict['mask_area']
+    #mask_area           = local_obs_dict['mask_area']
     glecker_pos         = local_obs_dict['glecker_position']
     param_name          = local_obs_dict['parameter'] # model variable name ##todo is this really needed ????; obs_name should do ????
 
-
-    model = model_list[0]
-    model_names = []
-    m_data = param_name
+    #model = model_list[0]
+    #m_data = param_name
     m_data_org = param_name + '_org'
 
     if report == None:
@@ -564,19 +639,22 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, shift_lo
     # preprocessing
     if local_obs_dict['preprocess'] == True:
         print interval
-        obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  force = False, obs_var = obs_var, label = local_obs_dict['label'], shift_lon = shift_lon)
+        obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = local_obs_dict['label'], shift_lon = shift_lon)
 
 
     #--- initialize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
-    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-    GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=False) #global mean plot
-
-    #print obs_monthly.data.shape
+    if GM == None:
+        fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
+        GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=False) #global mean plot
 
     if GM != None:
-        GM.plot(obs_orig, linestyle = '--')
+        GM.plot(obs_monthly, linestyle = '--')
+
+    if local_obs_dict['map_seasons'] == True: #seasonal mean plot
+        f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6)
+        report.figure(f_season,caption='Seasonal mean ' + obs_name)
 
 
     for model in model_list:
@@ -584,7 +662,6 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, shift_lo
         sys.stdout.write('\n *** %s analysis of model: ' % (param_name) + model.name + "\n")
         model_data = model.variables[param_name]
         GP.add_model(model.name) #register model name in GlecklerPlot
-
 
         if local_obs_dict['report'] == True:
             #/// report results
@@ -614,8 +691,8 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, shift_lo
         if local_obs_dict['map_seasons'] == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
             #seasonal map
-            f_season = map_season(model_data.sub(obs_orig),use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,nclasses=6)
-            report.figure(f_season,caption='Seasonal differences')
+            f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6)
+            report.figure(f_season,caption='Seasonal means model')
 
         if local_obs_dict['reichler_plot'] == True:
             #/// Reichler statistics ///
@@ -625,15 +702,12 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, shift_lo
             #print e2
             Rplot.add(e2,model_data.label,color='red')
 
-
         if local_obs_dict['glecker_plot'] == True:
             #/// Gleckler plot ///
             sys.stdout.write('\n *** Glecker plot. \n')
             e2a = GP.calc_index(obs_orig,model_data,model,param_name)
             #e2a = 0
             GP.add_data(param_name,model.name,e2a,pos=glecker_pos)
-
-
 
     del obs_monthly
     sys.stdout.write('\n *** Reichler plot.\n')
@@ -1245,9 +1319,9 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
     temperature_analysis_cru(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
 
 def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None):
-    '''
+    """
     units: K
-    '''
+    """
     print 'Doing Temperature analysis ...'
 
     vmin = 270; vmax = 320.
@@ -1355,7 +1429,7 @@ def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=Fals
 
 
 
-def rainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None,obs_type=None):
+def xxxxxxxxxxxxxxxxxrainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None,obs_type=None):
     '''
     units: mm/day
     '''
@@ -1507,19 +1581,22 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
 
-    #isccp
+    #ISCCP
     report.subsection('ISCCP')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='ISCCP',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
-    #srb
+    generic_analysis(obs_dict, model_list, 'sis', 'ISCCP', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+    #SRB
     report.subsection('SRB')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='SRB',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    generic_analysis(obs_dict, model_list, 'sis', 'SRB', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
     #ceres
     report.subsection('CERES')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CERES',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    generic_analysis(obs_dict, model_list, 'sis', 'CERES', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
     #cm-saf
     report.subsection('CMSAF')
     report.write('Please note that the CMSAF analysis is limited to the Meteosat spatial domain!')
-    sis_analysis_plots(model_list,interval=interval,GP=GP,GM=GM,shift_lon=shift_lon,use_basemap=use_basemap,obs_type='CMSAF',report=report,vmin=vmin,vmax=vmax,dmin=dmin,dmax = dmax)
+    generic_analysis(obs_dict, model_list, 'sis', 'CMSAF', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     report.figure(fG,caption='Global means for SIS ')
 
@@ -1531,7 +1608,7 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 
 #-----------------------------------------------------------------------
 
-def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None,report=None):
+def xxxxxxxxxxxsis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None,report=None):
     """
     model_list = list which contains objects of data type MODEL
 
@@ -1548,24 +1625,8 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
     #--- get land sea mask
     ls_mask = get_T63_landseamask(shift_lon)
 
-    if obs_type == 'ISCCP':
-        #--- load ISCCP-SIS data
-        f1 = 'T63_ISCCP__versD1__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
-        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/isccp/' + f1
-        y1 = '1984-01-01'; y2='2005-12-31' #todo: specifiy externally
 
-        obs_var = 'BfISC84'
-        gleckler_pos = 3
-
-    elif obs_type == 'SRB':
-        f1 = 'T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc'
-        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/srb/' + f1
-        y1 = '1984-01-01'; y2='2005-12-31'
-
-        obs_var = 'BfSRB84'
-        gleckler_pos = 4
-
-    elif obs_type == 'CERES':
+    if obs_type == 'CERES':
         #todo EBAF data
         #raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
         raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
@@ -1575,16 +1636,11 @@ def sis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=
         obs_var = 'sfc_sw_down_all_mon'
         gleckler_pos = 2
 
-    elif obs_type == 'CMSAF':
-        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc'
-        y1 = '1984-01-01'; y2='2005-12-31'
-
-        obs_var = 'SIS'
-        gleckler_pos = 1
-
     else:
         print obs_type
         raise ValueError, 'Unknown observation type for SIS-analysis!'
+
+    raise ValueError, 'This routine is outdated!'
 
     #/// do data preprocessing ///
     obs_sis, obs_monthly = preprocess_seasonal_data(raw_sis,interval=interval,themask = ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
