@@ -197,7 +197,7 @@ def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 def twpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
-    report.section('Total water content')
+    report.section('Total column water content')
     report.subsection('HOAPS')
 
     generic_analysis(obs_dict, model_list, 'twpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
