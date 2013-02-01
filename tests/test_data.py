@@ -506,7 +506,8 @@ class TestData(TestCase):
         self.assertEqual(j2,6)
 
 
-
+if __name__ == '__main__':
+    unittest.main()
 
 
 

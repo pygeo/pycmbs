@@ -21,6 +21,7 @@ __email__ = "alexander.loew@zmaw.de"
 '''
 
 import os
+import sys
 
 class ConfigFile():
     """
@@ -107,7 +108,7 @@ class ConfigFile():
                 for f in files:
                     os.remove(f)
             else:
-                print 'Temporary output directory already existing: ', self.options['tempdir']
+                sys.stdout.write('     Temporary output directory already existing: ' + self.options['tempdir'] + '\n')
 
         #update global variable for CDO temporary directory (needed for CDO processing)
         os.environ.update({'CDOTEMPDIR' : self.options['tempdir'] } )
@@ -167,9 +168,7 @@ class ConfigFile():
         read configuration files in 3 blocks
         """
 
-        print '********************************************************'
-        print '* BEGIN Config file'
-        print '********************************************************'
+        sys.stdout.write("\n *** Reading config file... \n")
 
         self.__read_options()
         self.variables,self.intervals  = self.__read_var_block()
@@ -181,10 +180,7 @@ class ConfigFile():
                 print k
                 raise ValueError, 'Unknown model type'
 
-        print '********************************************************'
-        print '* END Config file'
-        print '********************************************************'
-        print ''
+        sys.stdout.write(" *** Done reading config file. \n")
 
 
 
