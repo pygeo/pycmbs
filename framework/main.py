@@ -108,6 +108,13 @@ def get_analysis_scripts():
     d.update({'grass':'grass_fraction_analysis'})
     d.update({'phenology_faPAR':'phenology_faPAR_analysis'})
     d.update({'temperature':'temperature_analysis'})
+    d.update({'evap':'evaporation_analysis'})
+    d.update({'wind':'wind_analysis'})
+    d.update({'twpa':'twpa_analysis'})
+    d.update({'wvpa':'wvpa_analysis'})
+    d.update({'hair':'hair_analysis'})
+    d.update({'late':'late_analysis'})
+    d.update({'budg':'budg_analysis'})
 
     return d
 
@@ -125,7 +132,7 @@ pl.close('all')
 
 #-----------------------------------------------------------------------
 
-def get_methods4variables(variables):
+def get_methods4variables(variables, model_dict):
     """
     for a given list of variables, return a dictionary
     with information on methods how to read the data
@@ -135,6 +142,10 @@ def get_methods4variables(variables):
     """
 
     hlp={}
+
+    #o.k., hier weiter und generische Methode zum lesen der Daten implementieren wo mgl.
+
+    #hlp.update({'rain': 'get_model_data_cmsaf(**%s)' % model_dict['rain']}) ###todo
     hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
     hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
@@ -144,6 +155,12 @@ def get_methods4variables(variables):
     hlp.update({'phenology_faPAR' : 'get_faPAR(interval=interval)'})
     hlp.update({'temperature' : 'get_temperature_2m(interval=interval)'})
     hlp.update({'snow' : 'get_snow_fraction(interval=interval)'})
+    hlp.update({'evap': 'get_model_data_cmsaf(**%s)' % model_dict['evap']})
+    hlp.update({'wind': 'get_model_data_cmsaf(**%s)' % model_dict['wind']})
+    hlp.update({'twpa': 'get_model_data_cmsaf(**%s)' % model_dict['twpa']})
+    hlp.update({'wvpa': 'get_model_data_cmsaf(**%s)' % model_dict['wvpa']})
+    hlp.update({'late': 'get_model_data_cmsaf(**%s)' % model_dict['late']})
+    hlp.update({'budg': 'get_model_data_cmsaf(**%s)' % model_dict['budg']})
 
 
 
@@ -199,14 +216,104 @@ s_stop_time  = CF.stop_date  #'2005-12-31'
 start_time = pl.num2date(pl.datestr2num(s_start_time))
 stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
 
+
+
+# get observations?
+model_dict = {'rain':  {'variable': 'pr',
+                        'unit': 'mm/day',
+                        'interval': 'monthly',
+                        'lat_name': 'lat',
+                        'lon_name': 'lon',
+                        'model_suffix': 'ensmean',
+                        'model_prefix': 'Amon',
+                        'file_format' : 'nc',
+                        'scale_factor': 86400.,
+                        'mask_area': 'ocean'},
+
+              'evap':   {'variable': 'evspsbl',
+                        'unit': 'mm/day',
+                        'interval': 'monthly',
+                        'lat_name': 'lat',
+                        'lon_name': 'lon',
+                        'model_suffix': 'ensmean',
+                        'file_format' : 'nc',
+                        'model_prefix': 'Amon',
+                        'scale_factor': 86400.,
+                        'mask_area': 'ocean'},
+
+              'twpa':   { 'variable': 'clwvi',
+                         'unit': 'kg/m^2',
+                         'interval': 'monthly',
+                         'lat_name': 'lat',
+                         'lon_name': 'lon',
+                         'model_suffix': 'ensmean',
+                         'file_format' : 'nc',
+                         'model_prefix': 'Amon',
+                         'scale_factor': 1.,
+                         'mask_area': 'ocean'},
+
+             'wind':    {'variable': 'sfcWind',
+                         'unit': 'm/s',
+                         'interval': 'monthly',
+                         'lat_name': 'lat',
+                         'lon_name': 'lon',
+                         'model_suffix': 'ensmean',
+                         'file_format' : 'nc',
+                         'model_prefix': 'Amon',
+                         'scale_factor': 1.,
+                         'mask_area': 'ocean'},
+
+              'wvpa':   {'variable': 'prw',
+                        'unit': 'kg m^2',
+                        'interval': 'monthly',
+                        'lat_name': 'lat',
+                        'lon_name': 'lon',
+                        'model_suffix': 'ensmean',
+                        'file_format' : 'nc',
+                        'model_prefix': 'Amon',
+                        'scale_factor': 1,
+                        'mask_area': 'ocean'},
+
+              'late':   {'variable': 'hfls',
+                        'unit': 'W/m^2',
+                        'interval': 'monthly',
+                        'lat_name': 'lat',
+                        'lon_name': 'lon',
+                        'model_suffix': 'ensmean',
+                        'file_format' : 'nc',
+                        'model_prefix': 'Amon',
+                        'scale_factor': 1,
+                        'mask_area': 'ocean'},
+
+              'budg':   {'variable': 'budg',
+                        'unit': 'mm/d',
+                        'interval': 'monthly',
+                        'lat_name': 'lat',
+                        'lon_name': 'lon',
+                        'model_suffix': 'ensmean',
+                        'file_format' : 'nc',
+                        'model_prefix': 'Amon',
+                        'scale_factor': 86400.,
+                        'mask_area': 'ocean',
+                        'custom_path' : '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'}}
+
+
 #--- names of analysis scripts for all variables ---
 scripts = get_analysis_scripts()
 
 #/// get dictionary with methods how to read data for variables to be analyzed ///
 variables = CF.variables
-varmethods = get_methods4variables(variables)
+varmethods = get_methods4variables(variables, model_dict)
 
 #=======================================================================
+global_settings_dict = {'landsea_mask': {'filename': ''}}
+default_analysis = {}
+
+# todo: compare custom analysis methods list with the default ones
+# logic: if the custom list is empty, we'll use the default one
+#        if the custom list is not empty, we'll use the custom one
+
+
 
 #/// READ DATA ///
 '''
@@ -244,8 +351,7 @@ for i in range(len(CF.models)):
     proc_models.append('model' + str(model_cnt).zfill(4))
     model_cnt += 1
 
-
-#/// prepare global becnhmarking metrices
+#/// prepare global benchmarking metrices
 #generate a global variable for Gleckler plot!
 global_gleckler = GlecklerPlot()
 

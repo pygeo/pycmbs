@@ -1314,7 +1314,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True):
+def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True,drawcountries=True):
     """
     routine to plot ancillary data like coastlines
     or meridians on a basemap plot
@@ -1334,7 +1334,9 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True)
         latvalues=np.arange(-90.,120.,30.)
     if lonvalues == None:
         lonvalues= np.arange(-180.,180.,90.)
-    m.drawcountries(); m.drawcoastlines()
+    if drawcountries:
+        m.drawcountries()
+    m.drawcoastlines()
     m.drawlsmask(lakes=True)
     m.drawmapboundary() # draw a line around the map region
     if drawparallels:
@@ -1457,16 +1459,22 @@ def map_season(x,**kwargs):
 
     return f
 
+
+
+
 #-----------------------------------------------------------------------
 
 def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet',
              title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False,
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
-             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,show_histogram=False,
+             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
              contourf = False, **kwargs):
     """
     produce a nice looking map plot
+
+    @param drawparallels: option to draw parallels on the map
+    @type drawparallels: bool
 
     @param x: data to plot
     @type x: C{Data} object
@@ -1547,6 +1555,10 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param show_histogram: show a histogram below the map
     @type show_histogram: bool
+
+    @param drawcountries: specifies if countries will be shown in map plot (default=TRUE)
+    @type drawcountries: bool
+
 
     """
 
@@ -1714,7 +1726,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 #todo: there is still a problem that the coordinates are not properly aligned with the grid cells!!!
 
             #/// ANCILLARY PLOT FOR BASEMAP ///
-            __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues,drawparallels=drawparallels)
+            __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues,drawparallels=drawparallels,drawcountries=drawcountries)
 
     else: #use_basemap = False
         #- normal plots
