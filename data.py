@@ -841,13 +841,17 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def partial_correlation(self,Y,Z,pthres=1.01,return_object=True):
+    def partial_correlation(self,Y,Z,ZY=None,pthres=1.01,return_object=True):
         """
         perform partial correlation analysis.
 
         This function calculates the partial correlation between variables (self) and Y, removing
         the effect of variable Z before (condition). The partial correlation represents the correlation
         between X and Y, when the common effect, related to Z has been removed
+
+        The function allows to have two datasets used as a condition (Z,ZY). Lets say, you have two datasets
+        which were generated with a two different forcings which you want to remove from X/Y before analyzing
+        their relationship, then this is the right choice to specify a second independent variable ZY
 
         (unittest)
 
@@ -858,7 +862,7 @@ class Data():
         @param Y: variable to calculate with
         @type Y: Data
 
-        @param Z: condition
+        @param Z: condition for either both variables or if ZY is given, then Z is used for SELF only
         @type Z: Data
 
         @param pthres: threshold to flag insignificant correlations
@@ -872,10 +876,16 @@ class Data():
 
         assert isinstance(Y,Data); assert isinstance(Z,Data)
 
+        #if a second condition is given, use it ...
+        if ZY != None:
+            assert isinstance(ZY,Data)
+        else:
+            ZY = Z
+
         #--- calculate correlations
         rxy,pxy = self.correlate(Y,pthres=pthres)
         rxz,pxz = self.correlate(Z,pthres=pthres)
-        rzy,pzy = Z.correlate(Y,pthres=pthres)
+        rzy,pzy = ZY.correlate(Y,pthres=pthres)
 
         #--- calculate partial correlation coefficients
         res = (rxy.data - (rxz.data*rzy.data)) / (np.sqrt(1.-rxz.data*rxz.data) * np.sqrt(1.-rzy.data*rzy.data))

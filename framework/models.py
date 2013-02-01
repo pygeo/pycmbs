@@ -135,7 +135,7 @@ class CMIP5Data(Model):
 
 #-------------------------------------------------------------------------------------------------------------
 
-    def get_model_data_generic(self, **kwargs):
+    def get_model_data_generic(self,interval='season', **kwargs):
         """
         unique parameters are:
             filename - file basename
@@ -144,16 +144,18 @@ class CMIP5Data(Model):
         """
 
         # read settings and details from the keyword arguments
-        varname  = kwargs.pop('variable', 'pr')
+        # no defaults; everything should be explicitely specified in either the config file or the dictionaries
+        varname  = kwargs.pop('variable')
         units    = kwargs.pop('unit', 'Crazy Unit')
-        interval = kwargs.pop('interval', 'season')
+        #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
+
         lat_name = kwargs.pop('lat_name', 'lat')
         lon_name = kwargs.pop('lon_name', 'lon')
-        model_suffix = kwargs.pop('model_suffix', 'ensmean')
-        model_prefix = kwargs.pop('model_prefix', 'Amon')
-        file_format = kwargs.pop('file_format', 'nc')
-        scf = kwargs.pop('scale_factor', 86400)
-        mask_area = kwargs.pop('mask_area', 'ocean')
+        model_suffix = kwargs.pop('model_suffix')
+        model_prefix = kwargs.pop('model_prefix')
+        file_format = kwargs.pop('file_format')
+        scf = kwargs.pop('scale_factor')
+        mask_area = kwargs.pop('mask_area')
         custom_path = kwargs.pop('custom_path', None)
 
         if custom_path == None:
@@ -162,8 +164,6 @@ class CMIP5Data(Model):
         else:
             filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
                         (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
-        # filename1 = self.data_dir + varname + '/' + self.model + '/' + varname + '_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
 
         force_calc = False
 
@@ -231,28 +231,15 @@ class CMIP5Data(Model):
         mdata._apply_mask(get_T63_landseamask(False, area = 'ocean'))
         mdata_all._apply_mask(get_T63_landseamask(False, area = 'ocean'))
 
-
-
         mdata_mean = mdata_all.fldmean()
 
         #/// return data as a tuple list
         retval = (mdata_all.time,mdata_mean,mdata_all)
 
-        #plt.close('all')
-        #plt.imshow(mdata_all.data[0,:]);plt.colorbar()
-        #plt.show()
-        #exit('stop')
-
         del mdata_all
 
-        #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
-        #mdata.data = np.ma.array(mdata.data,mask=mdata.data < 1.)
 
         return mdata,retval
-
-        pass
-
-
 
 
 #-----------------------------------------------------------------------
@@ -757,7 +744,7 @@ class JSBACH_BOT(Model):
         ls_mask = get_T63_landseamask(self.shift_lon)
 
         #2) precipitation data
-        try: #todo this is silly; need to adapt in the edn
+        try:
             v = 'var4'
             rain = Data(filename,v,read=True,scale_factor = 86400.,
             label='MPI-ESM ' + self.experiment, unit = 'mm/day',lat_name='lat',lon_name='lon',
