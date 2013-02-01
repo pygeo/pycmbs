@@ -657,7 +657,7 @@ class JSBACH_BOT(Model):
         v = 'var12'
         tree = Data(filename,v,read=True,
         label='MPI-ESM tree fraction ' + self.experiment, unit = '-',lat_name='lat',lon_name='lon',
-        shift_lon=shift_lon,
+        shift_lon=self.shift_lon,
         mask=ls_mask.data.data,start_time = pl.num2date(pl.datestr2num('2001-01-01')),stop_time=pl.num2date(pl.datestr2num('2001-12-31')))
 
         return tree
@@ -831,7 +831,7 @@ class JSBACH_RAW(Model):
         v = 'swdown_acc'
 
         y1 = '1979-01-01'; y2 = '2010-12-31'
-        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_land_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
             print 'File not existing: ', rawfilename
@@ -869,7 +869,7 @@ class JSBACH_RAW(Model):
         v = 'swdown_reflect_acc'
 
         y1 = '1979-01-01'; y2 = '2010-12-31' #@todo years !!
-        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_land_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
             print 'File not existing: ', rawfilename
@@ -906,7 +906,7 @@ class JSBACH_RAW(Model):
         v = 'precip_acc'
 
         y1 = '1979-01-01'; y2 = '2010-12-31' #todo years
-        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_land_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
             return None
