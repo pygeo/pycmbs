@@ -830,7 +830,7 @@ class JSBACH_RAW(Model):
 
         v = 'swdown_acc'
 
-        y1 = '1992-01-01'; y2 = '2001-12-31'
+        y1 = '1979-01-01'; y2 = '2010-12-31'
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
@@ -868,7 +868,7 @@ class JSBACH_RAW(Model):
 
         v = 'swdown_reflect_acc'
 
-        y1 = '1992-01-01'; y2 = '2001-12-31' #@todo years !!
+        y1 = '1979-01-01'; y2 = '2010-12-31' #@todo years !!
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
@@ -905,7 +905,7 @@ class JSBACH_RAW(Model):
 
         v = 'precip_acc'
 
-        y1 = '1992-01-01'; y2 = '2001-12-31' #todo years
+        y1 = '1979-01-01'; y2 = '2010-12-31' #todo years
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
 
         if not os.path.exists(rawfilename):
