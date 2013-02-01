@@ -2201,6 +2201,10 @@ class Data():
             D = self
 
         D.data = D.data[:,i1:i2,j1:j2]
+        if hasattr(self,'lat'):
+            D.lat  = D.lat[i1:i2,j1:j2]
+        if hasattr(self,'lon'):
+            D.lon  = D.lon[i1:i2,j1:j2]
 
         if return_object:
             return D

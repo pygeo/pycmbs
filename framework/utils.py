@@ -48,16 +48,29 @@ def get_temporary_directory():
 
 
 
-def get_T63_landseamask(shift_lon,mask_antarctica=True):
+def get_T63_landseamask(shift_lon,mask_antarctica=True,area='land'):
     """
     get JSBACH T63 land sea mask
     the LS mask is read from the JSBACH init file
 
-    @todo: put this to the JSBACH model class
+    @param area: 'land' or 'ocean'. When 'land', then the mask returned is True on land pixels, for ocean it is vice versa.
+                 in any other case, you get a valid field everywhere (globally)
+    @type area: str
+
+    @param mask_antarctica: mask antarctica; if True, then the mask is FALSE over Antarctice (<60S)
+    @type mask_antarctica: bool
     """
     ls_file = get_data_pool_directory() + 'variables/land/land_sea_mask/jsbach_T63_GR15_4tiles_1992.nc'
     ls_mask = Data(ls_file,'slm',read=True,label='T63 land-sea mask',lat_name='lat',lon_name='lon',shift_lon=shift_lon)
-    msk=ls_mask.data>0.; ls_mask.data[~msk] = 0.; ls_mask.data[msk] = 1.
+    if area == 'land':
+        msk=ls_mask.data>0.
+    elif area == 'ocean':
+        msk = ls_mask.data==0.
+    else:
+        msk = np.ones(ls_mask.data.shape).astype('bool')
+
+    
+    ls_mask.data[~msk] = 0.; ls_mask.data[msk] = 1.
     ls_mask.data = ls_mask.data.astype('bool') #convert to bool
     if mask_antarctica:
         ls_mask.data[ls_mask.lat < -60.] = False
