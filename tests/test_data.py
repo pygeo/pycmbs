@@ -348,7 +348,8 @@ class TestData(TestCase):
         y = x.copy(); y.data = y.data + pl.rand(nt,ny,nx)*1000.
         z = x.copy(); z.data = z.data * pl.rand(nt,ny,nx)*100.
 
-        res = x.partial_correlation(y,z)
+        res  = x.partial_correlation(y,z)
+        res1 = x.partial_correlation(y,z,ZY=z) #test with second condition
 
         #generate reference solution
         slope, intercept, rxy, p_value, std_err = stats.linregress(x.data[:,0,0],y.data[:,0,0])
@@ -358,6 +359,7 @@ class TestData(TestCase):
         ref = (rxy - rxz*rzy) / (np.sqrt(1.-rxz*rxz)*np.sqrt(1.-rzy*rzy))
 
         self.assertAlmostEqual(ref,res.data[0,0],places=5)
+        self.assertAlmostEqual(ref,res1.data[0,0],places=5)
 
 
     def test__equal_lon(self):

@@ -439,9 +439,9 @@ class ScatterPlot():
 class LinePlot():
     """
     class for a pyCMBS Line Plot
-
     This class is usefull for plotting timeseries
     """
+
     def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.,show_equation=True,xtickrotation=90):
         """
         constructor of LinePlot
@@ -598,7 +598,7 @@ class LinePlot():
                     tl.set_color(p.get_color())
 
 
-            self._change_ticklabels(ax)
+            #self._change_ticklabels(ax) #todo needs to be activated again!!!! but caused some error regarding the ordinal of x; num2date problem ???
 
             #~ if not self.showxticks: #showxticklabels?
                 #~ for tick in ax.xaxis.get_major_ticks():
@@ -744,13 +744,19 @@ class HistogrammPlot():
     """
     class to plot histograms based on C{Data} objects
     """
-    def __init__(self,ax=None,bins=10):
+    def __init__(self,ax=None,bins=10,normalize=False,percent=True):
         """
         @param ax: axis to plot data to. If not specified, then a new figure is created
         @type: ax: axis
 
         @param bins: bins for histogram calculation, either int or a list
         @type bins: int or list or array
+
+        @param normalize: specifies if data should be normalized relative to the sample size
+        @type normalize: bool
+
+        @param percent: resulting frequencies in percent (applies only if normalize=True)
+        @type percent: bool
         """
 
         #- Figure init
@@ -762,6 +768,8 @@ class HistogrammPlot():
             self.figure = self.ax.figure
 
         self.bins = bins
+        self.normalize = normalize
+        self.percent = percent
 
     def plot(self,X,color='black',linestyle='-',linewidth=1.,label='',shown=False,show_legend=False,**kwargs):
         """
@@ -808,8 +816,15 @@ class HistogrammPlot():
             else:
                 label= label + '(n='+str(sum(~np.isnan(x))) + ')'
 
+        #--- calculate frequency distribution
         f,b = np.histogram(x,bins = self.bins,**kwargs)
+        if self.normalize:
+            f = f / float(sum(f))
+            if self.percent:
+                f = f*100.
+
         self.ax.plot(b[0:-1],f,color=color,linestyle=linestyle,linewidth=linewidth,label=label)
+
         if show_legend:
             self.ax.legend()
 
