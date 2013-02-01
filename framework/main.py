@@ -43,14 +43,8 @@ __email__ = "alexander.loew@zmaw.de"
 
 #@todo: systematic validation of zonal mean statistics using som reference cases
 
-#
-# @todo: implement temporary directory for pyCMBS processing
-# @todo: implement cdo processing using framework of Ralf Mueller
 
 
-# TODO CMIP5:
-# - seldate appropriately
-# - check timestamp!
 
 #todo check datetime; something is wrong! as data starts in Dcember 1978!
 
@@ -80,6 +74,8 @@ __date__ = "0000/00/00"
 from pyCMBS import *
 
 import matplotlib.pylab as pl
+import sys
+import os
 
 #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
 
@@ -155,15 +151,12 @@ def get_methods4variables(variables, model_dict):
     hlp.update({'phenology_faPAR' : 'get_faPAR(interval=interval)'})
     hlp.update({'temperature' : 'get_temperature_2m(interval=interval)'})
     hlp.update({'snow' : 'get_snow_fraction(interval=interval)'})
-    hlp.update({'evap': 'get_model_data_cmsaf(**%s)' % model_dict['evap']})
-    hlp.update({'wind': 'get_model_data_cmsaf(**%s)' % model_dict['wind']})
-    hlp.update({'twpa': 'get_model_data_cmsaf(**%s)' % model_dict['twpa']})
-    hlp.update({'wvpa': 'get_model_data_cmsaf(**%s)' % model_dict['wvpa']})
-    hlp.update({'late': 'get_model_data_cmsaf(**%s)' % model_dict['late']})
-    hlp.update({'budg': 'get_model_data_cmsaf(**%s)' % model_dict['budg']})
-
-
-
+    hlp.update({'evap': 'get_model_data_generic(interval=interval, **%s)' % model_dict['evap']})
+    hlp.update({'wind': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wind']})
+    hlp.update({'twpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['twpa']})
+    hlp.update({'wvpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wvpa']})
+    hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
+    hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
 
     res={}
     for k in hlp.keys(): #only use the variables that should be analyzed!
@@ -176,9 +169,6 @@ def get_methods4variables(variables, model_dict):
     if ('phenology_faPAR' in variables) and not ('snow' in variables):
         res.update({'snow' : 'get_snow_fraction()'})
 
-
-
-
     return res
 
 
@@ -187,22 +177,31 @@ def get_methods4variables(variables, model_dict):
 #=======================================================================
 #=======================================================================
 
-'''
-adding a new variable:
+"""
+HOWTO
+
+Add a new variable:
 1) register variable in get_methods4variables()
 2) implement for each data object a routine how to read the data
 3) implement an analysis script that performs the actual analysis
 4) register this analysis script in get_analysis_scripts()
-'''
+"""
 
 
+
+#/// check commandline options ///
+if len(sys.argv) > 1:
+    if len(sys.argv) == 2:
+        file = sys.argv[1] #name of config file
+        if not os.path.exists(file):
+            raise ValueError, 'Configuration file can not be found: ' + file
+    else:
+        raise ValueError, 'Currently not more than one command line parameter supported!'
+else: #default
+    file='pyCMBS.cfg'
 
 #/// read configuration file ///
-file='pyCMBS.cfg'
 CF = ConfigFile(file)
-
-
-
 if CF.options['basemap']:
     f_fast = False
 else:
