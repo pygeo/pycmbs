@@ -789,6 +789,49 @@ class JSBACH_RAW(Model):
         self.get_data()
         self.type = 'JSBACH_RAW'
 
+
+
+    def get_temperature_2m(self,interval = 'season'):
+        """
+        get surface temperature (2m) from JSBACH model results
+
+        @param interval: specifies the aggregation interval. Possible options: ['season']
+        @type interval: str
+
+        @return: returns a C{Data} object
+        @rtype: C{Data}
+        """
+
+        if interval != 'season':
+            raise ValueError, 'Other temporal sampling than SEASON not supported yet for JSBACH RAW files, sorry'
+
+        v = 'surface_temperature'
+
+        y1 = '1979-01-01'; y2 = '2010-12-31'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_land_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+
+
+        if not os.path.exists(rawfilename):
+            print 'File not existing: ', rawfilename
+            return None
+
+        filename = rawfilename
+
+        #--- read land-sea mask
+        ls_mask = get_T63_landseamask(self.shift_lon)
+
+        #--- read SIS data
+        t2m = Data(filename,v,read=True,
+            label=self.experiment + ' ' + v, unit = 'K',lat_name='lat',lon_name='lon',
+            shift_lon=self.shift_lon,
+            mask=ls_mask.data.data)
+
+        return t2m
+
+
+
+#-----------------------------------------------------------------------
+
     def get_albedo_data(self, interval='season'):
         """
         calculate albedo as ratio of upward and downwelling fluxes
@@ -811,7 +854,7 @@ class JSBACH_RAW(Model):
 
         return alb
 
-
+#-----------------------------------------------------------------------
 
 
     def get_surface_shortwave_radiation_down(self,interval = 'season'):
