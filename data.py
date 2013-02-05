@@ -1024,7 +1024,7 @@ class Data():
         @param v: list of values to be analyzed
         @type v : list of numerical values
 
-        @param mtype: specifies which mask should be applied (valid values: monthly)
+        @param mtype: specifies which mask should be applied (valid values: ['monthly','yearly'])
         @type mytpe : str
 
         Example:
@@ -1034,7 +1034,7 @@ class Data():
 
         """
 
-        valid_types = ['monthly']
+        valid_types = ['monthly','yearly']
         if mtype in valid_types:
             pass
         else:
@@ -1043,6 +1043,8 @@ class Data():
         #--- get months
         if mtype == 'monthly':
             vals = pl.asarray(self._get_months())
+        elif mtype == 'yearly':
+            vals = pl.asarray(self._get_years())
         else:
             raise ValueError, 'Invalid type for mask generation ' + mtype
 
@@ -1890,6 +1892,8 @@ class Data():
         calculate stdv of the spatial field using area weighting
 
         returns exactly same results as the same CDO function
+
+        (unittest)
 
         @param return_data: if True, then a C{Data} object is returned
         @type return_data: bool

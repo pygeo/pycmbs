@@ -508,8 +508,55 @@ class TestData(TestCase):
         self.assertEqual(j2,6)
 
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_fldmean(self):
+        """
+        unittest for fldmean() function
+        @return:
+        """
+
+        #define testdata
+        D = self.D
+        x = np.ones((1,3,1))
+        for i in [0]:
+            x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
+        D.data = np.ma.array(x,mask=x!=x)
+        y = np.ones((1,3))
+        y[0,0] = 75.; y[0,1] = 25.; y[0,2] = 25.
+        D.cell_area = y
+
+
+        #do test
+        r1 = D.fldmean()[0] #with weights
+        self.assertEqual(r1,9.)
+        r2 = D.fldmean(apply_weights=False) #without weights
+        self.assertEqual(r2[0],x.mean())
+
+    def test_fldstd(self):
+        #define testdata
+        D = self.D
+        x = np.ones((1,3,1))
+        for i in [0]:
+            x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
+        D.data = np.ma.array(x,mask=x!=x)
+        y = np.ones((1,3))
+        y[0,0] = 75.; y[0,1] = 25.; y[0,2] = 25.
+        D.cell_area = y
+
+        #do testing
+        ref = np.sqrt((115. - 81.) / (1. - 11./25.)) #see http://en.wikipedia.org/wiki/Mean_square_weighted_deviation for calculation details
+        r1 = D.fldstd()[0] #with weights
+        self.assertAlmostEqual(r1,ref,places=8)
+
+        r2 = D.fldstd(apply_weights=False)[0]
+        ref2 = x.std()
+        self.assertAlmostEqual(ref2,r2,places=8)
+
+
+
+
+
+#if __name__ == '__main__':
+#    unittest.main()
 
 
 
