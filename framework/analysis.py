@@ -595,17 +595,16 @@ obs_dict = {
                 'label': 'Surface albedo',
                 'preprocess': True,
                 'parameter': 'albedo',
-                'report': True}
-
-
-
-
+                'report': True,
+                'vmin':0.,
+                'vmax':0.6,
+                'dmin':-0.09,
+                'dmax':0.09}
 
                 }
 
-     }
-    } #end of dict
 
+    } #end of dict
 
 
 global_settings_dict = {'landsea_mask':
@@ -643,6 +642,27 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = Non
     glecker_pos         = local_obs_dict['glecker_position']
     param_name          = local_obs_dict['parameter'] # model variable name ##todo is this really needed ????; obs_name should do ????
 
+    if 'vmin' in local_obs_dict.keys():
+        vmin = local_obs_dict['vmin']
+    else:
+        vmin = None
+    if 'vmax' in local_obs_dict.keys():
+        vmax = local_obs_dict['vmax']
+    else:
+        vmax = None
+
+    if 'dmin' in local_obs_dict.keys():
+        dmin = local_obs_dict['dmin']
+    else:
+        dmin = None
+    if 'dmax' in local_obs_dict.keys():
+        dmax = local_obs_dict['dmax']
+    else:
+        dmax = None
+
+
+
+
     #model = model_list[0]
     #m_data = param_name
     m_data_org = param_name + '_org'
@@ -670,7 +690,7 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = Non
         GM.plot(obs_monthly, linestyle = '--')
 
     if local_obs_dict['map_seasons'] == True: #seasonal mean plot
-        f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6)
+        f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6,vmin=vmin,vmax=vmax)
         report.figure(f_season,caption='Seasonal mean ' + obs_name)
 
 
@@ -702,13 +722,14 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = Non
             sys.stdout.write('\n *** Map difference plotting. \n')
             #--- generate difference map
             #pdb.set_trace()
-            f_dif  = map_difference(model_data, obs_orig, nclasses=6,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False)
+            f_dif  = map_difference(model_data, obs_orig, nclasses=6,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax)
             report.figure(f_dif,caption='Mean and relative differences')
 
         if local_obs_dict['map_seasons'] == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
+
             #seasonal map
-            f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6)
+            f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6,vmin=vmin,vmax=vmax)
             report.figure(f_season,caption='Seasonal means model')
 
         if local_obs_dict['reichler_plot'] == True:
