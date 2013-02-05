@@ -130,24 +130,11 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     #--- preprocessing END ---
 
 
+#///////////////////////////////////////////////////////////////////////
+# ANALYSIS SECTION
+#///////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#-----------------------------------------------------------------------------------------------------------------------
 
 def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
     if report == None:
@@ -157,7 +144,7 @@ def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,us
     report.subsection('HOAPS')
     generic_analysis(obs_dict, model_list, 'evap', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
-
+#-----------------------------------------------------------------------------------------------------------------------
 
 def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
 
@@ -180,9 +167,7 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
 
     #todo add TMPA data
 
-
-
-
+#-----------------------------------------------------------------------------------------------------------------------
 
 # WIND ANALYSIS
 def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
@@ -193,14 +178,17 @@ def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     report.subsection('HOAPS')
     generic_analysis(obs_dict, model_list, 'wind', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
+#-----------------------------------------------------------------------------------------------------------------------
+
 #TWPA analysis
 def twpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
     report.section('Total column water content')
     report.subsection('HOAPS')
-
     generic_analysis(obs_dict, model_list, 'twpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+#-----------------------------------------------------------------------------------------------------------------------
 
 #WVPA analysis
 def wvpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
@@ -208,8 +196,9 @@ def wvpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
         raise ValueError, 'You need to specify report option!'
     report.section('Water Vapor Path')
     report.subsection('HOAPS')
-
     generic_analysis(obs_dict, model_list, 'wvpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+#-----------------------------------------------------------------------------------------------------------------------
 
 #HAIR analysis
 def hair_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
@@ -217,8 +206,9 @@ def hair_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
         raise ValueError, 'You need to specify report option!'
     report.section('Surface specific humidity')
     report.subsection('HOAPS')
-
     generic_analysis(obs_dict, model_list, 'hair', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+#-----------------------------------------------------------------------------------------------------------------------
 
 #LATE analysis
 def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
@@ -226,8 +216,9 @@ def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
         raise ValueError, 'You need to specify report option!'
     report.section('Upward latent heat flux')
     report.subsection('HOAPS')
-
     generic_analysis(obs_dict, model_list, 'late', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+#-----------------------------------------------------------------------------------------------------------------------
 
 #BUDG analysis
 def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
@@ -235,8 +226,9 @@ def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
         raise ValueError, 'You need to specify report option!'
     report.section('Upward freshwater flux')
     report.subsection('HOAPS')
-
     generic_analysis(obs_dict, model_list, 'budg', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+#-----------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -584,8 +576,32 @@ obs_dict = {
                       'preprocess': True,
                       'parameter': 'sis',
                       'report': True}
+         },
+
+    'albedo' : {'MODIS':{
+                'obs_file': get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged.nc',
+                'stop_time': 'xxxx-12-31',
+                'obs_var': 'surface_albedo_WSA',
+                'scale_data': 1.,
+                'glecker_position': 1,
+                'map_difference': True,
+                'map_seasons': True,
+                'reichler_plot': True,
+                'glecker_plot': True,
+                'units': '-',
+                'mask_area': 'none',
+                'add_to_report': True,
+                #'interval': 'monthly',
+                'label': 'Surface albedo',
+                'preprocess': True,
+                'parameter': 'albedo',
+                'report': True}
 
 
+
+
+
+                }
 
      }
     } #end of dict
@@ -595,8 +611,9 @@ obs_dict = {
 global_settings_dict = {'landsea_mask':
                             {'filename': ''}}
 
-
-# dictionary with known observations types?
+#=======================================================================
+# GENERIC - start
+#=======================================================================
 
 def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = None, shift_lon=False, use_basemap=False, report=None,interval=None):
     """
@@ -717,7 +734,9 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = Non
 
     sys.stdout.write('\n *** Processing finished. \n')
 
-
+#=======================================================================
+# GENERIC - end
+#=======================================================================
 
 
 
@@ -757,7 +776,8 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
     @param report: instance of Report
 
     Reference:
-    - Dahlke, Loew, Reick: ???? @todo: complete reference when paper published
+    Dahlke, C., Loew, A. & Reick, C., 2012. Robust identification of global greening phase patterns from remote sensing vegetation products. Journal of Climate, p.120726140719003. Available at: http://journals.ametsoc.org/doi/abs/10.1175/JCLI-D-11-00319.1 [Accessed December 6, 2012].
+
     """
 
     #/// OPTIONS
@@ -950,6 +970,10 @@ def tree_fraction_analysis(model_list,pft='tree'):
 #=======================================================================
 # VEGETATION COVER FRACTION -- end
 #=======================================================================
+
+
+
+
 
 #=======================================================================
 # ALBEDO -- begin
@@ -1167,10 +1191,12 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     #- MODIS white sky albedo
     report.subsection('MODIS WSA')
     report.write('MODIS albedo is based on the MODIS white-sky albedo product. Snow covered areas remain in the data product, but all pixels flagged as invalid was discarded.')
-    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='MODIS',GM=GM)
+    #albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='MODIS',GM=GM)
+    generic_analysis(obs_dict, model_list, 'albedo', 'MODIS', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     #- CERES surface albedo from all sky fluxes
     report.subsection('CERES albedo')
+    #CERES is not easily possible without pre-processing!!!!
     report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
     albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
 
