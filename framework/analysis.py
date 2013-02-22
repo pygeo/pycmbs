@@ -136,13 +136,32 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
+
+    print
+    print '************************************************************'
+    print '* BEGIN EVAPORATION analysis'
+    print '************************************************************'
+
+    if shift_lon == None:
+        raise ValueError, 'You need to specify shift_lon option!'
+    if use_basemap == None:
+        raise ValueError, 'You need to specify use_basemap option!'
     if report == None:
         raise ValueError, 'You need to specify report option!'
+    if plot_options == None:
+        raise ValueError, 'No plot options are specified. No further processing possible!'
+
+
 
     report.section('Evaporation')
     report.subsection('HOAPS')
-    generic_analysis(obs_dict, model_list, 'evap', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'evap', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+    print
+    print '************************************************************'
+    print '* END EVAPORATION analysis'
+    print '************************************************************'
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -385,9 +404,15 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
     for model in model_list:
 
-        sys.stdout.write('\n *** %s analysis of model: ' % (obs_type) + model.name + "\n")
-        print model.variables.keys()
-        model_data = model.variables[obs_type].copy()
+        sys.stdout.write('\n *** %s analysis of model: ' % (obs_type.upper()) + model.name + "\n")
+
+        if model.variables[obs_type] == None:
+            sys.stdout.write('\n *** WARNING: No processing for %s possible for model (likely missing data!): ' % (obs_type) + model.name + "\n")
+            continue
+        else:
+            model_data = model.variables[obs_type]
+
+
         model_data._apply_mask(ls_mask)
         GP.add_model(model.name) #register model name in GlecklerPlot
 
