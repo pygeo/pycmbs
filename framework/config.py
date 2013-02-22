@@ -22,6 +22,7 @@ __email__ = "alexander.loew@zmaw.de"
 
 import os
 import sys
+from utils import get_data_pool_directory
 
 class ConfigFile():
     """
@@ -181,6 +182,199 @@ class ConfigFile():
                 raise ValueError, 'Unknown model type'
 
         sys.stdout.write(" *** Done reading config file. \n")
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+class PlotOptions():
+    """
+    class for plot options
+
+    @todo: consistency check for Gleckler positions and certain mandatory fields! --> avoid problems in the plotting, but find errors in INI files already when reading!
+    """
+
+    def __init__(self):
+        self.options = {}
+
+
+    def read(self,cfg):
+        """
+        read plot option files and store results in a dictionary
+
+        @param cfg Instance of ConfigFile class which has been already initialized (config file has been read already)
+        @type cfg ConfigFile
+
+
+        @return:
+        """
+
+        from ConfigParser import SafeConfigParser
+        parser = SafeConfigParser()
+
+        for var in cfg.variables:
+
+            """ The plot options are assumed to be in a file that has the same name as the variable to look be analyzed """
+            file = './configuration/' + var + '.ini'
+            if os.path.exists(file):
+                parser.read(file)
+                sys.stdout.write('\n *** Reading configuration for %s: ' % var + "\n")
+            else:
+                raise ValueError, 'Plot option file not existing: ' + file
+
+            """
+            generate now a dictionary for each variable
+
+            in each file there needs to be an OPTIONS section that specifies
+            the options that shall be applied to all plots for all observational datasets
+
+            The other sections specify the details for each observational dataset
+            """
+            dl = {}
+            for section_name in parser.sections():
+                if section_name.upper() == 'OPTIONS': #add global plotting options
+                    o = {}
+                    for name, value in parser.items(section_name):
+                        o.update({name:value})
+                    dl.update({'OPTIONS':o})
+                else:
+                    o = {} #observation specific dictionary
+                    for name, value in parser.items(section_name):
+                        o.update({name:value})
+                    dl.update({section_name:o})
+
+            #/// update options dictionary for this variable
+            self.options.update({var:dl})
+
+        #convert options to bool/numerical values
+        self._convert_options()
+
+        #check options consistency
+        self._check()
+
+    def _convert_options(self):
+        """
+        Convert options, which are only strings in the beginning to numerical values or execute functions to set directory
+        names appropriately
+        @return:
+        """
+
+        for v in self.options.keys():
+            var = self.options[v]
+            for s in var.keys(): #each section
+                sec = var[s]
+                for k in sec.keys():
+                    sec.update({k:self.__convert(sec[k])}) #update current variable with valid value
+
+
+
+    def __convert(self,s):
+        """
+        convert a single string into a valid value. The routine recognizes if the string is numerical, or boolean
+        or if a command needs to be executed to generate a valid value
+
+        @param s: string with value of option
+        @type s: str
+        @return: value of the option
+        """
+
+        s.replace('\n','')
+
+        if len(s) == 0:
+            return None
+
+        #1) check for numerical value
+        try:
+            x = float(s)
+            return x
+        except:
+            pass
+
+        #2) check for boolean value
+        h = s.lstrip().rstrip()
+        if h.upper() == 'TRUE':
+            return True
+        if h.upper() == 'FALSE':
+            return False
+
+        #3) check if some code should be executed (specified by starting and trailing #)
+        if (h[0] == '#') and (h[-1] == '#'):
+            cmd = h[1:-1]
+            exec('res = ' + cmd)
+            return res
+
+        #4) check if a list is provided
+        if (h[0] == '[') and (h[-1] == ']'): #is list
+            return self.__get_list(s)
+
+        #5) in any other case return s
+        return s
+
+    def __get_list(self,s):
+        #return a list made out from a string '[1,2,3,4,5]'
+        l = s.replace('[','')
+        l = l.replace(']','')
+        l=l.split(',')
+
+        o = []
+        for i in l:
+            try:
+                o.append(float(i)) #try numerical conversion
+            except:
+                #else: return the string itself
+                o.append(i)
+        return o
+
+    def _check(self):
+        """
+        check consistency of options specified
+        @return:
+        """
+        cerr = 0
+        o = self.options
+
+        #specify here the options that need to be given!
+        locopt = ['obs_file','obs_var','gleckler_position','scale_data'] #variables that need to be specified (MUST!) for each observational dataset
+        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot'] #options for each variable type
+
+        for v in o.keys(): #all variables
+            d = o[v] #dictionary for a specific variable
+            if not 'OPTIONS' in d.keys():
+                sys.stdout.write('Error: missing OPTIONS %s' % v)
+                cerr += 1
+
+            #check global options
+            for k in globopt:
+                if not k in d['OPTIONS'].keys():
+                    sys.stdout.write('Error: missing global option: %s (%s)' % (k,v)  )
+                    cerr += 1
+
+            #check local options
+            for odat in d.keys(): #odat is key for a specific observational dataset
+                if odat.upper() == 'OPTIONS':
+                    continue
+                for k in locopt: #k is not the index for a specific obs. record
+                    if not k in d[odat].keys():
+                        sys.stdout.write('Error: missing local option: %s (%s,%s)' % (k,odat,v)  )
+                        cerr +=1
+
+        if cerr > 0:
+            raise ValueError, 'There were errors in the initialization of plotting options!'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

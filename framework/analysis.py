@@ -146,7 +146,14 @@ def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,us
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
+
+    print
+    print '************************************************************'
+    print '* BEGIN PRECIPITATION analysis ...'
+    print '************************************************************'
+
+
 
     if report == None:
         raise ValueError, 'You need to specify report option!'
@@ -157,15 +164,22 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
 #    generic_analysis(obs_dict, model_list, 'rain', 'HOAPS', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon)
 
     report.subsection('GPCP')
-    generic_analysis(obs_dict, model_list, 'rain', 'GPCP', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'rain', 'GPCP', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     report.subsection('CRU')
-    generic_analysis(obs_dict, model_list, 'rain', 'CRU', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'rain', 'CRU', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     #report.subsection('GPCC') #todo activate
     #generic_analysis(obs_dict, model_list, 'rain', 'GPCC', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon)
 
     #todo add TMPA data
+
+    print
+    print '************************************************************'
+    print '* END PRECIPITATION analysis ...'
+    print '************************************************************'
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -232,379 +246,10 @@ def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
 
 
-
-
-
-
-
-
-
-
-
-
 #-------------------------------------------------------------------------------------------------------------
 
 
 
-obs_dict = {
-    'rain':
-        {
-            'CRU':
-             {'obs_file':get_data_pool_directory() + 'variables/land/precipitation/CRU/cru_ts_3_00.1901.2006.pre_miss.nc',
-              'start_time': '1979-01-01',
-              'stop_time': '2006-12-31',
-              'obs_var': 'pre',
-              'scale_data': 12./365.,
-              'glecker_position': 4,
-              'map_difference': True,
-              'map_seasons': True,
-              'reichler_plot': False,
-              'glecker_plot': True,
-              'units': '$mm/day$',
-              'mask_area': 'ocean',
-              'add_to_report': True,
-              #'interval': 'monthly',
-              'label': 'CRU',
-              'preprocess': True,
-              'parameter': 'rain',
-              'report': True
-             }, #end CRU
-
-
-            'GPCC':
-                 {'obs_file':get_data_pool_directory() + 'variables/land/precipitation/GPCC/gpcc_full_vs4_1951-2007.nc',
-                  'start_time': '1979-01-01',
-                  'stop_time': '2007-12-31',
-                  'obs_var': 'var260',
-                  'scale_data': 12./365.,
-                  'glecker_position': 3,
-                  'map_difference': True,
-                  'map_seasons': True,
-                  'reichler_plot': False,
-                  'glecker_plot': True,
-                  'units': '$mm/day$',
-                  'mask_area': 'ocean',
-                  'add_to_report': True,
-                  #'interval': 'monthly',
-                  'label': 'GPCC',
-                  'preprocess': True,
-                  'parameter': 'rain',
-                  'report': True
-                 }, #end GPCC
-
-
-            'HOAPS':
-                  {'obs_file':'/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/rain/hoaps-g.t63.m01.rain.1987-2008.nc',
-                   'start_time': '1989-01-01',
-                   'stop_time': '2007-12-31',
-                   'obs_var': 'rain',
-                   'scale_data': 1.,
-                   'glecker_position': 1,
-                   'map_difference': True,
-                   'map_seasons': True,
-                   'reichler_plot': False,
-                   'glecker_plot': True,
-                   'units': '$mm/day$',
-                   'mask_area': 'ocean',
-                   'add_to_report': True,
-                   #'interval': 'monthly',
-                   'label': 'HOAPS',
-                   'preprocess': True,
-                   'parameter': 'rain',
-                   'report': True
-                  }, #end HOAPS
-
-            'GPCP':
-                   {'obs_file':get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasmean.nc',
-                    #'obs_file_std':get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc',
-                    'start_time': '1989-01-01',  #todo clarify time
-                    'stop_time': '2007-12-31',
-                    'obs_var': 'precip',
-                    'scale_data': 1.,
-                    'glecker_position': 2,
-                    'map_difference': True,
-                    'map_seasons': True,
-                    'reichler_plot': False,
-                    'glecker_plot': True,
-                    'units': '$mm/day$',
-                    'mask_area': 'none',
-                    'add_to_report': True,
-                    #'interval': 'monthly',
-                    'label': 'GPCP',
-                    'preprocess': True,
-                    'parameter': 'rain',
-                    'report': True
-                   } #end GPCP
-
-            }, #end rain
-
-
-
-    'evap':
-        {'HOAPS':
-             {'obs_file':'/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/evap/hoaps-g.t63.m01.evap.1987-2008.nc',
-              'start_time': '1989-01-01',
-              'stop_time': '2007-12-31',
-              'obs_var': 'evap',
-              'scale_data': 1.,
-              'glecker_position': 1,
-              'map_difference': True,
-              'map_seasons': True,
-              'reichler_plot': True,
-              'glecker_plot': True,
-              'units': '$mm/day$',
-              'mask_area': 'ocean',
-              'add_to_report': True,
-              #'interval': 'monthly',
-              'label': 'Daily evaporation',
-              'preprocess': True,
-              'parameter': 'evap',
-              'report': True
-             }
-        }, #end EVAP
-
-
-    'wind':
-        {'HOAPS':
-             {'obs_file': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/wind/hoaps-g.t63.m01.wind.1987-2008.nc',
-              'start_time': '1989-01-01',
-              'stop_time': '2007-12-31',
-              'obs_var': 'wind',
-              'scale_data': 1.,
-              'glecker_position': 1,
-              'map_difference': True,
-              'map_seasons': True,
-              'reichler_plot': True,
-              'glecker_plot': True,
-              'units': 'm/s',
-              'mask_area': 'ocean',
-              'add_to_report': True,
-              #'interval': 'monthly',
-              'label': '10m surface winds',
-              'preprocess': True,
-              'parameter': 'wind',
-              'report': True
-             }
-        },
-
-    'twpa':
-        {'HOAPS':
-             { 'obs_file': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/twpa/hoaps-g.t63.m01.twpa.1987-2008.nc',
-               'start_time': '1989-01-01',
-               'stop_time': '2007-12-31',
-               'obs_var': 'twpa',
-               'scale_data': 1.,
-               'glecker_position': 1,
-               'map_difference': True,
-               'map_seasons': True,
-               'reichler_plot': True,
-               'glecker_plot': True,
-               'units': '$kg m^2$',
-               'mask_area': 'ocean',
-               'add_to_report': True,
-               #'interval': 'monthly',
-               'label': 'Total water path',
-               'preprocess': True,
-               'parameter': 'twpa',
-               'report': True
-             }
-        },
-
-    'wvpa': {'HOAPS':
-                 {'obs_file': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/wvpa/hoaps-g.t63.m01.wvpa.1987-2008.nc',
-                  'start_time': '1989-01-01',
-                  'stop_time': '2007-12-31',
-                  'obs_var': 'wvpa',
-                  'scale_data': 1.,
-                  'glecker_position': 1,
-                  'map_difference': True,
-                  'map_seasons': True,
-                  'reichler_plot': True,
-                  'glecker_plot': True,
-                  'units': 'kg/m^2',
-                  'mask_area': 'ocean',
-                  'add_to_report': True,
-                  #'interval': 'monthly',
-                  'label': 'Water Vapor Path',
-                  'preprocess': True,
-                  'parameter': 'wvpa',
-                  'report': True
-                 }
-    },
-
-
-    'hair': {'HOAPS':
-                 {'obs_file': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/hair/hoaps-g.t63.m01.hair.1987-2008.nc',
-                  'start_time': '1989-01-01',
-                  'stop_time': '2007-12-31',
-                  'obs_var': 'hair',
-                  'scale_data': 1.,
-                  'glecker_position': 1,
-                  'map_difference': True,
-                  'map_seasons': True,
-                  'reichler_plot': True,
-                  'glecker_plot': True,
-                  'units': 'g/kg',
-                  'mask_area': 'ocean',
-                  'add_to_report': True,
-                  #'interval': 'monthly',
-                  'label': 'Surface specific humidity',
-                  'preprocess': True,
-                  'parameter': 'hair',
-                  'report': True
-                 }
-    },
-
-    'late': {'HOAPS':
-                 {'obs_file': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/late/hoaps-g.t63.m01.late.1987-2008.nc',
-                  'start_time': '1989-01-01',
-                  'stop_time': '2007-12-31',
-                  'obs_var': 'late',
-                  'scale_data': 1.,
-                  'glecker_position': 1,
-                  'map_difference': True,
-                  'map_seasons': True,
-                  'reichler_plot': True,
-                  'glecker_plot': True,
-                  'units': 'W/m^2',
-                  'mask_area': 'ocean',
-                  'add_to_report': True,
-                  #'interval': 'monthly',
-                  'label': 'Upward latent heat flux',
-                  'preprocess': True,
-                  'parameter': 'late',
-                  'report': True
-                 }
-             },
-
-
-
-     'budg': {'HOAPS':
-                  {'obs_file': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data/budg/hoaps-g.t63.m01.budg.1987-2008.nc',
-                   'start_time': '1989-01-01',
-                   'stop_time': '2007-12-31',
-                   'obs_var': 'budg',
-                   'scale_data': 1.,
-                   'glecker_position': 1,
-                   'map_difference': True,
-                   'map_seasons': True,
-                   'reichler_plot': True,
-                   'glecker_plot': True,
-                   'units': 'mm/d',
-                   'mask_area': 'ocean',
-                   'add_to_report': True,
-                   #'interval': 'monthly',
-                   'label': 'Upward freshwater flux',
-                   'preprocess': True,
-                   'parameter': 'budg',
-                   'report': True}
-     },
-
-
-     'sis':{'ISCCP': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/isccp/T63_ISCCP__versD1__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc',
-            'start_time': '1984-01-01',
-            'stop_time': '2005-12-31',
-            'obs_var': 'BfISC84',
-            'scale_data': 1.,
-            'glecker_position': 3,
-            'map_difference': True,
-            'map_seasons': True,
-            'reichler_plot': True,
-            'glecker_plot': True,
-            'units': '$W/m^2$',
-            'mask_area': 'none',
-            'add_to_report': True,
-            #'interval': 'monthly',
-            'label': 'Shortwave downward radiation flux in air',
-            'preprocess': True,
-            'parameter': 'sis',
-            'report': True},
-
-            'SRB': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/srb/T63_SRB__vers28__surface_downwelling_shortwave_radiative_flux_in_air__1x1__all.nc',
-                      'start_time': '1984-01-01',
-                      'stop_time': '2005-12-31',
-                      'obs_var': 'BfSRB84',
-                      'scale_data': 1.,
-                      'glecker_position': 4,
-                      'map_difference': True,
-                      'map_seasons': True,
-                      'reichler_plot': True,
-                      'glecker_plot': True,
-                      'units': '$W/m^2$',
-                      'mask_area': 'none',
-                      'add_to_report': True,
-                      #'interval': 'monthly',
-                      'label': 'Shortwave downward radiation flux in air',
-                      'preprocess': True,
-                      'parameter': 'sis',
-                      'report': True},
-
-            'CMSAF': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/cmsaf_sis/SISmm_all_t63.nc',
-                    'start_time': '1984-01-01',
-                    'stop_time': '2005-12-31',
-                    'obs_var': 'SIS',
-                    'scale_data': 1.,
-                    'glecker_position': 1,
-                    'map_difference': True,
-                    'map_seasons': True,
-                    'reichler_plot': True,
-                    'glecker_plot': True,
-                    'units': '$W/m^2$',
-                    'mask_area': 'none',
-                    'add_to_report': True,
-                    #'interval': 'monthly',
-                    'label': 'Shortwave downward radiation flux in air',
-                    'preprocess': True,
-                    'parameter': 'sis',
-                    'report': True},
-
-            'CERES': {'obs_file': get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc',
-                      'start_time': 'xxxx-01-01',
-                      'stop_time': 'xxxx-12-31',
-                      'obs_var': 'sfc_sw_down_all_mon',
-                      'scale_data': 1.,
-                      'glecker_position': 2,
-                      'map_difference': True,
-                      'map_seasons': True,
-                      'reichler_plot': True,
-                      'glecker_plot': True,
-                      'units': '$W/m^2$',
-                      'mask_area': 'none',
-                      'add_to_report': True,
-                      #'interval': 'monthly',
-                      'label': 'Shortwave downward radiation flux in air',
-                      'preprocess': True,
-                      'parameter': 'sis',
-                      'report': True}
-         },
-
-    'albedo' : {'MODIS':{
-                'obs_file': get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged.nc',
-                'stop_time': 'xxxx-12-31',
-                'obs_var': 'surface_albedo_WSA',
-                'scale_data': 1.,
-                'glecker_position': 1,
-                'map_difference': True,
-                'map_seasons': True,
-                'reichler_plot': True,
-                'glecker_plot': True,
-                'units': '-',
-                'mask_area': 'none',
-                'add_to_report': True,
-                #'interval': 'monthly',
-                'label': 'Surface albedo',
-                'preprocess': True,
-                'parameter': 'albedo',
-                'report': True,
-                'vmin':0.,
-                'vmax':0.6,
-                'dmin':-0.09,
-                'dmax':0.09}
-
-                }
-
-
-    } #end of dict
 
 
 global_settings_dict = {'landsea_mask':
@@ -614,70 +259,114 @@ global_settings_dict = {'landsea_mask':
 # GENERIC - start
 #=======================================================================
 
-def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = None, shift_lon=False, use_basemap=False, report=None,interval=None):
+def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM = None, shift_lon=False, use_basemap=False, report=None,interval=None):
     """
     function for performing common analysis actions
     it is not a parameter specific function
     use it as a template for specific analysis
 
-    @param      obs_dict dictionary that contains settings
-                and parameters from the config file
+    @param      plot_options: class of PlotOptions which specifies the options how plots shall look like!
+
+    @param obs_type: type of observation (variable to be analyzed); needs to be consistent with the variables specified in main.py and the config file (e.g. 'sis','rain')
+    @param obs_name: name of observational record as specified in the INI file e.g. HOAPS, CMSAF ...
     """
 
+    #---- GENERAL CHECKS -----------------------------------------------------------------------
     if interval not in ['monthly','season']:
         raise ValueError, 'invalid interval in generic_analysis()'
 
-
-    local_obs_dict = obs_dict[obs_type][obs_name]
-
-    # get observations information from the global dictionary
-    #s_start_time        = local_obs_dict['start_time'] #todo appropriate usage of start/stop times! (from config file ???)
-    #s_stop_time         = local_obs_dict['stop_time']
-    obs_raw             = local_obs_dict['obs_file']
-    obs_var             = local_obs_dict['obs_var']
-    #obs_type = local_obs_dict['obs_provider']
-    scale_data          = local_obs_dict['scale_data'] #todo: how to best use ???
-    #interval            = local_obs_dict['interval'] #does not make sense to take this from dictionary, as information needs to come from config file!!!
-    #mask_area           = local_obs_dict['mask_area']
-    glecker_pos         = local_obs_dict['glecker_position']
-    param_name          = local_obs_dict['parameter'] # model variable name ##todo is this really needed ????; obs_name should do ????
-
-    if 'vmin' in local_obs_dict.keys():
-        vmin = local_obs_dict['vmin']
-    else:
-        vmin = None
-    if 'vmax' in local_obs_dict.keys():
-        vmax = local_obs_dict['vmax']
-    else:
-        vmax = None
-
-    if 'dmin' in local_obs_dict.keys():
-        dmin = local_obs_dict['dmin']
-    else:
-        dmin = None
-    if 'dmax' in local_obs_dict.keys():
-        dmax = local_obs_dict['dmax']
-    else:
-        dmax = None
-
-
-
-
-    #model = model_list[0]
-    #m_data = param_name
-    m_data_org = param_name + '_org'
+    if obs_type not in plot_options.options.keys():
+        raise ValueError, 'No plot options available for the following data: ' + obs_type
 
     if report == None:
         raise ReportError("Report option was not enabled")
 
+    #---- PLOT OPTIONS -----------------------------------------------------------------------
 
-    ls_mask = get_T63_landseamask(shift_lon, area = local_obs_dict['mask_area'])
+    local_plot_options = plot_options.options[obs_type] #gives a dictionary with all the options for the current variable
+    if 'OPTIONS' not in local_plot_options.keys():
+        raise ValueError, 'No OPTIONS specified for analysis of variable ' + obs_type
+    if obs_name not in local_plot_options.keys():
+        print 'Observational data not existing: ', obs_name, ' ... skipping analysis'
+        return
+
+    #... now everything should be fine and the plot options can be assigned locally
+
+    #--- plot options which are SPECIFIC to observational data sets
+    for_report = local_plot_options[obs_name]['add_to_report'] #add a certain observational dataset to report
+    if for_report == False:
+        print '   The following data will not be included in the report: ' + obs_name + ' ' +  obs_type
+        return
+
+    obs_raw = local_plot_options[obs_name]['obs_file']
+    obs_var = local_plot_options[obs_name]['obs_var']
+    gleckler_pos = local_plot_options[obs_name]['gleckler_position']
+
+
+    if 'scale_data' in local_plot_options[obs_name].keys():
+        obs_scale_data   = local_plot_options[obs_name]['scale_data']
+    else:
+        obs_scale_data = 1.
+    if 'add_offset' in local_plot_options[obs_name].keys():
+        obs_add_offset = local_plot_options[obs_name]['add_offset']
+    else:
+        obs_add_offset = 0.
+    if 'valid_mask' in local_plot_options[obs_name].keys():
+        valid_mask = local_plot_options[obs_name]['valid_mask']
+    else:
+        valid_mask = 'global'
+    valid_mask = valid_mask.lower()
+
+
+    #--- plot options which are the same for all datasets
+    cticks = local_plot_options['OPTIONS']['cticks']
+    f_mapdifference = local_plot_options['OPTIONS']['map_difference']
+    f_mapseasons    = local_plot_options['OPTIONS']['map_seasons']
+    f_preprocess    = local_plot_options['OPTIONS']['preprocess']
+    f_reichler    = local_plot_options['OPTIONS']['reichler_plot']
+    f_gleckler    = local_plot_options['OPTIONS']['gleckler_plot']
+    f_hovmoeller    = local_plot_options['OPTIONS']['hovmoeller_plot']
+
+
+    if 'nclasses' in local_plot_options['OPTIONS'].keys():
+        nclasses            = local_plot_options['OPTIONS']['nclasses']
+    else:
+        nclasses = 6
+
+    if 'vmin' in local_plot_options['OPTIONS'].keys():
+        vmin = local_plot_options['OPTIONS']['vmin']
+    else:
+        vmin = None
+    if 'vmax' in local_plot_options['OPTIONS'].keys():
+        vmax = local_plot_options['OPTIONS']['vmax']
+    else:
+        vmax = None
+
+
+    if 'dmin' in local_plot_options['OPTIONS'].keys():
+        dmin = local_plot_options['OPTIONS']['dmin']
+    else:
+        dmin = None
+    if 'dmax' in local_plot_options['OPTIONS'].keys():
+        dmax = local_plot_options['OPTIONS']['dmax']
+    else:
+        dmax = None
+
+
+    m_data_org = obs_type + '_org' #name of original data field
+
+
+
+    #/// land sea mask (options: land,ocean, global for parameter area)
+    ls_mask = get_T63_landseamask(shift_lon, area = valid_mask)
 
     # preprocessing
-    if local_obs_dict['preprocess'] == True:
-        print interval
-        obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = local_obs_dict['label'], shift_lon = shift_lon)
+    if f_preprocess == True:
+        obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = obs_name, shift_lon = shift_lon)
 
+    # rescale data following CF conventions
+    obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
+    obs_orig.addc(obs_add_offset,copy=False); obs_monthly.addc(obs_add_offset,copy=False)
 
     #--- initialize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -689,18 +378,20 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = Non
     if GM != None:
         GM.plot(obs_monthly, linestyle = '--')
 
-    if local_obs_dict['map_seasons'] == True: #seasonal mean plot
-        f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6,vmin=vmin,vmax=vmax)
+    if f_mapseasons == True:  #seasonal mean plot
+        f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=nclasses,vmin=vmin,vmax=vmax,cticks=cticks)
         report.figure(f_season,caption='Seasonal mean ' + obs_name)
 
 
     for model in model_list:
 
-        sys.stdout.write('\n *** %s analysis of model: ' % (param_name) + model.name + "\n")
-        model_data = model.variables[param_name]
+        sys.stdout.write('\n *** %s analysis of model: ' % (obs_type) + model.name + "\n")
+        print model.variables.keys()
+        model_data = model.variables[obs_type].copy()
+        model_data._apply_mask(ls_mask)
         GP.add_model(model.name) #register model name in GlecklerPlot
 
-        if local_obs_dict['report'] == True:
+        if for_report == True:
             #/// report results
             sys.stdout.write('\n *** Making report figures. \n')
             report.subsubsection(model.name)
@@ -710,7 +401,7 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = Non
                 GM.plot(model.variables[m_data_org][2],label=model.name) #(time,meandata) replace rain_org with data_org
 
         if model_data == None:
-            print 'Data not existing for model ', model.name; continue
+            sys.stdout.write('Data not existing for model %s' % model.name); continue
 
         if model_data.data.shape != obs_orig.data.shape:
             print 'Inconsistent geometries' # add here parameter name
@@ -718,38 +409,80 @@ def generic_analysis(obs_dict, model_list, obs_type, obs_name, GP=None, GM = Non
             print 'Observation: ', obs_orig.data.shape
             raise ValueError, "Invalid geometries"
 
-        if local_obs_dict['map_difference'] == True:
+        if f_mapdifference == True:
             sys.stdout.write('\n *** Map difference plotting. \n')
             #--- generate difference map
-            #pdb.set_trace()
-            f_dif  = map_difference(model_data, obs_orig, nclasses=6,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax)
+            f_dif  = map_difference(model_data, obs_orig, nclasses=nclasses,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks)
             report.figure(f_dif,caption='Mean and relative differences')
 
-        if local_obs_dict['map_seasons'] == True:
+        if f_mapseasons == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
 
             #seasonal map
-            f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=6,vmin=vmin,vmax=vmax)
+            f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=nclasses,vmin=vmin,vmax=vmax,cticks=cticks)
             report.figure(f_season,caption='Seasonal means model')
 
-        if local_obs_dict['reichler_plot'] == True:
+        if f_hovmoeller == True:
+            raise ValueError, 'Hovmoeller Not validated yet!!!!'
+            f_hov = plt.figure(figsize=(8,12))
+            ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
+            ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
+
+            start_time = pl.num2date(pl.datestr2num(s_start_time))
+            stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
+
+
+            #generate a reference monthly timeseries (datetime)
+            tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
+
+            #perform temporal subsetting and interpolation for hovmoeller plot
+            tmp = model.variables[param_name+'_org'][2]
+            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+            #tmp._temporal_subsetting(i1,i2)
+            tmp = tmp.interp_time(pl.date2num(tref))
+            print '      interpol done 1'
+
+            hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
+            hov_model.hov = None
+            hov_model.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
+            del hov_model, tmp
+
+            #hovmoeller for observations
+            tmp = obs_monthly.copy()
+            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+            #tmp._temporal_subsetting(i1,i2)
+            tmp = tmp.interp_time(pl.date2num(tref))
+            print 'interpol done 2'
+
+            hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_obs.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
+            hov_obs.hov = None
+            hov_obs.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
+            del hov_obs, tmp
+
+            report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_type + ')' )
+            del f_hov
+
+        if f_reichler == True:
             #/// Reichler statistics ///
             sys.stdout.write('\n *** Computing diagnostics (Reichler index). \n')
             Diag = Diagnostic(obs_orig, model_data)
             e2   = Diag.calc_reichler_index()
-            #print e2
+            #print 'E2: ', e2
             Rplot.add(e2,model_data.label,color='red')
 
-        if local_obs_dict['glecker_plot'] == True:
+        if f_gleckler == True:
             #/// Gleckler plot ///
             sys.stdout.write('\n *** Glecker plot. \n')
-            e2a = GP.calc_index(obs_orig,model_data,model,param_name)
+            e2a = GP.calc_index(obs_orig,model_data,model,obs_type)
             #e2a = 0
-            GP.add_data(param_name,model.name,e2a,pos=glecker_pos)
+            GP.add_data(obs_type,model.name,e2a,pos=gleckler_pos)
+
 
     del obs_monthly
     sys.stdout.write('\n *** Reichler plot.\n')
-    f_reich = Rplot.bar(title='relative model error: %s' % param_name.upper())
+    f_reich = Rplot.bar(title='relative model error: %s' % obs_type.upper())
     report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
     report.newpage()
 
@@ -1140,7 +873,7 @@ def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_bas
 
         #--- generate difference map
         dmin = -20.; dmax = 20.
-        f_dif  = map_difference(model_data ,obs_up,nclasses=6,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,50.,100.,150.],cticks_diff=[-20.,-10.,0.,10.,20.])
+        f_dif  = map_difference(model_data ,obs_up,nclasses=7,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,50.,100.,150.],cticks_diff=[-20.,-10.,0.,10.,20.])
 
         #seasonal map
         f_season = map_season(model_data.sub(obs_up),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-20.,-10.,0.,10.,20.],nclasses=6)
@@ -1189,7 +922,7 @@ def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_bas
 # ALBEDO -- begin
 #=======================================================================
 
-def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season'):
+def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None):
     #todo: for a proper albedo analyis it would be useful to actually compare the all-sky albedo !
 
     if shift_lon == None:
@@ -1212,8 +945,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     #- MODIS white sky albedo
     report.subsection('MODIS WSA')
     report.write('MODIS albedo is based on the MODIS white-sky albedo product. Snow covered areas remain in the data product, but all pixels flagged as invalid was discarded.')
-    #albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='MODIS',GM=GM)
-    generic_analysis(obs_dict, model_list, 'albedo', 'MODIS', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'albedo', 'MODIS', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     #- CERES surface albedo from all sky fluxes
     report.subsection('CERES albedo')
@@ -1357,246 +1089,54 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 #=======================================================================
 # TEMPERATURE -- end
 #=======================================================================
-def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
 
+    #this script is very generic and could be also used for other variables!!!
+
+    if shift_lon == None:
+        raise ValueError, 'You need to specify shift_lon option!'
+    if use_basemap == None:
+        raise ValueError, 'You need to specify use_basemap option!'
     if report == None:
         raise ValueError, 'You need to specify report option!'
+    if plot_options == None:
+        raise ValueError, 'No plot options are specified. No further processing possible!'
 
-    report.section('Temperature')
-    temperature_analysis_cru(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
 
-def temperature_analysis_cru(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None):
-    """
-    units: K
-    """
-    print 'Doing Temperature analysis ...'
+    thevar = 'temperature'
+    thelabel = plot_options.options[thevar]['OPTIONS']['label']
+    thelabel = thelabel.upper()
 
-    vmin = 270; vmax = 320.
 
-    #--- Gleckler plot
-    model_names = []
+    print
+    print '************************************************************'
+    print '* BEGIN ' + thelabel + ' analysis ...'
+    print '************************************************************'
 
-    #--- T63 weights
-    #~ t63_weights = get_T63_weights(shift_lon)
+    report.section(thelabel)
+    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
+    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
 
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
+    #temperature_analysis_cru(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
 
-    #--- load CRU data
-
-    if interval == 'season': #seasonal comparison
-        #~ t2_file      = get_data_pool_directory() + 'variables/land/Ta_2m/CRUTEM3v.nc'
-        #gpcp_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
-
-        s_start_time = '1979-01-01'; s_stop_time = '2006-12-31'
-        obs_file_raw = get_data_pool_directory() + 'variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
-
-        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
-        tmp1     = pyCDO(tmp,s_start_time,s_stop_time).remap()
-        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
-        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean() #seasonal mean
-
-        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #seasonal std
-        obs_var = 'tmp'
+    if thevar in plot_options.options.keys():
+        for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
+            if k == 'OPTIONS':
+                continue
+            else:
+                report.subsection(k)
+                generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
     else:
-        sys.exit('Unknown interval for rainfall_analyis()')
-
-    T2 = Data(obs_file,obs_var,read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,level=0)
-    T2.data +=  273.15 #Kelvin
-    T2_std = Data(obs_file_std,obs_var,read=True,label='CRU',unit='K',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,level=0)
-    T2.std = T2_std.data.copy(); del T2_std
+        raise ValueError, 'Can not do analysis for ' + thelabel + ' for some reason! Check config and plot option files!'
 
 
+    report.figure(fG,caption='Global means for ' + thelabel)
 
+    print
+    print '************************************************************'
+    print '* END ' + thelabel + ' analysis ...'
+    print '************************************************************'
 
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    #--- get model field of precipitation
-    for model in model_list:
-        model_data = model.variables['temperature']
-        GP.add_model(model.name)
-
-        if model_data == None:
-            continue
-
-        model_names.append(model.name)
-
-        if model_data.data.shape != T2.data.shape:
-            print 'WARNING Inconsistent geometries for CRU temperature'
-            print model_data.data.shape; print T2.data.shape
-
-        dmin=-10.;dmax=10.
-        f_dif = map_difference(model_data,T2,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
-
-        #seasonal map
-        f_season = map_season(model_data.sub(T2),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
-
-        #--- calculate Reichler diagnostic for preciptation
-        Diag = Diagnostic(T2,model_data); e2 = Diag.calc_reichler_index()
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Gleckler plot ///
-        e2a = GP.calc_index(T2,model_data,model,'T2')
-        GP.add_data('T2',model.name,e2a,pos=1)
-
-        #report
-        report.subsection(model.name)
-        report.figure(f_season,caption='Seasonal differences')
-        report.figure(f_dif,caption='Mean and relative differences')
-
-    f_reich = Rplot.bar()
-    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
-    report.newpage()
-
-
-
-
-
-#=======================================================================
-# RAINFALL -- begin
-#=======================================================================
-#def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
-#
-#    if report == None:
-#        raise ValueError, 'You need to specify report option!'
-#
-#    report.section('Precipitation')
-#
-#    report.subsection('GPCP')
-#    rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='GPCP')
-#
-#    report.subsection('CRU')
-#    rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='CRU')
-#
-#    #todo add TMPA data
-#
-#    #~ report.subsection('GPCC')
-#    #~ rainfall_analysis_template(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,obs_type='GPCC')
-
-
-
-def xxxxxxxxxxxxxxxxxrainfall_analysis_template(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report=None,obs_type=None):
-    '''
-    units: mm/day
-    '''
-    print 'Doing rainfall analysis ...'
-
-    if obs_type == None:
-        raise ValueError, 'Can not do precipitation analysis:  missing observation type'
-
-    vmin = 0.; vmax = 10.
-
-    #--- Gleckler plot
-    model_names = []
-
-    #--- T63 weights
-    #~ t63_weights = get_T63_weights(shift_lon)
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-    if obs_type == 'GPCP':
-        #--- load GPCP data
-        gleckler_pos = 1
-        if interval == 'season': #seasonal comparison
-            obs_file      = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasmean.nc'
-            obs_file_std  = get_data_pool_directory() + 'variables/land/precipitation/GPCP/GPCP__V2_2dm__PRECIP__2.5x2.5__197901-201012_T63_seasmean_yseasstd.nc'
-            obs_var = 'precip'
-        else:
-            sys.exit('Unknown interval for rainfall_analyis()')
-
-        scale_data = 1.
-
-    elif obs_type == 'CRU':
-        gleckler_pos = 2
-        s_start_time = '1979-01-01'; s_stop_time = '2006-12-31'
-
-        obs_file_raw = get_data_pool_directory() + 'variables/land/precipitation/CRU/cru_ts_3_00.1901.2006.pre_miss.nc'
-
-        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).remap()
-        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
-        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean() #seasonal mean
-
-        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #standard deviation of seasonal mean
-
-        scale_data = 12./365. #scale factor to scale from mm/month to mm/day #@todo: revise scale factor in precipitation analysis (not taking care yet for different month lengths!)
-
-        obs_var = 'pre'
-
-    elif obs_type == 'GPCC':
-
-        raise ValueError, 'GPCC not supported yet, as no coordinates in OBS file!!' #@todo: coordinates in GPCC observational file!
-
-        gleckler_pos = 3
-        s_start_time = '1979-01-01'; s_stop_time = '2007-12-31'
-
-        obs_file_raw = get_data_pool_directory() + 'variables/land/precipitation/GPCC/gpcc_full_vs4_1951-2007.nc'
-
-        tmp      = pyCDO(obs_file_raw,s_start_time,s_stop_time).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).remap()
-        tmp2     = pyCDO(tmp1,s_start_time,s_stop_time).seasmean()
-        obs_file = pyCDO(tmp2,s_start_time,s_stop_time).yseasmean() #seasonal mean
-
-        obs_file_std = pyCDO(tmp2,s_start_time,s_stop_time).yseasstd() #standard deviation of seasonal mean
-
-        scale_data = 12./365. #scale factor to scale from mm/month to mm/day #@todo: revise scale factor in precipitation analysis (not taking care yet for different month lengths!)
-
-        obs_var = 'var260'
-
-
-    else:
-        raise ValueError, 'UNKNOWN obs_type: ' + obs_type
-
-    theobs = Data(obs_file,obs_var,read=True,label=obs_type,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data,scale_factor = scale_data)
-    theobs_std = Data(obs_file_std,obs_var,read=True,label=obs_type,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=shift_lon,mask=ls_mask.data.data)
-    theobs.std = theobs_std.data.copy(); del theobs_std
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    #--- get model field of precipitation
-    for model in model_list:
-        model_data = model.variables['rain']
-        GP.add_model(model.name)
-
-        if model_data == None:
-            continue
-
-        model_names.append(model.name)
-
-        if model_data.data.shape != theobs.data.shape:
-            print 'WARNING Inconsistent geometries for GPCP'
-            print model_data.data.shape; print theobs.data.shape
-
-        dmin=-1.;dmax=1.
-        f_dif = map_difference(model_data,theobs,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0,5,10],cmap_difference='RdBu',show_zonal=True,zonal_timmean=False)
-
-        #seasonal map
-        f_season = map_season(model_data.sub(theobs),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu',show_zonal=True,zonal_timmean=True)
-
-        #--- calculate Reichler diagnostic for preciptation
-        Diag = Diagnostic(theobs,model_data); e2 = Diag.calc_reichler_index()
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Gleckler plot ///
-        e2a = GP.calc_index(theobs,model_data,model,'rain')
-        GP.add_data('rain',model.name,e2a,pos=gleckler_pos)
-
-        #report
-        report.subsubsection(model.name)
-        report.figure(f_season,caption='Seasonal differences')
-        report.figure(f_dif,caption='Mean and relative differences')
-
-    f_reich = Rplot.bar()
-    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
-    report.newpage()
-
-
-#=======================================================================
-# RAINFALL -- end
-#=======================================================================
 
 
 #=======================================================================
@@ -1604,7 +1144,7 @@ def xxxxxxxxxxxxxxxxxrainfall_analysis_template(model_list,interval='season',GP=
 #=======================================================================
 
 
-def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None):
+def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None):
     """
     main routine for SIS analysis
 
@@ -1616,8 +1156,9 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
         raise ValueError, 'You need to specify use_basemap option!'
     if report == None:
         raise ValueError, 'You need to specify report option!'
+    if plot_options == None:
+        raise ValueError, 'No plot options are specified. No further processing possible!'
 
-    vmin=0.;vmax=300;dmin=-18.;dmax = 18.
 
     print
     print '************************************************************'
@@ -1630,20 +1171,20 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 
     #ISCCP
     report.subsection('ISCCP')
-    generic_analysis(obs_dict, model_list, 'sis', 'ISCCP', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'sis', 'ISCCP', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     #SRB
     report.subsection('SRB')
-    generic_analysis(obs_dict, model_list, 'sis', 'SRB', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'sis', 'SRB', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     #ceres
     report.subsection('CERES')
-    generic_analysis(obs_dict, model_list, 'sis', 'CERES', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'sis', 'CERES', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     #cm-saf
     report.subsection('CMSAF')
     report.write('Please note that the CMSAF analysis is limited to the Meteosat spatial domain!')
-    generic_analysis(obs_dict, model_list, 'sis', 'CMSAF', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'sis', 'CMSAF', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     report.figure(fG,caption='Global means for SIS ')
 
@@ -1655,154 +1196,7 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 
 #-----------------------------------------------------------------------
 
-def xxxxxxxxxxxsis_analysis_plots(model_list,interval = 'season',GP=None,GM=None,shift_lon=None,use_basemap=False,vmin=0.,vmax=300,dmin=-20.,dmax = 20.,obs_type=None,report=None):
-    """
-    model_list = list which contains objects of data type MODEL
 
-    @param GM: global mean plot
-    @type GM: C{GlobalMeanPlot}
-    """
-
-    print '    ... ' + obs_type
-
-    #--- GlecklerPlot
-    if GP == None:
-        GP = GlecklerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-
-    if obs_type == 'CERES':
-        #todo EBAF data
-        #raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres/T63_CERES__srbavg__surface_downwelling_shortwave_radiative_flux_in_air__1x1__2000_2004.nc'
-        raw_sis        = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
-        #y1 = '2001-01-01'; y2='2003-12-31'
-
-        #obs_var = 'BfCER00'
-        obs_var = 'sfc_sw_down_all_mon'
-        gleckler_pos = 2
-
-    else:
-        print obs_type
-        raise ValueError, 'Unknown observation type for SIS-analysis!'
-
-    raise ValueError, 'This routine is outdated!'
-
-    #/// do data preprocessing ///
-    obs_sis, obs_monthly = preprocess_seasonal_data(raw_sis,interval=interval,themask = ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
-
-    if GM != None:
-        GM.plot(obs_monthly,linestyle='--')
-
-    #--- initialize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-        GP.add_model(model.name) #register model name in GlecklerPlot
-
-        if GM != None:
-            if 'sis_org' in model.variables.keys():
-                GM.plot(model.variables['sis_org'][2],label=model.name) #(time,meandata)
-
-        #--- get model data
-        model_data = model.variables['sis'] #model_data is a Data object!
-        if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name; continue
-
-        if model_data.data.shape != obs_sis.data.shape:
-            print model_data.data.shape; print obs_sis.data.shape
-            raise ValueError, 'Inconsistent geometries for SIS'
-
-
-        #--- generate difference maps for each month/season
-
-        #todo test for calculation ????
-
-        #use welch test to calculate significant different areas
-        #isdifferent , t1, t2 = welchs_approximate_ttest(model_data.n, model_data.data, model_data.std, obs_sis.n, obs_sis.data, obs_sis.std, 0.95)
-
-        f_season1 = map_season(model_data,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
-        f_season2 = map_season(obs_sis,titlefontsize=10,cmap='jet',vmin=0.,vmax=350.,cticks=[0.,100.,200.,300.],nclasses=7,use_basemap=use_basemap)
-        #f_season3 = map_season(model_data.sub(obs_sis),overlay=~isdifferent,titlefontsize=10,cmap='RdBu_r',vmin=-50.,vmax=50.,cticks=[-50.,-25.,0.,25.,50.],nclasses=8,use_basemap=use_basemap)
-        f_season3 = map_season(model_data.sub(obs_sis),titlefontsize=10,cmap='RdBu_r',vmin=-50.,vmax=50.,cticks=[-50.,-25.,0.,25.,50.],nclasses=8,use_basemap=use_basemap)
-
-        report.figure(f_season1,caption='SSI climatology of  ' + model.name)
-        report.figure(f_season2,caption='SSI climatology of  ' + obs_type)
-        report.figure(f_season3,caption='Difference between ' + model.name + ' and ' + obs_type + '; areas with significant differences ($p<0.05$) are shown, while areas with the same means are marked/shaded ' )
-        del f_season1, f_season2, f_season3
-
-
-        #--- generate hovmoeller plot ---
-        if False:
-            f_hov = plt.figure(figsize=(8,12))
-            ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
-            ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
-
-            #hovmoeller for model
-            start_time = pl.num2date(pl.datestr2num('1980-01-01')) #common period of data
-            stop_time  = pl.num2date(pl.datestr2num('2012-12-31'))
-
-            #generate a reference monthly timeseries (datetime)
-            tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
-
-            #perform temporal subsetting and interpolation for hovmoeller plot
-            tmp = model.variables['sis_org'][2]
-            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
-            #tmp._temporal_subsetting(i1,i2)
-            tmp = tmp.interp_time(pl.date2num(tref))
-            print '      interpol done 1'
-
-            hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
-            hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
-            hov_model.hov = None
-            hov_model.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
-            del hov_model, tmp
-
-            #hovmoeller for observations
-            tmp = obs_monthly.copy()
-            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
-            #tmp._temporal_subsetting(i1,i2)
-            tmp = tmp.interp_time(pl.date2num(tref))
-            print 'interpol done 2'
-
-
-            hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
-            hov_obs.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
-            hov_obs.hov = None
-            hov_obs.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
-            del hov_obs, tmp
-
-            report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_type + ')' )
-            del f_hov
-
-        #--- generate difference map
-        f_dif  = map_difference(model_data,obs_sis,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,nclasses=6,show_zonal=True,zonal_timmean=False,cticks=[0.,50.,100.,150.,200.,250.,300.],cticks_diff=[-18.,-12.,-6.,0.,6.,12.,18.],rmin=-0.25,rmax=0.25)
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(obs_sis,model_data)
-        e2   = Diag.calc_reichler_index()
-        Rplot.add(e2,model_data.label,color='red')
-        #print e2
-
-        #/// Gleckler plot ///
-        e2a = GP.calc_index(obs_sis,model_data,model,'sis')
-        GP.add_data('sis',model.name,e2a,pos=gleckler_pos)
-
-        #/// report results
-        report.subsubsection(model.name)
-        report.figure(f_dif,caption='Mean and relative differences ' + obs_type + ' ' + model.name)
-        del f_dif
-
-    del obs_monthly
-
-
-
-    f_reich = Rplot.bar(title='relative model error: SIS')
-    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
-    report.newpage()
-
-    sys.stdout.write('\n *** Processing finished. \n')
 
 
 

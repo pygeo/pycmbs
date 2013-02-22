@@ -278,7 +278,7 @@ class CMIP5Data(Model):
 
 
 
-    def get_rainfall_data(self):
+    def get_rainfall_data(self,interval=None):
 
         '''
         return data object of
@@ -286,7 +286,11 @@ class CMIP5Data(Model):
         b) global mean timeseries for PR at original temporal resolution
         '''
 
-        #original data
+        if interval != 'season':
+            raise ValueError, 'Other data than seasonal not supported at the moment for CMIP5 data and rainfall!'
+
+
+    #original data
         filename1 = self.data_dir + 'pr/' +  self.model + '/' + 'pr_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
         force_calc = False
@@ -311,7 +315,7 @@ class CMIP5Data(Model):
         prall  = Data(filename1,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
         prmean = prall.fldmean()
 
-        retval = (prall.time,prmean); del prall
+        retval = (prall.time,prmean,prall); del prall
 
         pr.data = np.ma.array(pr.data,mask=pr.data < 0.)
 
@@ -321,15 +325,14 @@ class CMIP5Data(Model):
 
     def get_temperature_2m(self,interval=None):
 
-        '''
+        """
         return data object of
         a) seasonal means for air temperature
         b) global mean timeseries for TAS at original temporal resolution
-        '''
+        """
 
         if interval != 'season':
             raise ValueError, 'Other data than seasonal not supported at the moment for CMIP5 data and temperature!'
-
 
         #original data
         filename1 = self.data_dir + 'tas/' +  self.model + '/' + 'tas_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -349,14 +352,17 @@ class CMIP5Data(Model):
         filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
 
         if not os.path.exists(filename):
+            print 'WARNING: Temperature file not found: ', filename
             return None
 
         tas = Data(filename,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False)
 
-        tasall = Data(filename1,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False)
+        tasall = Data(filename1,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12)
+        #todo: automatic check that data is monthly! use get_months for that!
+
         tasmean = tasall.fldmean()
 
-        retval = (tasall.time,tasmean); del tasall
+        retval = (tasall.time,tasmean,tasall); del tasall
 
         tas.data = np.ma.array(tas.data,mask=tas.data < 0.)
 

@@ -1463,7 +1463,7 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def calc_reichler_index(self,weights=None):
-        '''
+        """
         calculate index after Reichler & Kim (2008)
         for a single model
 
@@ -1478,10 +1478,13 @@ class Diagnostic():
         returns E**2 as a list whereas each element corresponds to the weighted
         difference at a timestep. Thus to get the overall score, one still needs
         to take the sum of all values in the calling program!
-        '''
+        """
 
         if not hasattr(self,'y'):
             raise ValueError, 'Can not calculate Reichler & Kim index without a second variable!'
+
+        if not hasattr(self.x,'std'):
+            raise ValueError, 'Can not calculate Reichler & Kim index without STD information!'
 
 
         if weights == None:
@@ -1492,6 +1495,7 @@ class Diagnostic():
                 weights = self.x._get_weighting_matrix()
         else:
             weights = weights.copy()
+
         x = self.x.data.copy(); y = self.y.data.copy()
         std_x = self.x.std.copy()
 
@@ -1525,9 +1529,9 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def get_correlationxxxxx(self,lag=0,nlags=None):
-        '''
+        """
         calculate correlation between two data sets
-        '''
+        """
 
         print 'Calculating correlation with lag=', lag, nlags
 

@@ -340,6 +340,14 @@ class TestData(TestCase):
         d = D.data[:,0,0] *0.5
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
+    def test_mulc(self):
+
+        D = self.D.copy()
+        R = D.mulc(2.)
+
+        d = D.data[:,0,0] *2.
+        self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
+
     def test_partial_correlation(self):
         """Test of partial correlation """
 
