@@ -440,8 +440,20 @@ class Data():
             cell_file = cdo.gridarea()
 
         #--- read cell_area file ---
-        F=Nio.open_file(cell_file,'r')
-        self.cell_area = F.variables['cell_area'].get_value().astype('float').copy()
+        if os.path.exists(cell_file):
+            #--- read cell area from file
+            F=Nio.open_file(cell_file,'r')
+            self.cell_area = F.variables['cell_area'].get_value().astype('float').copy()
+        else:
+            #--- no cell are calculation possible!!!
+            print '*** WARNING: can not estimate cell area! ' + cell_file
+            print '    setting cell_area all to equal'
+            if self.data.ndim == 2:
+                self.cell_area = np.ones(self.data.shape)
+            elif self.data.ndim == 3:
+                self.cell_area = np.ones(self.data[0,:,:].shape)
+            else:
+                raise ValueError, 'Invalid geometry!'
 
 
 #-----------------------------------------------------------------------
@@ -984,6 +996,7 @@ class Data():
             res = np.asarray(res)
             r = res[:,0,1] #correlation coefficient
             p = get_significance(r,nv)
+            r[p>pthres] = np.nan
 
 
         #remap to original geometry
@@ -1803,6 +1816,7 @@ class Data():
             elif len(s) == 1:
                 w = cell_area.repeat(nt).reshape((1,nt)).T
             else:
+                print s
                 raise ValueError, 'Invalid geometry!'
             w.shape = self.data.shape #geometry is the same now as data
 
@@ -2703,6 +2717,29 @@ class Data():
         else:
             d = self
         d.data += x
+        return d
+
+#-----------------------------------------------------------------------
+
+    def mulc(self,x,copy=True):
+        """
+        Multiply current data by a constant
+
+        (unittest)
+
+        @param x: constant
+        @type  x: float
+
+        @param copy: if True, then a new data object is returned
+                     else, the data of the present object is changed
+        @type copy: bool
+        """
+
+        if copy:
+            d = self.copy()
+        else:
+            d = self
+        d.data *= x
         return d
 
 #-----------------------------------------------------------------------
