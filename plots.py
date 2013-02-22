@@ -230,8 +230,14 @@ class ReichlerPlot():
         @type title: str
         """
 
+
         if len(self.e2) == 0: #no valid data
             return self.ax.figure
+
+        if self.e2[0] == None:
+            return self.ax.figure
+
+
 
         #- normalize results (relative modle performance)
         self._normalize()
@@ -524,7 +530,10 @@ class LinePlot():
         @param x: data to be plotted
         @type x: C{Data}
 
-        @param ax: axis to plot to. If None, then a new figure is generated
+        @param ax: axis to plot to. If None, then a new figure is generated.
+                   be aware that problems might occur when using axes that were generated with
+                   the twinx() command. Problems can be avoided by generating the figure axcopy=ax.twinx() just
+                   immediately BEFORE calling the plot routine.
         @type ax: matplotlib axis
 
         @param vmin: minimum value for y-axis
@@ -550,7 +559,10 @@ class LinePlot():
                 ax = ax
                 set_axiscolor=True
 
-            y = x.fldmean() #gives timeseries
+            if x.data.ndim == 1: #if a vector already provided
+                y = x.data * 1.
+            else:
+                y = x.fldmean() #... otherwise use fldmean() to get timeseries
 
             if norm_std:
                 y /= y.std()
@@ -588,7 +600,7 @@ class LinePlot():
                 ax.set_xlabel('time',size=self.ticksize)
 
             if self.title != None:
-                ax.set_title(self.title,size=10)
+                ax.set_title(self.title,size=self.ticksize)
 
             if vmin != None and vmax != None:
                 ax.set_ylim(vmin,vmax)
@@ -597,13 +609,8 @@ class LinePlot():
                 for tl in ax.get_yticklabels():
                     tl.set_color(p.get_color())
 
+            self._change_ticklabels(ax)
 
-            #self._change_ticklabels(ax) #todo needs to be activated again!!!! but caused some error regarding the ordinal of x; num2date problem ???
-
-            #~ if not self.showxticks: #showxticklabels?
-                #~ for tick in ax.xaxis.get_major_ticks():
-                    #~ print 'tick'
-                    #~ tick.label.set_label('')
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -1142,6 +1149,17 @@ class GlecklerPlot():
             self._normalize_data()
 
         nm = len(self.models); nv = len(self.variables)
+        if nm == 0:
+            ax = self.fig.add_subplot(111,frameon=True,aspect='equal',axisbg='grey')
+            ax.text(0.5, 0.5,'no plot possible (missing model data)',
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    transform = ax.transAxes)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            print '    Gleckler plot can not be generated, as no model data available!'
+            return
+
 
         #- colormap
         self.cmap = plt.cm.get_cmap(cmap_name, nclasses)
@@ -1329,7 +1347,7 @@ class GlecklerPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True,drawcountries=True):
+def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True,drawcountries=True,land_color=0.8):
     """
     routine to plot ancillary data like coastlines
     or meridians on a basemap plot
@@ -1352,7 +1370,7 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True,
     if drawcountries:
         m.drawcountries()
     m.drawcoastlines()
-    m.drawlsmask(lakes=True)
+    m.drawlsmask(lakes=True,land_color=land_color)
     m.drawmapboundary() # draw a line around the map region
     if drawparallels:
         m.drawparallels(latvalues,labels=[1, 0, 0, 0])
@@ -1484,7 +1502,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
-             contourf = False, **kwargs):
+             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1741,7 +1759,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 #todo: there is still a problem that the coordinates are not properly aligned with the grid cells!!!
 
             #/// ANCILLARY PLOT FOR BASEMAP ///
-            __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues,drawparallels=drawparallels,drawcountries=drawcountries)
+            __basemap_ancillary(m1,latvalues=latvalues,lonvalues=lonvalues,drawparallels=drawparallels,drawcountries=drawcountries,land_color=land_color)
 
     else: #use_basemap = False
         #- normal plots
@@ -1788,7 +1806,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
 
 
-    def _add_region(m,r,color='red'):
+    def _add_region(m,r,color='red',linewidth=1):
         """
         plot region r on top of basemap map m
 
@@ -1806,7 +1824,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         lons = corners[:,0]; lats=corners[:,1]
         x,y = m(lons,lats)
         xy = list(zip(x,y))
-        mapboundary = Polygon(xy,edgecolor=color,linewidth=1,fill=False,linestyle='dashed')
+        mapboundary = Polygon(xy,edgecolor=color,linewidth=linewidth,fill=False,linestyle='dashed')
         m.ax.add_patch(mapboundary)
 
     #--- plot regions in the map ---
@@ -1814,7 +1832,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         if use_basemap:
             for region in regions_to_plot:
                 if region.type=='latlon':
-                    _add_region(m1,region)
+                    _add_region(m1,region,linewidth=regionlinewidth)
 
     #--- set title
     if title == None:
@@ -1939,7 +1957,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
 
 #-----------------------------------------------------------------------
 
-def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8):
+def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8,label=None):
     """
     add a nice looking legend
 
@@ -1986,10 +2004,13 @@ def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8):
         for t in cb.ax.get_yticklabels():
             t.set_fontsize(fontsize)
 
+    if label != None:
+        cax.set_ylabel(label)
+
 
 #-----------------------------------------------------------------------
 
-def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,rescalex=1,**kwargs):
+def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cticks=None,cticks_dif=None,ax1=None,ax2=None,ax3=None,rescaley=6,grid=True,rescalex=1,clabel=None,**kwargs):
     """
     class to plot hovmoeller diagrams of two datasets
     and their difference
@@ -2025,14 +2046,14 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
     hov1.plot(title=x._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax1,showcolorbar=False,climits=climits,grid=grid)
     hov2.plot(title=y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap,ax=ax2,showcolorbar=False,climits=climits,grid=grid)
 
-    add_nice_legend(ax1,hov1.im,cmap,cticks=cticks); add_nice_legend(ax2,hov2.im,cmap,cticks=cticks)
+    add_nice_legend(ax1,hov1.im,cmap,cticks=cticks,label=clabel); add_nice_legend(ax2,hov2.im,cmap,cticks=cticks,label=clabel)
 
     if x.data.shape == y.data.shape:
         hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
         hov3.time_to_lat(**kwargs)
         cmap_diff = plt.cm.get_cmap('RdBu', nclasses)
         hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap_diff,ax=ax3,showcolorbar=False,climits=dlimits,grid=grid)
-        add_nice_legend(ax3,hov3.im,cmap_diff,cticks=cticks_dif)
+        add_nice_legend(ax3,hov3.im,cmap_diff,cticks=cticks_dif,label=clabel)
     else:
         msg = 'Difference plot not possible as data has different shape'
         ax3.text(0.5, 0.5,msg,
@@ -2140,7 +2161,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
 
-    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=8,cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
+    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=nclasses,cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
 
 
     return fig
