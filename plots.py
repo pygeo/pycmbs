@@ -1219,6 +1219,9 @@ class GlecklerPlot():
         k = self.__gen_key(m,v,p)
         if k in self.data.keys():
             r = self.data[k]
+        else:
+            #print 'NOT FOUND!!', k
+            pass
         return r
 
 #-----------------------------------------------------------------------
@@ -1250,7 +1253,7 @@ class GlecklerPlot():
             return None
         if v == None:
             return None
-        return m.replace(' ','_')+'_'+v.replace(' ','_')+'_'+str(p)
+        return m.replace(' ','_')+'_'+v.replace(' ','_')+'_'+str(int(p))
 
 #-----------------------------------------------------------------------
 
@@ -1277,6 +1280,15 @@ class GlecklerPlot():
                 if m in self.models:
                     self.data.update({ self.__gen_key(m,v,pos) :x})
                     self.pos.update({ self.__gen_key(m,v,pos) : pos})
+                else:
+                    #print 'NO UPDATE2'
+                    pass
+            else:
+                #print 'NU UPDATE3'
+                pass
+        else:
+            #print 'NOUPDATE 1'
+            pass
 
 #-----------------------------------------------------------------------
 

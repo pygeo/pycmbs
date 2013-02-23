@@ -389,6 +389,7 @@ for variable in variables:
 #/// generate Gleckler analysis plot for all variables and models analyzed ///
 global_gleckler.plot(vmin=-0.8,vmax=0.8,nclasses=25)
 
+
 rep.section('Summary error statistics')
 rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')
 
