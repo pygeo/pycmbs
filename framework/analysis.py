@@ -104,6 +104,7 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
         raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
 
     #--- READ DATA ---
+    print 'FILEXX: ', obs_ymonmean_file
     obs     = Data(obs_ymonmean_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
     obs_std = Data(obs_ymonstd_file,obs_var,read=True,label=label + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
     obs.std = obs_std.data.copy(); del obs_std
@@ -502,6 +503,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             sys.stdout.write('\n *** Glecker plot. \n')
             e2a = GP.calc_index(obs_orig,model_data,model,obs_type)
             #e2a = 0
+            print 'GLECKLER: want to write data: ', obs_type,model.name,e2a,gleckler_pos
             GP.add_data(obs_type,model.name,e2a,pos=gleckler_pos)
 
 
@@ -972,6 +974,12 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     report.write('MODIS albedo is based on the MODIS white-sky albedo product. Snow covered areas remain in the data product, but all pixels flagged as invalid was discarded.')
     generic_analysis(plot_options, model_list, 'albedo', 'MODIS', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
+    #- AVHRR GAC SAL black sky albedo
+    report.subsection('AVHRR CLARASAL')
+    report.write('AVHRR SAL is a black-sky albedo product generated in the frame of the CM-SAF')
+    generic_analysis(plot_options, model_list, 'albedo', 'CLARASAL', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+
+
     #- CERES surface albedo from all sky fluxes
     report.subsection('CERES albedo')
     #CERES is not easily possible without pre-processing!!!!
@@ -1008,14 +1016,7 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
     ls_mask = get_T63_landseamask(shift_lon)
 
     #--- loading observation data
-    if obs_type == 'MODIS':
-        #--- load MODIS data
-        #use file which was already mapped to T63; anything else takes too long!
-        obs_raw_file     = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged.nc'
-        obs_var = 'surface_albedo_WSA'
-        gleckler_pos = 1
-
-    elif obs_type == 'CERES':
+    if obs_type == 'CERES':
         #CERES EBAF ... calculate albedo from raw files
         up_file   = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_up_all_mon__1x1__200003-201002.nc'
         down_file = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
@@ -1026,15 +1027,10 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
         cdo.div(options='-f nc', output=obs_raw_file,force=False,input=up_file + ' ' + down_file)
 
         obs_var = 'sfc_sw_up_all_mon'
-        gleckler_pos = 2
+        gleckler_pos = 3
 
-
-    #todo integrate CLARA SAL DATA and CERES DATA
     else:
         raise ValueError, 'Invalid option for observation type in albedo analysis: ' + obs_type
-
-
-
 
     #/// do data preprocessing ///
     obs_alb,obs_monthly = preprocess_seasonal_data(obs_raw_file,interval=interval,themask=ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
@@ -1088,7 +1084,7 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         #/// Gleckler plot ///
         e2a = GP.calc_index(obs_alb,model_data,model,'albedo')
-        GP.add_data('albedo',model.name,e2a,pos=1)
+        GP.add_data('albedo',model.name,e2a,pos=gleckler_pos)
 
         #/// report results
         report.subsubsection(model.name)
