@@ -657,6 +657,11 @@ class Data():
         if self.verbose:
             print 'scale_factor : ', self.scale_factor
 
+        if self.data == None:
+            raise ValueError, 'The data in the file ' + self.filename + ' is not existing. This must not happen!'
+        if self.scale_factor == None:
+            raise ValueError, 'The scale_factor for file ' + self.filename + 'is NONE, this must not happen!'
+
         self.data = self.data * self.scale_factor
 
         #--- squeeze data to singletone
