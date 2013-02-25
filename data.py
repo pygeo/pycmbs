@@ -725,6 +725,14 @@ class Data():
             m1,m2 = self._get_time_indices(start_time,stop_time)
             self._temporal_subsetting(m1,m2)
 
+        #calculate time_cycle automatically if not set already. Try to detect it automatically
+        if self.time != None:
+            if hasattr(self,'time_cycle'):
+                if self.time_cycle == None:
+                    self._set_timecycle()
+            else:
+                self._set_timecycle()
+
 #-----------------------------------------------------------------------
 
     def get_yearmean(self,mask=None,return_data=False):
@@ -1128,6 +1136,7 @@ class Data():
             r.data = clim
             r.time = []
             for i in xrange(self.time_cycle):
+                #print i, len(self.time)
                 r.time.append(self.time[i])
             r.time = np.asarray(r.time)
 
@@ -3029,5 +3038,57 @@ class Data():
             return None
 
 #-----------------------------------------------------------------------
+
+    def _is_monthly(self):
+        """
+        check if the data is based on a sequence of increasing monthly values
+
+        The routine simply checks of the months of the timeseries is increasing. Days are not considered!
+
+        (unittest)
+
+        @return:
+        """
+        if hasattr(self,'time'):
+            # get list of all months
+            mo = self._get_months()
+
+            # get value of unique differences between months; only values 1 and -11 are allowed
+            di = np.unique(np.diff(mo))
+            if len(di) > 2:
+                return False
+
+            for d in di:
+                if d not in [1,-11]:
+                    return False
+
+            #if we have reached this point, then the months are in ascending monthly order. Now check if the years are as well
+            di =   np.unique(np.diff(self._get_years()))
+            for d in di:
+                if d not in [0,1]:
+                    return False
+
+            #... everything is o.k., we have an increasing monthly and yearly timeseries
+            return True
+        else:
+            return False
+
+#-----------------------------------------------------------------------
+
+    def _set_timecycle(self):
+        """
+        determine automatically the timecylce of the data and set the appropriate variable if possible
+
+        (unittest)
+
+        @return:
+        """
+
+        if self._is_monthly():
+            self.time_cycle=12
+        else:
+            print 'WARNING: timecycle can not be set automatically!'
+
+
 
 
