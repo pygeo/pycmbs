@@ -285,7 +285,7 @@ class taylor:
         if markeredgecolor==None:
             markeredgecolor=markerfacecolor
 
-        #/// calculate mean values /// todo: this looks weird
+        #/// calculate mean values ///
         try:
             self.R_mean = nanmean(R)
         except:

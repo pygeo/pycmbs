@@ -268,8 +268,6 @@ class hovmoeller:
         @param nclasses: number of classes for colorbar
         @type nclasses: int
 
-        todo: enable to set boundaries tmin,tmax for x-axis!!!
-
 
         plot result
         clim: tuple

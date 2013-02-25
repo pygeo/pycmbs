@@ -83,6 +83,16 @@ class ConfigFile():
             sys.exit('report missing in configuration file!')
 
         l = self.f.readline().replace('\n','')
+        if 'AUTHOR=' in l.upper():
+            s = l[7:]
+            self.options.update({'author' : s })
+        else:
+            sys.exit('author missing in configuration file!')
+
+
+
+
+        l = self.f.readline().replace('\n','')
         if 'TEMP_DIR=' in l.upper():
             s = l[9:]
             if s[-1] != '/':
