@@ -68,6 +68,10 @@ class Report():
         self.figure_counter = 0
         self.dpi = dpi
 
+
+
+
+
 #-----------------------------------------------------------------------
 
     def open(self):
@@ -82,6 +86,11 @@ class Report():
             os.remove(self.filename)
         self.file = open(self.filename,'w')
         self._write_header()
+
+
+
+
+
 
 #-----------------------------------------------------------------------
 
@@ -115,10 +124,28 @@ class Report():
         self.write('\\author{' + self.author +'}')
 
         self.write('\maketitle')
+
+
+        self._write_single_figure('logo_small.png',None) #logo for report
+
+
         self.write('\\newpage')
 
         self.write('\\tableofcontents')
         self.write('\\newpage')
+        self._write_separator()
+
+#-----------------------------------------------------------------------
+
+    def _write_single_figure(self,figpath,caption):
+        #/// LOGO ///
+        self._write_separator()
+        self.write('\\begin{figure}[htp]')
+        self.write('   \centering')
+        self.write('   \includegraphics[width=4cm]{'+ figpath + '} ')
+        if caption != None:
+            self.write('   \caption{' + caption.replace('_','-') + '}')
+        self.write('\\end{figure}')
         self._write_separator()
 
 #-----------------------------------------------------------------------

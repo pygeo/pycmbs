@@ -36,19 +36,6 @@ __email__ = "alexander.loew@zmaw.de"
 
 
 
-#@todo TIMEPERIODs of model and data in a consistent manner
-#    if not available from obs, then take maximum possible timespan
-
-
-
-#@todo: systematic validation of zonal mean statistics using som reference cases
-
-
-
-
-#todo check datetime; something is wrong! as data starts in Dcember 1978!
-
-
 # - regional analysis based on an input mask
 #@todo: correlation and RMSE analysis and Taylor plotting
 #
@@ -57,11 +44,7 @@ __email__ = "alexander.loew@zmaw.de"
 
 #
 # todo: interpolation method for fractional coverage !!!
-# area weighting for correlation analysis
 
-# - significance tests of differences
-# - pre-processing scripts from external configuration file
-# - regional subsetting options ??
 
 
 
@@ -138,10 +121,6 @@ def get_methods4variables(variables, model_dict):
     """
 
     hlp={}
-
-    #o.k., hier weiter und generische Methode zum lesen der Daten implementieren wo mgl.
-
-    #hlp.update({'rain': 'get_model_data_cmsaf(**%s)' % model_dict['rain']}) ###todo
     hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
     hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
@@ -312,12 +291,8 @@ variables = CF.variables
 varmethods = get_methods4variables(variables, model_dict)
 
 #=======================================================================
-global_settings_dict = {'landsea_mask': {'filename': ''}}
-default_analysis = {}
-
-# todo: compare custom analysis methods list with the default ones
-# logic: if the custom list is empty, we'll use the default one
-#        if the custom list is not empty, we'll use the custom one
+#global_settings_dict = {'landsea_mask': {'filename': ''}}
+#default_analysis = {}
 
 
 
@@ -364,7 +339,10 @@ global_gleckler = GlecklerPlot()
 ########################################################################
 # REPORT
 ########################################################################
-rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],'Alexander Loew',outdir='./report_' + CF.options['report'] + '/',dpi=300,format='pdf')
+rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],outdir='./report_' + CF.options['report'] + '/',dpi=300,format='pdf')
+cmd = 'cp ../logo/logo_small.png ' + rep.outdir
+os.system(cmd )
+
 
 
 ########################################################################

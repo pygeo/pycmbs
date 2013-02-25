@@ -1143,7 +1143,6 @@ class GlecklerPlot():
         @type normalize: bool
         """
 
-        #~ todo implement normalization here per position
 
         if normalize:
             self._normalize_data()

@@ -1614,15 +1614,9 @@ class Diagnostic():
                     idx = nlags/2+lag #todo something does not work with the indices !!!
                     print idx, nlags, len(r1)
                     r_value = r1[idx]
-                    #~ print r_value, r1
-                    #~ print lags[nlags/2 + lag], r1[nlags/2+lag]
-                    #~ pl.close('all')
-                    #~ pl.plot(lags,r1)
-                    #~
+
                 R[i] = r_value
 
-        #~ print np.shape(self.x.data[0,:])
-        #~ print np.shape(R)
         print x.ndim
 
         print self.x.data.ndim
