@@ -18,6 +18,7 @@ import pylab as pl
 import numpy as np
 from scipy import stats
 import Nio
+from dateutil.rrule import *
 
 class TestData(TestCase):
 
@@ -558,6 +559,47 @@ class TestData(TestCase):
         r2 = D.fldstd(apply_weights=False)[0]
         ref2 = x.std()
         self.assertAlmostEqual(ref2,r2,places=8)
+
+
+    def test__set_timecycle(self):
+        D = self.D
+
+        #set some monthly timeseries
+        s_start_time = '2003-01-01'
+        s_stop_time  = '2005-12-31'
+        start_time = pl.num2date(pl.datestr2num(s_start_time))
+        stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
+        tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
+        D.time = pl.date2num(tref)
+
+        #1) a perfect monthly timeseries
+        #check that that timeseries is based on monthly data
+        self.assertTrue(D._is_monthly())
+        D._set_timecycle()
+        self.assertEquals(D.time_cycle,12)
+
+        #2) some timeseries that is not monthly
+        D.time_cycle=None
+        D.time[2]=pl.datestr2num('2010-05-01')
+        D._set_timecycle()
+        self.assertFalse(D._is_monthly())
+        self.assertEquals(D.time_cycle,None)
+
+        #3) some timeseries that is has increasing months, but wrong years!
+        D.time_cycle=None
+        D.time = pl.date2num(tref)
+        t = pl.num2date(D.time[2])
+        D.time[2]=pl.datestr2num('2010-' + str(t.month).zfill(2) + '-' + str(t.day).zfill(2))
+        D._set_timecycle()
+        self.assertFalse(D._is_monthly())
+        self.assertEquals(D.time_cycle,None)
+
+
+
+
+
+
+
 
 
 

@@ -104,7 +104,6 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
         raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
 
     #--- READ DATA ---
-    print 'FILEXX: ', obs_ymonmean_file
     obs     = Data(obs_ymonmean_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
     obs_std = Data(obs_ymonstd_file,obs_var,read=True,label=label + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
     obs.std = obs_std.data.copy(); del obs_std
@@ -116,7 +115,10 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     obs.timsort()
 
     #read monthly data (needed for global means and hovmoeller plots)
-    obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=12) #,mask=ls_mask.data.data)
+    obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
+    if obs_monthly.time_cycle != 12:
+        raise ValueError, 'A time_cycle different from 12 is not allowed here! ' + obs_mon_file
+
 
     #/// center dates of months
     obs_monthly.adjust_time(day=15)
@@ -138,130 +140,42 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 #-----------------------------------------------------------------------------------------------------------------------
 
 def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-
-    print
-    print '************************************************************'
-    print '* BEGIN EVAPORATION analysis'
-    print '************************************************************'
-
-    if shift_lon == None:
-        raise ValueError, 'You need to specify shift_lon option!'
-    if use_basemap == None:
-        raise ValueError, 'You need to specify use_basemap option!'
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    if plot_options == None:
-        raise ValueError, 'No plot options are specified. No further processing possible!'
-
-
-
-    report.section('Evaporation')
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'evap', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    print
-    print '************************************************************'
-    print '* END EVAPORATION analysis'
-    print '************************************************************'
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='evap')
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-
-    print
-    print '************************************************************'
-    print '* BEGIN PRECIPITATION analysis ...'
-    print '************************************************************'
-
-
-
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-
-    report.section('Precipitation')
-
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'rain', 'HOAPS', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    report.subsection('GPCP')
-    generic_analysis(plot_options, model_list, 'rain', 'GPCP', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    report.subsection('CRU')
-    generic_analysis(plot_options, model_list, 'rain', 'CRU', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    report.subsection('GPCC')
-    generic_analysis(plot_options, model_list, 'rain', 'GPCC', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    #todo add TMPA data
-
-    print
-    print '************************************************************'
-    print '* END PRECIPITATION analysis ...'
-    print '************************************************************'
-
-
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='rain')
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-# WIND ANALYSIS
 def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-
-    report.section('10 meters surface winds')
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'wind', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='wind')
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-#TWPA analysis
 def twpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    report.section('Total column water content')
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'twpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='twpa')
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-#WVPA analysis
 def wvpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    report.section('Water Vapor Path')
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'wvpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='wvpa')
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-#HAIR analysis
 def hair_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    report.section('Surface specific humidity')
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'hair', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='hair')
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-#LATE analysis
 def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    report.section('Upward latent heat flux')
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'late', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='late')
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-#BUDG analysis
 def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    report.section('Upward freshwater flux')
-    report.subsection('HOAPS')
-    generic_analysis(plot_options, model_list, 'budg', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='budg')
 
 #-------------------------------------------------------------------------------------------------------------
 
@@ -312,7 +226,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #--- plot options which are SPECIFIC to observational data sets
     for_report = local_plot_options[obs_name]['add_to_report'] #add a certain observational dataset to report
     if for_report == False:
-        print '   The following data will not be included in the report: ' + obs_name + ' ' +  obs_type
+        print '   The following data will not be included in the report as option for reporting is not set: ' + obs_name + ' ' +  obs_type
         return
 
     obs_raw = local_plot_options[obs_name]['obs_file']
@@ -384,6 +298,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     # rescale data following CF conventions
     obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
     obs_orig.addc(obs_add_offset,copy=False); obs_monthly.addc(obs_add_offset,copy=False)
+
+    print obs_raw
+    print obs_orig.data.shape
+    print obs_monthly.data.shape
+
 
     #--- initialize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -1108,13 +1027,33 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 # TEMPERATURE -- begin
 #=======================================================================
 
+def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='temperature')
 
 #=======================================================================
 # TEMPERATURE -- end
 #=======================================================================
-def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
 
-    #this script is very generic and could be also used for other variables!!!
+
+
+
+
+
+
+
+
+
+def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,actvar=None):
+    """
+    actvar: variable to analyze
+    """
+
+
+
+
+
+
+    #this script is the very very generic and could be also used for other variables!!!
 
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
@@ -1124,9 +1063,13 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
         raise ValueError, 'You need to specify report option!'
     if plot_options == None:
         raise ValueError, 'No plot options are specified. No further processing possible!'
+    if actvar == None:
+        raise ValueError, 'No name for actual variable specified! Please correct!'
 
 
-    thevar = 'temperature'
+    thevar = actvar
+    if thevar not in plot_options.options.keys():
+        raise ValueError, 'The variable is not existing in the plot_options: ', thevar
     thelabel = plot_options.options[thevar]['OPTIONS']['label']
     thelabel = thelabel.upper()
 
@@ -1139,8 +1082,6 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
     report.section(thelabel)
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
-
-    #temperature_analysis_cru(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report)
 
     if thevar in plot_options.options.keys():
         for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
@@ -1159,6 +1100,26 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
     print '************************************************************'
     print '* END ' + thelabel + ' analysis ...'
     print '************************************************************'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
