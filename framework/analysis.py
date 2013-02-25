@@ -180,8 +180,8 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
 
     report.section('Precipitation')
 
-#    report.subsection('HOAPS')
-#    generic_analysis(obs_dict, model_list, 'rain', 'HOAPS', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon)
+    report.subsection('HOAPS')
+    generic_analysis(plot_options, model_list, 'rain', 'HOAPS', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     report.subsection('GPCP')
     generic_analysis(plot_options, model_list, 'rain', 'GPCP', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
@@ -189,8 +189,8 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
     report.subsection('CRU')
     generic_analysis(plot_options, model_list, 'rain', 'CRU', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
-    #report.subsection('GPCC') #todo activate
-    #generic_analysis(obs_dict, model_list, 'rain', 'GPCC', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon)
+    report.subsection('GPCC')
+    generic_analysis(plot_options, model_list, 'rain', 'GPCC', GP = GP, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
     #todo add TMPA data
 
@@ -204,66 +204,63 @@ def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_b
 #-----------------------------------------------------------------------------------------------------------------------
 
 # WIND ANALYSIS
-def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
 
     report.section('10 meters surface winds')
     report.subsection('HOAPS')
-    generic_analysis(obs_dict, model_list, 'wind', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'wind', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 #TWPA analysis
-def twpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def twpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
     report.section('Total column water content')
     report.subsection('HOAPS')
-    generic_analysis(obs_dict, model_list, 'twpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'twpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 #WVPA analysis
-def wvpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def wvpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
     report.section('Water Vapor Path')
     report.subsection('HOAPS')
-    generic_analysis(obs_dict, model_list, 'wvpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'wvpa', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 #HAIR analysis
-def hair_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def hair_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
     report.section('Surface specific humidity')
     report.subsection('HOAPS')
-    generic_analysis(obs_dict, model_list, 'hair', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'hair', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 #LATE analysis
-def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
     report.section('Upward latent heat flux')
     report.subsection('HOAPS')
-    generic_analysis(obs_dict, model_list, 'late', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'late', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 #BUDG analysis
-def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None):
+def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
     if report == None:
         raise ValueError, 'You need to specify report option!'
     report.section('Upward freshwater flux')
     report.subsection('HOAPS')
-    generic_analysis(obs_dict, model_list, 'budg', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-#-----------------------------------------------------------------------------------------------------------------------
-
+    generic_analysis(plot_options, model_list, 'budg', 'HOAPS', GP=GP,report=report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
 
 #-------------------------------------------------------------------------------------------------------------
@@ -272,8 +269,8 @@ def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
 
 
-global_settings_dict = {'landsea_mask':
-                            {'filename': ''}}
+#global_settings_dict = {'landsea_mask':
+#                            {'filename': ''}}
 
 #=======================================================================
 # GENERIC - start
@@ -293,7 +290,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
     #---- GENERAL CHECKS -----------------------------------------------------------------------
     if interval not in ['monthly','season']:
-        raise ValueError, 'invalid interval in generic_analysis()'
+        raise ValueError, 'invalid interval in generic_analysis() ' + interval
 
     if obs_type not in plot_options.options.keys():
         raise ValueError, 'No plot options available for the following data: ' + obs_type
@@ -449,11 +446,14 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             report.figure(f_season,caption='Seasonal means model')
 
         if f_hovmoeller == True:
-            raise ValueError, 'Hovmoeller Not validated yet!!!!'
+            print '    Doing Hovmoeller plot ...'
+            #raise ValueError, 'Hovmoeller Not validated yet!!!!'
             f_hov = plt.figure(figsize=(8,12))
             ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
             ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
 
+            s_start_time = '1979-01-01'
+            s_stop_time  = '2012-12-31'
             start_time = pl.num2date(pl.datestr2num(s_start_time))
             stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
 
@@ -462,16 +462,18 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
 
             #perform temporal subsetting and interpolation for hovmoeller plot
-            tmp = model.variables[param_name+'_org'][2]
+            tmp = model.variables[obs_type+'_org'][2]
+
             #i1,i2 = tmp._get_time_indices(start_time,stop_time)
             #tmp._temporal_subsetting(i1,i2)
             tmp = tmp.interp_time(pl.date2num(tref))
-            print '      interpol done 1'
+            tmp._apply_mask(ls_mask)
+            #print '      interpol done 1'
 
             hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
-            hov_model.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
+            hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
             hov_model.hov = None
-            hov_model.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
+            hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
             del hov_model, tmp
 
             #hovmoeller for observations
@@ -479,15 +481,16 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #i1,i2 = tmp._get_time_indices(start_time,stop_time)
             #tmp._temporal_subsetting(i1,i2)
             tmp = tmp.interp_time(pl.date2num(tref))
-            print 'interpol done 2'
+            #print 'interpol done 2'
+            tmp._apply_mask(ls_mask)
 
             hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
-            hov_obs.plot(climits=[0.,300.],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
+            hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
             hov_obs.hov = None
-            hov_obs.plot(climits=[-10.,10.],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
+            hov_obs.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
             del hov_obs, tmp
 
-            report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_type + ')' )
+            report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')' )
             del f_hov
 
         if f_reichler == True:
@@ -669,7 +672,7 @@ def tree_fraction_analysis(model_list,pft='tree'):
         t=pl.loadtxt(filename)
         outname = filename[:-4] + '.nc'
         if os.path.exists(outname):
-            os.remove(outname) #todo: really desired?
+            os.remove(outname)
         F = Nio.open_file(outname,'w')
         F.create_dimension('lat',t.shape[0])
         F.create_dimension('lon',t.shape[1])
@@ -950,7 +953,6 @@ def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_bas
 #=======================================================================
 
 def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None):
-    #todo: for a proper albedo analyis it would be useful to actually compare the all-sky albedo !
 
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
@@ -1074,7 +1076,7 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
         f_season = map_season(model_data.sub(obs_alb),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09],nclasses=6)
 
 
-        #todo hovmoeller plots !!!!
+
 
 
         #/// Reichler statistics ///
