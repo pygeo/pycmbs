@@ -677,6 +677,7 @@ class GlobalMeanPlot():
 
         @param mask: mask to be applied to the data prior to final analyis
         @type mask: either numpy bool array or C{Data} object
+
         """
 
         if ((label==None) and (D1.label in self.labels)):
@@ -708,6 +709,7 @@ class GlobalMeanPlot():
         #--- plot generation ---
         if color == None:
             p = self.ax.plot(t,mdata,linewidth=linewidth,linestyle=linestyle)
+
         else:
             p = self.ax.plot(t,mdata,color=color,linewidth=linewidth,linestyle=linestyle)
 
@@ -730,6 +732,8 @@ class GlobalMeanPlot():
 
             self.ax1.set_xlabel('months')
 
+            self.ax1.grid()
+
         #- store information for legend
         self.plots.append(p[0])
         if label==None:
@@ -742,7 +746,19 @@ class GlobalMeanPlot():
         self.ax.set_xlabel('time')
 
         #- legend
-        self.ax.legend(self.plots,self.labels,loc='lower center',ncol=2,fancybox=True)
+        # Shink current axis's height by 10% on the bottom
+        #box = self.ax.get_position()
+        #self.ax.set_position([box.x0, box.y0, box.width * 0.9, box.height])
+        #self.ax.set_position([box.x0, box.y0 + box.height * 0.1,
+                         #box.width, box.height * 0.9])
+
+        # Put a legend to the right of the current axis
+        self.ax.legend(self.plots,self.labels,loc='upper right',ncol=2,fancybox=True,prop={'size':8})
+        #self.ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),fancybox=True, shadow=True, ncol=2)
+
+
+
+        self.ax.grid()
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
