@@ -60,7 +60,7 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     @type obs_var: str
     """
 
-    sys.stdout.write(' *** Preprocessing ' + raw_file)
+    sys.stdout.write(' *** Preprocessing ' + raw_file + '\n')
 
     if obs_var == None:
         raise ValueError, 'Name of variable to be processed needs to be specified!'
@@ -73,7 +73,10 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     #1) generate monthly mean file projected to T63
     obs_mon_file     = get_temporary_directory() + os.path.basename(raw_file)
     obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
-    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_file,force=force)
+    cdoret = cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_file,force=force)
+
+    print 'Name of monthly output file: ', obs_mon_file
+    print cdoret
 
     #2) generate monthly mean or seasonal mean climatology as well as standard deviation
     if interval == 'monthly':
