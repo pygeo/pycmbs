@@ -141,6 +141,7 @@ def get_methods4variables(variables, model_dict):
     hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
     hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
 
+
     res={}
     for k in hlp.keys(): #only use the variables that should be analyzed!
         if k in variables:
