@@ -625,29 +625,36 @@ class GlobalMeanPlot():
         @param ax: specifies axis to plot the data to
         @type ax: axis
 
+        @param ax1: specifies axis for second plopt (only used when climatology==True)
+        @type ax1: axis
+
         @param climatology: specifies if a second plot for a climatological mean value shall be generated
         @type climatology: bool
         """
+
         if climatology:
             nplots = 2
         else:
             nplots = 1
         self.climatology = climatology
+        self.nplots=nplots
 
         if ax == None:
+            #--- create new figure if needed
             f = plt.figure()
             self.ax = f.add_subplot(nplots,1,1)
             if self.climatology:
                 if ax1 == None:
-                    raise ValueError, 'For climatology plot, we need a ax1 as an argument!'
+                    self.ax1 = ax.figure.add_subplot(nplots,1,2)
                 else:
                     self.ax1 = ax1
-        else:
+        else: #figure already existing
+            self.ax = ax
             if self.climatology:
-                self.ax  = ax.figure.add_subplot(nplots,1,1)
-                self.ax1 = ax.figure.add_subplot(nplots,1,2)
-            else:
-                self.ax = ax
+                if ax1 == None:
+                    raise ValueError, 'If option climatology is chosen for GlobalMeanPlot and axis is provided, then axis1 needs also be provided!'
+                else:
+                    self.ax1 = ax1
 
         self.labels=[]; self.plots=[]
 
