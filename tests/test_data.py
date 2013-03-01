@@ -1,4 +1,5 @@
 from unittest import TestCase
+import unittest
 
 __author__ = 'm300028'
 
@@ -11,7 +12,7 @@ __author__ = 'm300028'
 #
 #print os.environ['PYTHONPATH']
 
-from data import *
+from pyCMBS.data import *
 #from diagnostic import *
 import scipy as sc
 import pylab as pl
@@ -280,6 +281,7 @@ class TestData(TestCase):
 
         self.assertEqual(len(F.time),len(self.D.time))
         self.assertFalse(np.any(self.D.data-F.data) != 0. )
+        self.assertFalse(np.any(self.D.time-F.time) != 0. ) #check that timestamp is equal
 
         del F
 
@@ -605,8 +607,8 @@ class TestData(TestCase):
 
 
 
-#if __name__ == '__main__':
-#    unittest.main()
+if __name__ == '__main__':
+    unittest.main()
 
 
 

@@ -36,7 +36,7 @@ class Data():
     """
     Data class: main class
     """
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,time_var='time'):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,time_var='time',checklat=True):
         """
         Constructor for Data class
 
@@ -130,7 +130,7 @@ class Data():
         self.lon = None
 
         if read:
-            self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var)
+            self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var,checklat=checklat)
 
         #--- check if longitudes are from 0 ... 360
         if self.lon != None:
@@ -279,14 +279,19 @@ class Data():
             F.variables['lon'].axis  = "X"
             F.variables['lon'].long_name  = "longitude"
 
+        if hasattr(self,'cell_area'):
+            F.create_variable('cell_area','d',('ny','nx'))
+
 
         #/// write data
-        F.variables['time'] .assign_value(self.time)
+        F.variables['time'] .assign_value(self.time-1)
         F.variables[varname].assign_value(self.data)
         if self.lat != None:
             F.variables['lat'].assign_value(self.lat)
         if self.lon != None:
             F.variables['lon'].assign_value(self.lon)
+        if hasattr(self,'cell_area'):
+            F.variables['cell_area'].assign_value(self.cell_area)
 
         F.variables[varname].long_name    = self.long_name
         F.variables[varname].units        = self.unit
@@ -627,7 +632,7 @@ class Data():
 #-----------------------------------------------------------------------
 
 
-    def read(self,shift_lon,start_time=None,stop_time=None,time_var='time'):
+    def read(self,shift_lon,start_time=None,stop_time=None,time_var='time',checklat=True):
         """
         read data from file
         @param shift_lon: if given, longitudes will be shifted
@@ -642,6 +647,8 @@ class Data():
         @param time_var: name of time variable field
         @type time_var: str
 
+        @param checklat: check if latitude is in decreasing order (N ... S)
+        @type checklat: bool
         """
         if not os.path.exists(self.filename):
             sys.exit('Error: file not existing: '+ self.filename)
@@ -713,6 +720,19 @@ class Data():
         #- cell_area
         #  check if cell_area is already existing. if not, try to calculate from coordinates
         self._set_cell_area()
+
+        #- check if latitude in decreasing order (N ... S)?
+        if checklat:
+            if hasattr(self,'lat'):
+                if self.lat != None:
+                    if np.all(np.diff(self.lat[:,0])>0.): #increasing order!
+                        self._flipud()
+                    elif np.all(np.diff(self.lat[:,0])<0.): #decreasing order!
+                        pass
+                    else:
+                        raise ValueError, 'Can not handle automatic flipping of lat!'
+
+
 
         #- calculate climatology from ORIGINAL (full dataset)
         if hasattr(self,'time_cycle'):
@@ -3089,6 +3109,20 @@ class Data():
         else:
             print 'WARNING: timecycle can not be set automatically!'
 
+    def _flipud(self):
+        """
+        flip dataset up down
+        """
 
+        if self.data.ndim == 3:
+            self.data = self.data[:,::-1,:]
+        elif self.data.ndim == 2:
+            self.data = self.data[::-1,:]
+        else:
+            raise ValueError, 'Unsupported geometry for _flipud()'
 
+        if hasattr(self,'cell_area'):
+            self.cell_area = self.cell_area[::-1,:]
+        if hasattr(self,'lat'):
+            self.lat = self.lat[::-1,:]
 
