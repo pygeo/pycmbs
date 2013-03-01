@@ -56,6 +56,10 @@ __date__ = "0000/00/00"
 
 from pyCMBS import *
 
+#--- always use plot backend which is not interactive for benchmarking framework
+import matplotlib
+matplotlib.use('agg')
+
 import matplotlib.pylab as pl
 import sys
 import os
@@ -340,7 +344,7 @@ global_gleckler = GlecklerPlot()
 # REPORT
 ########################################################################
 rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],outdir='./report_' + CF.options['report'] + '/',dpi=300,format='pdf')
-cmd = 'cp ../logo/logo_small.png ' + rep.outdir
+cmd = 'cp ../logo/Phytonlogo5.pdf ' + rep.outdir
 os.system(cmd )
 
 

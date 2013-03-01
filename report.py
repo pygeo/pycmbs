@@ -36,7 +36,7 @@ class Report():
     @todo: example how to use report class
     """
 
-    def __init__(self,filename,title,author,format='png',outdir='./',dpi=300):
+    def __init__(self,filename,title,author,format='png',outdir='./',dpi=300,logofile='Phytonlogo5.pdf'):
         """
         constructor for Latex report class
 
@@ -54,6 +54,9 @@ class Report():
 
         @param dpi: specify dots per inch for graphic output
         @type dpi: int
+
+        @param logofile: name of file for logo on first page; if None or file not existing, then nothing will be plotted
+        @type logofile: str
         """
 
         ext = ''
@@ -64,13 +67,10 @@ class Report():
         self.title=title
         self.author=author
         self.outdir=outdir
+        self.logofile = logofile #needs to be before open()
         self.open()
         self.figure_counter = 0
         self.dpi = dpi
-
-
-
-
 
 #-----------------------------------------------------------------------
 
@@ -125,8 +125,8 @@ class Report():
 
         self.write('\maketitle')
 
-
-        self._write_single_figure('logo_small.png',None) #logo for report
+        if self.logofile != None:
+            self._write_single_figure(self.logofile,None) #logo for report
 
 
         self.write('\\newpage')

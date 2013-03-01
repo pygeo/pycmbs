@@ -73,10 +73,11 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     #1) generate monthly mean file projected to T63
     obs_mon_file     = get_temporary_directory() + os.path.basename(raw_file)
     obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
-    cdoret = cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_file,force=force)
+    #obs_monstd_file = obs_mon_file[:-3] + '_monstd.nc'
+    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_file,force=force)
+    #cdo.monstd(options='-f nc',output=obs_monstd_file,input='-remapcon,t63grid ' + raw_file,force=force)
 
-    print 'Name of monthly output file: ', obs_mon_file
-    print cdoret
+
 
     #2) generate monthly mean or seasonal mean climatology as well as standard deviation
     if interval == 'monthly':
@@ -294,7 +295,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #/// land sea mask (options: land,ocean, global for parameter area)
     ls_mask = get_T63_landseamask(shift_lon, area = valid_mask)
 
-    # preprocessing
+    #####################################################################
+    # DATA PREPROCESSING
+    #####################################################################
     if f_preprocess == True:
         obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = obs_name, shift_lon = shift_lon)
 
@@ -302,10 +305,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
     obs_orig.addc(obs_add_offset,copy=False); obs_monthly.addc(obs_add_offset,copy=False)
 
-    print obs_raw
-    print obs_orig.data.shape
-    print obs_monthly.data.shape
-
+    #####################################################################
+    # PLOTS
+    #####################################################################
 
     #--- initialize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -315,7 +317,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=False) #global mean plot
 
     if GM != None:
-        GM.plot(obs_monthly, linestyle = '--')
+        GM.plot(obs_monthly, linestyle = '--',show_std=False)
 
     if f_mapseasons == True:  #seasonal mean plot
         f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=nclasses,vmin=vmin,vmax=vmax,cticks=cticks)
@@ -343,7 +345,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
         if GM != None:
             if m_data_org in model.variables.keys():
-                GM.plot(model.variables[m_data_org][2],label=model.name) #(time,meandata) replace rain_org with data_org
+                GM.plot(model.variables[m_data_org][2],label=model.name,show_std=False) #(time,meandata) replace rain_org with data_org
 
         if model_data == None:
             sys.stdout.write('Data not existing for model %s' % model.name); continue
@@ -892,6 +894,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
 
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
+
 
     #- MODIS white sky albedo
     report.subsection('MODIS WSA')
