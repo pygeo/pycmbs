@@ -315,6 +315,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if GM == None:
         fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
         GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=False) #global mean plot
+    else:
+        if isinstance(GM, GlobalMeanPlot):
+            pass
+        else:
+            raise ValueError, 'Global mean variable GM has invalid object type'
 
     if GM != None:
         GM.plot(obs_monthly, linestyle = '--',show_std=False)
