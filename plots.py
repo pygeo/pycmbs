@@ -181,6 +181,7 @@ class ReichlerPlot():
         @param ax: axis to plot data to; if None, new figure will be generated
         @type ax: matplotlib axis
         """
+
         if ax == None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
@@ -243,8 +244,15 @@ class ReichlerPlot():
         self._normalize()
         x = np.arange(len(self.e2_norm))
         y1 = self.e2_norm*100.; y2 = self.e2_norm*100.
-        y1[y1 < 0.] = np.nan  #posistive values only
-        y2[y2 >= 0.] = np.nan #negative values only
+
+        y1 = np.ma.array(y1,mask=y1<0.) #positive values only
+        y2 = np.ma.array(y2,mask=y2>=0.) #negative values only
+
+        print 'Reichler data for plotting: ', y1,y2
+        print 'Original Reichler data:'
+        print self.e2
+        print self.e2_norm
+
         self.ax.bar(x,y1,color='red' ,edgecolor='None',**kwargs)
         self.ax.bar(x,y2,color='blue',edgecolor='None',**kwargs)
 
