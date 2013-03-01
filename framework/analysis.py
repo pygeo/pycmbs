@@ -310,7 +310,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #####################################################################
 
     #--- initialize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
+    if f_reichler == True:
+        Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     if GM == None:
         fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
@@ -435,15 +436,17 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             sys.stdout.write('\n *** Glecker plot. \n')
             e2a = GP.calc_index(obs_orig,model_data,model,obs_type)
             #e2a = 0
-            print 'GLECKLER: want to write data: ', obs_type,model.name,e2a,gleckler_pos
             GP.add_data(obs_type,model.name,e2a,pos=gleckler_pos)
 
 
     del obs_monthly
-    sys.stdout.write('\n *** Reichler plot.\n')
-    f_reich = Rplot.bar(title='relative model error: %s' % obs_type.upper())
-    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
-    report.newpage()
+
+    if f_reichler == True:
+        sys.stdout.write('\n *** Reichler plot.\n')
+        f_reich = Rplot.bar(title='relative model error: %s' % obs_type.upper())
+        report.figure(f_reich,caption='Relative model performance for ' + obs_type.upper() + ' after Reichler and Kim, 2008')
+        report.newpage()
+        del Rplot
 
     sys.stdout.write('\n *** Processing finished. \n')
 
