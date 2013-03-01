@@ -292,7 +292,8 @@ class CMIP5Data(Model):
 
 
     #original data
-        filename1 = self.data_dir + 'pr/' +  self.model + '/' + 'pr_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        #filename1 = self.data_dir + 'pr/' +  self.model + '/' + 'pr_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        filename1 = self.data_dir + 'pr/merged/'  + 'pr_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
         force_calc = False
 
