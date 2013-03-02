@@ -22,6 +22,7 @@ __email__ = "alexander.loew@zmaw.de"
 
 import os
 import sys
+import numpy as np
 from utils import get_data_pool_directory
 
 class ConfigFile():
@@ -358,6 +359,13 @@ class PlotOptions():
                 if not k in d['OPTIONS'].keys():
                     sys.stdout.write('Error: missing global option: %s (%s)' % (k,v)  )
                     cerr += 1
+                if k == 'cticks':
+                    if isinstance(d['OPTIONS'][k],list):
+                        if np.any(np.diff(d['OPTIONS'][k]) < 0):
+                            raise ValueError, 'CTICKS are not in increasing order!'
+                    else:
+                        raise ValueError, 'CTICKS option needs to be a list'
+
 
             #check local options
             for odat in d.keys(): #odat is key for a specific observational dataset
