@@ -248,10 +248,10 @@ class ReichlerPlot():
         y1 = np.ma.array(y1,mask=y1<0.) #positive values only
         y2 = np.ma.array(y2,mask=y2>=0.) #negative values only
 
-        print 'Reichler data for plotting: ', y1,y2
-        print 'Original Reichler data:'
-        print self.e2
-        print self.e2_norm
+        #print 'Reichler data for plotting: ', y1,y2
+        #print 'Original Reichler data:'
+        #print self.e2
+        #print self.e2_norm
 
         self.ax.bar(x,y1,color='red' ,edgecolor='None',**kwargs)
         self.ax.bar(x,y2,color='blue',edgecolor='None',**kwargs)
