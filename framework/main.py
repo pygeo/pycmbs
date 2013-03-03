@@ -140,6 +140,7 @@ def get_methods4variables(variables, model_dict):
     hlp.update({'wvpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wvpa']})
     hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
     hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
+    hlp.update({'hair': 'get_model_data_generic(interval=interval, **%s)' % model_dict['hair']})
 
 
     res={}
