@@ -5,14 +5,7 @@ __author__ = 'm300028'
 
 #identify pyCMBS path and add it to pythonpath, as otherwise the modules are not found properly!
 
-#import os
-#p=os.path.split(os.getcwd())[0]
-#print p
-#os.environ['PYTHONPATH']=os.environ['PYTHONPATH']+':'+p+':'
-#
-#print os.environ['PYTHONPATH']
-
-from pyCMBS.data import *
+from data import *
 #from diagnostic import *
 import scipy as sc
 import pylab as pl
