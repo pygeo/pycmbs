@@ -1403,9 +1403,9 @@ class GlecklerPlot():
         ax=f.add_subplot(111,frameon=True,aspect='equal',axisbg='grey')
         f.subplots_adjust(bottom=0.25,top=0.75,left=0.25,right=0.75)
 
-        if len(labels.keys()) != pmax:
-            print len(labels.keys()), pmax
-            raise ValueError, 'Legend for Gleckler Plot can not be plotted, as labels inconsistent with number of available positions!'
+        #if len(labels.keys()) != pmax: #not useful, if multiple variables are used!
+        #    print len(labels.keys()), pmax
+        #    raise ValueError, 'Legend for Gleckler Plot can not be plotted, as labels inconsistent with number of available positions!'
 
         for k in labels.keys():
             if k == 1:
