@@ -566,9 +566,19 @@ class CMIP5Data(Model):
 
 
         #--- get fluxes
-        Fu = self.get_surface_shortwave_radiation_up  (interval=interval); Fu_i = Fu[0]
+        Fu = self.get_surface_shortwave_radiation_up  (interval=interval)
+        if Fu == None:
+            print 'File not existing for UPWARD flux!: ', self.name
+            return None
+        else:
+            Fu_i = Fu[0]
         lab = Fu_i.label
-        Fd = self.get_surface_shortwave_radiation_down(interval=interval); Fd_i = Fd[0]
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval)
+        if Fd == None:
+            print 'File not existing for DOWNWARD flux!: ', self.name
+            return None
+        else:
+            Fd_i = Fd[0]
 
         #albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
         Fu_i.div(Fd_i,copy=False); del Fd_i #Fu contains now the albedo
