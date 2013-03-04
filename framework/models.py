@@ -399,7 +399,7 @@ class CMIP5Data(Model):
         s_start_time = str(self.start_time)[0:10]
         s_stop_time  = str(self.stop_time)[0:10]
 
-        #1) select timeperiod and generate monthly mean file
+        #1) select timeperiod and generatget_she monthly mean file
         file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
 
@@ -471,6 +471,8 @@ class CMIP5Data(Model):
         #original data
         filename1 = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
+        print 'READING SURFACE UPWARD file: ', filename1
+
         force_calc = False
 
         if self.start_time == None:
@@ -511,7 +513,10 @@ class CMIP5Data(Model):
             print interval
             raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
 
+
+
         if not os.path.exists(sup_clim_file):
+            print 'File not existing: ' + sup_clim_file
             return None
 
 
