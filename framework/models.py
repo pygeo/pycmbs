@@ -385,7 +385,8 @@ class CMIP5Data(Model):
         """
 
         #original data
-        filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        #filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
         force_calc = False
 
@@ -469,7 +470,7 @@ class CMIP5Data(Model):
     def get_surface_shortwave_radiation_up(self,interval='season'):
 
         #original data
-        filename1 = self.data_dir + 'rsus/' +  self.model + '/' + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        filename1 = self.data_dir + 'rsus/' +  self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
         print 'READING SURFACE UPWARD file: ', filename1
 
