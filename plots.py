@@ -1386,7 +1386,7 @@ class GlecklerPlot():
                                    norm=self.norm,
                                    orientation='horizontal')
 
-    def _draw_legend(self,labels):
+    def _draw_legend(self,labels,title=None):
         """
         draw automatic legend for Gleckler plot
 
@@ -1438,6 +1438,9 @@ class GlecklerPlot():
                 ax.annotate(labels[k], xy=(0.1, 0.5),  xycoords='axes fraction',xytext=(-0.6,0.2), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
             elif k == 4:
                 ax.annotate(labels[k], xy=(0.9, 0.5),  xycoords='axes fraction',xytext=(1.1,0.8), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+
+        if title != None:
+            f.suptitle(title,size=fontsize)
 
         return f
 

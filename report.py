@@ -16,7 +16,7 @@ __email__ = "alexander.loew@zmaw.de"
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# MERCHANTABILITY or FI/TNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 '''
 
@@ -169,7 +169,7 @@ class Report():
 
 #-----------------------------------------------------------------------
 
-    def figure(self,f,caption=''):
+    def figure(self,f,caption='',width=None):
         """
         add a figure string to the report
 
@@ -178,17 +178,25 @@ class Report():
 
         @param caption: caption for the figure to be put in the report
         @type caption: str
+
+        @param width: width as string like in latext e.g. width='12cm'
+        @type width: str
         """
 
         self.figure_counter +=1
         figname = 'fig_' + str(self.figure_counter).zfill(5) + '.' + self.format
 
+        if width == None:
+            width = '12cm'
+
+
         self._write_separator()
         self.write('\\begin{figure}[htp]')
         self.write('   \centering')
-        self.write('   \includegraphics[width=12cm]{' + figname + '} ')
-        self.write('   \caption{' + caption.replace('_','-') + '}')
-        self.write('   \label{fig:' + str(self.figure_counter) + '}')
+        self.write('   \includegraphics[width=' + width + ']{' + figname + '} ')
+        if len(caption)>0:
+            self.write('   \caption{' + caption.replace('_','-') + '}')
+            self.write('   \label{fig:' + str(self.figure_counter) + '}')
         self.write('\\end{figure}')
         self._write_separator()
 
