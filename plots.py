@@ -117,7 +117,7 @@ class CorrelationAnalysis():
 
         def do_analysis(self):
             """
-            perform correlation analysis
+            perform correlation analysisglobal
 
             @todo: implement area weighting
             @todo: implement regional (condition) statisitcs based on a mask
@@ -766,7 +766,7 @@ class GlobalMeanPlot():
             loff=0.2
         else:
             lax=self.ax1
-            loff = 0.2
+            loff = 0.4
         box = lax.get_position()
 
         lax.figure.subplots_adjust(bottom=loff) #make space on bottom for legend
