@@ -375,7 +375,7 @@ for variable in variables:
 
             print 'Doing analysis for variable ... ', variable
             print '   ... ', scripts[variable]
-            model_list = str(proc_models).replace("'","")  #model list is reformatted so it can be evaluated properly
+            model_list = str(proc_models).replace("'","")  #... model list is reformatted so it can be evaluated properly
             cmd = scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep,interval=CF.intervals[variable],plot_options=PCFG)'
             eval(cmd) #run analysis
 
