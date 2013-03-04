@@ -348,7 +348,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             model_data = model.variables[obs_type].copy()
 
 
-        model_data._apply_mask( (ls_mask & valid_obs)  ) #mask the model data with land/sea mask and valid mask from observations
+        model_data._apply_mask( (ls_mask.data & valid_obs)  ) #mask the model data with land/sea mask and valid mask from observations
         GP.add_model(model.name) #register model name in GlecklerPlot
 
         if for_report == True:
