@@ -325,7 +325,7 @@ class CMIP5Data(Model):
 
         pr = Data(filename,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
 
-        prall  = Data(filename1,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
+        prall  = Data(filename1,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.,time_cycle=12)
         prmean = prall.fldmean()
 
         retval = (prall.time,prmean,prall); del prall
