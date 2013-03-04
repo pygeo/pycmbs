@@ -131,6 +131,17 @@ class CMIP5Data(Model):
         self.data_dir   = data_dir; self.shift_lon  = shift_lon
         self.type       = 'CMIP5'
 
+        self._unique_name = self._get_unique_name()
+
+
+
+    def _get_unique_name(self):
+        """
+        get unique name from model and experiment
+        @return: string with unique combination of models and experiment
+        """
+        return self.model.replace(' ','') + '-' + self.experiment.replace(' ','')
+
 #-----------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------------------------
@@ -635,6 +646,18 @@ class JSBACH_BOT(Model):
         self.get_data()
         self.type = 'JSBACH_BOT'
 
+        self._unique_name = self._get_unique_name()
+
+
+
+    def _get_unique_name(self):
+        """
+        get unique name from model and experiment
+        @return: string with unique combination of models and experiment
+        """
+        return self.name.replace(' ','') + '-' + self.experiment.replace(' ','')
+
+
     def get_albedo_data(self,interval='season'):
         """
         get albedo data for JSBACH
@@ -805,6 +828,12 @@ class JSBACH_RAW(Model):
         self.get_data()
         self.type = 'JSBACH_RAW'
 
+    def _get_unique_name(self):
+        """
+        get unique name from model and experiment
+        @return: string with unique combination of models and experiment
+        """
+        return self.name.replace(' ','') + '-' + self.experiment.replace(' ','')
 
 
     def get_temperature_2m(self,interval = 'season'):

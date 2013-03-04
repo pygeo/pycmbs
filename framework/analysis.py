@@ -349,16 +349,17 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
 
         model_data._apply_mask( (ls_mask.data & valid_obs)  ) #mask the model data with land/sea mask and valid mask from observations
-        GP.add_model(model.name) #register model name in GlecklerPlot
+        GP.add_model(model._unique_name) #register model name in GlecklerPlot
 
         if for_report == True:
+
             #/// report results
             sys.stdout.write('\n *** Making report figures. \n')
-            report.subsubsection(model.name)
+            report.subsubsection(model._unique_name)
 
         if GM != None:
             if m_data_org in model.variables.keys():
-                GM.plot(model.variables[m_data_org][2],label=model.name,show_std=False) #(time,meandata) replace rain_org with data_org
+                GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False) #(time,meandata) replace rain_org with data_org
 
         if model_data == None:
             sys.stdout.write('Data not existing for model %s' % model.name); continue
@@ -443,7 +444,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             sys.stdout.write('\n *** Glecker plot. \n')
             e2a = GP.calc_index(obs_orig,model_data,model,obs_type)
             #e2a = 0
-            GP.add_data(obs_type,model.name,e2a,pos=gleckler_pos)
+            GP.add_data(obs_type,model._unique_name,e2a,pos=gleckler_pos)
 
 
     del obs_monthly
@@ -1068,11 +1069,6 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     """
     actvar: variable to analyze
     """
-
-
-
-
-
 
     #this script is the very very generic and could be also used for other variables!!!
 
