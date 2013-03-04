@@ -90,9 +90,6 @@ class ConfigFile():
         else:
             sys.exit('author missing in configuration file!')
 
-
-
-
         l = self.f.readline().replace('\n','')
         if 'TEMP_DIR=' in l.upper():
             s = l[9:]
@@ -107,6 +104,13 @@ class ConfigFile():
             self.options.update({'cleandir':self.__check_bool(l)})
         else:
             raise ValueError, 'Invalid option for clean_tempdir!'
+
+        l = self.f.readline().replace('\n','')
+        if 'SUMMARY_ONLY' in l.upper():
+            self.options.update({'summary':self.__check_bool(l)})
+        else:
+            raise ValueError, 'Invalid option for SUMMARY_ONLY!'
+
 
         #//// create / remove directories
         if not os.path.exists(self.options['tempdir']):
@@ -243,13 +247,15 @@ class PlotOptions():
             """
             dl = {}
             for section_name in parser.sections():
-                if section_name.upper() == 'OPTIONS': #add global plotting options
+                #/// add global plotting options
+                if section_name.upper() == 'OPTIONS':
                     o = {}
                     for name, value in parser.items(section_name):
                         o.update({name:value})
                     dl.update({'OPTIONS':o})
+                    #/// observation specific dictionary
                 else:
-                    o = {} #observation specific dictionary
+                    o = {}
                     for name, value in parser.items(section_name):
                         o.update({name:value})
                     dl.update({section_name:o})
@@ -262,6 +268,20 @@ class PlotOptions():
 
         #check options consistency
         self._check()
+
+        #reset plotting options if the report should only produce a summary
+
+        if cfg.options['summary']:
+            false_vars = ['map_difference','map_seasons','reichler_plot','hovmoeller_plot'] #set the plot options to FALSE which are not relevant for summary report
+            for var in cfg.variables:
+                lopt = self.options[var]
+                for vv in false_vars:
+                    if vv in lopt['OPTIONS'].keys():
+                        print 'Setting variable ', vv, ' to FALSE because of global option for ', var
+                        lopt['OPTIONS'].update({vv:False})
+
+
+
 
     def _convert_options(self):
         """

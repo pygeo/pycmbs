@@ -653,7 +653,7 @@ class GlobalMeanPlot():
             self.ax = f.add_subplot(nplots,1,1)
             if self.climatology:
                 if ax1 == None:
-                    self.ax1 = ax.figure.add_subplot(nplots,1,2)
+                    self.ax1 = self.ax.figure.add_subplot(nplots,1,2)
                 else:
                     self.ax1 = ax1
         else: #figure already existing
@@ -748,6 +748,7 @@ class GlobalMeanPlot():
             self.ax1.set_xlabel('months')
 
             self.ax1.grid()
+            self.ax1.axis('tight')
 
         #- store information for legend
         self.plots.append(p[0])
@@ -758,20 +759,18 @@ class GlobalMeanPlot():
 
         #- labels
         self.ax.set_ylabel(D._get_unit())
-        self.ax.set_xlabel('time')
 
-        #- legend
-        # Shink current axis's height by 10% on the bottom
-        #box = self.ax.get_position()
-        #self.ax.set_position([box.x0, box.y0, box.width * 0.9, box.height])
-        #self.ax.set_position([box.x0, box.y0 + box.height * 0.1,
-                         #box.width, box.height * 0.9])
+       #--- LEGEND always below the figure
+        if self.nplots==1:
+            lax=self.ax
+            loff=0.2
+        else:
+            lax=self.ax1
+            loff = 0.2
+        box = lax.get_position()
 
-        # Put a legend to the right of the current axis
-        self.ax.legend(self.plots,self.labels,loc='upper right',ncol=2,fancybox=True,prop={'size':8})
-        #self.ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),fancybox=True, shadow=True, ncol=2)
-
-
+        lax.figure.subplots_adjust(bottom=loff) #make space on bottom for legend
+        lax.legend(self.plots,self.labels,loc='upper center', bbox_to_anchor=(0.5, -loff),fancybox=True, shadow=True, ncol=3,prop={'size':8})
 
         self.ax.grid()
 
