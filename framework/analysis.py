@@ -989,11 +989,11 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         print '    ALBEDO analysis of model: ', model.name
 
-        GP.add_model(model.name) #register model for Gleckler Plot
+        GP.add_model(model._unique_name) #register model for Gleckler Plot
 
         if GM != None:
             if 'albedo_org' in model.variables.keys():
-                GM.plot(model.variables['albedo_org'][2],label=model.name) #(time,meandata)
+                GM.plot(model.variables['albedo_org'][2],label=model._unique_name) #(time,meandata)
 
         #--- get model data
         model_data = model.variables['albedo']
@@ -1027,10 +1027,10 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         #/// Gleckler plot ///
         e2a = GP.calc_index(obs_alb,model_data,model,'albedo')
-        GP.add_data('albedo',model.name,e2a,pos=gleckler_pos)
+        GP.add_data('albedo',model._unique_name,e2a,pos=gleckler_pos)
 
         #/// report results
-        report.subsubsection(model.name)
+        report.subsubsection(model._unique_name)
         report.figure(f_season,caption='Seasonal differences')
         report.figure(f_dif,caption='Mean and relative differences')
 
