@@ -748,7 +748,7 @@ class GlobalMeanPlot():
             self.ax1.set_xlabel('months')
 
             self.ax1.grid()
-            self.ax1.axis('tight')
+            #self.ax1.axis('tight')
 
         #- store information for legend
         self.plots.append(p[0])
@@ -1089,6 +1089,7 @@ class GlecklerPlot():
                 x = [1.,0.5,1.]
                 y = [0.,0.5,1.]
             else:
+                print pos
                 raise ValueError, 'Invalid position for plot'
 
         else:
@@ -1227,7 +1228,7 @@ class GlecklerPlot():
 
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
         #draw legend
-        self._draw_legend(left,right-left)
+        self._draw_colorbar(left,right-left)
 
 #-----------------------------------------------------------------------
 
@@ -1367,7 +1368,7 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def _draw_legend(self,left,width):
+    def _draw_colorbar(self,left,width):
         """
         draw legend for Glecker plot. Requires information on
         the positioning of the colormap axis which can be obtained from
@@ -1384,6 +1385,66 @@ class GlecklerPlot():
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
                                    norm=self.norm,
                                    orientation='horizontal')
+
+    def _draw_legend(self,labels):
+        """
+        draw automatic legend for Gleckler plot
+
+        EXAMPLE:
+        fl=G._draw_legend({1:'top',2:'bott',3:'left',4:'right'})
+
+        @param labels: dictionary as {position:'label'}; e.g. {1:'label1',2:'label2',3:'label3',4:'label4'}
+        """
+
+        pmax = max(self.pos.values())
+
+        #generate separate figure for legend
+        f=plt.figure()
+        ax=f.add_subplot(111,frameon=True,aspect='equal',axisbg='grey')
+        f.subplots_adjust(bottom=0.25,top=0.75,left=0.25,right=0.75)
+
+        if len(labels.keys()) != pmax:
+            print len(labels.keys()), pmax
+            raise ValueError, 'Legend for Gleckler Plot can not be plotted, as labels inconsistent with number of available positions!'
+
+        for k in labels.keys():
+            if k == 1:
+                pos = 'top'
+
+            elif k == 2:
+                pos = 'bottom'
+            elif k == 3:
+                pos = 'left'
+            elif k == 4:
+                pos = 'right'
+            else:
+                raise ValueError, 'Can not draw Gleckler legend! Invalid position value! ' + str(k)
+
+
+            self.__plot_triangle(ax,k*0.1,pos=pos)
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+        fontsize=16
+        linewidth=3
+
+
+        for k in labels.keys():
+            if k == 1: #top
+                ax.annotate(labels[k], xy=(0.5, 0.9),  xycoords='axes fraction',xytext=(0., 1.2), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+            elif k == 2:
+                ax.annotate(labels[k], xy=(0.5, 0.1),  xycoords='axes fraction',xytext=(0., -0.3), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+            elif k == 3:
+                ax.annotate(labels[k], xy=(0.1, 0.5),  xycoords='axes fraction',xytext=(-0.6,0.2), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+            elif k == 4:
+                ax.annotate(labels[k], xy=(0.9, 0.5),  xycoords='axes fraction',xytext=(1.1,0.8), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+
+        return f
+
+
+
+
+
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
