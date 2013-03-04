@@ -298,12 +298,19 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #####################################################################
     # DATA PREPROCESSING
     #####################################################################
-    if f_preprocess == True:
-        obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = obs_name, shift_lon = shift_lon)
+    #if f_preprocess == True: #always do preprocessing
+    obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = obs_name, shift_lon = shift_lon)
 
     # rescale data following CF conventions
     obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
     obs_orig.addc(obs_add_offset,copy=False); obs_monthly.addc(obs_add_offset,copy=False)
+
+
+    #### IDENTIFY AREAS WHERE THERE IS AT LEAST SOME VALID DATA ####
+    valid_obs=((~obs_orig.data.mask).sum(axis=0)) > 0 #find all data where there is at least SOME data
+    obs_orig._apply_mask(valid_obs)
+    obs_monthly._apply_mask(valid_obs)
+
 
     #####################################################################
     # PLOTS
@@ -338,10 +345,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             sys.stdout.write('\n *** WARNING: No processing for %s possible for model (likely missing data!): ' % (obs_type) + model.name + "\n")
             continue
         else:
-            model_data = model.variables[obs_type]
+            model_data = model.variables[obs_type].copy()
 
 
-        model_data._apply_mask(ls_mask)
+        model_data._apply_mask( (ls_mask & valid_obs)  ) #mask the model data with land/sea mask and valid mask from observations
         GP.add_model(model.name) #register model name in GlecklerPlot
 
         if for_report == True:
