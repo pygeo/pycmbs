@@ -386,6 +386,25 @@ global_gleckler.plot(vmin=-0.8,vmax=0.8,nclasses=25)
 rep.section('Summary error statistics')
 rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')
 
+#legend for gleckler plot
+for variable in variables:
+    if variable not in PCFG.options.keys(): #check if variable existing
+        continue
+    varoptions = PCFG.options[variable]
+    thelabels={}
+    for k in varoptions.keys(): #keys of observational datasets
+        if k == 'OPTIONS':
+            continue
+        else:
+            thelabels.update({int(varoptions[k]['gleckler_position']) : k}) #generate dictionary for GlecklerPLot legend
+    fl = global_gleckler._draw_legend(thelabels,title=variable.upper())
+    rep.figure(fl,width='3cm')
+    del fl
+
+#---
+
+
+
 #/// close report ///
 rep.close()
 

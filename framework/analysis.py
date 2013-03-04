@@ -1060,11 +1060,6 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
 
 
 
-
-
-
-
-
 def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,actvar=None):
     """
     actvar: variable to analyze
