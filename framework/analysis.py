@@ -929,7 +929,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
     albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
 
-    report.figure(fG,caption='Global means for land surface albedo')
+    report.figure(fG,caption='Global means for land surface albedo',bbox_inches=None)
 
     print '************************************************************'
     print '* END ALBEDO analysis ...'
