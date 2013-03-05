@@ -163,6 +163,9 @@ class ConfigFile():
         models=[];types=[]; experiments=[]; ddirs=[]
         l=self.__read_header()
         model,ty,experiment,ddir = self.__get_model_details(l)
+        ddir = ddir.rstrip()
+        if ddir[-1] != '/':
+            ddir = ddir + '/'
         models.append(model); types.append(ty)
         experiments.append(experiment); ddirs.append(ddir.replace('\n',''))
 
@@ -172,6 +175,9 @@ class ConfigFile():
                 l=self.f.next(); l=l.lstrip()
                 if (len(l) > 0) & (l[0] != '#'):
                     model,ty,experiment,ddir = self.__get_model_details(l)
+                    ddir = ddir.rstrip()
+                    if ddir[-1] != '/':
+                        ddir = ddir + '/'
                     models.append(model); types.append(ty)
                     experiments.append(experiment); ddirs.append(ddir.replace('\n',''))
             except:
@@ -219,7 +225,6 @@ class PlotOptions():
 
         @param cfg Instance of ConfigFile class which has been already initialized (config file has been read already)
         @type cfg ConfigFile
-
 
         @return:
         """
@@ -395,6 +400,16 @@ class PlotOptions():
                     if not k in d[odat].keys():
                         sys.stdout.write('Error: missing local option: %s (%s,%s)' % (k,odat,v)  )
                         cerr +=1
+                    if k=='obs_file':
+                        d[odat]['obs_file']=d[odat]['obs_file'].rstrip() #remove whitespaces at the end
+                        if (d[odat]['obs_file'][-1] == '/') or ((d[odat]['obs_file'][-3:] == '.nc')):
+                            pass
+                        else:
+                            d[odat]['obs_file'] = d[odat]['obs_file'] + '/'
+
+
+
+
 
         if cerr > 0:
             raise ValueError, 'There were errors in the initialization of plotting options!'
