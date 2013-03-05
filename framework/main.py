@@ -323,6 +323,7 @@ of Data objects for further processing
 
 #mean_model = Data(None,None)
 model_cnt   = 1; proc_models = []
+
 for i in range(len(CF.models)):
     #--- assign model information from configuration ---
     data_dir   = CF.dirs[i]
@@ -351,7 +352,10 @@ for i in range(len(CF.models)):
     #    model_mean.data = None
     #else:
     #    for k in themodel.variables.keys():
-    #        model_mean.variables.update({k : model_mean.variables[k] + themodel.variables[k] })
+    #        hlpdata = model_mean.variables[k]
+    #        print hlpdata
+    #        stop
+    #        model_mean.variables.update({k : model_mean.variables[k].data + themodel.variables[k].data })
     #        model_mean.variables.update({k+ '_org'  : model_mean.variablse[k+ '_org' ] + themodel.variables[k+ '_org' ] })
 
     #--- copy current model to a variable named modelXXXX ---
@@ -366,7 +370,7 @@ for i in range(len(CF.models)):
 #--- finalize multimodel mean calculation
 #for k in model_mean.variables.keys():
 #    print model_mean.variables[k]
-#    model_mean.variables.update({k : model_mean.variables[k]/float(len(CF.models))  })
+#    model_mean.variables.update({k : model_mean.variables[k].data/float(len(CF.models))  })
 #    model_mean.variables.update({k+ '_org'  : model_mean.variablse[k+ '_org' ]/float(len(CF.models))  })
 
 
