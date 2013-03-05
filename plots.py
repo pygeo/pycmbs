@@ -1393,6 +1393,8 @@ class GlecklerPlot():
         EXAMPLE:
         fl=G._draw_legend({1:'top',2:'bott',3:'left',4:'right'})
 
+        CAUTION: when saving the figure, do NOT use bbox_inches='tight', as this might cut the labels!
+
         @param labels: dictionary as {position:'label'}; e.g. {1:'label1',2:'label2',3:'label3',4:'label4'}
         """
 
