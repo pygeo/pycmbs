@@ -33,6 +33,7 @@ class TestData(TestCase):
         self.D.long_name = 'This is the longname'
 
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01') - 1
+        self.D.calendar = 'standard'
 
     def test_get_time_indices(self):
         d1 = pl.num2date(pl.datestr2num('2001-01-05'))

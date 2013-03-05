@@ -191,6 +191,7 @@ CF = ConfigFile(file)
 #/// read plotting options ///
 PCFG = PlotOptions()
 PCFG.read(CF)
+stop
 
 if CF.options['basemap']:
     f_fast = False
