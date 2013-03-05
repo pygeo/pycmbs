@@ -436,7 +436,12 @@ class Data():
 
         if (self.lat == None) or (self.lon == None):
             print '        WARNING: cell area can not be calculated (missing coordinates)!'
-            self.cell_area = np.ones(self.data.shape)
+            if self.data.ndim == 2:
+                self.cell_area = np.ones(self.data.shape)
+            elif self.data.ndim == 3:
+                self.cell_area = np.ones(self.data[0,:,:].shape)
+            else:
+                raise ValueError, 'Invalid geometry!'
             return
 
         #--- calculate cell area from coordinates ---
