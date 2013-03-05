@@ -742,7 +742,7 @@ def surface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=F
     #report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
     #albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
 
-    report.figure(fG,caption='Global means for land surface upward flux')
+    report.figure(fG,caption='Global means for land surface upward flux',bbox_inches=None)
 
     print '************************************************************'
     print '* END SURFACE UPWARD FLUX analysis ...'
@@ -1182,7 +1182,7 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
     report.write('Please note that the CMSAF analysis is limited to the Meteosat spatial domain!')
     generic_analysis(plot_options, model_list, 'sis', 'CMSAF', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
-    report.figure(fG,caption='Global means for SIS ')
+    report.figure(fG,caption='Global means for SIS ',bbox_inches=None)
 
     print '************************************************************'
     print '* END SIS analysis ...'
