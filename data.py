@@ -285,6 +285,7 @@ class Data():
 
         #/// write data
         F.variables['time'] .assign_value(self.time-1)
+        F.variables['time'].calendar = self.calendar
         F.variables[varname].assign_value(self.data)
         if self.lat != None:
             F.variables['lat'].assign_value(self.lat)
@@ -1676,6 +1677,13 @@ class Data():
                 self.time_str = tvar.units
             else:
                 self.time_str = None
+
+            if hasattr(tvar,'calendar'):
+                self.calendar = tvar.calendar
+            else:
+                print 'WARNING: no calendar specified!'
+                self.calendar = 'standard'
+
         else:
             self.time = None
             self.time_str = None
