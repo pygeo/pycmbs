@@ -169,7 +169,7 @@ class Report():
 
 #-----------------------------------------------------------------------
 
-    def figure(self,f,caption='',width=None):
+    def figure(self,f,caption='',width=None,bbox_inches='tight'):
         """
         add a figure string to the report
 
@@ -181,6 +181,9 @@ class Report():
 
         @param width: width as string like in latext e.g. width='12cm'
         @type width: str
+
+        @param bbox_inches: option for savefig
+        @type bbox_inches: str
         """
 
         self.figure_counter +=1
@@ -200,7 +203,7 @@ class Report():
         self.write('\\end{figure}')
         self._write_separator()
 
-        f.savefig(self.outdir + figname, bbox_inches='tight',dpi=self.dpi)
+        f.savefig(self.outdir + figname, bbox_inches=bbox_inches,dpi=self.dpi)
 
 #-----------------------------------------------------------------------
 
