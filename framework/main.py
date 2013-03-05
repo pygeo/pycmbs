@@ -320,6 +320,8 @@ in the configuration file
 read the data for all variables and return a list
 of Data objects for further processing
 '''
+
+#mean_model = Data(None,None)
 model_cnt   = 1; proc_models = []
 for i in range(len(CF.models)):
     #--- assign model information from configuration ---
@@ -341,12 +343,32 @@ for i in range(len(CF.models)):
 
     #--- read data for current model ---
     themodel.get_data()
+
+    #--- calculate multimodel mean ---
+    #if i == 0:
+    #    model_mean = themodel.copy()
+    #    model_mean.name = 'Mean'
+    #    model_mean.data = None
+    #else:
+    #    for k in themodel.variables.keys():
+    #        model_mean.variables.update({k : model_mean.variables[k] + themodel.variables[k] })
+    #        model_mean.variables.update({k+ '_org'  : model_mean.variablse[k+ '_org' ] + themodel.variables[k+ '_org' ] })
+
+    #--- copy current model to a variable named modelXXXX ---
     cmd = 'model' + str(model_cnt).zfill(4) + ' = ' + 'themodel.copy(); del themodel'
     exec(cmd) #store copy of cmip5 model in separate variable
 
     #--- append model to list of models ---
     proc_models.append('model' + str(model_cnt).zfill(4))
     model_cnt += 1
+
+
+#--- finalize multimodel mean calculation
+#for k in model_mean.variables.keys():
+#    print model_mean.variables[k]
+#    model_mean.variables.update({k : model_mean.variables[k]/float(len(CF.models))  })
+#    model_mean.variables.update({k+ '_org'  : model_mean.variablse[k+ '_org' ]/float(len(CF.models))  })
+
 
 #/// prepare global benchmarking metrices
 #generate a global variable for Gleckler plot!
@@ -399,7 +421,7 @@ for variable in variables:
         else:
             thelabels.update({int(varoptions[k]['gleckler_position']) : k}) #generate dictionary for GlecklerPLot legend
     fl = global_gleckler._draw_legend(thelabels,title=variable.upper())
-    rep.figure(fl,width='3cm',bbox_inches=None)
+    rep.figure(fl,width='8cm',bbox_inches=None)
     del fl
 
 #---
