@@ -1106,7 +1106,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
         raise ValueError, 'Can not do analysis for ' + thelabel + ' for some reason! Check config and plot option files!'
 
 
-    report.figure(fG,caption='Global means for ' + thelabel)
+    report.figure(fG,caption='Global means for ' + thelabel,bbox_inches=None)
 
     print
     print '************************************************************'
