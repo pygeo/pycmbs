@@ -399,7 +399,7 @@ for variable in variables:
         else:
             thelabels.update({int(varoptions[k]['gleckler_position']) : k}) #generate dictionary for GlecklerPLot legend
     fl = global_gleckler._draw_legend(thelabels,title=variable.upper())
-    rep.figure(fl,width='3cm')
+    rep.figure(fl,width='3cm',bbox_inches=None)
     del fl
 
 #---

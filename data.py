@@ -436,6 +436,7 @@ class Data():
 
         if (self.lat == None) or (self.lon == None):
             print '        WARNING: cell area can not be calculated (missing coordinates)!'
+            self.cell_area = np.ones(self.data.shape)
             return
 
         #--- calculate cell area from coordinates ---
