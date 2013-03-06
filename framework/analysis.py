@@ -1095,6 +1095,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
 
+
     if thevar in plot_options.options.keys():
         for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
             if k == 'OPTIONS':
@@ -1107,6 +1108,8 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
 
     report.figure(fG,caption='Global means for ' + thelabel,bbox_inches=None)
+    del GM
+    del fG
 
     print
     print '************************************************************'
