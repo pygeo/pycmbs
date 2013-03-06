@@ -1398,6 +1398,10 @@ class GlecklerPlot():
         @param labels: dictionary as {position:'label'}; e.g. {1:'label1',2:'label2',3:'label3',4:'label4'}
         """
 
+        if len(self.pos) < 1:
+            print 'Legend can not be plotted for Gleckler, as no data available!'
+            return
+
         pmax = max(self.pos.values())
 
         #generate separate figure for legend
