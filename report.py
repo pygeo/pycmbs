@@ -186,6 +186,9 @@ class Report():
         @type bbox_inches: str
         """
 
+        if f == None:
+            return
+
         self.figure_counter +=1
         figname = 'fig_' + str(self.figure_counter).zfill(5) + '.' + self.format
 
