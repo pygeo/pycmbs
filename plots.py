@@ -1398,11 +1398,6 @@ class GlecklerPlot():
         @param labels: dictionary as {position:'label'}; e.g. {1:'label1',2:'label2',3:'label3',4:'label4'}
         """
 
-
-        print self.pos
-        print self.pos.values
-        print len(self.pos)
-        print len(self.pos.values)
         if len(self.pos) < 1:
             print 'Legend can not be plotted for Gleckler, as no data available!'
             return
