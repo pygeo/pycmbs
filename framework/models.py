@@ -828,6 +828,8 @@ class JSBACH_RAW(Model):
         self.get_data()
         self.type = 'JSBACH_RAW'
 
+        self._unique_name = self._get_unique_name()
+
     def _get_unique_name(self):
         """
         get unique name from model and experiment
