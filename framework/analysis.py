@@ -1077,6 +1077,8 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
         raise ValueError, 'No plot options are specified. No further processing possible!'
     if actvar == None:
         raise ValueError, 'No name for actual variable specified! Please correct!'
+    if GP == None:
+        raise ValueError, 'Gleckler plot not specified!'
 
 
     thevar = actvar
