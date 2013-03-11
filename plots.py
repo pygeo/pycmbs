@@ -665,8 +665,127 @@ class GlobalMeanPlot():
                     self.ax1 = ax1
 
         self.labels=[]; self.plots=[]
+        self.pdata={}
+        self.pdata_clim={}
 
-    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-',mask=None):
+#-----------------------------------------------------------------------------------------------------------------------
+
+    def plot_mean_result(self,dt=0.,colors=None,plot_clim=False):
+        """
+        plot mean result
+
+        dt: difference for coregistering in fractions of days
+
+        @param plot_clim: if True, then the climatology will be plotted instead of the actual data
+        @type plot_clim: bool
+
+        @return:returns figure handle
+        """
+
+
+
+        def coregister(x,x1,y1,d):
+            '''
+            This routine provides the functionality to coregister two timeseries of data
+            x : reference x vector
+            x1: x-value of data
+            y1: y-value of data
+            d : difference in t (threshold)
+            '''
+
+            o=[]
+            for xx in x:
+                m1=abs(x1-xx)<d
+                m2=~isnan(y1)
+                m = m1 & m2
+                if sum(m)>0:
+                    o.append(mean(y1[m]))
+                else:
+                    o.append(nan)
+
+            o=asarray(o)
+            return o
+
+
+
+        if hasattr(self,'pdata'):
+            pass
+        else:
+            raise ValueError, 'Can not plot mean results for GlobalMeanPlot! Missing data!'
+
+
+        f = pl.figure()
+        ax = f.add_subplot(111)
+
+        if plot_clim:
+            pdata = self.pdata_clim
+        else:
+            pdata = self.pdata
+
+
+        groups = pdata.keys()
+
+        for g in groups:
+            dat = pdata[g] #this gives a list, where each entry is a dictionary of ['time','data']
+
+            for i in xrange(len(dat)):
+
+                if i == 0:
+                    if plot_clim:
+                        tref = dat[i]['time']
+                    else:
+                        tref = pl.date2num(dat[i]['time']) #reference time vector
+                    y    = dat[i]['data']*1.
+                    ys   = y*y
+                    n    = np.ones(len(y))*1.
+                else:
+                    #interpolate results to reference time period
+                    if plot_clim:
+                        t1 = dat[i]['time']
+                    else:
+                        t1 = pl.date2num(dat[i]['time'])
+                    y1 = dat[i]['data']*1.
+                    yo = coregister(tref,t1,y1,dt)
+
+                    m = ~np.isnan(yo)
+
+                    y[m]=y[m]+yo[m]
+                    ys[m] = ys[m] + yo[m]*yo[m]
+                    n[m]=n[m]+1.
+
+            ym = y / n
+            ys = ys / n #squared values
+            std_data = np.sqrt(ys - ym*ym)
+
+            color=None
+            if colors != None:
+                if g in colors.keys():
+                    color=colors[g]
+
+            if plot_clim:
+                tval = tref
+            else:
+                tval = pl.num2date(tref)
+
+            ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
+            ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
+
+        ax.legend()
+        ax.grid()
+
+        return f
+
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-',mask=None,group='A'):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -692,6 +811,11 @@ class GlobalMeanPlot():
 
         @param mask: mask to be applied to the data prior to final analyis
         @type mask: either numpy bool array or C{Data} object
+
+        @param group: specifies a group that will be used to combine plots of the same type. The group is used as a key for a dictionary that stores the results
+        @type group: str
+
+
 
         """
 
@@ -728,6 +852,14 @@ class GlobalMeanPlot():
         else:
             p = self.ax.plot(t,mdata,color=color,linewidth=linewidth,linestyle=linestyle)
 
+        if group in self.pdata.keys():
+            vdata = self.pdata[group]
+        else:
+            vdata=[]
+        vdata.append({'time':t,'data':mdata})
+        self.pdata.update({group:vdata}) #store results for current group
+        del vdata
+
         if show_std:
             s = D.fldstd (return_data=True) #std
             sdata = s.data.flatten()
@@ -749,6 +881,16 @@ class GlobalMeanPlot():
 
             self.ax1.grid()
             #self.ax1.axis('tight')
+
+            #store values for aggregated plot
+            if group in self.pdata_clim.keys():
+                vdata = self.pdata_clim[group]
+            else:
+                vdata=[]
+            vdata.append({'time':np.arange(1,13),'data':m})
+            self.pdata_clim.update({group:vdata}) #store results for current group
+            del vdata
+
 
         #- store information for legend
         self.plots.append(p[0])

@@ -24,6 +24,7 @@ import os
 import sys
 import numpy as np
 from utils import get_data_pool_directory
+import pylab as pl
 
 class ConfigFile():
     """
@@ -300,7 +301,12 @@ class PlotOptions():
             for s in var.keys(): #each section
                 sec = var[s]
                 for k in sec.keys():
-                    sec.update({k:self.__convert(sec[k])}) #update current variable with valid value
+                    if k == 'start':
+                        sec.update({k:pl.num2date(pl.datestr2num(sec[k]))})
+                    elif k == 'stop':
+                        sec.update({k:pl.num2date(pl.datestr2num(sec[k]))})
+                    else:
+                        sec.update({k:self.__convert(sec[k])}) #update current variable with valid value
 
 
 

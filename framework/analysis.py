@@ -32,7 +32,7 @@ from cdo import *
 #///////////////////////////////////////////////////////////////////////
 
 
-def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,obs_var=None,label='',shift_lon=None):
+def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,obs_var=None,label='',shift_lon=None,start_date=None,stop_date=None):
     """
     This subroutine performs pre-processing of some raw data file. It does
 
@@ -58,6 +58,13 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
     @param obs_var: variable to analyze
     @type obs_var: str
+
+    @param start_date: date where the observations should start
+    @type start_date: datetime.datetime
+
+    @param stop_date: date where the observations should stop
+    @type stop_date: datetime.datetime
+
     """
 
     sys.stdout.write(' *** Preprocessing ' + raw_file + '\n')
@@ -72,12 +79,20 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
     #1) generate monthly mean file projected to T63
     obs_mon_file     = get_temporary_directory() + os.path.basename(raw_file)
-    obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
+
     #obs_monstd_file = obs_mon_file[:-3] + '_monstd.nc'
-    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid ' + raw_file,force=force)
+
+    #construct string for seldate; it is assumed that it was already chacked before that start_date,stop_date are valid datetime objects!
+    if (start_date != None) and (stop_date != None):
+        print 'Temporal subsetting for ' + raw_file + ' will be performed! ', start_date,stop_date
+        seldate_str = ' -seldate,'+str(start_date)[0:10]+','+str(stop_date)[0:10]
+        obs_mon_file = obs_mon_file[:-3] + '_' + str(start_date)[0:10] + '_' + str(stop_date)[0:10] + '_monmean.nc'
+    else:
+        seldate_str = ''
+        obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
+
+    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid' + seldate_str + ' ' + raw_file,force=force)
     #cdo.monstd(options='-f nc',output=obs_monstd_file,input='-remapcon,t63grid ' + raw_file,force=force)
-
-
 
     #2) generate monthly mean or seasonal mean climatology as well as standard deviation
     if interval == 'monthly':
@@ -227,6 +242,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
     #... now everything should be fine and the plot options can be assigned locally
 
+    #//////////////////////////////////////////////////////////////////
     #--- plot options which are SPECIFIC to observational data sets
     for_report = local_plot_options[obs_name]['add_to_report'] #add a certain observational dataset to report
     if for_report == False:
@@ -236,6 +252,26 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     obs_raw = local_plot_options[obs_name]['obs_file']
     obs_var = local_plot_options[obs_name]['obs_var']
     gleckler_pos = local_plot_options[obs_name]['gleckler_position']
+
+    if 'start' in local_plot_options[obs_name].keys():
+        obs_start   = local_plot_options[obs_name]['start']
+        if isinstance(obs_start,datetime):
+            pass
+        else:
+            print 'WARNING: INVALID start time: ', obs_start, ' SETTING to NONE!'
+            obs_start = None
+    else:
+        obs_start = None
+
+    if 'stop' in local_plot_options[obs_name].keys():
+        obs_stop   = local_plot_options[obs_name]['stop']
+        if isinstance(obs_stop,datetime):
+            pass
+        else:
+            print 'WARNING: INVALID stop time: ', obs_stop, ' SETTING to NONE!'
+            obs_stop = None
+    else:
+        obs_stop = None
 
 
     if 'scale_data' in local_plot_options[obs_name].keys():
@@ -252,7 +288,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         valid_mask = 'global'
     valid_mask = valid_mask.lower()
 
-
+    #//////////////////////////////////////////////////////////////////
     #--- plot options which are the same for all datasets
     cticks = local_plot_options['OPTIONS']['cticks']
     f_mapdifference = local_plot_options['OPTIONS']['map_difference']
@@ -299,7 +335,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     # DATA PREPROCESSING
     #####################################################################
     #if f_preprocess == True: #always do preprocessing
-    obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = obs_name, shift_lon = shift_lon)
+    obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = obs_name, shift_lon = shift_lon,start_date=obs_start,stop_date=obs_stop)
 
     # rescale data following CF conventions
     obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
@@ -330,7 +366,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             raise ValueError, 'Global mean variable GM has invalid object type'
 
     if GM != None:
-        GM.plot(obs_monthly, linestyle = '--',show_std=False)
+        GM.plot(obs_monthly, linestyle = '--',show_std=False,group='observations')
 
     if f_mapseasons == True:  #seasonal mean plot
         f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=nclasses,vmin=vmin,vmax=vmax,cticks=cticks)
@@ -359,7 +395,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
         if GM != None:
             if m_data_org in model.variables.keys():
-                GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False) #(time,meandata) replace rain_org with data_org
+                GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
 
         if model_data == None:
             sys.stdout.write('Data not existing for model %s' % model.name); continue
@@ -1110,8 +1146,14 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
 
     report.figure(fG,caption='Global means for ' + thelabel,bbox_inches=None)
+    fGa = GM.plot_mean_result(dt=5.,colors={'observations':'blue','models':'red'})
+    fGb = GM.plot_mean_result(dt=0.,colors={'observations':'blue','models':'red'},plot_clim=True)
+
+    report.figure(fGa,caption='Global means for ' + thelabel + ' (summary)',bbox_inches=None)
+    report.figure(fGb,caption='Global means for ' + thelabel + ' (summary climatology)',bbox_inches=None)
     del GM
     del fG
+    del fGa,fGb
 
     print
     print '************************************************************'
