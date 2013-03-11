@@ -1792,21 +1792,34 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def timvar(self):
+    def timvar(self,return_object=False):
         """
         calculate temporal variance of data field
         """
         if self.data.ndim == 3:
-            return self.data.var(axis=0)
+            res = self.data.var(axis=0)
         if self.data.ndim == 2:
             #no temporal averaging
-            return None
+            res = None
         else:
             sys.exit('Temporal variance can not be calculated as dimensions do not match!')
 
+        if return_object:
+            if res is None:
+                return res
+            else:
+                tmp = self.copy(); tmp.data = res
+                return tmp
+        else:
+            return res
+
+
+
+
+
 #-----------------------------------------------------------------------
 
-    def timsum(self):
+    def timsum(self,return_object=False):
         """
         calculate temporal sum of data field
         """
@@ -1817,17 +1830,38 @@ class Data():
         else:
             sys.exit('Temporal sum can not be calculated as dimensions do not match!')
 
-        return self.data.sum(axis=0)
+        res =  self.data.sum(axis=0)
+
+
+        if return_object:
+            if res is None:
+                return res
+            else:
+                tmp = self.copy(); tmp.data = res
+                return tmp
+        else:
+            return res
 
 #-----------------------------------------------------------------------
 
-    def timn(self):
+    def timn(self,return_object=False):
         """
         calculate number of samples
         done via timmean and timsum to take
         into account the valid values only
         """
-        return self.timsum() / self.timmean()
+
+        res =  self.timsum() / self.timmean()
+
+        if return_object:
+            if res is None:
+                return res
+            else:
+                tmp = self.copy(); tmp.data = res
+                return tmp
+        else:
+            return res
+
 
 #-----------------------------------------------------------------------
 
