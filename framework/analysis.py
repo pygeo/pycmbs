@@ -1164,7 +1164,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     report.figure(fGb,caption='Global means for ' + thelabel + ' (summary climatology)',bbox_inches=None)
     del GM
     del fG
-    del fGa,fGb,fG
+    del fGa,fGb
 
     print
     print '************************************************************'
