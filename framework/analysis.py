@@ -983,6 +983,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     del GM
     del fGa
     del fGb
+    del fG
 
 
 def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
