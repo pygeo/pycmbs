@@ -231,9 +231,11 @@ class PlotOptions():
         """
 
         from ConfigParser import SafeConfigParser
-        parser = SafeConfigParser()
+        
 
         for var in cfg.variables:
+            
+            parser = SafeConfigParser()
 
             """ The plot options are assumed to be in a file that has the same name as the variable to look be analyzed """
             file = './configuration/' + var + '.ini'
@@ -242,6 +244,8 @@ class PlotOptions():
                 sys.stdout.write('\n *** Reading configuration for %s: ' % var + "\n")
             else:
                 raise ValueError, 'Plot option file not existing: ' + file
+                
+            print 'INI file: ', file
 
             """
             generate now a dictionary for each variable
@@ -251,7 +255,10 @@ class PlotOptions():
 
             The other sections specify the details for each observational dataset
             """
+            print ''
+            print '*** VARIABLE: ', var , ' ***'
             dl = {}
+            print parser.sections()
             for section_name in parser.sections():
                 #/// add global plotting options
                 if section_name.upper() == 'OPTIONS':
@@ -267,7 +274,15 @@ class PlotOptions():
                     dl.update({section_name:o})
 
             #/// update options dictionary for this variable
+            print '    OBSERVATIONS for this variable: ', dl.keys()
             self.options.update({var:dl})
+            
+            #/// destroy parser (important, as otherwise problems)
+            del parser
+            
+
+            
+            
 
         #convert options to bool/numerical values
         self._convert_options()
