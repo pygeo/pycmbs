@@ -719,6 +719,7 @@ class GlobalMeanPlot():
 
         if plot_clim:
             pdata = self.pdata_clim
+            print 'GlobalMeanPlot climdata: ', pdata
         else:
             pdata = self.pdata
 
