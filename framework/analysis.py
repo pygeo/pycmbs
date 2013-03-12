@@ -965,12 +965,24 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
     albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
 
+
+    #climatological means
+    fGa = GM.plot_mean_result(dt=5.,colors={'observations':'blue','models':'red'})
+    fGb = GM.plot_mean_result(dt=0.1,colors={'observations':'blue','models':'red'},plot_clim=True)
+
+
     report.figure(fG,caption='Global means for land surface albedo',bbox_inches=None)
+    report.figure(fGa,caption='Global means for land surface albedo (summary)',bbox_inches=None)
+    report.figure(fGb,caption='Global means for land surface albedo (climatological summary)',bbox_inches=None)
 
     print '************************************************************'
     print '* END ALBEDO analysis ...'
     print '************************************************************'
     print
+
+    del GM
+    del fGa
+    del fGb
 
 
 def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
@@ -1016,7 +1028,7 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
 
     if GM != None:
-        GM.plot(obs_monthly,linestyle='--')
+        GM.plot(obs_monthly,linestyle='--',group='observations')
 
     #--- initailize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -1029,7 +1041,7 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         if GM != None:
             if 'albedo_org' in model.variables.keys():
-                GM.plot(model.variables['albedo_org'][2],label=model._unique_name) #(time,meandata)
+                GM.plot(model.variables['albedo_org'][2],label=model._unique_name,group='models') #(time,meandata)
 
         #--- get model data
         model_data = model.variables['albedo']
@@ -1051,9 +1063,6 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         #seasonal map
         f_season = map_season(model_data.sub(obs_alb),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09],nclasses=6)
-
-
-
 
 
         #/// Reichler statistics ///
@@ -1155,7 +1164,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     report.figure(fGb,caption='Global means for ' + thelabel + ' (summary climatology)',bbox_inches=None)
     del GM
     del fG
-    del fGa,fGb
+    del fGa,fGb,fG
 
     print
     print '************************************************************'
@@ -1231,12 +1240,23 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
     report.write('Please note that the CMSAF analysis is limited to the Meteosat spatial domain!')
     generic_analysis(plot_options, model_list, 'sis', 'CMSAF', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
 
+    fGa = GM.plot_mean_result(dt=5.,colors={'observations':'blue','models':'red'})
+    fGb = GM.plot_mean_result(dt=0.1,colors={'observations':'blue','models':'red'},plot_clim=True)
+
     report.figure(fG,caption='Global means for SIS ',bbox_inches=None)
+    report.figure(fGa,caption='Global means for SIS (summary)',bbox_inches=None)
+    report.figure(fGb,caption='Global means for SIS (climatological summary)',bbox_inches=None)
 
     print '************************************************************'
     print '* END SIS analysis ...'
     print '************************************************************'
     print
+
+
+    del GM
+    del fG
+    del fGa
+    del fGb
 
 
 #-----------------------------------------------------------------------
