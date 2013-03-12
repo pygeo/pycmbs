@@ -123,8 +123,8 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
         raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
 
     #--- READ DATA ---
-    obs     = Data(obs_ymonmean_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
-    obs_std = Data(obs_ymonstd_file,obs_var,read=True,label=label + ' std',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
+    obs     = Data(obs_ymonmean_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
+    obs_std = Data(obs_ymonstd_file,obs_var,read=True,label=label + ' std',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
     obs.std = obs_std.data.copy(); del obs_std
     obs_N = Data(obs_ymonN_file,obs_var,read=True,label=label + ' N',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
     obs.n = obs_N.data.copy(); del obs_N
@@ -134,7 +134,7 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     obs.timsort()
 
     #read monthly data (needed for global means and hovmoeller plots)
-    obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
+    obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
     if obs_monthly.time_cycle != 12:
         raise ValueError, 'A time_cycle different from 12 is not allowed here! ' + obs_mon_file
 
