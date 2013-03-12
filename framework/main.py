@@ -192,6 +192,21 @@ CF = ConfigFile(file)
 PCFG = PlotOptions()
 PCFG.read(CF)
 
+plot_options=PCFG
+
+for thevar in plot_options.options.keys():
+
+
+    if thevar in plot_options.options.keys():
+        print 'Variable: ', thevar
+        for k in plot_options.options[thevar].keys():
+
+            print '    Observation: ', k
+
+
+
+
+
 
 if CF.options['basemap']:
     f_fast = False
@@ -305,6 +320,7 @@ scripts = get_analysis_scripts()
 #/// get dictionary with methods how to read data for variables to be analyzed ///
 variables = CF.variables
 varmethods = get_methods4variables(variables, model_dict)
+
 
 #=======================================================================
 #global_settings_dict = {'landsea_mask': {'filename': ''}}
