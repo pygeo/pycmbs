@@ -750,9 +750,17 @@ class GlobalMeanPlot():
 
                     m = ~np.isnan(yo)
 
+
+
                     y[m]=y[m]+yo[m]
                     ys[m] = ys[m] + yo[m]*yo[m]
                     n[m]=n[m]+1.
+
+                    if plot_clim:
+                        print 'coregister mask: ', m
+                        print 'data: ', y,y[m]
+
+                    del m
 
             ym = y / n
             ys = ys / n #squared values
