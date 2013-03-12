@@ -1136,11 +1136,13 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
     if thevar in plot_options.options.keys():
         for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
+            
             if k == 'OPTIONS':
                 continue
             else:
+                print 'IN MAIN ANALYSIS: ', thevar, k
                 report.subsection(k)
-                #generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+                generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
     else:
         raise ValueError, 'Can not do analysis for ' + thelabel + ' for some reason! Check config and plot option files!'
 
