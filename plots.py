@@ -750,8 +750,6 @@ class GlobalMeanPlot():
 
                     m = ~np.isnan(yo)
 
-
-
                     y[m]=y[m]+yo[m]
                     ys[m] = ys[m] + yo[m]*yo[m]
                     n[m]=n[m]+1.
