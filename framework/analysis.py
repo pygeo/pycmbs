@@ -358,7 +358,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
     if GM == None:
         fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-        GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=False) #global mean plot
+        GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
     else:
         if isinstance(GM, GlobalMeanPlot):
             pass
@@ -1129,9 +1129,9 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     print '* BEGIN ' + thelabel + ' analysis ...'
     print '************************************************************'
 
-    report.section(thelabel)
+    report.section(thelabel) #section header for current variable
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
+    GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
 
 
     if thevar in plot_options.options.keys():
@@ -1140,7 +1140,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
                 continue
             else:
                 report.subsection(k)
-                generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+                #generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
     else:
         raise ValueError, 'Can not do analysis for ' + thelabel + ' for some reason! Check config and plot option files!'
 
