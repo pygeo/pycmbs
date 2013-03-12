@@ -1083,7 +1083,7 @@ class ZonalPlot():
             thex = x
 
         if self.dir == 'y':
-            dat = thex.get_zonal_mean() #no area weighting performed
+            dat = thex.get_zonal_mean()
         else:
             raise ValueError, 'Invalid option'
 
@@ -2156,7 +2156,7 @@ def add_histogram(ax,x):
 
 def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
     """
-    add a zonal plot to the axis
+    add a zonal plot to the axis. An area weigting is automaticall performed
 
     @param ax: axis where zonal plot should be added to
     @type ax: axis
@@ -2183,13 +2183,10 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
     ZP = ZonalPlot(ax=zax,dir='y')
 
     if x.data.ndim == 2:
-        weights = np.ones(x.data.shape)
+        pass
     elif x.data.ndim == 3:
         nt,ny,nx = x.data.shape
-        weights = np.ones((ny,nx))
-    weights = np.ma.array(weights,mask = weights != weights)
     ZP.plot(x,timmean=timmean,show_ylabel=False)
-
 
     #- set limits
     if ((vmin == None) & (vmax == None)):

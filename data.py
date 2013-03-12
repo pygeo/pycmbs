@@ -499,7 +499,7 @@ class Data():
 
         #/// calculate zonal mean
         if dat.ndim == 2:
-            r = dat.sum(axis=1) / w.sum() #zonal mean
+            r = dat.sum(axis=1) / w.sum(axis=1) #zonal mean
         elif dat.ndim == 3:
             nt,ny,nx = dat.shape
             r = np.ones((nt,ny))*np.nan
