@@ -194,6 +194,10 @@ PCFG.read(CF)
 
 plot_options=PCFG
 
+
+
+
+
 for thevar in plot_options.options.keys():
 
 
@@ -202,8 +206,6 @@ for thevar in plot_options.options.keys():
         for k in plot_options.options[thevar].keys():
 
             print '    Observation: ', k
-
-
 
 
 
