@@ -1492,7 +1492,7 @@ class GlecklerPlot():
         @param weights: weights to be applied to the data before index calculation; dedicated for spatial area weights
         @type weights: numpy array
 
-        @return: returns performance index aggregated over time
+        @return: returns performance index aggregated over time (NOTE: this is still E**2 !!!)
         @rtype float
         """
 
@@ -1510,10 +1510,12 @@ class GlecklerPlot():
         from diagnostic import Diagnostic
         D = Diagnostic(x,y=y)
         e2 = D.calc_reichler_index(weights) #reichler performance index (might return a list if multiple times analyzed)
+        #Note that the returned value is E**2 for each timestep! When doing the normalization, one needs to take the sqrt(E++2) to obtain the actual RMSE
+
         if e2 == None:
             return None
         else:
-            return np.nansum(e2) #temporal aggregation
+            return np.sqrt(np.nansum(e2)) #temporal aggregation and return E instead of E**2; this corresponds to the usage of the RMSE instead of teh error variance!
 
 #-----------------------------------------------------------------------
 
