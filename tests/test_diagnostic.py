@@ -50,11 +50,11 @@ class TestData(TestCase):
         #--- diagnostic ---
         D = GlecklerPlot()
         r=D.calc_index(x,y,'a','b')
-        self.assertEqual(r,22.5)
+        self.assertEqual(r,np.sqrt(22.5))
 
         #... use different std
         x.std  = np.ones(x.data.shape)
         x.std[:,2,0] = 0.5
         r=D.calc_index(x,y,'a','b')
-        self.assertEqual(r,42.5)
+        self.assertEqual(r,np.sqrt(42.5))
 
