@@ -1258,10 +1258,16 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def _normalize_data(self):
+    def _normalize_data(self,method='median'):
         """
         calculate for each observational data set
         the relative deviation from the average
+
+        @param method: specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
+                       uses the median, that's why it is the default. another option is to use the 'mean'
+                       ['median','mean']
+        @type method: str
+
         """
         pos = np.unique(self.pos.values())
         if hasattr(self,'_raw_data'):
@@ -1272,14 +1278,14 @@ class GlecklerPlot():
 
         for var in self.variables:
             for p in pos:
-                xm = self._get_mean_value(p,var) #calculate multimodel mean
+                xm = self._get_mean_value(p,var,method=method) #calculate multimodel mean/median
                 for k in self.data:
                     if (self.pos[k] == p) & ('_' + var + '_' in k):
                         self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
 
 #-----------------------------------------------------------------------
 
-    def _get_mean_value(self,pos,var):
+    def _get_mean_value(self,pos,var,method='median'):
         """
         calculate mean value for a given observational dataset
 
@@ -1288,19 +1294,34 @@ class GlecklerPlot():
 
         @param var: name of variable to analyze
         @type var: str
+
+        @param method: specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
+                       uses the median, that's why it is the default. another option is to use the 'mean'
+                       ['median','mean']
+        @type method: str
+
         """
         x = []
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
         x = np.asarray(x)
-        return x.mean()
+
+        if method == 'median':
+            return np.median(x)   #todo unittest for this!
+        elif method == 'mean':
+            return x.mean()
+        else:
+            raise ValueError, 'Invalid option in _get_mean_value() ' + method
+
+
+
 
 
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10,method='median',title=None):
         """
         plot Gleckler diagram
 
@@ -1311,7 +1332,7 @@ class GlecklerPlot():
         @type vmin: float
 
         @param vmax: upper boundary for plotting
-        @type vmax: flaot
+        @type vmax: float
 
         @param nclasses: number of classes for colormap
         @type nclasses: int
@@ -1321,11 +1342,17 @@ class GlecklerPlot():
 
         @param normalize: normalize data relative to multimodel mean (affects self.data)
         @type normalize: bool
+
+        @param method: specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
+                       uses the median, that's why it is the default. another option is to use the 'mean'
+                       ['median','mean']
+        @type method: str
+
         """
 
 
         if normalize:
-            self._normalize_data()
+            self._normalize_data(method=method)
 
         nm = len(self.models); nv = len(self.variables)
         if nm == 0:
@@ -1378,6 +1405,9 @@ class GlecklerPlot():
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
         #draw legend
         self._draw_colorbar(left,right-left)
+
+        if title != None:
+            self.fig.suptitle(title)
 
 #-----------------------------------------------------------------------
 
@@ -1494,6 +1524,7 @@ class GlecklerPlot():
 
         @return: returns performance index aggregated over time (NOTE: this is still E**2 !!!)
         @rtype float
+
         """
 
         if weights == None:
