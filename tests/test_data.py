@@ -590,6 +590,56 @@ class TestData(TestCase):
         self.assertFalse(D._is_monthly())
         self.assertEquals(D.time_cycle,None)
 
+    def test_get_valid_mask(self):
+        D = self.D.copy()
+
+        #case 1: 2D data
+        x = np.ones((1,2))
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask()
+        self.assertTrue(m[0,0]==True)
+        self.assertTrue(m[0,1]==True)
+
+        #case 2: 3D with all valid data
+        D = self.D.copy()
+        x = np.ones((50,1,2))
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask()
+        self.assertTrue(m[0,0]==True)
+        self.assertTrue(m[0,1]==True)
+
+        #case 3: some invalid data at one pixel (frac=1=default)
+        D = self.D.copy()
+        x = np.ones((50,1,2))
+        x[0:25,0,0] = 0.
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask()
+        self.assertTrue(m[0,0]==False)
+        self.assertTrue(m[0,1]==True)
+
+        #case 4 exactly 50% invalid
+        D = self.D.copy()
+        x = np.ones((50,1,2))
+        x[0:25,0,0] = 0.
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask(frac=0.5)
+        self.assertTrue(m[0,0]==True)
+        self.assertTrue(m[0,1]==True)
+
+        #case 5: <50% valid
+        D = self.D.copy()
+        x = np.ones((50,1,2))
+        x[0:26,0,0] = 0.
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask(frac=0.5)
+        self.assertTrue(m[0,0]==False)
+        self.assertTrue(m[0,1]==True)
+
+
+
+
+
+
 
 
 
