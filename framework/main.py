@@ -363,19 +363,6 @@ for i in range(len(CF.models)):
     #--- read data for current model ---
     themodel.get_data()
 
-    #--- calculate multimodel mean ---
-    #if i == 0:
-    #    model_mean = themodel.copy()
-    #    model_mean.name = 'Mean'
-    #    model_mean.data = None
-    #else:
-    #    for k in themodel.variables.keys():
-    #        hlpdata = model_mean.variables[k]
-    #        print hlpdata
-    #        stop
-    #        model_mean.variables.update({k : model_mean.variables[k].data + themodel.variables[k].data })
-    #        model_mean.variables.update({k+ '_org'  : model_mean.variablse[k+ '_org' ] + themodel.variables[k+ '_org' ] })
-
     #--- copy current model to a variable named modelXXXX ---
     cmd = 'model' + str(model_cnt).zfill(4) + ' = ' + 'themodel.copy(); del themodel'
     exec(cmd) #store copy of cmip5 model in separate variable
@@ -385,11 +372,60 @@ for i in range(len(CF.models)):
     model_cnt += 1
 
 
-#--- finalize multimodel mean calculation
-#for k in model_mean.variables.keys():
-#    print model_mean.variables[k]
-#    model_mean.variables.update({k : model_mean.variables[k].data/float(len(CF.models))  })
-#    model_mean.variables.update({k+ '_org'  : model_mean.variablse[k+ '_org' ]/float(len(CF.models))  })
+#########################################################
+# MULTIMODEL MEAN
+#########################################################
+#--- here we have now all the model and variables read. The list of all models is contained in the variable proc_models.
+# CALCULATE MULTIMODEL MEAN
+
+if False:
+
+    raise ValueError, 'This mean model appraoch can not work, as the timesteps are not the same!!! We need to use the mean climatologigy! --> preprocessing (generic analysis ???)'
+
+    for i in range(len(proc_models)):
+        exec('actmodel = ' + proc_models[i] + '.copy()')
+
+        if i == 0:
+            model_mean = actmodel.copy()
+            model_mean.name = 'mean model'
+        else:
+            for k in model_mean.variables.keys():
+
+                print 'Processing ... ', k, proc_models[i]
+
+                #the variables[] list contains Data objects!
+                hlp1 = model_mean.variables[k] #is a Data object or a tuple!
+                hlp2 = actmodel.variables[k]
+
+                if isinstance(hlp1,tuple):
+                    theD = hlp1[2].copy()
+
+                    theD[0][:] = None; theD[1][:] = None; theD.add(hlp2[2],copy=False)
+                    theD.label='Mean-model'
+                    model_mean.variables.update( { k : (hlp1[0],hlp1[1],theD) } )
+                else:
+                    theD = hlp1.copy()
+                    theD.add(hlp2,copy=False) #SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
+                    theD.label = 'Mean-model'
+                    model_mean.variables.update( { k : theD } )
+                del hlp1,hlp2, theD
+        del actmodel
+
+    #now we have the sum and can calculate the average
+    for k in model_mean.variables.keys():
+        hlp1 = model_mean.variables[k]
+        if isinstance(hlp1,tuple):
+            model_mean.variables.update( { k : (hlp1[0],hlp1[1],hlp1[2].mulc(1./float(len(proc_models)),copy=False )  ) } )
+        else:
+            model_mean.variables[k].mulc(1./float(len(proc_models)),copy=False) #weight with number of models
+
+    #add to list of models to process
+    proc_models.append('model_mean')
+
+
+#########################################################
+# END MULTIMODEL MEAN
+#########################################################
 
 
 #/// prepare global benchmarking metrices
