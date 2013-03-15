@@ -395,7 +395,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
         if GM != None:
             if m_data_org in model.variables.keys():
-                GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
+                if np.any(model.variables[m_data_org][2].time == None): #invalid data for mean_model --> skip
+                    pass
+                else:
+                    print model.variables[m_data_org][2].label
+                    GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
 
         if model_data == None:
             sys.stdout.write('Data not existing for model %s' % model.name); continue

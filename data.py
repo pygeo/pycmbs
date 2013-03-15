@@ -2323,27 +2323,29 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def get_valid_mask(self):
+    def get_valid_mask(self,frac=1.):
         """
-        calculate a mask which is True, when all timestamps
-        of the field are valid
+        calculate a mask which is True, when a certain fraction of
+        all timestamps of the field are valid
 
-        todo this is still not working properly when the data is
-        stored in masked arrays, as the mask is not applied in that case!
+        @type frac: fraction of timesteps required to be valid [0...1]
+        @param frac: float
         """
+
+        if (frac < 0.) or (frac>1.):
+            raise ValueError, 'Fraction needs to be between 0 ... 1!'
 
         if self.data.ndim == 2:
             return np.ones(self.data.shape).astype('bool')
         elif self.data.ndim == 3:
-            n = len(self.data)
+            n = len(self.data) #number of timesteps
             hlp = self.data.copy()
             if hasattr(hlp,'mask'):
-                hlp1 = hlp.data.copy()
-                hlp1[hlp.mask] = np.nan
+                hlp1 = hlp.data.copy(); hlp1[hlp.mask] = np.nan
             else:
                 hlp1 = hlp.data.copy()
-            #~ print np.sum(~np.isnan(hlp1),axis=0), n
-            msk = np.sum(~np.isnan(hlp1),axis=0) == n
+
+            msk = (np.sum(~np.isnan(hlp1),axis=0) / float(n)) >= frac
             return msk
         else:
             raise ValueError, 'unsupported dimension!'
