@@ -388,18 +388,21 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         GP.add_model(model._unique_name) #register model name in GlecklerPlot
 
         if for_report == True:
-
             #/// report results
             sys.stdout.write('\n *** Making report figures. \n')
             report.subsubsection(model._unique_name)
 
         if GM != None:
-            if m_data_org in model.variables.keys():
-                if np.any(model.variables[m_data_org][2].time == None): #invalid data for mean_model --> skip
-                    pass
-                else:
-                    print model.variables[m_data_org][2].label
-                    GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
+            if model.name == 'mean-model':
+                pass
+            else:
+                if m_data_org in model.variables.keys():
+
+                    if model.variables[m_data_org][2] == None: #invalid data for mean_model --> skip
+                        pass
+                    else:
+                        print model.variables[m_data_org][2].label
+                        GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
 
         if model_data == None:
             sys.stdout.write('Data not existing for model %s' % model.name); continue
@@ -1046,7 +1049,8 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         if GM != None:
             if 'albedo_org' in model.variables.keys():
-                GM.plot(model.variables['albedo_org'][2],label=model._unique_name,group='models') #(time,meandata)
+                if model.variables['albedo_org'][2] != None:
+                    GM.plot(model.variables['albedo_org'][2],label=model._unique_name,group='models') #(time,meandata)
 
         #--- get model data
         model_data = model.variables['albedo']

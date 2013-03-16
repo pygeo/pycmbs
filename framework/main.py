@@ -378,16 +378,17 @@ for i in range(len(CF.models)):
 #--- here we have now all the model and variables read. The list of all models is contained in the variable proc_models.
 # CALCULATE MULTIMODEL MEAN
 
-if False:
+if True:
 
-    raise ValueError, 'This mean model appraoch can not work, as the timesteps are not the same!!! We need to use the mean climatologigy! --> preprocessing (generic analysis ???)'
+    #raise ValueError, 'This mean model appraoch can not work, as the timesteps are not the same!!! We need to use the mean climatologigy! --> preprocessing (generic analysis ???)'
 
     for i in range(len(proc_models)):
         exec('actmodel = ' + proc_models[i] + '.copy()')
 
         if i == 0:
             model_mean = actmodel.copy()
-            model_mean.name = 'mean model'
+            model_mean.name = 'mean-model'
+            model_mean._unique_name = 'model_mean'
         else:
             for k in model_mean.variables.keys():
 
@@ -398,24 +399,26 @@ if False:
                 hlp2 = actmodel.variables[k]
 
                 if isinstance(hlp1,tuple):
-                    theD = hlp1[2].copy()
+                    #the mean makes only sense for climatological mean values. Anything else should be not supported due to possbily different timestamps
+                    #theD = hlp1[2].copy()
 
-                    theD[0][:] = None; theD[1][:] = None; theD.add(hlp2[2],copy=False)
-                    theD.label='Mean-model'
-                    model_mean.variables.update( { k : (hlp1[0],hlp1[1],theD) } )
+                    #theD[0][:] = None; theD[1][:] = None; theD.add(hlp2[2],copy=False)
+                    #theD.label='Mean-model'
+                    model_mean.variables.update( { k : (None,None,None) } )
                 else:
                     theD = hlp1.copy()
                     theD.add(hlp2,copy=False) #SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
                     theD.label = 'Mean-model'
                     model_mean.variables.update( { k : theD } )
-                del hlp1,hlp2, theD
+                del hlp1,hlp2 #, theD
         del actmodel
 
     #now we have the sum and can calculate the average
     for k in model_mean.variables.keys():
         hlp1 = model_mean.variables[k]
         if isinstance(hlp1,tuple):
-            model_mean.variables.update( { k : (hlp1[0],hlp1[1],hlp1[2].mulc(1./float(len(proc_models)),copy=False )  ) } )
+            pass
+            #model_mean.variables.update( { k : (hlp1[0],hlp1[1],hlp1[2].mulc(1./float(len(proc_models)),copy=False )  ) } )
         else:
             model_mean.variables[k].mulc(1./float(len(proc_models)),copy=False) #weight with number of models
 
@@ -426,6 +429,8 @@ if False:
 #########################################################
 # END MULTIMODEL MEAN
 #########################################################
+
+
 
 
 #/// prepare global benchmarking metrices
@@ -494,4 +499,5 @@ pl.close('all')
 
 #~ if __name__ == '__main__':
     #~ main()
+
 
