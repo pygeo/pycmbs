@@ -1159,6 +1159,7 @@ class GlecklerPlot():
         self.variables   = []
         self.data = {} #store data for plot
         self.pos = {} #store position of plot
+        self.ndigits = 2 #number of digits for number plotting
 
     def add_model(self,label):
         """
@@ -1228,15 +1229,19 @@ class GlecklerPlot():
             if pos == 'top':
                 x = [0.,1.,0.5]
                 y = [1.,1.,0.5]
+                tpos = (0.5,0.75)
             elif pos == 'bottom':
                 x = [0.,0.5,1.]
                 y = [0.,0.5,0.]
+                tpos = (0.5,0.25)
             elif pos == 'left':
                 x = [0.,0.,0.5]
                 y = [0.,1.,0.5]
+                tpos = (0.25,0.5)
             elif pos == 'right':
                 x = [1.,0.5,1.]
                 y = [0.,0.5,1.]
+                tpos = (0.75,0.5)
             else:
                 print pos
                 raise ValueError, 'Invalid position for plot'
@@ -1255,6 +1260,11 @@ class GlecklerPlot():
         xy = list(zip(x,y))
         p = Polygon(xy,edgecolor='white',linewidth=1,fill=True,linestyle='solid',facecolor=color)
         ax.add_patch(p)
+
+        #--- add value as text if required
+        if self.show_value:
+            ax.text(tpos[0],tpos[1],str(np.round(value,self.ndigits)),fontdict={'size':6},horizontalalignment='center',verticalalignment='center')
+
 
 #-----------------------------------------------------------------------
 
@@ -1321,7 +1331,7 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10,method='median',title=None):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False):
         """
         plot Gleckler diagram
 
@@ -1350,6 +1360,8 @@ class GlecklerPlot():
 
         """
 
+
+        self.show_value=show_value
 
         if normalize:
             self._normalize_data(method=method)
@@ -1483,10 +1495,14 @@ class GlecklerPlot():
         @type pos: int
         """
 
+
         if x != None:
             #- only use valid data
+
             if v in self.variables:
+
                 if m in self.models:
+
                     self.data.update({ self.__gen_key(m,v,pos) :x})
                     self.pos.update({ self.__gen_key(m,v,pos) : pos})
                 else:
@@ -1609,7 +1625,7 @@ class GlecklerPlot():
                 raise ValueError, 'Can not draw Gleckler legend! Invalid position value! ' + str(k)
 
 
-            self.__plot_triangle(ax,k*0.1,pos=pos)
+            self.__plot_triangle(ax,k*0.01,pos=pos)
             ax.set_xticks([])
             ax.set_yticks([])
 
