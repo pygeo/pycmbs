@@ -144,10 +144,32 @@ class TestData(TestCase):
 #        stop
 
     def test_weighting_matrix(self):
-        D = self.D.copy()
-        D.cell_area = np.ones(D.data[0,:,:].shape)*0.333
-        r = D._get_weighting_matrix()
-        self.assertFalse(np.any(r != 1.))
+        D = self.D.copy() #single pixel
+
+        x = np.ones((10,2,1))
+        D.data=np.ma.array(x,mask=x == 0.)
+
+        #case 1: valid data for all timestep
+        D.cell_area = np.ones(D.data[0,:,:].shape)
+        D.cell_area[0,0] = 75.; D.cell_area[1,0] = 25. #3/4 ; 1/4
+        r = D._get_weighting_matrix(normtype='valid')
+        self.assertFalse(np.any(r[:,0,0] != 0.75))
+        self.assertFalse(np.any(r[:,1,0] != 0.25))
+
+        #case 2: invalid data for some timesteps
+        D.data.mask[0,0,0] = True #mask one data as invalid
+        r = D._get_weighting_matrix(normtype='valid')
+        self.assertFalse(np.any(r[1:,0,0] != 0.75))
+        self.assertFalse(np.any(r[1:,1,0] != 0.25))
+        self.assertFalse(r[0,1,0] != 1.)
+        self.assertFalse(r.mask[0,0,0] == False)
+
+        #case 3: invalid data, but normalization for whole area!
+        r = D._get_weighting_matrix(normtype='all')
+        self.assertFalse(r[0,1,0] != 0.25)
+
+
+
 
     def test_adjust_time(self):
         '''
