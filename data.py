@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from twisted.internet.tcp import _AbortingMixin
 
 __author__ = "Alexander Loew"
 __version__ = "0.1"
@@ -506,7 +507,7 @@ class Data():
             W = np.ones((nt,ny))*np.nan
 
             for i in xrange(nt):
-                r[i] = dat[i,:,:].sum(axis=1) / w[i,:,:].sum(axis=1)
+                r[i] = dat[i,:,:].sum(axis=1) / w[i,:,:].sum(axis=1) #weighted sum, normalized by valid data why ???
                 W[i] = w[i,:,:].sum(axis=1)
 
             r = np.ma.array(r,mask=W==0.)
@@ -1865,27 +1866,46 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def _get_weighting_matrix(self):
+    def _get_weighting_matrix(self,normtype='valid'):
         """
         (unittest)
 
         get matrix for area weigthing of grid cells. For each timestep
-        the weights are calculated as a function  of the number of valid
-        grid cells.
+        the weights are calculated as a function of either the  number of valid
+        grid cells or all grid cells.
 
         The returned array contains weights for each timestep. The sum
         of these weights is equal to one for each timestep.
+
+        @param normtype: specifies how normalization shall be done ['valid','all']
+                        'valid': the weights are calculated based on all VALID values, thus the sum of all these weights is one
+                        'all': contrary, weights are calculated based on ALL (valid and invalid) data.
+                        The latter option can be useful, if one is interested e.g. in a global area weighted mean, whereas the
+                        values in 'self' are only valid for e.g. land areas. If one wants to calculate e.e. the change in
+                        global mean surface fluxes, given only land fluxes, one can normalize using normtype='all' and then gets
+                        the impact on the global mean fluxes. In the other case (normtype='valid'), one would get the change in the
+                        global mean of the LAND fluxes only!
+        @type normtype: str
 
         @return weighting matrix in same geometry as original data
         @rtype numpy array
         """
 
+        if normtype in ['valid','all']:
+            pass
+        else:
+            raise ValueError, 'Invalid option for normtype: ' + normtype
+
         w = np.zeros(self.data.shape)
 
         if self.data.ndim == 2:
-            m = ~self.data.mask
-            w[m] = self.cell_area[m] / self.cell_area[m].sum()
+            if normtype == 'valid':
+                m = ~self.data.mask
+                w[m] = self.cell_area[m] / self.cell_area[m].sum()
+            else:
+                w = self.cell_area / self.cell_area.sum()
             return w
+
         elif self.data.ndim == 3:
             nt = len(self.data)
 
@@ -1900,17 +1920,22 @@ class Data():
             else:
                 print s
                 raise ValueError, 'Invalid geometry!'
+
             w.shape = self.data.shape #geometry is the same now as data
 
             #2) mask areas that do not contain valid data
             w = np.ma.array(w,mask=self.data.mask)
 
-            #3) calculate for each time the sum of all VALID grid cells --> normalization factor
-            no = w.reshape(nt,-1).sum(axis=1) #... has size nt
+            if normtype == 'valid':
+                #3) calculate for each time the sum of all VALID grid cells --> normalization factor
+                no = w.reshape(nt,-1).sum(axis=1) #... has size nt
 
-            #4) itterate over all timesteps and calculate weighting matrix
-            for i in xrange(nt):
-                w[i,:,:] /= no[i]
+                #4) itterate over all timesteps and calculate weighting matrix
+                for i in xrange(nt):
+                    w[i,:,:] /= no[i]
+            else:
+                w /= self.cell_area.sum() #normalization by total area. This does NOT result in sum(w) == 1 for each timestep!
+
             return w
         else:
             raise ValueError, 'weighting matrix not supported for this data shape'
