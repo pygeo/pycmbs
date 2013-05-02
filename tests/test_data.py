@@ -152,20 +152,21 @@ class TestData(TestCase):
         #case 1: valid data for all timestep
         D.cell_area = np.ones(D.data[0,:,:].shape)
         D.cell_area[0,0] = 75.; D.cell_area[1,0] = 25. #3/4 ; 1/4
-        r = D._get_weighting_matrix(normtype='valid')
+        r = D._get_weighting_matrix()
         self.assertFalse(np.any(r[:,0,0] != 0.75))
         self.assertFalse(np.any(r[:,1,0] != 0.25))
 
         #case 2: invalid data for some timesteps
         D.data.mask[0,0,0] = True #mask one data as invalid
-        r = D._get_weighting_matrix(normtype='valid')
+        r = D._get_weighting_matrix()
         self.assertFalse(np.any(r[1:,0,0] != 0.75))
         self.assertFalse(np.any(r[1:,1,0] != 0.25))
         self.assertFalse(r[0,1,0] != 1.)
         self.assertFalse(r.mask[0,0,0] == False)
 
         #case 3: invalid data, but normalization for whole area!
-        r = D._get_weighting_matrix(normtype='all')
+        D.weighting_type = 'all'
+        r = D._get_weighting_matrix()
         self.assertFalse(r[0,1,0] != 0.25)
 
 
@@ -547,16 +548,63 @@ class TestData(TestCase):
         for i in [0]:
             x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
         D.data = np.ma.array(x,mask=x!=x)
-        y = np.ones((1,3))
-        y[0,0] = 75.; y[0,1] = 25.; y[0,2] = 25.
+        y = np.ones((3,1))
+        y[0,0] = 75.; y[1,0] = 25.; y[2,0] = 25.
         D.cell_area = y
+
+        D1=D.copy() #2D version
+        xx = np.ones((3,1))
+        xx[0,0]=5.; xx[1,0]=10.; xx[2,0]=20.
+        D1.data = np.ma.array(xx,mask=xx!=xx)
 
 
         #do test
         r1 = D.fldmean()[0] #with weights
+        r1a = D1.fldmean()[0]
+
         self.assertEqual(r1,9.)
+        self.assertEqual(r1a,9.)
+
         r2 = D.fldmean(apply_weights=False) #without weights
+        r2a = D1.fldmean(apply_weights=False)
         self.assertEqual(r2[0],x.mean())
+        self.assertEqual(r2a[0],xx.mean())
+
+
+        #2D case
+        D=self.D.copy()
+        x=np.ones((1,4))
+        x[0,1]=1.; x[0,2] = 5.
+        D.data = np.ma.array(x,mask=x==0.)
+        ny,nx = x.shape
+        ca = np.ones((ny,nx))
+        D.cell_area = np.ma.array(ca,mask=ca < 0.)
+        r = D.fldmean()[0]
+        self.assertEquals(r,2.)
+
+        #testcase where some of data is not valid and different weighting approaches are applied
+        D = self.D.copy()
+
+        x=np.ones((1,1,4))
+        D.data = np.ma.array(x,mask=x==0.)
+        nt,ny,nx = x.shape
+        ca = np.ones((ny,nx))
+        D.cell_area = np.ma.array(ca,mask=ca < 0.)
+
+        D.weighting_type='valid'
+        r = D.fldmean()[0]
+        self.assertEquals(r,1.)
+        x[:,0,0] = np.nan
+        D.data = np.ma.array(x,mask=np.isnan(x))
+        r = D.fldmean()[0]
+        self.assertEquals(r,1.)
+
+        #... now check what happens if normalization factor is for ALL pixels and not only the valid ones! --> should give 0.75
+        D.weighting_type='all'
+        r = D.fldmean()[0]
+        self.assertEquals(r,0.75)
+
+
 
     def test_fldstd(self):
         #define testdata
@@ -565,18 +613,33 @@ class TestData(TestCase):
         for i in [0]:
             x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
         D.data = np.ma.array(x,mask=x!=x)
-        y = np.ones((1,3))
-        y[0,0] = 75.; y[0,1] = 25.; y[0,2] = 25.
+        y = np.ones((3,1))
+        y[0,0] = 75.; y[1,0] = 25.; y[2,0] = 25.
         D.cell_area = y
 
+        D1=D.copy() #2D version
+        xx = np.ones((3,1))
+        xx[0,0]=5.; xx[1,0]=10.; xx[2,0]=20.
+        D1.data = np.ma.array(xx,mask=xx!=xx)
+
+        #print D1.data
+        #print D1.cell_area
+        #print D1.data.shape
+        #print D1.cell_area.shape
+
+
+
         #do testing
-        ref = np.sqrt((115. - 81.) / (1. - 11./25.)) #see http://en.wikipedia.org/wiki/Mean_square_weighted_deviation for calculation details
-        r1 = D.fldstd()[0] #with weights
+        ref = np.sqrt((115. - 81.) / (1. - 11./25.)) #http://en.wikipedia.org/wiki/Weighted_mean#Weighted_sample_variance
+        r1  = D.fldstd()[0] #with weights
+        r1a = D1.fldstd()[0]
         self.assertAlmostEqual(r1,ref,places=8)
+        self.assertAlmostEqual(r1a,ref,places=8) #2D version
 
         r2 = D.fldstd(apply_weights=False)[0]
         ref2 = x.std()
         self.assertAlmostEqual(ref2,r2,places=8)
+        self.assertAlmostEqual(D1.fldstd()[0],ref,places=8)
 
 
     def test__set_timecycle(self):
