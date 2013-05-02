@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from twisted.internet.tcp import _AbortingMixin
 
 __author__ = "Alexander Loew"
 __version__ = "0.1"
@@ -37,7 +36,10 @@ class Data():
     """
     Data class: main class
     """
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,time_var='time',checklat=True):
+    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,
+                 label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,
+                 time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,
+                 time_var='time',checklat=True,weighting_type='valid'):
         """
         Constructor for Data class
 
@@ -100,7 +102,22 @@ class Data():
         @param cell_area: area size [m**2] of each grid cell. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
         @type cell_area: numpy array
 
+
+        @param weighting_type: specifies how normalization shall be done ['valid','all']
+                        'valid': the weights are calculated based on all VALID values, thus the sum of all these weights is one
+                        'all': contrary, weights are calculated based on ALL (valid and invalid) data.
+                        The latter option can be useful, if one is interested e.g. in a global area weighted mean, whereas the
+                        values in 'self' are only valid for e.g. land areas. If one wants to calculate e.e. the change in
+                        global mean surface fluxes, given only land fluxes, one can normalize using normtype='all' and then gets
+                        the impact on the global mean fluxes. In the other case (normtype='valid'), one would get the change in the
+                        global mean of the LAND fluxes only!
+        @type weighting_type: str
+
+
+
         """
+
+        self.weighting_type = weighting_type
 
         self.filename     = filename; self.varname      = varname
         self.scale_factor = scale_factor; self.lat_name     = lat_name
@@ -285,8 +302,10 @@ class Data():
 
 
         #/// write data
-        F.variables['time'] .assign_value(self.time-1)
-        F.variables['time'].calendar = self.calendar
+        if self.time != None:
+            F.variables['time'] .assign_value(self.time-1)
+            F.variables['time'].calendar = self.calendar
+
         F.variables[varname].assign_value(self.data)
         if self.lat != None:
             F.variables['lat'].assign_value(self.lat)
@@ -466,6 +485,7 @@ class Data():
             elif self.data.ndim == 3:
                 self.cell_area = np.ones(self.data[0,:,:].shape)
             else:
+                print 'actual geometry:  ', self.data.ndim, self.data.shape
                 raise ValueError, 'Invalid geometry!'
 
 
@@ -664,6 +684,8 @@ class Data():
             print ''
             print 'FILE: ', self.filename
 
+        self.time_var = time_var
+
 
         #read data
         self.data = self.read_netcdf(self.varname) #o.k.
@@ -694,10 +716,22 @@ class Data():
             self.lon_name = 'lon'
         if self.lat_name != None:
             self.lat = self.read_netcdf(self.lat_name)
+            #ensure that lat has NOT dimension (1,nlat)
+            if self.lat != None:
+                if self.lat.ndim == 2:
+                    if self.lat.shape[0] == 1:
+                        self.lat = self.lat[0,:]
+
         else:
             self.lat = None
         if not self.lon_name is None:
             self.lon = self.read_netcdf(self.lon_name)
+            #ensure that lon has NOT dimension (1,nlon)
+            if self.lon != None:
+                if self.lon.ndim == 2:
+                    if self.lon.shape[0] == 1:
+                        self.lon = self.lon[0,:]
+
             #- shift longitudes such that -180 < lon < 180
             if shift_lon:
                 self._shift_lon()
@@ -705,12 +739,17 @@ class Data():
             self.lon = None
 
         #- read time
-        if time_var != None:
-            self.time = self.read_netcdf(time_var) #returns either None or a masked array
+        if self.time_var != None:
+            self.time = self.read_netcdf(self.time_var) #returns either None or a masked array
             if hasattr(self.time,'mask'):
                 self.time = self.time.data
             else:
                 self.time = None
+
+            if self.time != None:
+                if self.time.ndim != 1:
+                    self.time = self.time.flatten() #remove singletone dimensions
+
         else:
             self.time = None
 
@@ -1343,6 +1382,7 @@ class Data():
         """
         if self.time_str is None:
             print '        WARNING: time type can not be determined!'
+            print self.time_str
         elif self.time_str == 'day as %Y%m%d.%f':
             self._convert_time()
         elif 'hours since' in self.time_str:
@@ -1637,6 +1677,12 @@ class Data():
             else:
                 data = data[:,self.level,:,:] #[time,level,ny,nx ] --> [time,ny,nx]
 
+        if data.ndim == 1: #in case of vector data, generate a dummy dimension
+            tmp = np.zeros((1,len(data)))
+            tmp[:] = data[:]*1.
+            data = tmp*1.; del tmp
+
+
         self.fill_value = None
         if hasattr(var,'_FillValue'):
             self.fill_value = float(var._FillValue)
@@ -1678,8 +1724,8 @@ class Data():
         if self.unit == None and hasattr(var, 'units'):
             self.unit = var.units
 
-        if 'time' in F.variables.keys():
-            tvar = F.variables['time']
+        if self.time_var in F.variables.keys():
+            tvar = F.variables[self.time_var]
             if hasattr(tvar,'units'):
                 self.time_str = tvar.units
             else:
@@ -1866,7 +1912,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def _get_weighting_matrix(self,normtype='valid'):
+    def _get_weighting_matrix(self):
         """
         (unittest)
 
@@ -1877,19 +1923,11 @@ class Data():
         The returned array contains weights for each timestep. The sum
         of these weights is equal to one for each timestep.
 
-        @param normtype: specifies how normalization shall be done ['valid','all']
-                        'valid': the weights are calculated based on all VALID values, thus the sum of all these weights is one
-                        'all': contrary, weights are calculated based on ALL (valid and invalid) data.
-                        The latter option can be useful, if one is interested e.g. in a global area weighted mean, whereas the
-                        values in 'self' are only valid for e.g. land areas. If one wants to calculate e.e. the change in
-                        global mean surface fluxes, given only land fluxes, one can normalize using normtype='all' and then gets
-                        the impact on the global mean fluxes. In the other case (normtype='valid'), one would get the change in the
-                        global mean of the LAND fluxes only!
-        @type normtype: str
-
         @return weighting matrix in same geometry as original data
         @rtype numpy array
         """
+
+        normtype = self.weighting_type
 
         if normtype in ['valid','all']:
             pass
@@ -1902,8 +1940,10 @@ class Data():
             if normtype == 'valid':
                 m = ~self.data.mask
                 w[m] = self.cell_area[m] / self.cell_area[m].sum()
+                w = np.ma.array(w,mask=~m)
             else:
                 w = self.cell_area / self.cell_area.sum()
+                w = np.ma.array(w,mask=w!=w)
             return w
 
         elif self.data.ndim == 3:
@@ -1918,15 +1958,20 @@ class Data():
             elif len(s) == 1:
                 w = cell_area.repeat(nt).reshape((1,nt)).T
             else:
-                print s
+                print 'nt: ', nt
+                print 's: ', s
+                print 'len(s): ', len(s)
                 raise ValueError, 'Invalid geometry!'
 
             w.shape = self.data.shape #geometry is the same now as data
 
-            #2) mask areas that do not contain valid data
-            w = np.ma.array(w,mask=self.data.mask)
+
+
 
             if normtype == 'valid':
+                #2) mask areas that do not contain valid data
+                w = np.ma.array(w,mask=self.data.mask)
+
                 #3) calculate for each time the sum of all VALID grid cells --> normalization factor
                 no = w.reshape(nt,-1).sum(axis=1) #... has size nt
 
@@ -1934,16 +1979,19 @@ class Data():
                 for i in xrange(nt):
                     w[i,:,:] /= no[i]
             else:
+                #2) mask areas that do not contain valid data
+                w = np.ma.array(w,mask= (w!=w) )
                 w /= self.cell_area.sum() #normalization by total area. This does NOT result in sum(w) == 1 for each timestep!
 
             return w
-        else:
+
+        else: #dimension
             raise ValueError, 'weighting matrix not supported for this data shape'
 
 
 #-----------------------------------------------------------------------
 
-    def mean(self,apply_weights=True):
+    def xxxxxxmean(self,apply_weights=True): #needed ???
         """
         calculate mean of the spatial field using weighted averaging
 
@@ -1952,7 +2000,7 @@ class Data():
         """
         if apply_weights:
             #area weighting
-            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
+            w = self._get_weighting_matrix(self.weighting_type) #get weighting matrix for each timestep (taking care of invalid data)
             w *= self.data #multiply the data with the weighting matrix in memory efficient way
             return w.sum() #... gives weighted sum = mean
         else:
@@ -1977,23 +2025,44 @@ class Data():
         @rtype: C{Data} object or numpy array
         """
 
-        if self.data.ndim != 3:
+        if self.data.ndim == 3:
+            pass
+        elif self.data.ndim == 2:
+            pass
+        else:
             raise ValueError, 'fldmean currently only supported for 3D data'
 
         if apply_weights:
             #area weighting
             w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
             w *= self.data #multiply the data with the weighting matrix in memory efficient way
-            w.shape = (len(self.data),-1)
-            tmp = w.sum(axis=1) #... gives weighted sum
+            if self.data.ndim == 3:
+                w.shape = (len(self.data),-1)
+                tmp = w.sum(axis=1) #... gives weighted sum
+            elif self.data.ndim == 2:
+                tmp = np.asarray([np.asarray(w.sum())])
+            else:
+                raise ValueError, 'Undefined!'
         else:
             #no area weighting
-            tmp = np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
+            if self.data.ndim ==3:
+                tmp = np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
+            elif self.data.ndim == 2:
+                tmp = np.asarray([self.data.mean()])
+            else:
+                raise ValueError, 'Undefined'
 
         #////
         if return_data: #return data object
-            x = np.zeros((len(tmp),1,1))
-            x[:,0,0] = tmp
+            if self.data.ndim == 3:
+                x = np.zeros((len(tmp),1,1))
+                x[:,0,0] = tmp
+            elif self.data.ndim ==2:
+                x = np.zeros((1,1))
+                x [:,:] = tmp[0]
+            else:
+                raise ValueError, 'Undefined'
+
             assert(isinstance(tmp,np.ma.masked_array))
             r = self.copy()
             r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
@@ -2011,6 +2080,101 @@ class Data():
     def fldstd(self,return_data = False,apply_weights=True):
         """
         calculate stdv of the spatial field using area weighting
+        returns exactly same results as the same CDO function
+
+        (unittest)
+
+        @param return_data: if True, then a C{Data} object is returned
+        @type return_data: bool
+
+        @return: vector of spatial std array[time]
+        """
+
+        if self.data.ndim == 3:
+            pass
+        elif self.data.ndim == 2:
+            pass
+        else:
+            raise ValueError, 'fldstd currently only supported for 3D data'
+
+        if apply_weights:
+            #calculate weighted standard deviation.
+            #http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
+            #(adapted from http://stackoverflow.com/questions/2413522/weighted-standard-deviation-in-numpy)
+
+            #calculate weighting matrix
+            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
+
+            if self.data.ndim ==2:
+                #mu = (self.data*w).sum()
+                #v1 = w.sum()
+                #v2 = (w*w).sum()
+                #tmp = [(v1 / (v1*v1-v2)) * (w*(self.data - mu)**2).sum()]
+
+                h2 = self.data*w  #wx
+                h1 = self.data*h2 #w*x**2
+                ny,nx = self.data.shape
+
+                s = h1.sum() * w.sum() - h2.sum()**2
+                s /= (w.sum()**2  - (w*w).sum() )
+
+                tmp = [np.sqrt(s)]
+
+
+            elif self.data.ndim ==3:
+                h2 = self.data*w  #wx
+                h1 = self.data*h2 #w*x**2
+
+                #do calculation
+                nt,ny,nx = self.data.shape
+
+                s = np.ones(nt)*np.nan #generate output array (unbiased variance estimator)
+                for i in xrange(nt):
+                    s[i] = h1[i,:,:].sum() * w[i,:,:].sum() - h2[i,:,:].sum()**2
+                    s[i] /= (w[i,:,:].sum()**2  - (w[i,:,:]*w[i,:,:]).sum()  )
+                tmp = np.sqrt(s)
+
+
+            else:
+                raise ValueError, 'Undefined'
+
+        else:
+            #no area weighting
+            if self.data.ndim ==2:
+                tmp = self.data.std()
+            elif self.data.ndim ==3:
+                tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
+            else:
+                raise ValueError, 'Undefined'
+
+
+        if return_data: #return data object
+            if self.data.ndim==3:
+                x = np.zeros((len(tmp),1,1))
+                x[:,0,0] = tmp
+            elif self.data.ndim ==2:
+                x = np.zeros((1,1,1))
+                x[0,0,0] = tmp
+            else:
+                raise ValueError, 'Undefined'
+            assert(isinstance(tmp,np.ma.masked_array))
+            r = self.copy()
+            r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
+
+            #return cell area array with same size of data
+            r.cell_area = np.array([1.])
+
+            return r
+        else: #return numpy array
+            return tmp
+
+
+
+
+
+    def __xxxxxoldfldstd(self,return_data = False,apply_weights=True):
+        """
+        calculate stdv of the spatial field using area weighting
 
         returns exactly same results as the same CDO function
 
@@ -2022,6 +2186,13 @@ class Data():
         @return: vector of spatial std array[time]
         """
 
+        if self.data.ndim == 3:
+            pass
+        elif self.data.ndim == 2:
+            raise ValueError, 'fldstd currently only supported for 3D data and not for 2D'
+        else:
+            raise ValueError, 'fldstd currently only supported for 3D data'
+
         if apply_weights:
             #calculate weighted standard deviation.
             #http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
@@ -2030,14 +2201,13 @@ class Data():
             #calculate weighting matrix
             w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
 
-            #some temp. variables
             h2 = self.data*w  #wx
             h1 = self.data*h2 #w*x**2
 
             #do calculation
             nt,ny,nx = self.data.shape
 
-            s = np.ones(nt)*np.nan #generate output array
+            s = np.ones(nt)*np.nan #generate output array (unbiased variance estimator)
             for i in xrange(nt):
                 s[i] = h1[i,:,:].sum() * w[i,:,:].sum() - h2[i,:,:].sum()**2
                 s[i] /= (w[i,:,:].sum()**2  - (w[i,:,:]*w[i,:,:]).sum()  )
@@ -2049,16 +2219,34 @@ class Data():
 
 
         #--- return either a Data object or a numpy array
-        if return_data: #return data object
-            tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
-            x = np.zeros((len(tmp),1,1))
+        #if return_data: #return data object
+        #    tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
+        #    x = np.zeros((len(tmp),1,1))
 
+        #    x[:,0,0] = tmp
+        #    r = self.copy()
+        #    r.data = np.ma.array(x.copy(),mask=tmp.mask )
+        #    return r
+        #else: #return numpy array
+        #    return tmp
+
+
+
+        if return_data: #return data object
+            x = np.zeros((len(tmp),1,1))
             x[:,0,0] = tmp
+            assert(isinstance(tmp,np.ma.masked_array))
             r = self.copy()
-            r.data = np.ma.array(x.copy(),mask=tmp.mask )
+            r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
+
+            #return cell area array with same size of data
+            r.cell_area = np.array([1.])
+
             return r
         else: #return numpy array
             return tmp
+
+
 
 
 #-----------------------------------------------------------------------
@@ -2523,8 +2711,10 @@ class Data():
         @param nx: shift by nx steps
         @type nx: int
         """
-
-        self.data = self.__shift3D(self.data,nx)
+        if self.data.ndim == 3:
+            self.data = self.__shift3D(self.data,nx)
+        else:
+            self.data = self.__shift2D(self.data,nx)
         self.lat  = self.__shift2D(self.lat,nx)
         self.lon  = self.__shift2D(self.lon,nx)
 
@@ -3172,13 +3362,12 @@ class Data():
 
     def _set_timecycle(self):
         """
-        determine automatically the timecylce of the data and set the appropriate variable if possible
+        determine automatically the timecycle of the data and set the appropriate variable if possible
 
         (unittest)
 
         @return:
         """
-
         if self._is_monthly():
             self.time_cycle=12
         else:
