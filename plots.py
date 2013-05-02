@@ -1811,7 +1811,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
-             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, **kwargs):
+             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1900,6 +1900,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param drawcountries: specifies if countries will be shown in map plot (default=TRUE)
     @type drawcountries: bool
+
+    @param bins: bins for histogram
+    @type bins: int
 
 
     """
@@ -2104,7 +2107,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- add a histogram below the map plot
     if show_histogram:
-        add_histogram(ax,x)
+        add_histogram(ax,x,bins=bins)
 
     #Zonal plot
     if show_zonal:
@@ -2154,9 +2157,14 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     # are the means and std of the temporal mean fields which are weighted
     # appropriately according to the cell area
     if show_stat:
-        tmp_xm = x.copy()
-        tmp_xm.data = xm.reshape(1,xm.shape[0],xm.shape[1]) #make a 3D object thus fldmean works appropriately
-        me = tmp_xm.fldmean(); st=tmp_xm.fldstd()
+        #tmp_xm = x.copy()
+        #tmp_xm.data = xm.reshape(1,xm.shape[0],xm.shape[1]) #make a 3D object thus fldmean works appropriately
+        #tmp_xm.cell_area = tmp_xm.cell_area.reshape(xm.shape[0],xm.shape[1]) #reshape cell area, that get_area_weighting() works!
+        tmp_xm = x.timmean(return_object=True) #from temporal mean
+
+        me = tmp_xm.fldmean()
+        st = tmp_xm.fldstd()
+
         assert(len(me) == 1)
         assert(len(st) == 1)
         me = me[0]; st=st[0]
@@ -2179,7 +2187,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def add_histogram(ax,x):
+def add_histogram(ax,x,bins=10):
     """
     add a histogram to an axis
 
@@ -2197,7 +2205,7 @@ def add_histogram(ax,x):
 
     ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
 
-    H = HistogrammPlot(ax=zax) #bins ???
+    H = HistogrammPlot(ax=zax,bins=bins)
     H.plot(x) #plot options ????
 
 
