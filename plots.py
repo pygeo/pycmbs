@@ -1251,9 +1251,11 @@ class GlecklerPlot():
             if pos == 'top':
                 x = [0.,0.,1.]
                 y = [0.,1.,1.]
+                tpos = (0.25,0.75)
             elif pos == 'bottom':
                 x = [1.,1.,0.]
                 y = [1.,0.,0.]
+                tpos = (0.75,0.25)
             else:
                 raise ValueError, 'Invalid position for plot'
 
@@ -1416,10 +1418,14 @@ class GlecklerPlot():
 
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
         #draw legend
-        self._draw_colorbar(left,right-left)
+        c=0.75
+        width=(right-left)*c
+        self._draw_colorbar(left,width)
 
         if title != None:
             self.fig.suptitle(title)
+
+        return self.fig
 
 #-----------------------------------------------------------------------
 
@@ -1614,7 +1620,6 @@ class GlecklerPlot():
         for k in labels.keys():
             if k == 1:
                 pos = 'top'
-
             elif k == 2:
                 pos = 'bottom'
             elif k == 3:
@@ -1625,7 +1630,11 @@ class GlecklerPlot():
                 raise ValueError, 'Can not draw Gleckler legend! Invalid position value! ' + str(k)
 
 
-            self.__plot_triangle(ax,k*0.01,pos=pos)
+            #self.__plot_triangle(ax,k*0.01,pos=pos
+            oldval = self.show_value
+            self.show_value=False
+            self.__plot_triangle(ax,np.random.random(),pos=pos)
+            self.show_value=oldval
             ax.set_xticks([])
             ax.set_yticks([])
 
