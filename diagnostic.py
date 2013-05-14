@@ -1760,7 +1760,7 @@ class Diagnostic():
         perform correlation analysis for
         different starting times and gap sizes
 
-        if timmean=True then the correlation is caluclated
+        if timmean=True then the correlation is calculated
         on basis of the mean spatial fields, thus
         the timeseries of each pixels is averaged over time
         before the correlation calculation

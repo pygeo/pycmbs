@@ -1953,7 +1953,11 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         dummy = kwargs1.pop('levels')
 
     #--- create colormap
-    cmap = plt.cm.get_cmap(cmap_data, nclasses)
+    if hasattr(cmap_data,'monochrome'):
+        #colormap object was given
+        cmap = cmap_data
+    else:
+        cmap = plt.cm.get_cmap(cmap_data, nclasses)
 
     #--- temporal mean fields as data to plot
     xm = x.timmean()
