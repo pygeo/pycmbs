@@ -1820,7 +1820,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
-             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, **kwargs):
+             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, colorbar_orientation='vertical', **kwargs):
     """
     produce a nice looking map plot
 
@@ -1913,6 +1913,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @param bins: bins for histogram
     @type bins: int
 
+    @param colorbar_orientation: specifies if colorbar shall be vertical or horizontal aligned ['horizontal','vertical']
+    @type colorbar_orientation: str
 
     """
 
@@ -2111,11 +2113,17 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #set legend aligned with plot (nice looking)
     if show_colorbar:
         divider = make_axes_locatable(ax)
-        cax = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
+        if colorbar_orientation == 'vertical':
+            cax = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
+        elif colorbar_orientation == 'horizontal':
+            cax = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+        else:
+            raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
         ax.figure.add_axes(cax)
         vmin = im1.get_clim()[0]; vmax = im1.get_clim()[1]
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks)
+
+        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks,orientation=colorbar_orientation)
 
 
     #--- add a histogram below the map plot
