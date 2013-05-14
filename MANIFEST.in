@@ -1,0 +1,11 @@
+include README
+global-include *.py
+graft tests
+prune test_eof
+exclude test_hov.py
+exclude anova_test.py
+exclude ansamp.py
+prune dist
+recursive-exclude tests testfile.nc
+graft doc
+include COPYING
