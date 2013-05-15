@@ -173,7 +173,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def save(self,filename,varname=None,format='nc',delete=False):
+    def save(self,filename,varname=None,format='nc',delete=False,mean=False):
         """
         saves the data object to a file
 
@@ -181,14 +181,22 @@ class Data():
         @param varname: name of output variable
         @param delete: delete file if existing without asking
         @param format: output format ['nc','txt']
+        @param mean: save spatial mean field only
         """
 
-        print 'Saving object in file ' + filename
+        #/// either store full field or just spatial mean field ///
+        if mean:
+            print 'Saving MEAN FIIELD of object in file ' + filename
+            tmp = self.fldmean(return_data=True)
+        else:
+            print 'Saving object in file ' + filename
+            tmp = self
 
+        #/// store data now ... ///
         if format == 'nc':
-            self._save_netcdf(filename,varname=varname,delete=delete)
+            tmp._save_netcdf(filename,varname=varname,delete=delete)
         elif format == 'ascii':
-            self._save_ascii(filename,varname=varname,delete=delete)
+            tmp._save_ascii(filename,varname=varname,delete=delete)
         else:
             raise ValueError, 'This output format is not defined yet!'
 
@@ -205,7 +213,7 @@ class Data():
         @param delete: delete file if existing without asking
         """
 
-        raise ValueError, 'This is not implemented yet!!!'
+        #raise ValueError, 'This is not implemented yet!!!'
 
         #/// check if output file already there
         if os.path.exists(filename):
@@ -226,7 +234,7 @@ class Data():
 
         F.write(str(len(self.time)) + '\n'   ) #number of timesteps
         for i in xrange(len(self.time)):
-            F.write(str(pl.num2date(self.time[i])) + ' , ' + str(self.data[i,:,:]) )
+            F.write(str(pl.num2date(self.time[i])) + ' , ' + str(self.data[i,:].flatten()).replace('[','').replace(']','') + '\n' )
 
         F.close()
 
@@ -1785,6 +1793,54 @@ class Data():
         else:
             print self.data.ndim
             sys.exit('Temporal mean can not be calculated as dimensions do not match!')
+
+        if return_object:
+            tmp = self.copy(); tmp.data = res
+            return tmp
+        else:
+            return res
+
+#-----------------------------------------------------------------------
+
+    def timmin(self,return_object=False):
+        """
+        calculate temporal minimum of data field
+
+        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+        @type return_object: bool
+        """
+        if self.data.ndim == 3:
+            res = self.data.min(axis=0)
+        elif self.data.ndim == 2:
+            #no temporal averaging
+            res = self.data.copy()
+        else:
+            print self.data.ndim
+            sys.exit('Temporal minimum can not be calculated as dimensions do not match!')
+
+        if return_object:
+            tmp = self.copy(); tmp.data = res
+            return tmp
+        else:
+            return res
+
+#-----------------------------------------------------------------------
+
+    def timmax(self,return_object=False):
+        """
+        calculate temporal maximum of data field
+
+        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+        @type return_object: bool
+        """
+        if self.data.ndim == 3:
+            res = self.data.max(axis=0)
+        elif self.data.ndim == 2:
+            #no temporal averaging
+            res = self.data.copy()
+        else:
+            print self.data.ndim
+            sys.exit('Temporal maximum can not be calculated as dimensions do not match!')
 
         if return_object:
             tmp = self.copy(); tmp.data = res
