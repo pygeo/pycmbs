@@ -191,6 +191,30 @@ class TestData(TestCase):
         for i in xrange(len(D.time)):
             self.assertEqual(pl.num2date(D.time[i]).year,2025)
 
+
+    def test_timstat(self):
+        """
+        test temporal statistic functions
+        @return:
+        """
+        D = self.D.copy()
+
+        me = D.data.mean(axis=0)
+        ME = D.timmean(return_object=True)
+        self.assertEquals(me[0],ME.data[0])
+
+        st = D.data.std(axis=0)
+        ST = D.timstd(return_object=True)
+        self.assertEquals(st[0],ST.data[0])
+
+        mi = D.data.min(axis=0)
+        MI = D.timmin(return_object=True)
+        self.assertEquals(mi[0],MI.data[0])
+
+        ma = D.data.max(axis=0)
+        MA = D.timmax(return_object=True)
+        self.assertEquals(ma[0],MA.data[0])
+
     def test_timsort(self):
         D=self.D.copy()
         D.adjust_time(day=15)
