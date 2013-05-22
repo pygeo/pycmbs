@@ -343,11 +343,11 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 
 class ScatterPlot():
-    '''
+    """
     Class for generation of scatterplots
-    '''
+    """
     def __init__(self,x,ax=None,ticksize=10,normalize_data=False,show_xlabel=True):
-        '''
+        """
         constructor of class C{ScatterPlot}
 
         @param x: Variable that will be used as the x-variable
@@ -358,10 +358,12 @@ class ScatterPlot():
 
         @param show_xlabel: show xlabel in plot
         @type show_xlabel: bool
-        '''
+
+        @param ticksize: ticksize of labels
+        @type ticksize: int
+        """
 
         self.show_xlabel = show_xlabel
-
 
         if ax == None:
             f = plt.figure()
@@ -373,22 +375,21 @@ class ScatterPlot():
         self.x = x
         self.lines = []; self.labels = []
         self.ticksize=ticksize
-
         self.normalize = normalize_data
 
 
 #-----------------------------------------------------------------------
-    def __normalize_data(self,x):
-        '''
-        normmalize timeseries
-        '''
-        return (x-x.mean()) / x.std()
 
+    def __normalize_data(self,x):
+        """
+        normmalize timeseries
+        """
+        return (x-x.mean()) / x.std()
 
 #-----------------------------------------------------------------------
 
-    def plot(self,y,regress=True,**kwargs):
-        '''
+    def plot(self,y,regress=True,fldmean=True,hexbin=False,**kwargs):
+        """
         add a dataset to the scatterplot and plot
         it. It also allows to perform a regression analysis
 
@@ -397,30 +398,54 @@ class ScatterPlot():
 
         @param regress: Perform linear regression analysis
         @type regress: bool
-        '''
+
+        @param fldmean: show in scatterplot fldmean() values, else datapairs are copnstructed for each grid cell
+        @type fldmean: bool
+        """
+
         label=y.label
-        xdat = self.x.fldmean(); ydat = y.fldmean()
+
+        if fldmean:
+            xdat = self.x.fldmean(); ydat = y.fldmean()
+        else:
+            if self.x.data.shape != y.data.shape:
+                print self.x.data.shape
+                print self.y.data.shape
+                raise ValueError, 'Invalid geometry between X and Y. fldmean=True option therefore not possible!'
+            else:
+                xdat = self.x.data.flatten(); ydat = y.data.flatten()
 
         if self.normalize:
             xdat = self.__normalize_data(xdat)
             ydat = self.__normalize_data(ydat)
 
         #- calculate linear regression
-        #~ print xdat.shape
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.linregress(xdat,ydat)
             if p_value < 0.01:
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
-            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ')'
+            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', slope:' + str(slope) + ', ' + 'intercept: ' + str(intercept) + ')'
             rms_error = np.mean(((xdat-ydat)**2))
             std_error = np.std(xdat-ydat)
 
-        l = self.ax.plot(xdat,ydat,'.',label=label,**kwargs)[0]
+        #- actual plot
+        if hexbin:
+            l = self.ax.hexbin(xdat,ydat,**kwargs)
+        else:
+            l = self.ax.plot(xdat,ydat,'.',label=label,**kwargs)[0]
+
+        if hexbin:
+            pass
+        else:
+            self.lines.append(l); self.labels.append(label)
+
         if regress:
-            self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
-        self.lines.append(l); self.labels.append(label)
+            if hexbin:
+                self.ax.plot(xdat,xdat*slope+intercept,'--')
+            else:
+                self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
 
         if self.show_xlabel:
             self.ax.set_xlabel(self.x._get_label(),size=self.ticksize )
@@ -572,6 +597,11 @@ class LinePlot():
             else:
                 y = x.fldmean() #... otherwise use fldmean() to get timeseries
 
+
+            print x.time
+            print x.time.shape, type(x.time)
+            print 'y-shape: ', np.shape(y), type(y)
+
             if norm_std:
                 y /= y.std()
 
@@ -617,7 +647,7 @@ class LinePlot():
                 for tl in ax.get_yticklabels():
                     tl.set_color(p.get_color())
 
-            self._change_ticklabels(ax)
+            #self._change_ticklabels(ax)
 
 
 #-----------------------------------------------------------------------
@@ -2111,20 +2141,30 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         ax.set_xticks([]); ax.set_yticks([])
 
     #set legend aligned with plot (nice looking)
+
+    divider = make_axes_locatable(ax)
+    caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
+    caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+    if colorbar_orientation == 'vertical':
+        cax = caxv
+        caxdummy = caxh
+    elif colorbar_orientation == 'horizontal':
+        cax = caxh
+        caxdummy = caxv
+    else:
+        raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
+    ax.figure.add_axes(cax)
+    vmin = im1.get_clim()[0]; vmax = im1.get_clim()[1]
+    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+
+    #dummy axis to ensure equal spacing in multiple plots
+    caxdummy.set_xticks([]); caxdummy.set_yticks([]); caxdummy.set_frame_on(False)
+
     if show_colorbar:
-        divider = make_axes_locatable(ax)
-        if colorbar_orientation == 'vertical':
-            cax = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
-        elif colorbar_orientation == 'horizontal':
-            cax = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
-        else:
-            raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
-        ax.figure.add_axes(cax)
-        vmin = im1.get_clim()[0]; vmax = im1.get_clim()[1]
-        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-
+        #plot actual colorbar
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks,orientation=colorbar_orientation)
-
+    else:
+        cax.set_xticks([]); cax.set_yticks([]); cax.set_frame_on(False)
 
     #--- add a histogram below the map plot
     if show_histogram:
