@@ -2086,7 +2086,7 @@ class Data():
         elif self.data.ndim == 2:
             pass
         else:
-            raise ValueError, 'fldmean currently only supported for 3D data'
+            raise ValueError, 'fldmean currently only supported for 2D/3D data'
 
         if apply_weights:
             #area weighting
