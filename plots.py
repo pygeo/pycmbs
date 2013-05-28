@@ -242,8 +242,8 @@ class ReichlerPlot():
 
         #- normalize results (relative modle performance)
         self._normalize()
-        x = np.arange(len(self.e2_norm))
-        y1 = self.e2_norm*100.; y2 = self.e2_norm*100.
+        x = np.arange(len(self.e_norm))
+        y1 = self.e_norm*100.; y2 = self.e_norm*100.
 
         y1 = np.ma.array(y1,mask=y1<0.) #positive values only
         y2 = np.ma.array(y2,mask=y2>=0.) #negative values only
@@ -253,8 +253,15 @@ class ReichlerPlot():
         #print self.e2
         #print self.e2_norm
 
-        self.ax.bar(x,y1,color='red' ,edgecolor='None',**kwargs)
-        self.ax.bar(x,y2,color='blue',edgecolor='None',**kwargs)
+        if 'color' in kwargs.keys():
+            upcolor  =kwargs.pop('color')
+            lowcolor =kwargs.pop('color')
+        else:
+            upcolor='red'
+            lowcolor='blue'
+
+        self.ax.bar(x,y1,color=upcolor ,edgecolor='None',**kwargs)
+        self.ax.bar(x,y2,color=lowcolor,edgecolor='None',**kwargs)
 
         self.ax.set_xticks(x+0.5)
         self.ax.set_xticklabels(self.labels,rotation=90.)
@@ -329,15 +336,15 @@ class ReichlerPlot():
         """
 
         n  = len(self.e2[0])
-        E2 = []
+        E = []
 
-        for e in self.e2:
-            if len(e) != n:
+        for e2 in self.e2:
+            if len(e2) != n:
                 print 'WARNING: non consistent length in error statistics!!!'
-            E2.append(np.nansum(e)) #temporal aggregation
+            E.append(np.nansum(np.sqrt(e2))) #temporal aggregation
 
-        E2 = np.asarray(E2);  EM = E2.mean()
-        self.e2_norm =  (E2 - EM) / EM #see Glecker et al, eq.2
+        E = np.asarray(E);  EM = E.mean() #take square root, as e2 is still the squared error!
+        self.e_norm =  (E - EM) / EM #see Glecker et al, eq.2
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -353,7 +360,7 @@ class ScatterPlot():
         @param x: Variable that will be used as the x-variable
         @type x: C{Data} object
 
-        @param normalize_data: if True, then the dataseries is normalizued internally so that it has zero mean and a std of 1
+        @param normalize_data: if True, then the dataseries is normalized internally so that it has zero mean and a std of 1
         @type normalize_data: bool
 
         @param show_xlabel: show xlabel in plot
@@ -597,14 +604,8 @@ class LinePlot():
             else:
                 y = x.fldmean() #... otherwise use fldmean() to get timeseries
 
-
-            print x.time
-            print x.time.shape, type(x.time)
-            print 'y-shape: ', np.shape(y), type(y)
-
             if norm_std:
                 y /= y.std()
-
 
             if label == None:
                 label = x.label
@@ -813,13 +814,6 @@ class GlobalMeanPlot():
         return f
 
 
-
-
-
-
-
-
-
 #-----------------------------------------------------------------------------------------------------------------------
 
     def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-',mask=None,group='A'):
@@ -904,29 +898,32 @@ class GlobalMeanPlot():
 
         #- plot climatology if desired
         if self.climatology:
-            tmp = D.get_climatology(return_object=True)
-            tmp.adjust_time(year=1700,day=15)
-            tmp.timsort()
-            m = tmp.fldmean(return_data=False).flatten()
+            if hasattr(self,'time_cycle'):
+                tmp = D.get_climatology(return_object=True)
+                tmp.adjust_time(year=1700,day=15)
+                tmp.timsort()
+                m = tmp.fldmean(return_data=False).flatten()
 
-            self.ax1.plot(np.arange(1,13),m,linestyle=linestyle)
-            self.ax1.set_xlim(0.,13.)
-            self.ax1.set_ylabel(tmp._get_unit())
-            del tmp
+                self.ax1.plot(np.arange(1,13),m,linestyle=linestyle)
+                self.ax1.set_xlim(0.,13.)
+                self.ax1.set_ylabel(tmp._get_unit())
+                del tmp
 
-            self.ax1.set_xlabel('months')
+                self.ax1.set_xlabel('months')
 
-            self.ax1.grid()
-            #self.ax1.axis('tight')
+                self.ax1.grid()
+                #self.ax1.axis('tight')
 
-            #store values for aggregated plot
-            if group in self.pdata_clim.keys():
-                vdata = self.pdata_clim[group]
+                #store values for aggregated plot
+                if group in self.pdata_clim.keys():
+                    vdata = self.pdata_clim[group]
+                else:
+                    vdata=[]
+                vdata.append({'time':np.arange(1,13),'data':m})
+                self.pdata_clim.update({group:vdata}) #store results for current group
+                del vdata
             else:
-                vdata=[]
-            vdata.append({'time':np.arange(1,13),'data':m})
-            self.pdata_clim.update({group:vdata}) #store results for current group
-            del vdata
+                print 'WARNING: Global mean plot can not be generated due to missing time_cycle!'
 
 
         #- store information for legend
@@ -1850,7 +1847,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
-             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, colorbar_orientation='vertical', **kwargs):
+             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, colorbar_orientation='vertical',stat_type='mean', **kwargs):
     """
     produce a nice looking map plot
 
@@ -1945,6 +1942,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param colorbar_orientation: specifies if colorbar shall be vertical or horizontal aligned ['horizontal','vertical']
     @type colorbar_orientation: str
+
+    @param stat_type: specifies if mean or median shall be used for statistics ['mean','median']
+    @type stat_type: str
 
     """
 
@@ -2223,13 +2223,21 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         #tmp_xm.cell_area = tmp_xm.cell_area.reshape(xm.shape[0],xm.shape[1]) #reshape cell area, that get_area_weighting() works!
         tmp_xm = x.timmean(return_object=True) #from temporal mean
 
-        me = tmp_xm.fldmean()
-        st = tmp_xm.fldstd()
+        if stat_type == 'mean':
+            me = tmp_xm.fldmean()
+            st = tmp_xm.fldstd()
+            assert(len(me) == 1)
+            assert(len(st) == 1)
+            me = me[0]; st=st[0]
+            title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
 
-        assert(len(me) == 1)
-        assert(len(st) == 1)
-        me = me[0]; st=st[0]
-        title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
+
+
+        else:
+            me = np.ma.median(tmp_xm.data)
+            title = title + '\n (median: ' + str(round(me,2)) + ')'
+
+
 
 
     ax.set_title(title,size=titlefontsize)

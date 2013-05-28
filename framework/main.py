@@ -405,7 +405,9 @@ if True:
                     #theD[0][:] = None; theD[1][:] = None; theD.add(hlp2[2],copy=False)
                     #theD.label='Mean-model'
                     model_mean.variables.update( { k : (None,None,None) } )
-                else:
+                else: #mean model!
+                    if hlp1 == None:
+                        continue
                     theD = hlp1.copy()
                     theD.add(hlp2,copy=False) #SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
                     theD.label = 'Mean-model'
@@ -420,7 +422,8 @@ if True:
             pass
             #model_mean.variables.update( { k : (hlp1[0],hlp1[1],hlp1[2].mulc(1./float(len(proc_models)),copy=False )  ) } )
         else:
-            model_mean.variables[k].mulc(1./float(len(proc_models)),copy=False) #weight with number of models
+            if model_mean.variables[k] != None:
+                model_mean.variables[k].mulc(1./float(len(proc_models)),copy=False) #weight with number of models
 
     #add to list of models to process
     proc_models.append('model_mean')
@@ -496,6 +499,10 @@ rep.close()
 
 pl.close('all')
 
+
+print '##########################################'
+print '# BENCHMARKING FINIHSED!                 #'
+print '##########################################'
 
 #~ if __name__ == '__main__':
     #~ main()
