@@ -507,6 +507,38 @@ class TestData(TestCase):
             self.assertAlmostEqual(r.data[0,0],r_value2,places=10)
             self.assertAlmostEqual(p.data[0,0],p_value2,places=10)
 
+        #/// linear detrending of data ///
+        x = self.D.copy()
+        tmp = np.arange(len(x.time))
+        x.data[:,0,0] = np.ma.array(tmp,mask=tmp!=tmp)
+        y = x.copy()
+        y.data = y.data * 1.2 + 3.
+
+        r,p = x.correlate(y)
+        self.assertEquals(r.data[0,0],1.)
+
+        #--- detrending ---
+        r,p = x.correlate(y,detrend=True)
+        self.assertEquals(r.data[0,0],0.)
+
+
+    def test_normalize(self):
+        x = self.D.copy()
+        d = x.data[:,0,0].copy()
+
+        r = (d - d.mean()) / d.std()
+        x.normalize(return_object=False)
+        dif = np.abs(x.data[:,0,0]-r)
+        self.assertTrue(np.all(dif == 0.))
+
+        x = self.D.copy()
+        y=x.normalize(return_object=True)
+        dif = np.abs(y.data[:,0,0]-r)
+        self.assertTrue(np.all(dif == 0.))
+
+
+
+
 
     def test_condstat(self):
         """

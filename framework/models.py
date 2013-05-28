@@ -92,6 +92,7 @@ class Model(Data):
 #            print routine[0:routine.index('(')]
 #            print hasattr(self,routine[0:routine.index('(')])
             #~ if hasattr(self,routine)
+            #print routine
             if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
                 exec(cmd)
 
@@ -103,7 +104,7 @@ class Model(Data):
                     self.variables.update({ k : dat }) #update field with data
 
             else:
-                print 'WARNING: unknown function to read data (skip!) '
+                print 'WARNING: unknown function to read data (skip!), variable: ', k
                 self.variables.update({ k : None })
 
 
@@ -528,7 +529,7 @@ class CMIP5Data(Model):
 
 
         if not os.path.exists(sup_clim_file):
-            print 'File not existing: ' + sup_clim_file
+            print 'File not existing (sup_clim_file): ' + sup_clim_file
             return None
 
 
@@ -859,7 +860,7 @@ class JSBACH_RAW(Model):
 
 
         if not os.path.exists(rawfilename):
-            print 'File not existing: ', rawfilename
+            print 'File not existing (rawfile): ', rawfilename
             return None
 
         filename = rawfilename
@@ -873,7 +874,10 @@ class JSBACH_RAW(Model):
             shift_lon=self.shift_lon,
             mask=ls_mask.data.data)
 
-        return t2m
+
+        retval = (t2m.time,t2m,t2m)
+
+        return t2m, retval
 
 
 
@@ -921,8 +925,8 @@ class JSBACH_RAW(Model):
         v = 'swdown_acc'
 
         y1 = '1979-01-01'; y2 = '2010-12-31'
-        #rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
-        rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+        #rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
 
         if not os.path.exists(rawfilename):
             print 'File not existing: ', rawfilename
@@ -960,8 +964,8 @@ class JSBACH_RAW(Model):
         v = 'swdown_reflect_acc'
 
         y1 = '1979-01-01'; y2 = '2010-12-31'
-        #rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
-        rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
+        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+        #rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
 
         if not os.path.exists(rawfilename):
             print 'File not existing: ', rawfilename

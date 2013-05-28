@@ -1002,7 +1002,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def correlate(self,Y,pthres=1.01,spearman=False):
+    def correlate(self,Y,pthres=1.01,spearman=False,detrend=False):
         """
         correlate present data on a grid cell basis
         with another dataset
@@ -1027,6 +1027,9 @@ class Data():
         @return: returns correlation coefficient and its significance
         @rtype: C{Data} objects
 
+        @param detrend: perform linear detrending before analysis
+        @type detrend: bool
+
         @todo: implement faster correlation calculation
         @todo: slope calculation as well ???
         @todo: significance correct ??? -- not if stats.mstats.linregress would be used!!!!
@@ -1045,6 +1048,13 @@ class Data():
         xv = self.data.copy()
         yv = Y.data.copy()
         sdim = self.data.shape
+
+
+        #--- detrend data if required
+        if detrend:
+            xv = self.detrend(return_object=True).data.copy()
+            yv = Y   .detrend(return_object=True).data.copy()
+
 
         #- ... and reshape it
         nt = len(self.data)
@@ -1101,9 +1111,9 @@ class Data():
         RO = self.copy()
         RO.data = R
         if spearman:
-            RO.label = 'spearman correlation' #: ' + self.label + ' ' + y.label
+            RO.label = '$r_{spear}$: ' + self.label + ' vs. ' + Y.label
         else:
-            RO.label = 'pearson correlation' #: ' + self.label + ' ' + y.label
+            RO.label = '$r_{pear}$: ' + self.label + ' vs. ' + Y.label
         RO.unit = ''
 
         PO = self.copy()
@@ -1245,7 +1255,17 @@ class Data():
         if base == 'current':
             clim = self.get_climatology()
         elif base == 'all':
-            clim = self._climatology_raw
+            #- if raw climatology not available so far, try to calculate it
+            if hasattr(self,'_climatology_raw'):
+                clim = self._climatology_raw
+            else:
+                if hasattr(self,'time_cycle'):
+                    self._climatology_raw = self.get_climatology()
+                    clim = self._climatology_raw
+                else:
+                    raise ValueError, 'Climatology can not be calculated because of missing time_cycle!'
+
+
         else:
             raise ValueError, 'Anomalies can not be calculated, invalid BASE'
 
@@ -1770,8 +1790,16 @@ class Data():
         x = self.time
         R,S,I,P,C = self.corr_single(x,pthres=pthres)
 
+        R.label = self.label + '(correlation)'
+        S.label = self.label + '($\partial x / \partial t$)'
+        I.label = self.label + '(offset)'
+        P.label = self.label + '(p-value)'
+
         if return_object:
             S.unit += ' / day'
+            R.unit = '-'
+            I.unit = 'mm'
+            P.unit = '-'
             return R,S,I,P
         else:
             return R.data,S.data,I.data,P.data
@@ -1868,6 +1896,37 @@ class Data():
             return res
 
 #-----------------------------------------------------------------------
+
+    def normalize(self,return_object=True):
+        """
+        normalize data by removing the mean and dividing by the standard deviation
+        normalization is done for each grid cell
+
+        @param return_object: specifies if a C{Data} object shall be returned
+        @type return_object: bool
+
+        @return:
+        """
+
+        if self.data.ndim != 3:
+            raise ValueError, 'Normalization only possible for 3D data!'
+
+        if return_object:
+            d = self.copy()
+        else:
+            d = self
+
+        me = d.timmean(return_object=True)
+        st = d.timstd(return_object=True)
+
+        d.sub(me,copy=False)
+        d.div(st,copy=False)
+
+        if return_object:
+            return d
+        else:
+            return None
+
 
     def timstd(self,return_object=False):
         """
@@ -2935,15 +2994,26 @@ class Data():
         @type copy: bool
         """
 
+        f_elementwise = False
         if np.shape(self.data) != np.shape(x.data):
-            raise ValueError, 'Inconsistent geometry (sub): can not calculate!'
+            s1 = np.shape(self.data)
+            if (s1[1] == x.data.shape[0]) & (s1[2] == x.data.shape[1]): #x is a 2D data
+                f_elementwise = True
+            else:
+                raise ValueError, 'Inconsistent geometry (sub): can not calculate!'
 
         if copy:
             d = self.copy()
         else:
             d = self
 
-        d.data = d.data - x.data
+        if f_elementwise:
+            for i in xrange(len(d.data)):
+                d.data[i,:,:] = d.data[i,:,:] - x.data[:,:]
+        else:
+            d.data = d.data - x.data
+
+
         d.label = self.label + ' - ' + x.label
 
         return d
