@@ -28,7 +28,7 @@ class taylor:
     def __init__(self,stdmax=2., plot_r_mesh=True, plot_std_mesh=True,
                  ref_std=1., plot_reference=True, r_meshstep=0.1, std_meshstep=0.25,
                  edgecolor='black', r_meshcolor='red', std_meshcolor='blue', title='',
-                 r_equidistant=False,normalize=False,figsize=(8,6),rms_meshstep=0.1,maxrms = 20.):
+                 r_equidistant=False,normalize=False,figsize=(8,6),rms_meshstep=0.1,maxrms = 20.,show_negative_r=True):
         '''
         initialize Taylor diagramm class
 
@@ -45,6 +45,7 @@ class taylor:
         * std_meshstep : stepsize for standard deviation mesh
         * r_equidistant: plot correlations equidistant, if FALSE, then standard approach of Taylor is used with NOT equidistant plots
         * normalize : normalize standard deviation by value provided in ref_std
+
 
         EXAMPLE:
         #generate some sample data
@@ -106,6 +107,8 @@ class taylor:
         self.rms_color = 'grey'
         self.std_color = std_meshcolor
 
+        self.negative = show_negative_r
+
         #/// meshlines ///
         if plot_r_mesh:
             self.plot_r_meshlines(step=r_meshstep)
@@ -126,23 +129,35 @@ class taylor:
         color = self.r_color
 
         nstdmax = self.stdmax
-        corrs = np.arange(0.,1.+step,step)
+        if self.negative:
+            axmin = -1.
+            addlist = [-0.99,-0.95,0.95,0.99]
+        else:
+            axmin = 0.
+            addlist = [0.95,0.99]
+        corrs = np.arange(axmin,1.+step,step)
         if not self.r_equidistant:
-            corrs = np.asarray(list(corrs) + [0.95,0.99])
+            corrs = np.asarray(list(corrs) + addlist)
+
         for corr1 in corrs: #arange(0.,1.+step,step):
             c_theta = np.deg2rad((1.-corr1)*90.)
             c_r = nstdmax
             if self.r_equidistant:
                 self.ax.plot([0,c_r*np.cos(c_theta)] , [0,c_r*np.sin(c_theta)],':',color=color )
-                self.ax.annotate(str(corr1), [c_theta, nstdmax*1.01], xycoords='polar',color=color)
+                xa,ya = self.map2xy(corr1,1.05*nstdmax)
+                #self.ax.annotate(str(corr1), [c_theta, nstdmax*1.11], xycoords='polar',color=color)
+                self.ax.annotate(str(corr1), [xa,ya],color=color)
+
             else:
                 self.ax.plot([0,c_r*corr1] , [0,c_r*np.sin(np.arccos(corr1))],':',color=color )
-                self.ax.annotate(str(corr1), [np.arccos(corr1), nstdmax*1.01], xycoords='polar',color=color)
+                xa,ya = self.map2xy(corr1,1.0*nstdmax)
+                #self.ax.annotate(str(corr1), [np.arccos(corr1), nstdmax*1.11], xycoords='polar',color=color)
+                self.ax.annotate(str(corr1), [xa,ya], color=color)
 
         if self.r_equidistant:
             pass
         else:
-            self.ax.annotate('Correlation coefficient $R$', [np.deg2rad(45.), nstdmax*0.95], xycoords='polar',rotation=-45.,color=color)
+            self.ax.annotate('Correlation coefficient $R$', [np.deg2rad(50.), nstdmax*1.1], xycoords='polar',rotation=-45.,color=color)
 
 
     def plot_circle(self,x,y,r,color='grey',label=None,size=8):
@@ -199,7 +214,12 @@ class taylor:
         color = self.std_color
 
         nstdmax = self.stdmax
-        th = np.arange(0,np.pi/2,0.01)
+        if self.negative:
+            axmin=-np.pi/2.
+        else:
+            axmin=0.
+
+        th = np.arange(axmin,np.pi/2,0.01)
 
         for ra in np.arange(0,nstdmax+0.1*step,step):
             self.ax.plot(ra*np.sin(th), ra*np.cos(th),':',color=color)
@@ -221,7 +241,7 @@ class taylor:
         '''
         plot reference circle of equal std which corresponds to ref_std
         '''
-        R=np.linspace(0.,1.,1000)
+        R=np.linspace(-1.,1.,1000)
         S=np.ones(len(R))*self.ref_std
         self.plot(R,S,linestyle=linestyle,linewidth=linewidth,color=color,marker=marker)
 
@@ -244,8 +264,8 @@ class taylor:
         ax = self.figure.add_axes([0.8,0.8,0.15,0.15],frameon=False)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlim(0.,1.)
-        ax.set_ylim(0.,1.)
+        #ax.set_xlim(0.,1.)
+        #ax.set_ylim(0.,1.)
 
         lw = 2
         P1=[0.,0.]; P2=[1.,1.]; P3=[0.7,0.]
@@ -342,7 +362,11 @@ class taylor:
 
 
         #/// rescale axes
-        self.ax.set_xlim(0.,self.stdmax)
+        if self.negative:
+            axmin = -self.stdmax
+        else:
+            axmin=0.
+        self.ax.set_xlim(axmin,self.stdmax)
         self.ax.set_ylim(0.,self.stdmax)
 
 
@@ -351,11 +375,17 @@ class taylor:
         map R and S coordinates into x and y
         '''
 
+        #print ''
+        #print R
+
         theta = np.deg2rad((1.-R)*90.); r = S
         if self.r_equidistant:
             x=r*np.cos(theta); y=r*np.sin(theta)
         else:
             x=S*R; y=S*np.sin(np.arccos(R))
+
+        #print x,y
+
         return x,y
 
 
@@ -377,11 +407,11 @@ def test():
     #/// testing ///
     plt.close('all')
     #generate some sample data
-    corr1 = np.asarray([1.,.5,0.9,1.]); corr2=np.asarray([0.1,0.25,0.5])
+    corr1 = np.asarray([1.,.5,0.9,1.,-0.8]); corr2=np.asarray([0.1,0.25,0.5,0.6])
     s1 = np.asarray([1.,1.,1.5, 0.5]); s2 = np.asarray([0.9,1.5,1.7])
 
-    s1=[0.5,.5,1.5]; corr1=[0.6,1.,0.95]
-    S1=[0.4,.2,1.7]; R1=[0.4,0.9,0.5]
+    s1=[0.5,.5,1.5,1.2]; corr1=[0.6,1.,0.95,-0.8]
+    S1=[0.4,.2,1.7,0.7]; R1=[0.4,0.9,0.5,0.6]
 
     s1=np.asarray(s1); corr1=np.asarray(corr1)
     S1=np.asarray(S1); R1=np.asarray(R1)
@@ -394,10 +424,11 @@ def test():
 
     plt.close('all')
 
+    print 'corr1: ', corr1
     #Taylor plot with no equidistant correlations (as original in Taylor 2001)
     tay2=taylor() #initialize the Taylor diagram
     tay2.plot(corr1,s1,markerfacecolor='green',marker='^',label='test1',R1=R1,S1=S1) #plot some data
-    tay2.plot_rms_meshlines()
+    #tay2.plot_rms_meshlines()
     tay2.ax.legend(loc='lower center',ncol=2,fancybox=True,shadow=True) #if you like, access the axis object and specify legend properties
     tay2.ax.set_title('original taylor')
 

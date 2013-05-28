@@ -184,13 +184,13 @@ class Anova2():
         if not hasattr(self,'ssi'):
             self._calc_ssi()
 
-        self.sst = self.ssa + self.sse + self.ssb + self.ssi
+        self.sst = self.ssa + self.sse + self.ssb + self.ssi #eq. 9.19 in von Storch
 
     def _calc_ssa(self):
-        self.ssa = self.n * self.J * sum((self.tmean - self.mean)**2)
+        self.ssa = self.n * self.J * sum((self.tmean - self.mean)**2) #eq. 9.21 in von Storch
 
     def _calc_ssb(self):
-        self.ssb = self.n * self.I * sum((self.bmean - self.mean)**2)
+        self.ssb = self.n * self.I * sum((self.bmean - self.mean)**2) #eq. 9.22 in von Storch
 
     def _calc_ssi(self):
         ensmean = self.x.mean(axis=2) #mean over all replications [J,I]

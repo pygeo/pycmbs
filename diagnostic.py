@@ -635,9 +635,9 @@ class ANOVA():
                 resPB[p[0],p[1]] = A.p_ssb
                 resPI[p[0],p[1]] = A.p_ssi
 
-                resAa[p[0],p[1]] = A.get_fractional_variance_explained('a',adjust=True) #todo: adjust variance
-                resBa[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=True) #todo: adjust variance
-                resIa[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=True) #todo: adjust variance
+                #~ resAa[p[0],p[1]] = A.get_fractional_variance_explained('a',adjust=True) #todo: adjust variance
+                #~ resBa[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=True) #todo: adjust variance
+                #~ resIa[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=True) #todo: adjust variance
 
                 #@todo significance
 
