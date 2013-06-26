@@ -2272,6 +2272,40 @@ class koeppen():
       print "ET: " + str(climfrac[12])
       print "EF: " + str(climfrac[13])
 
+#-----------------------------------------------------------------------------------------------------------------------
+
+    def legend(self):
+      """
+          This routine prints a legend of the geiger-köppen types.
+          The description is taken from:
+            MARKUS KOTTEK, JÜRGEN GRIESER, CHRISTOPH BECK , BRUNO RUDOLF and FRANZ RUBEL
+              World Map of the Köppen-Geiger climate classiﬁcation updated
+              Meteorologische Zeitschrift, Vol. 15, No. 3, 259-263 (June 2006)
+
+      """
+
+
+      print "|================= Class legend =================|"
+      print "| Af: Equatorial rainforest, fully humid         |"
+      print "| Am: Equatorial climates                        |"
+      print "| As: Equatorial monsoon                         |"
+      print "| Aw: Equatorial savannah with dry winter        |"
+      print "|------------------------------------------------|"
+      print "| BS: Steppe climate                             |"
+      print "| BW: Desert climate                             |"
+      print "|------------------------------------------------|"
+      print "| Cf: Warm temperate climate, fully humid        |"
+      print "| Cs: Warm temperate climate with dry summer     |"
+      print "| Cw: Warm temperate climate with dry winter     |"
+      print "|------------------------------------------------|"
+      print "| Df: Snow climate, fully humid                  |"
+      print "| Ds: Snow climate with dry summer               |"
+      print "| Dw: Snow climate with dry winter               |"
+      print "|------------------------------------------------|"
+      print "| ET: Tundra climate                             |"
+      print "| EF: Frost climate                              |"
+      print "|================================================|"
+      
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
@@ -2286,5 +2320,5 @@ class koeppen():
       """
       map_plot(self.Clim,cmap_data=self.cmap,colorbar_orientation='horizontal',vmin=0.5,vmax=14.5,
          cticks=[1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.],
-#         cticklabels = ["Af","Am","As","Aw","BS","BW","Cf","Cs","Cw","Df","Ds","Dw","ET","EF"],
+         cticklabels = ["Af","Am","As","Aw","BS","BW","Cf","Cs","Cw","Df","Ds","Dw","ET","EF"],
          nclasses=15, **kwargs)
