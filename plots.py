@@ -1861,7 +1861,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
              contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, colorbar_orientation='vertical',stat_type='mean',
-             cax_rotation=0., **kwargs):
+             cax_rotation=0.,cticklabels=None, **kwargs):
     """
     produce a nice looking map plot
 
@@ -1962,6 +1962,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     @param cax_rotation: rotation of labels for colorbar axis
     @type cax_rotation: float
+    
+    @param cticklabels Labels for the ticks of the colorbar
+    @type cticklabels: list of str labels
 
     """
 
@@ -2180,7 +2183,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     if show_colorbar:
         #plot actual colorbar
         cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks,orientation=colorbar_orientation)
-        rotate_ticks(cax,cax_rotation)
+        if cticklabels != None:
+          cb.set_ticklabels(cticklabels)
     else:
         cax.set_xticks([]); cax.set_yticks([]); cax.set_frame_on(False)
 
