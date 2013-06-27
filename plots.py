@@ -1373,7 +1373,7 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.,vmax=1.,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False):
         """
         plot Gleckler diagram
 
@@ -1399,6 +1399,9 @@ class GlecklerPlot():
                        uses the median, that's why it is the default. another option is to use the 'mean'
                        ['median','mean']
         @type method: str
+
+        @param logscale: reformats labels of colorbar to log with base 10. NOTE, this does NOT change the data! The data needs to be added in log10() scale already in function add_data() !!!
+        @type logscale: bool
 
         """
 
@@ -1460,7 +1463,7 @@ class GlecklerPlot():
         #draw legend
         c=0.75
         width=(right-left)*c
-        self._draw_colorbar(left,width)
+        self._draw_colorbar(left,width,logscale=logscale)
 
         if title != None:
             self.fig.suptitle(title)
@@ -1612,7 +1615,7 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def _draw_colorbar(self,left,width):
+    def _draw_colorbar(self,left,width,logscale=False):
         """
         draw legend for Glecker plot. Requires information on
         the positioning of the colormap axis which can be obtained from
@@ -1625,10 +1628,21 @@ class GlecklerPlot():
         @param width: width of the axis to plot colorbar
         @type width: float
         """
+
+        if logscale:
+            #http://www.mailinglistarchive.com/html/matplotlib-users@lists.sourceforge.net/2010-06/msg00311.html
+            from matplotlib.ticker import LogLocator, LogFormatter, FormatStrFormatter
+            #l_f = LogFormatter(10, labelOnlyBase=False)
+            l_f = FormatStrFormatter('$10^{%d}$')
+        else:
+            l_f = None
+
         cax = self.fig.add_axes([left,0.05,width,0.05]) #left, bottom, width, height
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
                                    norm=self.norm,
-                                   orientation='horizontal')
+                                   orientation='horizontal',format=l_f)
+
+
 
     def _draw_legend(self,labels,title=None):
         """

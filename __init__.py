@@ -28,13 +28,13 @@ __author__ = "Alexander Loew <alexander.loew@zmaw.de>"
 
 __institute__="Max-Planck-Institute for Meteorology (MPI-M)"
 
-__copyright__ = "Copyright (c) 2011-2012 Alexander Loew"
+__copyright__ = "Copyright (c) 2011-2013 Alexander Loew"
 """The copyright holder of pyCMBS."""
 
 __license__ = "MIT Open Source License"
-"""The license governing the use and distribution of pygeonetwork."""
+"""The license governing the use and distribution of pyCMBS."""
 
-__url__ = "http://www.mpimet.mpg.de/en/science/the-land-in-the-earth-system/terrestrial-remote-sensing-hoaps.html"
+__url__ = "https://code.zmaw.de/projects/pycmbs"
 """The URL for pyCMBS's homepage."""
 
 __version__ = 0.1
@@ -43,7 +43,7 @@ __version__ = 0.1
 __revision__ = filter(str.isdigit, "$Revision$")
 """SVN repository number, set SVN using svn propset (see here: http://stackoverflow.com/questions/1449935/getting-svn-revision-number-into-a-program-automatically)"""
 
-__date__ = "2012-06-14"
+__date__ = "2013-06-14"
 """The release date of this version of pyCMBS."""
 
 __docformat__ = "epytext en"
@@ -80,6 +80,7 @@ from taylor import *
 from pyCDO  import *
 
 from hov import *
+from region import *
 
 #------------------------------
 #--- Global constants
