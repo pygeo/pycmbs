@@ -29,7 +29,7 @@ class taylor:
                  ref_std=1., plot_reference=True, r_meshstep=0.1, std_meshstep=0.25,
                  edgecolor='black', r_meshcolor='red', std_meshcolor='blue', title='',
                  r_equidistant=False,normalize=False,figsize=(8,6),rms_meshstep=0.1,maxrms = 20.,show_negative_r=True):
-        '''
+        """
         initialize Taylor diagramm class
 
         Options
@@ -75,7 +75,7 @@ class taylor:
 
 
 
-        '''
+        """
 
         self.normalize = normalize
         self.figure=plt.figure(facecolor='w',edgecolor='w',figsize=figsize)
@@ -279,12 +279,12 @@ class taylor:
     def plot(self,R,S,marker='o',linestyle='None',markerfacecolor='black',markeredgecolor=None,
              color='black',linewidth=0,label=None,markersize=8,markeredgewidth=1,R1=None,S1=None,
              labels=None,shiftcolor='grey',plot_mean=False,normvalue=np.nan):
-        '''
+        """
         R: correlation coefficient
         S: standard deviation
 
         normvalue: value to use for normalization (e.g. stdv of observations)
-        '''
+        """
 
         if markersize == None: markersize=self.size * 0.67
 

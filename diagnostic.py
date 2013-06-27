@@ -27,6 +27,7 @@ main module for diagnostic routines
 '''
 
 import numpy as np
+import os
 
 import scipy as sci
 
@@ -47,11 +48,180 @@ from scipy import linalg, dot;
 import matplotlib.gridspec as gridspec
 
 from anova import *
+from taylor import *
 
 from pylab import *
 
 
 #-----------------------------------------------------------------------
+
+class RegionalAnalysis():
+    """
+    a class to perform comparisons between two datasets on a regional basis
+    """
+    def __init__(self,x,y,region,mean=False):
+        """
+        @param x : first dataset
+        @type x: Data
+        @param y : second dataset
+        @type y: Data
+        @param region: region to analyze in both datasets
+        @type region: Region
+        @param mean: use temporal mean field instead of all data
+        @type mean: bool
+        """
+
+        #raise ValueError, 'Does not work yet!!!! Some problem with getting the right data!'
+
+
+        self.region = region
+        self.use_mean = mean
+        self._preprocessed = False
+        self.statistics={}
+
+        if (x == None) or (y==None):
+            #in case of dummy data, do not perform data check
+            self.x = x; self.y=y
+        else:
+            self.x = x.copy()
+            self.y = y.copy()
+            self._check() #check input data
+
+    def _check(self):
+        """
+        check consistency of data
+        """
+
+        if self.use_mean:
+            raise ValueError, 'Mean option not validated yet in RegionalAnalysis!'
+
+        #--- check datatypes
+        if not isinstance(self.x,Data):
+            raise ValueError, 'Error: RegionalAnalysis - X is not of type Data!'
+        if not isinstance(self.y,Data):
+            raise ValueError, 'Error: RegionalAnalysis - Y is not of type Data!'
+        #if not isinstance(self.region,Region):
+        #    raise ValueError, 'Error: RegionalAnalysis - region is not of type Region!'
+
+        #--- check geometries
+        if self.x.data.shape != self.y.data.shape:
+            print self.x.data.shape,self.y.data.shape
+            raise ValueError, 'ERROR: RegionalAnalyis - inconsistent geometries!'
+
+    def _prepare(self):
+
+        #--- apply regional mask
+        if self.region.type == 'latlon':
+            self.x.get_aoi_lat_lon(self.region)
+            self.y.get_aoi_lat_lon(self.region)
+        else:
+            raise ValueError, 'RegionalAnalysis does not work with regions that are not specified by lat/lon!'
+            self.x = self.x.get_aoi(self.region)
+            self.y = self.y.get_aoi(self.region)
+
+
+        #--- reduce data volume by cutting uncnecessary data
+        self.x = self.x.cut_bounding_box(return_object=True)
+        self.y = self.y.cut_bounding_box(return_object=True)
+
+        #--- temporal mean if desired
+        if self.use_mean:
+            self.x = self.x.timmean(return_object=True)
+            self.y = self.y.timmean(return_object=True)
+        self._preprocessed = True
+
+#---
+
+    def get_correlation(self):
+        """
+        calculate correlation between fields
+        """
+        if not self._preprocessed:
+            self._prepare()
+
+        x = self.x.data.flatten(); y = self.y.data.flatten()
+        slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x,y)
+
+        return r_value, p_value
+
+    def get_mean(self):
+        if not self._preprocessed:
+            self._prepare()
+        return self.x.timmean(return_object=True).fldmean(),self.y.timmean(return_object=True).fldmean()
+
+#---
+
+    def save_result(self,key,corr,pcorr):
+        """
+        save result for later plotting/table statistics etc.
+
+        @param key: key/id, specifying the region or experiment
+        @type key: str
+
+        @param corr: correlation value
+        @type corr: float
+
+        @param pcorr: p-value of correlation value
+        @type pcorr: float
+        """
+
+        self.statistics.update({key:{'correlation':corr,'p-value':pcorr}})
+
+    def print_table(self,format='txt',filename=None):
+        """
+        print table of regional statistics
+        """
+
+        if format not in ['txt']:
+            raise ValueError, 'ERROR: invalid output format in print_table()'
+
+        keys = self.statistics.keys(); keys.sort()
+
+        print 'Region\tcorrelation\tp-value\n'
+        for k in keys:
+            s = k + '\t' + str(self.statistics[k]['correlation']) + '\t' + str(self.statistics[k]['p-value'])
+            print s
+
+        if filename != None:
+            if os.path.exists(filename):
+                os.remove(filename)
+            print filename
+            o = open(filename,'w')
+            o.write('Region\tcorrelation\tp-value\n')
+            for k in keys:
+                if format == 'txt':
+                    s = k + '\t' + str(self.statistics[k]['correlation']) + '\t' + str(self.statistics[k]['p-value'])
+                    o.write(s+'\n')
+                else:
+                    raise ValueError, 'Unsupported output format!'
+            o.close()
+
+    def plot_taylor(self):
+        """
+        Taylor plot of statistics
+        requires that correlation and STDV. have been calculated and are available in self.statistics
+        """
+
+        #--- check
+        keys = self.statistics.keys()
+        for var in ['correlation','stdv']:
+            for k in self.statistics.keys():
+                thekeys = self.statistics[k].keys()
+                if var not in thekeys:
+                    print var, thekeys
+                    raise ValueError, 'Missing key in statistics dictionary!'
+
+        #--- Taylor diagram ---
+        tay=taylor()
+        for k in self.statistics.keys(): #todo stratify by two keys (e.g. Region and Model Name ! --> marker and color!!)
+            tay.plot(self.statistics[k]['correlation'],self.statistics[k]['stdv'],markerfacecolor='green',marker='^',label=k) #plot some data
+
+        return tay.figure
+
+
+
+
+
 
 class EOF():
     """
