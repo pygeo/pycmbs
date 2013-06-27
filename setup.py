@@ -1,4 +1,6 @@
 from distutils.core import setup
+import os
+
 setup(name='pyCMBS',
       version='0.0.1',
       py_modules=[],author='Alexander Loew',
@@ -11,6 +13,24 @@ setup(name='pyCMBS',
       )
 
 
+print ''
+print 'Your original PYTHONPATH is:'
+print os.environ['PYTHONPATH']
+print''
+print 'Please change your PYTHONPATH (permanently) in your shell configuration file as follows:'
+print ''
+print 'For BASH shell users include in your .bashrc:'
+curdir = os.getcwd()
+print '     export PYTHONPATH=' + curdir + ':$PYTHONPATH'
+print '     export SEP="/pool/SEP"'
+print 'The latter is only for users at ZMAW'
+
+
 #todo:
 #- set PYTHONPATH to directory, where user installs pyCMBS, sys.path ???
+#
+#what to do with the TAR-file
+#1) download and extract it
+#2) rename directory with version number to 'pyCMBS'
+#3) put pyCMBS directory in your path
 

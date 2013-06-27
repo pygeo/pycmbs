@@ -390,6 +390,8 @@ class Data():
         estimates bounding box of valid data. It returns the indices
         of the bounding box which frames all valid data
 
+        note that the indices can not be used directly for array slicing. One tyipically needs to add '1' to the alst index
+
         (unittests o.k.)
 
         @return: returns indices for bounding box [i1,i2,j1,j2]
@@ -400,32 +402,32 @@ class Data():
         #estimate boundary box indices
         xb = msk.sum(axis=0); yb = msk.sum(axis=1)
 
-        j1 = 0
+        j1 = -99
         for i in xrange(len(xb)):
             if j1 > 0:
                 continue
-            if (xb[i] > 0):
+            if (xb[i] > 0) & (j1 == -99):
                 j1 = i
 
-        j2 = 0
+        j2 = -99
         for i in xrange(len(xb)-1,-1,-1):
             if j2 > 0:
                 continue
-            if (xb[i]>0):
+            if (xb[i]>0) & (j2 == -99):
                 j2 = i
 
-        i1 = 0
+        i1 = -99
         for i in xrange(len(yb)):
             if i1 > 0:
                 continue
-            if (yb[i] > 0):
+            if (yb[i] > 0) & (i1 == -99):
                 i1 = i
 
-        i2 = 0
+        i2 = -99
         for i in xrange(len(yb)-1,-1,-1):
             if i2 > 0:
                 continue
-            if (yb[i]>0):
+            if (yb[i]>0) & (i2 == -99):
                 i2 = i
 
         return i1,i2,j1,j2
@@ -2586,7 +2588,7 @@ class Data():
 
     def get_aoi_lat_lon(self,R,apply_mask=True):
         """
-        get area of interst (AOI) given lat/lon coordinates
+        get area of interest (AOI) given lat/lon coordinates
 
         the routine masks all area which
         is NOT in the given area
@@ -2608,6 +2610,8 @@ class Data():
 
         msk_lat = (self.lat >= R.latmin) & (self.lat <= R.latmax)
         msk_lon = (LON      >= R.lonmin) & (LON      <= R.lonmax)
+
+
         if (R.mask == None) | (apply_mask==False): #additional mask in Region object
             msk_region = np.ones(np.shape(msk_lat)).astype('bool')
         else:
@@ -2628,21 +2632,25 @@ class Data():
         estimate bounding box of data and subset dataset such that only valid data
         is contained in the bounding box
 
-        @param return_object: return data object
+        @param return_object: return data object, otherwise the modifications are applied to current object
         @type return_object: bool
         """
+
+        #get bounding box
+        # note that the indices can not be used directly for array slicing. One tyipically needs to add '1' to the alst index
         i1,i2,j1,j2 = self.get_bounding_box()
+        #print 'Bounding box indices: i1,i2,j1,j2', i1,i2,j1,j2
 
         if return_object:
             D = self.copy()
         else:
             D = self
 
-        D.data = D.data[:,i1:i2,j1:j2]
+        D.data = D.data[:,i1:i2+1,j1:j2+1]
         if hasattr(self,'lat'):
-            D.lat  = D.lat[i1:i2,j1:j2]
+            D.lat  = D.lat[i1:i2+1,j1:j2+1]
         if hasattr(self,'lon'):
-            D.lon  = D.lon[i1:i2,j1:j2]
+            D.lon  = D.lon[i1:i2+1,j1:j2+1]
 
         if return_object:
             return D

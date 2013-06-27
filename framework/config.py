@@ -25,6 +25,9 @@ import sys
 import numpy as np
 from utils import get_data_pool_directory
 import pylab as pl
+import glob
+from pyCMBS import Region
+
 
 class ConfigFile():
     """
@@ -293,7 +296,7 @@ class PlotOptions():
         #reset plotting options if the report should only produce a summary
 
         if cfg.options['summary']:
-            false_vars = ['map_difference','map_seasons','reichler_plot','hovmoeller_plot'] #set the plot options to FALSE which are not relevant for summary report
+            false_vars = ['map_difference','map_seasons','reichler_plot','hovmoeller_plot','regional_analysis'] #set the plot options to FALSE which are *not* relevant for summary report
             for var in cfg.variables:
                 lopt = self.options[var]
                 for vv in false_vars:
@@ -392,7 +395,7 @@ class PlotOptions():
 
         #specify here the options that need to be given!
         locopt = ['obs_file','obs_var','gleckler_position','scale_data'] #variables that need to be specified (MUST!) for each observational dataset
-        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot'] #options for each variable type
+        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot','regional_analysis'] #options for each variable type
 
         for v in o.keys(): #all variables
             d = o[v] #dictionary for a specific variable
@@ -434,6 +437,73 @@ class PlotOptions():
 
         if cerr > 0:
             raise ValueError, 'There were errors in the initialization of plotting options!'
+
+
+
+class AnalysisRegions():
+    """
+    Class to handle information about regions to analyze in the framework
+    """
+
+    def __init__(self,dir='./regions/'):
+        """
+        init AnalysisRegions
+
+        @param dir: directory where to search for region specification
+        @type dir: str
+
+        @return:
+        """
+        self.dir = dir
+        self.regions = []
+        self.read()
+
+    def read(self):
+        files = glob.glob(self.dir + '*.reg')
+        for f in files:
+            self._read_region_file(f)
+
+
+        print ''
+        print 'Regions:'
+        print '--------'
+        for r in self.regions:
+            print r.label
+
+    def _read_region_file(self,file):
+        """
+        read a single file specifying regions. A file can contain
+        more than one region. Results will be stored in self.regions
+        @param file: filename
+        @return:
+        """
+        if not os.path.exists(file):
+            return
+
+        f = open(file,'r')
+        for line in f.readlines():
+            l = line.lstrip()
+            if l[0] == '#':
+                continue
+            else:
+                tmp = l.split(',')
+                if len(tmp) != 5:
+                    print tmp
+                    raise ValueError, "Error in REGION file: " + file
+                else:
+                    #--- interpret data
+                    label  = tmp[0]
+                    lon1 = tmp[1]; lon2=tmp[2]
+                    lat1 = tmp[3]; lat2=tmp[4]
+
+                    self.regions.append(Region(lon1,lon2,lat1,lat2,label,type='latlon')) #set region
+
+
+
+
+
+
+
 
 
 

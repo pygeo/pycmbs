@@ -209,7 +209,7 @@ def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 # GENERIC - start
 #=======================================================================
 
-def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM = None, shift_lon=False, use_basemap=False, report=None,interval=None):
+def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM = None, shift_lon=False, use_basemap=False, report=None,interval=None,regions=None):
     """
     function for performing common analysis actions
     it is not a parameter specific function
@@ -297,6 +297,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     f_reichler    = local_plot_options['OPTIONS']['reichler_plot']
     f_gleckler    = local_plot_options['OPTIONS']['gleckler_plot']
     f_hovmoeller    = local_plot_options['OPTIONS']['hovmoeller_plot']
+    f_regional_analysis = local_plot_options['OPTIONS']['regional_analysis']
+    if regions == None:
+        f_regional_analysis = False
+
 
 
     if 'nclasses' in local_plot_options['OPTIONS'].keys():
@@ -371,6 +375,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if f_mapseasons == True:  #seasonal mean plot
         f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=nclasses,vmin=vmin,vmax=vmax,cticks=cticks)
         report.figure(f_season,caption='Seasonal mean ' + obs_name)
+
 
 
     for model in model_list:
@@ -473,6 +478,31 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
             report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')' )
             del f_hov
+
+        if f_regional_analysis:
+            raise ValueError, 'Feature for regional analysis not implemented so far'
+            REGSTAT = RegionalAnalysis(None,None,None)
+            #todo set regions for each variable separately instead of using the same regions for all variables!
+            for r in regions:
+                RD = RegionalAnalysis(obs_orig,model_data,r)
+                corr_value, p_corr = RD.get_correlation()
+
+                #--- save results in dummy variable
+                REGSTAT.save_result(r.label + '_' + model_data.label,corr_value,p_corr)
+                del RD
+
+            #--- save regional analysis results in separate file
+            regfile = report.outdir + 'regional_results_' + obs_type + '_' + obs_name + '.txt'
+            REGSTAT.print_table(filename=regfile)
+
+            #--- Taylor plot for regional analysis ---
+            f_regtaylor = REGSTAT.plot_taylor()
+            report.figure(f_regtaylor,caption='Taylor plot for regional analysis (' + obs_name.upper() + ')')
+            del f_regtaylor
+
+
+
+            stop
 
         if f_reichler == True:
             #/// Reichler statistics ///
@@ -935,7 +965,7 @@ def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_bas
 # ALBEDO -- begin
 #=======================================================================
 
-def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None):
+def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
 
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
@@ -958,19 +988,18 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     #- MODIS white sky albedo
     report.subsection('MODIS WSA')
     report.write('MODIS albedo is based on the MODIS white-sky albedo product. Snow covered areas remain in the data product, but all pixels flagged as invalid was discarded.')
-    generic_analysis(plot_options, model_list, 'albedo', 'MODIS', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+    generic_analysis(plot_options, model_list, 'albedo', 'MODIS', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval,regions=regions)
 
     #- AVHRR GAC SAL black sky albedo
     report.subsection('AVHRR CLARASAL')
     report.write('AVHRR SAL is a black-sky albedo product generated in the frame of the CM-SAF')
-    generic_analysis(plot_options, model_list, 'albedo', 'CLARASAL', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
+    generic_analysis(plot_options, model_list, 'albedo', 'CLARASAL', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval,regions=regions)
 
     #- CERES surface albedo from all sky fluxes
     report.subsection('CERES albedo')
     #CERES is not easily possible without pre-processing!!!!
     report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
-    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
+    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM,regions=regions)
 
 
     #climatological means
@@ -978,7 +1007,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     fGb = GM.plot_mean_result(dt=0.1,colors={'observations':'blue','models':'red'},plot_clim=True)
 
 
-    report.figure(fG,caption='Global means for land surface albedo',bbox_inches=None)
+    report.figure(fG,caption ='Global means for land surface albedo',bbox_inches=None)
     report.figure(fGa,caption='Global means for land surface albedo (summary)',bbox_inches=None)
     report.figure(fGb,caption='Global means for land surface albedo (climatological summary)',bbox_inches=None)
 

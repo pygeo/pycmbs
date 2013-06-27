@@ -173,8 +173,11 @@ Add a new variable:
 """
 
 
+########################################################################################################################
+# START
+# read command line options ...
+########################################################################################################################
 
-#/// check commandline options ///
 if len(sys.argv) > 1:
     if len(sys.argv) == 2:
         file = sys.argv[1] #name of config file
@@ -185,22 +188,22 @@ if len(sys.argv) > 1:
 else: #default
     file='pyCMBS.cfg'
 
+
+########################################################################################################################
+# CONFIGURATION and OPTIONS
+########################################################################################################################
+
 #/// read configuration file ///
 CF = ConfigFile(file)
 
 #/// read plotting options ///
-PCFG = PlotOptions()
-PCFG.read(CF)
+PCFG = PlotOptions(); PCFG.read(CF); plot_options=PCFG
 
-plot_options=PCFG
-
-
-
+#/// init regions ///
+REGIONS = AnalysisRegions()
 
 
 for thevar in plot_options.options.keys():
-
-
     if thevar in plot_options.options.keys():
         print 'Variable: ', thevar
         for k in plot_options.options[thevar].keys():
@@ -218,10 +221,14 @@ shift_lon = use_basemap = not f_fast
 
 print 'Using Basemap: ', use_basemap
 
+
+########################################################################################################################
+# TIMES
+########################################################################################################################
 s_start_time = CF.start_date #'1983-01-01' #todo where is this used ?
 s_stop_time  = CF.stop_date  #'2005-12-31'
-start_time = pl.num2date(pl.datestr2num(s_start_time))
-stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
+start_time   = pl.num2date(pl.datestr2num(s_start_time))
+stop_time    = pl.num2date(pl.datestr2num(s_stop_time ))
 
 
 
@@ -316,6 +323,9 @@ model_dict = {'rain':  {'variable': 'pr',
                         'custom_path' : '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'}}
 
 
+########################################################################################################################
+# INIT METHODS
+########################################################################################################################
 #--- names of analysis scripts for all variables ---
 scripts = get_analysis_scripts()
 
@@ -372,13 +382,13 @@ for i in range(len(CF.models)):
     model_cnt += 1
 
 
-#########################################################
+########################################################################################################################
 # MULTIMODEL MEAN
-#########################################################
+########################################################################################################################
 #--- here we have now all the model and variables read. The list of all models is contained in the variable proc_models.
 # CALCULATE MULTIMODEL MEAN
 
-if True:
+if False: #todo put this as an option!
 
     #raise ValueError, 'This mean model appraoch can not work, as the timesteps are not the same!!! We need to use the mean climatologigy! --> preprocessing (generic analysis ???)'
 
@@ -429,29 +439,32 @@ if True:
     proc_models.append('model_mean')
 
 
-#########################################################
+########################################################################################################################
 # END MULTIMODEL MEAN
-#########################################################
+########################################################################################################################
 
 
 
 
-#/// prepare global benchmarking metrices
-#generate a global variable for Gleckler plot!
+########################################################################################################################
+# INIT reporting and plotting and diagnostics
+########################################################################################################################
+# Gleckler Plot
 global_gleckler = GlecklerPlot()
 
-########################################################################
-# REPORT
-########################################################################
+# Report
 rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],outdir='./report_' + CF.options['report'] + '/',dpi=300,format='pdf')
 cmd = 'cp ../logo/Phytonlogo5.pdf ' + rep.outdir
 os.system(cmd )
 
 
-
-########################################################################
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 # MAIN ANALYSIS LOOP: perform analysis for each model and variable
-########################################################################
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 skeys = scripts.keys()
 for variable in variables:
 
@@ -465,17 +478,21 @@ for variable in variables:
             print 'Doing analysis for variable ... ', variable
             print '   ... ', scripts[variable]
             model_list = str(proc_models).replace("'","")  #... model list is reformatted so it can be evaluated properly
-            cmd = scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep,interval=CF.intervals[variable],plot_options=PCFG)'
+            cmd = scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep,interval=CF.intervals[variable],plot_options=PCFG,regions=REGIONS.regions)'
             eval(cmd) #run analysis
 
-#/// generate Gleckler analysis plot for all variables and models analyzed ///
-global_gleckler.plot(vmin=-0.8,vmax=0.8,nclasses=25)
 
+########################################################################################################################
+# GLECKLER PLOT finalization ...
+########################################################################################################################
+
+#/// generate Gleckler analysis plot for all variables and models analyzed ///
+global_gleckler.plot(vmin=-0.1,vmax=0.1,nclasses=25,show_value=True)
 
 rep.section('Summary error statistics')
 rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')
 
-#legend for gleckler plot
+#/// legend for gleckler plot ///
 for variable in variables:
     if variable not in PCFG.options.keys(): #check if variable existing
         continue
@@ -494,9 +511,10 @@ for variable in variables:
 
 
 
-#/// close report ///
+########################################################################################################################
+# CLEAN up and finish
+########################################################################################################################
 rep.close()
-
 pl.close('all')
 
 
@@ -504,7 +522,7 @@ print '##########################################'
 print '# BENCHMARKING FINIHSED!                 #'
 print '##########################################'
 
-#~ if __name__ == '__main__':
+#~ if __name__ == '__main__': todo
     #~ main()
 
 
