@@ -129,6 +129,8 @@ class Data():
 
         self.inmask = mask; self.level = level
 
+        self.gridtype = None
+
         if label is None:
             self.label = self.filename
         else:
