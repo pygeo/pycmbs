@@ -31,13 +31,13 @@ __institute__="Max-Planck-Institute for Meteorology (MPI-M)"
 __copyright__ = "Copyright (c) 2011-2013 Alexander Loew"
 """The copyright holder of pyCMBS."""
 
-__license__ = "MIT Open Source License"
+__license__ = "GNU General Public License"
 """The license governing the use and distribution of pyCMBS."""
 
 __url__ = "https://code.zmaw.de/projects/pycmbs"
 """The URL for pyCMBS's homepage."""
 
-__version__ = 0.1
+__version__ = '0.1.1'
 """Version number of pyCMBS."""
 
 __revision__ = filter(str.isdigit, "$Revision$")
@@ -75,6 +75,8 @@ from report import *
 from region import *
 from plots  import *
 from diagnostic import *
+from icon import *
+
 
 from taylor import *
 from pyCDO  import *

@@ -1022,7 +1022,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     del fG
 
 
-def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
+def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None,regions=None):
     """
     model_list = list which contains objects of data type MODEL
     """
@@ -1183,7 +1183,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
     if thevar in plot_options.options.keys():
         for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
-            
+
             if k == 'OPTIONS':
                 continue
             else:
