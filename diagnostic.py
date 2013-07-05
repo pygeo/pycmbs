@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from macpath import norm_error
 
 __author__ = "Alexander Loew"
-__version__ = "0.1"
+__version__ = "0.1.1"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
 
@@ -451,7 +449,7 @@ class EOF():
 
             #print len(k)
             #if len(k)>1: #lineplot
-            ax.plot(plt.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
+            ax.plot(self.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
             #else: #nice plot with different colors for pos/neg. values
             #yupper = np.ma.masked_where(y < 0., y); ylower = np.ma.masked_where(y > 0., y)
             #ax.plot(plt.num2date(self._x0.time),yupper,color='red',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
@@ -1491,8 +1489,8 @@ class SVD():
         else:
             ax = ax
 
-        ax.plot(plt.num2date(self.time),self.A[:,mode]/np.std(self.A[:,mode]),label='A',color='red')
-        ax.plot(plt.num2date(self.time),self.B[:,mode]/np.std(self.B[:,mode]),label='B',color='blue',linestyle='--')
+        ax.plot(self.num2date(self.time),self.A[:,mode]/np.std(self.A[:,mode]),label='A',color='red')
+        ax.plot(self.num2date(self.time),self.B[:,mode]/np.std(self.B[:,mode]),label='B',color='blue',linestyle='--')
         c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
         plt.legend()
         ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')',size=10)

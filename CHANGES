@@ -1,6 +1,14 @@
 version 0.1.1
 ============================
-o initial support for ICON generic unstructured grid. There are still some workarounds for plotting the unstructured data, but in general it works well.
+o implemented support for different calendars using netcdftime library provided in netCDF4 library. COPYRIGHT has been
+  changed accordingly. Note that a major refactoring was needed for that purpose.
+  NOTE all files written with older versions pyCMBS might now show a timeshift of one day! This is due to
+  an artefact in the pylab num2date/date2num functions which provide the number of days relative to 0001-01-01 *PLUS ONE*
+  (see num2date documentation). The new routines have not this artefact.
+  Do allow for backward compability with v0.1.0, an option 'oldtime' has been added to Data object, which mimics the old
+  behavior.
+o initial support for ICON generic unstructured grid. There are still some workarounds for plotting the unstructured data,
+  but in general it works well.
 
 version 0.1.0 (= rev240)
 ============================

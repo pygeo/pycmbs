@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.1"
+__version__ = "0.1.1"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
 
@@ -83,6 +82,8 @@ from pyCDO  import *
 
 from hov import *
 from region import *
+
+from netcdftime import *
 
 #------------------------------
 #--- Global constants

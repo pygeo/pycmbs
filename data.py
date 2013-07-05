@@ -1,13 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.1"
+__version__ = "0.1.1"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
 
 '''
-# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# Copyright (C) 2012-2013 Alexander Loew, alexander.loew@zmaw.de
 # See COPYING file for copying and redistribution conditions.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -31,6 +30,7 @@ from statistic import get_significance, ttest_ind
 import matplotlib.pylab as pl
 from scipy import stats
 from pyCDO import *
+import netcdftime as netcdftime
 
 class Data():
     """
@@ -39,7 +39,7 @@ class Data():
     def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,
                  label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,
                  time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,
-                 time_var='time',checklat=True,weighting_type='valid'):
+                 time_var='time',checklat=True,weighting_type='valid',oldtime=False):
         """
         Constructor for Data class
 
@@ -113,6 +113,19 @@ class Data():
                         global mean of the LAND fluxes only!
         @type weighting_type: str
 
+        @param oldtime: if True, then the old definition for time is used, which is compliant with the pylab time definition, as
+                        *x* is a float value which gives the number of days
+                        (fraction part represents hours, minutes, seconds) since
+                        0001-01-01 00:00:00 UTC *plus* *one*.
+
+                        NOTE that there is a *PLUS ONE*. The actual data object supports different calendars, while
+                        this is not possible using the pylab num2date/date2num functions. (Un)fortunately, the new
+                        routine, which is implemented in self.num2date(), self.date2num() *performs correctly* the
+                        calculations. Thus there is *NO* *PLUS ONE* needed.
+                        As a consequence, all files that have been written with older versions of pyCMBS have a wrong
+                        time variable included in the file. To allow for backwards compliance, the option oldtime=True
+                        can be used which will then mimic a similar behaviour as the pylab date functions.
+
 
 
         """
@@ -130,6 +143,7 @@ class Data():
         self.inmask = mask; self.level = level
 
         self.gridtype = None
+        self._oldtime = oldtime
 
         if label is None:
             self.label = self.filename
@@ -164,6 +178,77 @@ class Data():
                     raise ValueError, 'invalid longitudes needs shifting !!!'
             else:
                 raise ValueError, 'plotting etc not supported for longitudes which are not equal to 0 ... 360'
+
+#-----------------------------------------------------------------------
+
+    def __oldtimeoffset(self):
+        """
+        return offset to convert to old time
+        offset is one day *PLUS ONE* following pylab documentation
+        This routine takes care of different time units
+        @return:
+        """
+        if not hasattr(self,'time_str'):
+            raise ValueError, 'ERROR: time offset can not be determined!'
+
+        if 'hours' in self.time_str:
+            return 1.*24.
+        elif 'seconds' in self.time_str:
+            return 1.*86400.
+        elif 'days' in self.time_str:
+            return 1.
+        else:
+            print self.time_str
+            raise ValueError, 'ERROR: Invalid timestring: conversion not possible!'
+
+
+
+    def num2date(self,t):
+        """
+        convert a numeric time to a datetime object
+        Routine is similar to pylab num2date, but allows to make use
+        of different calendars. It encapsulates the corresponding
+        netcdftime function
+
+        @return: python datetime object
+        """
+
+        #return pl.num2date(t)
+        if self._oldtime: #see documentation in __init__ of self
+            offset = self.__oldtimeoffset()
+        else:
+            offset = 0.
+        if not hasattr(self,'time_str'):
+            raise ValueError, 'num2date can not work without timestr!'
+        if self.time_str is None:
+            raise ValueError, 'num2date can not work without timestr!'
+        else:
+            return netcdftime.num2date(t+offset,self.time_str,calendar=self.calendar)
+
+#-----------------------------------------------------------------------
+
+    def date2num(self,t):
+        """
+        convert a datetime object into a numeric time variable
+        Routine is similar to pylab date2num, but allows to make use
+        of different calendars. It encapsulates the corresponding
+        netcdftime function
+
+        @return: numeric time array
+        """
+
+        #return pl.date2num(t)
+        if self._oldtime: #see documentation in __init__ of self
+            offset = self.__oldtimeoffset()
+        else:
+            offset = 0.
+        if not hasattr(self,'time_str'):
+            raise ValueError, 'date2num can not work without timestr!'
+        if self.time_str is None:
+            raise ValueError, 'date2num can not work without timestr!'
+        else:
+            return netcdftime.date2num(t,self.time_str,calendar=self.calendar)-offset
+
 
 #-----------------------------------------------------------------------
 
@@ -236,7 +321,7 @@ class Data():
 
         F.write(str(len(self.time)) + '\n'   ) #number of timesteps
         for i in xrange(len(self.time)):
-            F.write(str(pl.num2date(self.time[i])) + ' , ' + str(self.data[i,:].flatten()).replace('[','').replace(']','') + '\n' )
+            F.write(str(self.num2date(self.time[i])) + ' , ' + str(self.data[i,:].flatten()).replace('[','').replace(']','') + '\n' )
 
         F.close()
 
@@ -288,7 +373,7 @@ class Data():
         #/// create variable
         if self.time != None:
             F.create_variable('time','d',('time',))
-            F.variables['time'].units = 'days since 0001-01-01 00:00:00 UTC'
+            F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
 
         if self.data.ndim == 3:
             F.create_variable(varname,'d',('time','ny','nx'))
@@ -313,7 +398,8 @@ class Data():
 
         #/// write data
         if self.time != None:
-            F.variables['time'] .assign_value(self.time-1)
+            #F.variables['time'] .assign_value(self.time-1)
+            F.variables['time'] .assign_value(self.time)
             F.variables['time'].calendar = self.calendar
 
         F.variables[varname].assign_value(self.data)
@@ -1407,10 +1493,33 @@ class Data():
 #-----------------------------------------------------------------------
 
     def set_time(self):
+
+        #--- check ---
+        if self.time_str is None:
+            raise ValueError, 'ERROR: time can not be determined, as units for time not available!'
+        if not hasattr(self,'calendar'):
+            raise ValueError, 'ERROR: no calendar specified!'
+        if not hasattr(self,'time'):
+            raise ValueError, 'ERROR: no time specified!'
+
+        #--- time conversion using netCDF4 library routine ---
+        # actually nothing needs to be done, as everything shall
+        # be handled by self.num2date() in all subsequent subroutines
+        # to properly handle difference in different calendars.
+
+
+
+
+
+#-----------------------------------------------------------------------
+
+    def xxxset_time(self):
         """
         This routines sets the timestamp of the data
         to a python type timestamp. Different formats of
         input time are supported
+
+        sets self.time
         """
         if self.time_str is None:
             print '        WARNING: time type can not be determined!'
@@ -1624,7 +1733,8 @@ class Data():
         if stop < start:
             sys.exit('Error: startdate > stopdate')
 
-        s1 = plt.date2num(start); s2=plt.date2num(stop)
+        s1 = self.date2num(start)
+        s2 = self.date2num(stop)
 
         #- check that time is increasing only
         if any(np.diff(self.time)) < 0.:
@@ -1650,7 +1760,7 @@ class Data():
 
         @return list of years
         """
-        d = plt.num2date(self.time); years = []
+        d = self.num2date(self.time); years = []
         for x in d:
             years.append(x.year)
         return years
@@ -1662,7 +1772,7 @@ class Data():
         get months from timestamp
         @return: returns a list of months
         """
-        d = plt.num2date(self.time); months = []
+        d = self.num2date(self.time); months = []
         for x in d:
             months.append(x.month)
         return months
@@ -1738,7 +1848,9 @@ class Data():
         else:
             offset = 0.
 
-        data = data * scal + offset
+        #data = data * scal + offset
+        data *= scal
+        data += offset
 
 
         if hasattr(var,'long_name'):
@@ -2420,7 +2532,7 @@ class Data():
 
         o = []
         for t in self.time:
-            d = plt.num2date(t)
+            d = self.num2date(t)
             s = str(d) #convert to a string
             if day is not None:
                 s = s[0:8] + str(day).zfill(2) + s[10:] #replace day
@@ -2428,7 +2540,9 @@ class Data():
                 s = s[0:5] + str(month).zfill(2) + s[7:] #replace day
             if year is not None:
                 s = str(year).zfill(4) + s[4:]
-            o.append(plt.datestr2num(s))
+
+            #convert str. a number and then again to a datetime object to allow to employ specific time conversion of data object
+            o.append(self.date2num(plt.num2date(plt.datestr2num(s))))
 
         o = np.asarray(o)
         self.time = o.copy()
@@ -2491,7 +2605,7 @@ class Data():
 
 #-----------------------------------------------------------------------
 
-    def _set_date(self,basedate,unit='hour'):
+    def xxxxxxxxx_set_date(self,basedate,unit='hour'):
         """
         set C{Data} object time variable
 
@@ -2529,7 +2643,7 @@ class Data():
             #months since basedate
             from dateutil.rrule import rrule, MONTHLY
             from datetime import datetime
-            bdate = plt.num2date(plt.datestr2num(basedate))
+            bdate = self.num2date(plt.datestr2num(basedate))
             sdate = [d for d in rrule(MONTHLY,dtstart=datetime(bdate.year,bdate.month,bdate.day),count=self.time[0]+1)] #calculate date of first dataset
             sdate=sdate[-1] #last date as start date
 
@@ -3508,6 +3622,8 @@ class Data():
             self.time_cycle=12
         else:
             print 'WARNING: timecycle can not be set automatically!'
+
+#-----------------------------------------------------------------------
 
     def _flipud(self):
         """
