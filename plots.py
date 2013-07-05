@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.1"
+__version__ = "0.1.1"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
 
@@ -169,7 +169,7 @@ class HovmoellerPlot():
         else:
             self.figure = self.ax.figure
 
-        self.hov = hovmoeller(pl.num2date(D.time),None,rescaley=rescaley,rescalex=rescalex)
+        self.hov = hovmoeller(D.num2date(D.time),None,rescaley=rescaley,rescalex=rescalex)
         #self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
         self.x = D
 
@@ -644,7 +644,7 @@ class LinePlot():
 
             self.labels.append(label)
 
-            p = ax.plot(plt.num2date(x.time), y , label=label, **kwargs)[0]
+            p = ax.plot(x.num2date(x.time), y , label=label, **kwargs)[0]
             self.lines.append(p)
             if self.regress:
                 ax.plot(x.time,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
@@ -761,8 +761,7 @@ class GlobalMeanPlot():
             raise ValueError, 'Can not plot mean results for GlobalMeanPlot! Missing data!'
 
 
-        f = pl.figure()
-        ax = f.add_subplot(111)
+        f = pl.figure(); ax = f.add_subplot(111)
 
         if plot_clim:
             pdata = self.pdata_clim
@@ -780,7 +779,7 @@ class GlobalMeanPlot():
 
                 if i == 0:
                     if plot_clim:
-                        tref = dat[i]['time']
+                        tref = dat[i]['time'] #climatology 1...12
                     else:
                         tref = pl.date2num(dat[i]['time']) #reference time vector
                     y    = dat[i]['data']*1.
@@ -890,7 +889,14 @@ class GlobalMeanPlot():
         mdata = m.data.flatten()
 
         #time
-        t = plt.num2date(m.time)
+        t = m.num2date(m.time) #this gives a datetime object
+        #print 'Time details:'
+        #print m.time_str
+        #print m.calendar
+        #print m.time[0:5]
+        #print D1.time[0:5]
+        #print m.label
+
 
         #--- plot generation ---
         if color == None:
@@ -904,6 +910,7 @@ class GlobalMeanPlot():
         else:
             vdata=[]
         vdata.append({'time':t,'data':mdata})
+        print 'vdata: ', t
         self.pdata.update({group:vdata}) #store results for current group
         del vdata
 
@@ -2391,7 +2398,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #/// show timeseries? ///
     if show_timeseries:
-        ax2.plot(plt.num2date(x.time),x.fldmean())
+        ax2.plot(x.num2date(x.time),x.fldmean())
         ax2.grid()
         ax2.set_ylim(im1.get_clim()[0]*scal_timeseries,im1.get_clim()[1]*scal_timeseries)
         ti = ax2.get_yticks(); n=len(ti) / 2
@@ -2565,8 +2572,8 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
     #set all invalid data to NAN
     xdata = x.data; ydata = y.data
 
-    hov1 = hovmoeller(num2date(x.time),xdata,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
-    hov2 = hovmoeller(num2date(y.time),ydata,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
+    hov1 = hovmoeller(x.num2date(x.time),xdata,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
+    hov2 = hovmoeller(y.num2date(y.time),ydata,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
 
     hov1.time_to_lat(**kwargs); hov2.time_to_lat(**kwargs)
 
@@ -2578,7 +2585,7 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
     add_nice_legend(ax1,hov1.im,cmap,cticks=cticks,label=clabel); add_nice_legend(ax2,hov2.im,cmap,cticks=cticks,label=clabel)
 
     if x.data.shape == y.data.shape:
-        hov3 = hovmoeller(num2date(y.time),x.data - y.data,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
+        hov3 = hovmoeller(y.num2date(y.time),x.data - y.data,rescaley=rescaley,lat=y.lat,rescalex=rescalex)
         hov3.time_to_lat(**kwargs)
         cmap_diff = plt.cm.get_cmap('RdBu', nclasses)
         hov3.plot(title=x._get_label() + ' - ' + y._get_label(),ylabel='lat',xlabel='time',origin='lower',xtickrotation=30,cmap=cmap_diff,ax=ax3,showcolorbar=False,climits=dlimits,grid=grid)
@@ -2737,7 +2744,7 @@ def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=N
 
 
 
-    h = hovmoeller(pl.num2date(x.time),x.data,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
+    h = hovmoeller(x.num2date(x.time),x.data,rescaley=rescaley,lat=x.lat,rescalex=rescalex)
     h.time_to_lat(dlat=dlat,monthly = True, yearonly = True,monthsamp=monthsamp)
     h.plot(title=tit,xlabel=xlab,ylabel=ylabel,origin='lower',xtickrotation=xtickrotation,cmap=cmap,ax=ax,showcolorbar=False,climits=climits,grid=False,showxticks=showxticks)
 

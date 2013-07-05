@@ -173,6 +173,8 @@ class hovmoeller:
 
         """
 
+        raise ValueError, 'Todo in hov.py: Support of num2date() and date2num() for different calendars!'
+
         #/// check consistency ///
         if value != None:
             if len(time) == len(value):

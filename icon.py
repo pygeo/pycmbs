@@ -81,10 +81,22 @@ class Icon(Data):
         self.vlat = F.variables['clat_vertices'].get_value()*180./np.pi
         F.close()
 
-        print 'ICON data was read!'
+        #--- read time variable
+        if self.time_var != None:
+            self.time = self.read_netcdf(self.time_var) #returns either None or a masked array
+            if hasattr(self.time,'mask'):
+                self.time = self.time.data
+            else:
+                self.time = None
+            if self.time != None:
+                if self.time.ndim != 1:
+                    self.time = self.time.flatten() #remove singletone dimensions
+        else:
+            self.time = None
 
-
-
+        #--- determine time --> convert to python timestep
+        if self.time != None:
+            self.set_time()
 
 
 

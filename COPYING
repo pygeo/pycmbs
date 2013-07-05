@@ -1,3 +1,5 @@
+pyCMBS is provided under the following license:
+
     GNU GENERAL PUBLIC LICENSE
 Version 2, June 1991
 
@@ -278,3 +280,11 @@ PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 END OF TERMS AND CONDITIONS
+
+
+
+
+pyCMBS contains input from the netCDF4 library, which is provided
+under the license specified in the file COPYING_netCDF4
+
+

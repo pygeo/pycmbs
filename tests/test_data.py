@@ -32,18 +32,20 @@ class TestData(TestCase):
         self.D.varname = 'testvarname'
         self.D.long_name = 'This is the longname'
 
-        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01') - 1
-        self.D.calendar = 'standard'
+        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
+        self.D.time_str = "days since 0001-01-01 00:00:00"
+        self.D.calendar = 'gregorian'
 
     def test_get_time_indices(self):
         d1 = pl.num2date(pl.datestr2num('2001-01-05'))
         d2 = pl.num2date(pl.datestr2num('2001-05-05'))
+        self.D._oldtime = True #use old time convention to be compliant with pylab *PLUS ONE* feature
         i1,i2 = self.D._get_time_indices(d1,d2)
         s1 = str(pl.num2date(self.D.time[i1]))
         s2 = str(pl.num2date(self.D.time[i2]))
 
-        print s1, i1
-        print s2, i2
+        #print s1, i1
+        #print s2, i2
 
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
@@ -73,34 +75,34 @@ class TestData(TestCase):
         #self.D.time = [20120503,19750101]
         #self.D.set_time()
         #print self.time
-        self.D.time_str = "days since 1992-01-01 00:00:00"
-        self.D.time = np.array([6633, 6725, 6817, 6908])
-        self.D.set_time()
-        if self.D.verbose:
-            print self.D.time[0]
-            print self.D.time[3]
-        self.assertEqual(self.D.time[0],733831.)
-        self.assertEqual(self.D.time[3],734106.)
+        #self.D.time_str = "days since 1992-01-01 00:00:00"
+        #self.D.time = np.array([6633, 6725, 6817, 6908])
+        #self.D.set_time()
+        #if self.D.verbose:
+        #    print self.D.time[0]
+        #    print self.D.time[3]
+        #self.assertEqual(self.D.time[0],733831.)
+        #self.assertEqual(self.D.time[3],734106.)
 
-        print ''
-        print '---'
+        #print ''
+        #print '---'
         self.D.time_str = "days since 0001-01-01 00:00:00" #behaviour look a bit strange here, as num2date gives number of days PLUS one (see num2date docstring)
-        self.D.time = np.array([0.])
+        self.D.time = np.array([1.])
         self.D.set_time()
-        if self.D.verbose:
-            print 'Results: ', self.D.time[0], pl.num2date(self.D.time[0])
+        #if self.D.verbose:
+        #    print 'Results: ', self.D.time[0], pl.num2date(self.D.time[0])
         self.assertEqual(self.D.time[0],1.)
 
-        print ''
-        print '---'
-        self.D.time_str = "days since 1997-10-21 00:00:00" #o.k.
-        self.D.time = np.array([0., 2.])
-        self.D.set_time()
-        if self.D.verbose:
-            print self.D.time[0],pl.num2date(self.D.time[0])
-            print self.D.time[1],pl.num2date(self.D.time[1])
-        self.assertEqual(self.D.time[0],729318.0)
-        self.assertEqual(self.D.time[1],729320.0)
+        #print ''
+        #print '---'
+        #self.D.time_str = "days since 1997-10-21 00:00:00" #o.k.
+        #self.D.time = np.array([0., 2.])
+        #self.D.set_time()
+        #if self.D.verbose:
+        #    print self.D.time[0],pl.num2date(self.D.time[0])
+        #    print self.D.time[1],pl.num2date(self.D.time[1])
+        #self.assertEqual(self.D.time[0],729318.0)
+        #self.assertEqual(self.D.time[1],729320.0)
 
 
     def test_temporal_trend(self):
@@ -122,6 +124,7 @@ class TestData(TestCase):
         t2 = pl.datestr2num('2005-05-15') + np.arange(4) #year 2005
         t3 = pl.datestr2num('2010-07-15') + np.arange(4) #year 2010
         D.time = np.asarray([t1,t2,t3]).flatten()
+        D._oldtime = True #use old python pylab time definition to be compliant with the test results here
         data = pl.rand(len(D.time),1,1)
         data[8:,0,0] = np.nan
         D.data = np.ma.array(data,mask=np.isnan(data))       #generate random data
@@ -129,8 +132,14 @@ class TestData(TestCase):
         #print 'Reference results: ', r1, r2, r3
         years, res = D.get_yearmean()
         #print 'Result: ', res
-        self.assertEqual(years[0],2001); self.assertEqual(years[1],2005)
-        self.assertEqual(res[0,0,0],r1); self.assertEqual(res[1,0,0],r2)
+        print 'years[0]: ',years[0]
+        print 'Times: ', D.num2date(D.time)
+        print 'Times2: ', pl.num2date(D.time)
+        print pl.num2date(t1)
+        self.assertEqual(years[0],2001)
+        self.assertEqual(years[1],2005)
+        self.assertEqual(res[0,0,0],r1)
+        self.assertEqual(res[1,0,0],r2)
         self.assertEqual(res[2,0,0].mask,r3.mask)
 
 #    def test_diagnostic__get_valid_timeseries(self):
@@ -181,6 +190,7 @@ class TestData(TestCase):
         @return:
         '''
         D = self.D.copy()
+        D._oldtime = True #use old time convention to be compliant with test routines here
         D.adjust_time(day=17)
         for i in xrange(len(D.time)):
             self.assertEqual(pl.num2date(D.time[i]).day,17)
@@ -537,9 +547,6 @@ class TestData(TestCase):
         self.assertTrue(np.all(dif == 0.))
 
 
-
-
-
     def test_condstat(self):
         """
         conditional statistics unittest
@@ -613,7 +620,6 @@ class TestData(TestCase):
         xx[0,0]=5.; xx[1,0]=10.; xx[2,0]=20.
         D1.data = np.ma.array(xx,mask=xx!=xx)
 
-
         #do test
         r1 = D.fldmean()[0] #with weights
         r1a = D1.fldmean()[0]
@@ -659,7 +665,6 @@ class TestData(TestCase):
         D.weighting_type='all'
         r = D.fldmean()[0]
         self.assertEquals(r,0.75)
-
 
 
     def test_fldstd(self):
@@ -777,7 +782,17 @@ class TestData(TestCase):
         self.assertTrue(m[0,1]==True)
 
 
+    def test_time_conversion(self):
+        x = self.D.copy()
+        t = x.time
+        dref = pl.num2date(t); t2=pl.date2num(dref)
+        d1 = x.num2date(t) #convert time to datetime object
+        t1 = x.date2num(d1) #convert back
 
+        d = t-t1
+        self.assertTrue(np.all(d == 0.))
+        d = t-t2
+        self.assertTrue(np.all(d == 0.))
 
 
 

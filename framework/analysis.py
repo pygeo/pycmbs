@@ -345,7 +345,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
     obs_orig.addc(obs_add_offset,copy=False); obs_monthly.addc(obs_add_offset,copy=False)
 
-
     #### IDENTIFY AREAS WHERE THERE IS AT LEAST SOME VALID DATA ####
     valid_obs=((~obs_orig.data.mask).sum(axis=0)) > 0 #find all data where there is at least SOME data
     obs_orig._apply_mask(valid_obs)
@@ -456,7 +455,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             tmp._apply_mask(ls_mask)
             #print '      interpol done 1'
 
-            hov_model = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_model = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
             hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
             hov_model.hov = None
             hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
