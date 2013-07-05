@@ -2,12 +2,6 @@
 
 #details how to set global SVN variables can be found in http://blogchuck.com/2009/09/adding-svn-headers-revisited/
 
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.1"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@zmaw.de"
-
 '''
 # Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
 # See COPYING file for copying and redistribution conditions.
@@ -25,7 +19,7 @@ __email__ = "alexander.loew@zmaw.de"
 __name__ = "pyCMBS"
 """The project name."""
 
-__author__ = "$Author$"
+__author__ = "$Author: $"
 """The primary author of pyCMBS."""
 
 __institute__="Max-Planck-Institute for Meteorology (MPI-M)"
