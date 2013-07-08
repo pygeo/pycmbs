@@ -910,7 +910,7 @@ class GlobalMeanPlot():
         else:
             vdata=[]
         vdata.append({'time':t,'data':mdata})
-        print 'vdata: ', t
+        #print 'vdata: ', t
         self.pdata.update({group:vdata}) #store results for current group
         del vdata
 
@@ -1114,6 +1114,10 @@ class ZonalPlot():
         @type timmean: bool
 
         """
+
+        if not x._latitudecheckok:
+            print 'WARNING: can not do zonal plot as not regular latitudes!'
+            return
 
         #check if all latitudes are the same
         lu = x.lat.mean(axis=1)
@@ -1891,7 +1895,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
              contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, colorbar_orientation='vertical',stat_type='mean',
-             cax_rotation=0.,cticklabels=None, **kwargs):
+             cax_rotation=0.,cticklabels=None, proj='robin',plot_method='colormesh', boundinglat=60., **kwargs):
     """
     produce a nice looking map plot
 
@@ -1996,6 +2000,14 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     @param cticklabels Labels for the ticks of the colorbar
     @type cticklabels: list of str labels
 
+    @param proj: Basemap projection parameter string, specifying the type of projections to be used ['robin','npstere']
+    @type proj: str
+
+    @param plot_method: specifies method how data shall be plotted (applies only when using Basemap)
+                        allowed options are ['colormesh','scatter']
+    @type plot_method: str
+
+
     """
 
     def _get_unstructured_collection(vlon,vlat,xm,vmin,vmax,basemap_object=None):
@@ -2060,8 +2072,19 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         vmax = None
 
 
+    if plot_method not in ['colormesh','scatter']:
+        raise ValueError, 'Invalid plotting option ' + plot_method
+
+
 
     #--- checks
+
+    if proj not in ['robin','npstere']:
+        raise ValueError, 'ERROR: projection type not validated for map_plot so far: ' + proj
+    if proj == 'npstere': #todo: for stereographic projection, scatter is used as method at the moment
+        plot_method = 'scatter'
+
+
 
     if overlay != None:
 
@@ -2117,7 +2140,12 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         xm = np.log10( xm + logoffset )
 
     #--- set projection parameters
-    proj='robin'; lon_0=0.; lat_0=0.
+    if proj == 'robin': #todo: more flexible handling of projection parameters (dictionary ??)
+        lon_0=0.; lat_0=0.
+    elif proj == 'npstere':
+        lon_0 = 0.; lat_0 = 0.; boundinglat = boundinglat
+    else:
+        raise ValueError,'Unsupported projection in map_plot (unsupported means, that it was not tested yet)'
 
     #--- plot using basemap
     if use_basemap:
@@ -2137,7 +2165,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         ############################################
         # generate Basemap map
         ############################################
-        m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat)
+        m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,
+                   llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
+                   boundinglat=boundinglat)
 
         if bluemarble:
             m1.bluemarble()
@@ -2147,10 +2177,6 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             #it assumes that the data object has a list of center coordinates which correspond to the data
             #and vlon/vlat attributes with corresponding vertices corresponding to the center coordinates
 
-
-            #todo: make this more generic, so the same routine can also be used without Basemap
-
-
             if not hasattr(x,'vlon'):
                 raise ValueError, 'Plotting for unstructured grid not possible, as VLON attribute missing!'
             if not hasattr(x,'vlat'):
@@ -2159,10 +2185,19 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             #--- generate collection of patches for Basemap plot
             collection = _get_unstructured_collection(x.vlon,x.vlat,xm,vmin,vmax,basemap_object=m1)
 
-
-
-
         else: #unstructured gridtype
+
+
+            #check if all longitudes are the same. If so, then a plotting with different options is possible.
+            #otherwise, f_kdtree is activates as default option to ensure valid plotting
+            #f_kdtree_act = f_kdtree
+            #if x._lon360:
+            #    if x._equal_lon():
+            #        f_kdtree_act = f_kdtree
+            #    else:
+            #        print 'WARNING: longitudes are not all the same! f_kdtree=True is therefore used!'
+            #        f_kdtree_act = True
+
 
             if f_kdtree:
                 #use KDTRee nearest neighbor resampling to avoid stripes in plotting
@@ -2181,7 +2216,6 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 pts  = zip(xmap,ymap) #generate points to interpolate from source data
                 dist,idx = tree.query(pts,k=1)     #perform nearest neighbor interpolation (returns distance and indices)
 
-
                 #- map data to output matrix for plotting
                 Z = np.ones(shape0)*np.nan; Z.shape = (-1) #generate target vector
                 omask = np.ones(shape0).astype('bool'); omask.shape = (-1)
@@ -2192,16 +2226,10 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
                 xm1 = xm.copy(); xm1.shape = (-1)
                 Z[idx]   = xm1 #assign data and reshape it and set generate masked array
-                #~ Z[dist != 0.] = np.nan
-
-                #~ print Z.shape, omask.shape
                 Z[omask] = np.nan
                 Z = np.reshape(Z,shape0); Z = np.ma.array(Z,mask=np.isnan(Z))
 
             else: #f_kdtree --> not kdtree
-
-
-
 
                 #/// in the following, we check if the longitudes are in the right order
                 #    to allow for an appropirate plotting. Basemap assumes ascending order
@@ -2211,19 +2239,24 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                 #
                 #    REFERENCES:
                 #    * http://pl.digipedia.org/usenet/thread/15998/16891/
-
-                if x._lon360: #if lon 0 ... 360, then shift data
-                    tmp_lon = x._get_unique_lon() #get unique longitudes
-                    tmplon1 = tmp_lon.copy()
-                    Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
-                    if overlay != None:
-                        overlay, nope = shiftgrid(180, overlay, tmplon1, start=False)
-                    lon, lat = np.meshgrid(tmp_lon, np.arange(Z.shape[0]))
-                    lat = x.lat
+                if plot_method == 'colormesh':
+                    print 'Projection: ', proj
+                    if x._lon360: #if lon 0 ... 360, then shift data
+                        tmp_lon = x._get_unique_lon() #get unique longitudes
+                        tmplon1 = tmp_lon.copy()
+                        Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
+                        if overlay != None:
+                            overlay, nope = shiftgrid(180, overlay, tmplon1, start=False)
+                        lon, lat = np.meshgrid(tmp_lon, np.arange(Z.shape[0]))
+                        lat = x.lat
+                    else:
+                        print '*** WARNING: not lon360 not validated yet, try KDTREE option if stripes in plot ***'
+                        lon = x.lon; lat=x.lat
+                        Z = xm
+                elif plot_method == 'scatter':
+                        lon = x.lon; lat = x.lat; Z = xm
                 else:
-                    print '*** WARNING: not lon360 not validated yet, try KDTREE option if stripes in plot ***'
-                    lon = x.lon; lat=x.lat
-                    Z = xm
+                    raise ValueError, 'Invalid option'
 
                 X, Y = m1(lon, lat)
 
@@ -2249,7 +2282,12 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
                         ax.clabel(im1, inline=1, fontsize=10) #contour label
 
                 else:
-                    im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+                    if plot_method == 'colormesh':
+                        im1=m1.pcolormesh(X,Y,Z,cmap=cmap,**kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+                    elif plot_method == 'scatter':
+                        im1=m1.scatter(X,Y,c=Z,marker='8',edgecolor='None',cmap=cmap,**kwargs1)
+                    else:
+                        raise ValueError, 'Invalid plotting option! ' + plot_method
 
                 if overlay != None:
                     #print 'Doing overlay plot! ...'
@@ -2325,11 +2363,10 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #Zonal plot
     if show_zonal:
-        add_zonal_plot(ax,x,timmean=zonal_timmean,vmin=vmin_zonal,vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
-
-
-
-
+        if x._latitudecheckok:
+            add_zonal_plot(ax,x,timmean=zonal_timmean,vmin=vmin_zonal,vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+        else:
+            print 'WARNING: zonal plot not possible due to invalid latitude configurations'
 
 
     def _add_region(m,r,color='red',linewidth=1):
@@ -2604,7 +2641,9 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 #-----------------------------------------------------------------------
 
 
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, **kwargs):
+def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,
+                   region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,
+                   rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, proj='robin',**kwargs):
     """
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets
@@ -2678,18 +2717,24 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     #- temporal mean fields
     xm = x.timmean(); ym = y.timmean()
 
-    proj='robin'; lon_0=0.; lat_0=0.
+    #proj='robin'; lon_0=0.; lat_0=0.
 
     #- plot first dataset
-    map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean, **kwargs)
+    map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
+             cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
+             zonal_timmean=zonal_timmean,proj=proj, **kwargs)
 
     #- plot second dataset
-    map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,  **kwargs)
+    map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,
+             cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
+             zonal_timmean=zonal_timmean,proj=proj,  **kwargs)
 
     #-first minus second dataset
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
-    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
+    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,
+             nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',
+             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj)
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data
@@ -2697,7 +2742,10 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
 
-    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=nclasses,cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean)
+    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',
+             cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=nclasses,
+             cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,
+             zonal_timmean=zonal_timmean,stat_type='median',proj=proj)
 
 
     return fig

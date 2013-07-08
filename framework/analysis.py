@@ -32,7 +32,7 @@ from cdo import *
 #///////////////////////////////////////////////////////////////////////
 
 
-def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,obs_var=None,label='',shift_lon=None,start_date=None,stop_date=None):
+def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,obs_var=None,label='',shift_lon=None,start_date=None,stop_date=None,target_grid='t63grid',interpolation_method='remapcon'):
     """
     This subroutine performs pre-processing of some raw data file. It does
 
@@ -65,6 +65,9 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     @param stop_date: date where the observations should stop
     @type stop_date: datetime.datetime
 
+    @param target_grid: target grid specification for remapping. This can be either a string specifying the grid following the cdo conventions or a file which contains the grid already
+    @type target_grid: str
+
     """
 
     sys.stdout.write(' *** Preprocessing ' + raw_file + '\n')
@@ -91,8 +94,12 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
         seldate_str = ''
         obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
 
-    cdo.monmean(options='-f nc',output=obs_mon_file,input='-remapcon,t63grid' + seldate_str + ' ' + raw_file,force=force)
+    cdo.monmean(options='-f nc',output=obs_mon_file,input='-' + interpolation_method + ',' + target_grid +  seldate_str + ' ' + raw_file,force=force)
     #cdo.monstd(options='-f nc',output=obs_monstd_file,input='-remapcon,t63grid ' + raw_file,force=force)
+
+    #print 'input: ' + '-' + interpolation_method + ',' + target_grid +  seldate_str + ' ' + raw_file
+    print 'output: ', obs_mon_file
+
 
     #2) generate monthly mean or seasonal mean climatology as well as standard deviation
     if interval == 'monthly':
@@ -121,6 +128,7 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     else:
         print interval
         raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+
 
     #--- READ DATA ---
     obs     = Data(obs_ymonmean_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
@@ -158,43 +166,48 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='evap')
+def seaice_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='seaice',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='rain')
+def evaporation_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='evap',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='wind')
+def rainfall_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='rain',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def twpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='twpa')
+def wind_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='wind',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def wvpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='wvpa')
+def twpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='twpa',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def hair_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='hair')
+def wvpa_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='wvpa',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='late')
+def hair_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='hair',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='budg')
+def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='late',regions=regions)
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='budg',regions=regions)
 
 #-------------------------------------------------------------------------------------------------------------
 
@@ -298,6 +311,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     f_gleckler    = local_plot_options['OPTIONS']['gleckler_plot']
     f_hovmoeller    = local_plot_options['OPTIONS']['hovmoeller_plot']
     f_regional_analysis = local_plot_options['OPTIONS']['regional_analysis']
+    interpolation_method = local_plot_options['OPTIONS']['interpolation']
+    targetgrid = local_plot_options['OPTIONS']['targetgrid']
+    projection = local_plot_options['OPTIONS']['projection']
+
     if regions == None:
         f_regional_analysis = False
 
@@ -333,13 +350,20 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
 
     #/// land sea mask (options: land,ocean, global for parameter area)
-    ls_mask = get_T63_landseamask(shift_lon, area = valid_mask)
+    if targetgrid == 't63grid':
+        ls_mask = get_T63_landseamask(shift_lon, area = valid_mask)
+    else:
+        ls_mask = None
 
     #####################################################################
-    # DATA PREPROCESSING
+    # OBSERVATION DATA PREPROCESSING
     #####################################################################
     #if f_preprocess == True: #always do preprocessing
-    obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask, force = False, obs_var = obs_var, label = obs_name, shift_lon = shift_lon,start_date=obs_start,stop_date=obs_stop)
+    obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask,
+                                                     force = False, obs_var = obs_var, label = obs_name,
+                                                     shift_lon = shift_lon,start_date=obs_start,stop_date=obs_stop,
+                                                     interpolation_method=interpolation_method,
+                                                     target_grid=targetgrid)
 
     # rescale data following CF conventions
     obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
@@ -372,7 +396,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         GM.plot(obs_monthly, linestyle = '--',show_std=False,group='observations')
 
     if f_mapseasons == True:  #seasonal mean plot
-        f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=nclasses,vmin=vmin,vmax=vmax,cticks=cticks)
+        f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',
+                              show_zonal=True,zonal_timmean=True,nclasses=nclasses,
+                              vmin=vmin,vmax=vmax,cticks=cticks,proj=projection)
         report.figure(f_season,caption='Seasonal mean ' + obs_name)
 
 
@@ -387,8 +413,13 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         else:
             model_data = model.variables[obs_type].copy()
 
+        if ls_mask != None:
+            actmask = ls_mask.data & valid_obs
+        else:
+            actmask = valid_obs
 
-        model_data._apply_mask( (ls_mask.data & valid_obs)  ) #mask the model data with land/sea mask and valid mask from observations
+        model_data._apply_mask(actmask)
+
         GP.add_model(model._unique_name) #register model name in GlecklerPlot
 
         if for_report == True:
@@ -406,7 +437,12 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                         pass
                     else:
                         print model.variables[m_data_org][2].label
-                        GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
+                        tmp = model.variables[m_data_org][2]
+                        tmp._apply_mask(actmask)
+                        #GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
+                        GM.plot(tmp,label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
+                        del tmp
+
 
         if model_data == None:
             sys.stdout.write('Data not existing for model %s' % model.name); continue
@@ -420,14 +456,19 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         if f_mapdifference == True:
             sys.stdout.write('\n *** Map difference plotting. \n')
             #--- generate difference map
-            f_dif  = map_difference(model_data, obs_orig, nclasses=nclasses,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks)
+            f_dif  = map_difference(model_data, obs_orig, nclasses=nclasses,use_basemap=use_basemap,
+                                    show_zonal=True,zonal_timmean=False,
+                                    dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks,
+                                    proj=projection)
             report.figure(f_dif,caption='Mean and relative differences')
 
         if f_mapseasons == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
 
             #seasonal map
-            f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',show_zonal=True,zonal_timmean=True,nclasses=nclasses,vmin=vmin,vmax=vmax,cticks=cticks)
+            f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',
+                                  show_zonal=True,zonal_timmean=True,nclasses=nclasses,
+                                  vmin=vmin,vmax=vmax,cticks=cticks,proj=projection)
             report.figure(f_season,caption='Seasonal means model')
 
         if f_hovmoeller == True:
@@ -452,7 +493,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #i1,i2 = tmp._get_time_indices(start_time,stop_time)
             #tmp._temporal_subsetting(i1,i2)
             tmp = tmp.interp_time(pl.date2num(tref))
-            tmp._apply_mask(ls_mask)
+            if ls_mask != None:
+                tmp._apply_mask(ls_mask)
             #print '      interpol done 1'
 
             hov_model = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
@@ -467,7 +509,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #tmp._temporal_subsetting(i1,i2)
             tmp = tmp.interp_time(pl.date2num(tref))
             #print 'interpol done 2'
-            tmp._apply_mask(ls_mask)
+            if ls_mask != None:
+                tmp._apply_mask(ls_mask)
 
             hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
             hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
@@ -735,7 +778,8 @@ def tree_fraction_analysis(model_list,pft='tree'):
             print model_data.data.shape; print hansen.data.shape
 
         dmin=-1; dmax=1.
-        dif = map_difference(model_data,hansen,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0.,0.25,0.5,0.75,1.])
+        dif = map_difference(model_data,hansen,vmin=vmin,vmax=vmax,
+                             dmin=dmin,dmax=dmax,use_basemap=use_basemap,cticks=[0.,0.25,0.5,0.75,1.])
 
         #/// ZONAL STATISTICS
         #--- append zonal plot to difference map
@@ -1142,7 +1186,7 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
 
 
 
-def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,actvar=None):
+def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,actvar=None,regions=None):
     """
     actvar: variable to analyze
     """
@@ -1165,7 +1209,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
     thevar = actvar
     if thevar not in plot_options.options.keys():
-        raise ValueError, 'The variable is not existing in the plot_options: ', thevar
+        raise ValueError, 'The variable is not existing in the plot_options: ' + thevar
     thelabel = plot_options.options[thevar]['OPTIONS']['label']
     thelabel = thelabel.upper()
 
@@ -1188,7 +1232,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
             else:
                 print 'IN MAIN ANALYSIS: ', thevar, k
                 report.subsection(k)
-                generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
+                generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval,regions=regions)
     else:
         raise ValueError, 'Can not do analysis for ' + thelabel + ' for some reason! Check config and plot option files!'
 

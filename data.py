@@ -144,6 +144,7 @@ class Data():
 
         self.gridtype = None
         self._oldtime = oldtime
+        self._latitudecheckok = False #specifies if latitudes have been checked for increasing order (required for zonal plot)
 
         if label is None:
             self.label = self.filename
@@ -177,7 +178,9 @@ class Data():
                     print self.lon.max()
                     raise ValueError, 'invalid longitudes needs shifting !!!'
             else:
-                raise ValueError, 'plotting etc not supported for longitudes which are not equal to 0 ... 360'
+                print '_lon360: ', self._lon360
+                print self.lon.min(), self.lon.max()
+                print  'WARNING: plotting etc not supported for longitudes which are not equal to 0 ... 360'
 
 #-----------------------------------------------------------------------
 
@@ -466,6 +469,7 @@ class Data():
             if self._equal_lon(): #... check for unique lons
                 return self.lon[0,:]
             else:
+                print self.filename
                 raise ValueError, 'The dataset does not contain unique LONGITUDES!'
         else:
             raise ValueError, 'Data dimension for longitudes not supported yet!'
@@ -553,12 +557,14 @@ class Data():
             return
 
         if (self.lat == None) or (self.lon == None):
+            #logger.warning('WARNING: cell area can not be calculated (missing coordinates)!')
             print '        WARNING: cell area can not be calculated (missing coordinates)!'
             if self.data.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
             elif self.data.ndim == 3:
                 self.cell_area = np.ones(self.data[0,:,:].shape)
             else:
+                #logger.error('Invalid geometry')
                 raise ValueError, 'Invalid geometry!'
             return
 
@@ -576,7 +582,9 @@ class Data():
             self.cell_area = F.variables['cell_area'].get_value().astype('float').copy()
         else:
             #--- no cell are calculation possible!!!
-            print '*** WARNING: can not estimate cell area! ' + cell_file
+            #logger.warning('Can not estimate cell area! (setting all equal) ' + cell_file)
+
+            print '*** WARNING: Can not estimate cell area! ' + cell_file
             print '    setting cell_area all to equal'
             if self.data.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
@@ -872,10 +880,13 @@ class Data():
                 if self.lat != None:
                     if np.all(np.diff(self.lat[:,0])>0.): #increasing order!
                         self._flipud()
+                        self._latitudecheckok = True
                     elif np.all(np.diff(self.lat[:,0])<0.): #decreasing order!
-                        pass
+                        self._latitudecheckok = True
                     else:
-                        raise ValueError, 'Can not handle automatic flipping of lat!'
+                        print 'WARNING: latitudes not in systematic order! Might cause trouble with zonal statistics!'
+                        self._latitudecheckok = False
+                        #raise ValueError, 'Can not handle automatic flipping of lat!'
 
 
 
@@ -1501,6 +1512,11 @@ class Data():
             raise ValueError, 'ERROR: no calendar specified!'
         if not hasattr(self,'time'):
             raise ValueError, 'ERROR: no time specified!'
+
+        if self.time_str == 'day as %Y%m%d.%f':
+            #in case of YYYYMMDD, convert to other time with basedate 0001-01-01 00:00:00
+            self._convert_time()
+
 
         #--- time conversion using netCDF4 library routine ---
         # actually nothing needs to be done, as everything shall
@@ -2513,7 +2529,9 @@ class Data():
             tn = y + '-' + m + '-' + d + ' ' +  h + ':00'
             T.append(tn)
         T=np.asarray(T)
-        self.time = plt.datestr2num(T)
+        self.calendar = 'gregorian'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T))) #convert first to datetime object and then use own function !!!
 
 #-----------------------------------------------------------------------
     def adjust_time(self,day=None,month=None,year=None):
