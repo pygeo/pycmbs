@@ -88,6 +88,19 @@ class ConfigFile():
             sys.exit('report missing in configuration file!')
 
         l = self.f.readline().replace('\n','')
+        if 'REPORT_FORMAT=' in l.upper():
+            s = l[14:].strip()
+            s = s.lower()
+            if s not in ['png','pdf']:
+                print s
+                raise ValueError, 'Invlid option for report format [png,pdf]'
+            else:
+                self.options.update({'report_format' : s })
+        else:
+            sys.exit('report missing in configuration file!')
+
+
+        l = self.f.readline().replace('\n','')
         if 'AUTHOR=' in l.upper():
             s = l[7:]
             self.options.update({'author' : s })
@@ -202,7 +215,7 @@ class ConfigFile():
         self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
 
         for k in self.dtypes:
-            if k.upper() not in ['CMIP5','JSBACH_BOT','JSBACH_RAW']:
+            if k.upper() not in ['CMIP5','JSBACH_BOT','JSBACH_RAW','CMIP3']:
                 print k
                 raise ValueError, 'Unknown model type'
 
@@ -304,6 +317,21 @@ class PlotOptions():
                         print 'Setting variable ', vv, ' to FALSE because of global option for ', var
                         lopt['OPTIONS'].update({vv:False})
 
+        #--- map interpolation methods ---
+        # the interpolation method is used by the CDOs. It needs to be
+        # a value of [bilinear,conservative,nearest]
+        for var in cfg.variables:
+            lopt = self.options[var]
+            if lopt['OPTIONS']['interpolation'] == 'bilinear':
+                lopt['OPTIONS'].update({'interpolation':'remapbil'})
+            elif lopt['OPTIONS']['interpolation'] == 'conservative':
+                lopt['OPTIONS'].update({'interpolation':'remapcon'})
+            elif lopt['OPTIONS']['interpolation'] == 'nearest':
+                lopt['OPTIONS'].update({'interpolation':'remapnn'})
+            else:
+                raise ValueError, 'ERROR: invalid interpolation method!'
+
+
 
 
 
@@ -395,7 +423,7 @@ class PlotOptions():
 
         #specify here the options that need to be given!
         locopt = ['obs_file','obs_var','gleckler_position','scale_data'] #variables that need to be specified (MUST!) for each observational dataset
-        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot','regional_analysis'] #options for each variable type
+        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot','regional_analysis','interpolation','targetgrid','projection'] #options for each variable type
 
         for v in o.keys(): #all variables
             d = o[v] #dictionary for a specific variable

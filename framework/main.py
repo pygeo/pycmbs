@@ -98,6 +98,7 @@ def get_analysis_scripts():
     d.update({'hair':'hair_analysis'})
     d.update({'late':'late_analysis'})
     d.update({'budg':'budg_analysis'})
+    d.update({'seaice':'seaice_analysis'})
 
     return d
 
@@ -141,6 +142,7 @@ def get_methods4variables(variables, model_dict):
     hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
     hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
     hlp.update({'hair': 'get_model_data_generic(interval=interval, **%s)' % model_dict['hair']})
+    hlp.update({'seaice': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice']})
 
 
     res={}
@@ -232,95 +234,150 @@ stop_time    = pl.num2date(pl.datestr2num(s_stop_time ))
 
 
 
-# get observations?
-model_dict = {'rain':  {'variable': 'pr',
-                        'unit': 'mm/day',
-                        #'interval': 'monthly',
-                        'lat_name': 'lat',
-                        'lon_name': 'lon',
-                        'model_suffix': 'ensmean',
-                        'model_prefix': 'Amon',
-                        'file_format' : 'nc',
-                        'scale_factor': 86400.,
-                        'mask_area': 'ocean'},
+# get observations? #todo: this needs to be done for each model !!!
+model_dict = {'rain':  {'CMIP5':
+                            {
+                                'variable': 'pr',
+                                'unit': 'mm/day',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'Amon',
+                                'file_format' : 'nc',
+                                'scale_factor': 86400.,
+                                'mask_area': 'ocean'
+                            }
+                        },
 
-              'evap':   {'variable': 'evspsbl',
-                        'unit': 'mm/day',
-                        #'interval': 'monthly',
-                        'lat_name': 'lat',
-                        'lon_name': 'lon',
-                        'model_suffix': 'ensmean',
-                        'file_format' : 'nc',
-                        'model_prefix': 'Amon',
-                        'scale_factor': 86400.,
-                        'mask_area': 'ocean'},
+              'evap':   {'CMIP5':
+                             {
+                                 'variable': 'evspsbl',
+                                 'unit': 'mm/day',
+                                 'lat_name': 'lat',
+                                 'lon_name': 'lon',
+                                 'model_suffix': 'ensmean',
+                                 'file_format' : 'nc',
+                                 'model_prefix': 'Amon',
+                                 'scale_factor': 86400.,
+                                 'mask_area': 'ocean'
+                             }
+                        },
 
-              'twpa':   { 'variable': 'clwvi',
-                         'unit': 'kg/m^2',
-                         #'interval': 'monthly',
-                         'lat_name': 'lat',
-                         'lon_name': 'lon',
-                         'model_suffix': 'ensmean',
-                         'file_format' : 'nc',
-                         'model_prefix': 'Amon',
-                         'scale_factor': 1.,
-                         'mask_area': 'ocean'},
+              'twpa':   {'CMIP5':
+                             {
+                                 'variable': 'clwvi',
+                                 'unit': 'kg/m^2',
+                                 'lat_name': 'lat',
+                                 'lon_name': 'lon',
+                                 'model_suffix': 'ensmean',
+                                 'file_format' : 'nc',
+                                 'model_prefix': 'Amon',
+                                 'scale_factor': 1.,
+                                 'mask_area': 'ocean'
+                             }
+              },
 
-             'wind':    {'variable': 'sfcWind',
-                         'unit': 'm/s',
-                         #'interval': 'monthly',
-                         'lat_name': 'lat',
-                         'lon_name': 'lon',
-                         'model_suffix': 'ensmean',
-                         'file_format' : 'nc',
-                         'model_prefix': 'Amon',
-                         'scale_factor': 1.,
-                         'mask_area': 'ocean'},
+             'wind':    {'CMIP5':
+                             {
+                                 'variable': 'sfcWind',
+                                 'unit': 'm/s',
+                                 'lat_name': 'lat',
+                                 'lon_name': 'lon',
+                                 'model_suffix': 'ensmean',
+                                 'file_format' : 'nc',
+                                 'model_prefix': 'Amon',
+                                 'scale_factor': 1.,
+                                 'mask_area': 'ocean'
+                             }
+                        },
 
-              'wvpa':   {'variable': 'prw',
-                        'unit': 'kg m^2',
-                        #'interval': 'monthly',
-                        'lat_name': 'lat',
-                        'lon_name': 'lon',
-                        'model_suffix': 'ensmean',
-                        'file_format' : 'nc',
-                        'model_prefix': 'Amon',
-                        'scale_factor': 1,
-                        'mask_area': 'ocean'},
+              'wvpa':   {'CMIP5':
+                             {
+                                 'variable': 'prw',
+                                 'unit': 'kg m^2',
+                                 'lat_name': 'lat',
+                                 'lon_name': 'lon',
+                                 'model_suffix': 'ensmean',
+                                 'file_format' : 'nc',
+                                 'model_prefix': 'Amon',
+                                 'scale_factor': 1,
+                                 'mask_area': 'ocean'
+                             }
+                        },
 
-              'late':   {'variable': 'hfls',
-                        'unit': 'W/m^2',
-                        #'interval': 'monthly',
-                        'lat_name': 'lat',
-                        'lon_name': 'lon',
-                        'model_suffix': 'ensmean',
-                        'file_format' : 'nc',
-                        'model_prefix': 'Amon',
-                        'scale_factor': 1,
-                        'mask_area': 'ocean'},
+              'late':   {'CMIP5':
+                             {
+                                 'variable': 'hfls',
+                                 'unit': 'W/m^2',
+                                 'lat_name': 'lat',
+                                 'lon_name': 'lon',
+                                 'model_suffix': 'ensmean',
+                                 'file_format' : 'nc',
+                                 'model_prefix': 'Amon',
+                                 'scale_factor': 1,
+                                 'mask_area': 'ocean'
+                             }
+                        },
 
-              'hair':   {'variable': 'huss',
-                         'unit': '$kg/kg^2$',
-                         #'interval': 'monthly',
-                         'lat_name': 'lat',
-                         'lon_name': 'lon',
-                         'model_suffix': 'ensmean',
-                         'file_format' : 'nc',
-                         'model_prefix': 'Amon',
-                         'scale_factor': 1,
-                         'mask_area': 'ocean'},
+              'hair':   {'CMIP5':
+                             {
+                                 'variable': 'huss',
+                                 'unit': '$kg/kg^2$',
+                                 'lat_name': 'lat',
+                                 'lon_name': 'lon',
+                                 'model_suffix': 'ensmean',
+                                 'file_format' : 'nc',
+                                 'model_prefix': 'Amon',
+                                 'scale_factor': 1,
+                                 'mask_area': 'ocean'
+                             }
+                        },
 
-              'budg':   {'variable': 'budg',
-                        'unit': 'mm/d',
-                        #'interval': 'monthly',
-                        'lat_name': 'lat',
-                        'lon_name': 'lon',
-                        'model_suffix': 'ensmean',
-                        'file_format' : 'nc',
-                        'model_prefix': 'Amon',
-                        'scale_factor': 86400.,
-                        'mask_area': 'ocean',
-                        'custom_path' : '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'}}
+              'seaice':   {'CMIP5':
+                               {
+                                'variable': 'sic',
+                                'unit': '-',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ens_mean_185001-200512',
+                                'file_format' : 'nc',
+                                'model_prefix': 'OImon',
+                                'scale_factor': 1,
+                                'mask_area': 'ocean',
+                                'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
+                               },
+
+                           'CMIP3':
+                               {
+                                'variable': 'SICOMO',
+                                'unit': '-',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': '1860-2100.ext',
+                                'file_format' : 'nc',
+                                'model_prefix': '',
+                                'scale_factor': 100.,
+                                'mask_area': 'ocean',
+                                'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
+                                'level':0
+                               },
+                          },
+
+              'budg':   {'CMIP5':
+                             {
+                                'variable': 'budg',
+                                'unit': 'mm/d',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'file_format' : 'nc',
+                                'model_prefix': 'Amon',
+                                'scale_factor': 86400.,
+                                'mask_area': 'ocean',
+                                'custom_path' : '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
+                             }
+                        }
+              }
 
 
 ########################################################################################################################
@@ -332,6 +389,8 @@ scripts = get_analysis_scripts()
 #/// get dictionary with methods how to read data for variables to be analyzed ///
 variables = CF.variables
 varmethods = get_methods4variables(variables, model_dict)
+
+
 
 
 #=======================================================================
@@ -366,11 +425,15 @@ for i in range(len(CF.models)):
         themodel = JSBACH_BOT(data_dir,varmethods,experiment,intervals=CF.intervals,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
     elif CF.dtypes[i].upper() == 'JSBACH_RAW':
         themodel = JSBACH_RAW(data_dir,varmethods,experiment,intervals=CF.intervals,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
+    elif CF.dtypes[i].upper() == 'CMIP3':
+        themodel = CMIP3Data(data_dir,model,experiment,varmethods,intervals=CF.intervals,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time,shift_lon=shift_lon)
     else:
+        #logger.error('Invalid model type!')
         print CF.dtypes[i]
         raise ValueError, 'Invalid model type!'
 
     #--- read data for current model ---
+    themodel.plot_options = plot_options #options that specify regrid options etc.
     themodel.get_data()
 
     #--- copy current model to a variable named modelXXXX ---
@@ -453,7 +516,9 @@ if False: #todo put this as an option!
 global_gleckler = GlecklerPlot()
 
 # Report
-rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],outdir='./report_' + CF.options['report'] + '/',dpi=300,format='pdf')
+rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],
+             outdir='.' + os.sep + 'report_' + CF.options['report'] + os.sep,
+             dpi=300,format=CF.options['report_format'])
 cmd = 'cp ../logo/Phytonlogo5.pdf ' + rep.outdir
 os.system(cmd )
 
