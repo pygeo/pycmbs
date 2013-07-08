@@ -64,6 +64,8 @@ import os
 
 import sys
 
+import logging
+
 #- classes specific to pyCMBS
 from statistic import *
 from data   import *
@@ -72,6 +74,7 @@ from region import *
 from plots  import *
 from diagnostic import *
 from icon import *
+from grid import *
 
 
 from taylor import *
@@ -85,3 +88,10 @@ from netcdftime import *
 #------------------------------
 #--- Global constants
 #------------------------------
+EarthRadius = 6371000. #default radius of the earth in m
+logger = logging.getLogger('pyCMBS_logger')
+hdlr = logging.FileHandler('pyCMBS.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.WARNING) #logging.DEBUG

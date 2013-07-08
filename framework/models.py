@@ -83,8 +83,15 @@ class Model(Data):
         using functions specified in derived class
         """
 
+        #print 'xxx:', self.plot_options.options
+        #print self.dic_vars.keys()
+        #stop
+
+
         self.variables={}
         for k in self.dic_vars.keys():
+            self._actplot_options = self.plot_options.options[k]['OPTIONS'] #set variable specific options (needed for interpolation when reading the data)
+
             routine = self.dic_vars[k] #get name of routine to perform data extraction
             interval = self.intervals[k]
             cmd = 'dat = self.' + routine
@@ -106,6 +113,10 @@ class Model(Data):
             else:
                 print 'WARNING: unknown function to read data (skip!), variable: ', k
                 self.variables.update({ k : None })
+
+
+
+
 
 
 
@@ -153,29 +164,51 @@ class CMIP5Data(Model):
             filename - file basename
             variable - name of the variable as the short_name in the netcdf file
 
+
+            kwargs is a dictionary with keys for each model. Then a dictionary with properties follows
+
         """
+
+        if not self.type in kwargs.keys():
+            print 'WARNING: it is not possible to get data using generic function, as method missing: ', self.type, kwargs.keys()
+            return None
+
+        locdict = kwargs[self.type]
 
         # read settings and details from the keyword arguments
         # no defaults; everything should be explicitely specified in either the config file or the dictionaries
-        varname  = kwargs.pop('variable')
-        units    = kwargs.pop('unit', 'Crazy Unit')
+        varname  = locdict.pop('variable')
+        units    = locdict.pop('unit', 'Crazy Unit')
         #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
 
-        lat_name = kwargs.pop('lat_name', 'lat')
-        lon_name = kwargs.pop('lon_name', 'lon')
-        model_suffix = kwargs.pop('model_suffix')
-        model_prefix = kwargs.pop('model_prefix')
-        file_format = kwargs.pop('file_format')
-        scf = kwargs.pop('scale_factor')
-        mask_area = kwargs.pop('mask_area')
-        custom_path = kwargs.pop('custom_path', None)
+        lat_name     = locdict.pop('lat_name', 'lat')
+        lon_name     = locdict.pop('lon_name', 'lon')
+        model_suffix = locdict.pop('model_suffix')
+        model_prefix = locdict.pop('model_prefix')
+        file_format  = locdict.pop('file_format')
+        scf = locdict.pop('scale_factor')
+        mask_area    = locdict.pop('mask_area')
+        custom_path  = locdict.pop('custom_path', None)
+        thelevel  = locdict.pop('level', None)
+
+        target_grid   = self._actplot_options['targetgrid']
+        interpolation = self._actplot_options['interpolation']
+
 
         if custom_path == None:
             filename1 = ("%s%s/merged/%s_%s_%s_%s_%s.%s" %
                         (self.data_dir, varname, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
         else:
-            filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
+            if self.type == 'CMIP5':
+                filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
                         (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
+            elif self.type == 'CMIP3':
+                filename1 = ("%s/%s_%s_%s_%s.%s" %
+                        (custom_path, self.experiment, self.model, varname,  model_suffix, file_format))
+            else:
+                print self.type
+                raise ValueError, 'Can not generate filename: invalid model type!'
+
 
 
         force_calc = False
@@ -191,11 +224,22 @@ class CMIP5Data(Model):
         s_stop_time  = str(self.stop_time)[0:10]
 
         #1) select timeperiod and generate monthly mean file
-        file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
+        if target_grid == 't63grid':
+            gridtok = 'T63'
+        else:
+            gridtok = 'SPECIAL_GRID'
+
+        file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_' + gridtok + '_monmean.nc' #target filename
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
 
         sys.stdout.write('\n *** Model file monthly: %s\n' % file_monthly)
-        cdo.monmean(options='-f nc',output=file_monthly,input = '-remapcon,t63grid -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
+
+        #print 'output: ', file_monthly
+        #print 'cmd: ',  '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1
+
+
+        cdo.monmean(options='-f nc',output=file_monthly,input = '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
+
 
         sys.stdout.write('\n *** Reading model data... \n')
         sys.stdout.write('     Interval: ' + interval + '\n')
@@ -227,10 +271,10 @@ class CMIP5Data(Model):
             return None
 
         #3) read data
-        mdata = Data(mdata_clim_file,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf)
-        mdata_std = Data(mdata_clim_std_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False)
+        mdata = Data(mdata_clim_file,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel)
+        mdata_std = Data(mdata_clim_std_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False,level=thelevel)
         mdata.std = mdata_std.data.copy(); del mdata_std
-        mdata_N = Data(mdata_N_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf)
+        mdata_N = Data(mdata_N_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel)
         mdata.n = mdata_N.data.copy(); del mdata_N
 
         #ensure that climatology always starts with J  anuary, therefore set date and then sort
@@ -238,11 +282,15 @@ class CMIP5Data(Model):
         mdata.timsort()
 
         #4) read monthly data
-        mdata_all = Data(file_monthly,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False,time_cycle=12,scale_factor=scf) #todo check timecycle
+        mdata_all = Data(file_monthly,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False,time_cycle=12,scale_factor=scf,level=thelevel)
         mdata_all.adjust_time(day=15)
 
-        mdata._apply_mask(get_T63_landseamask(False, area = 'ocean'))
-        mdata_all._apply_mask(get_T63_landseamask(False, area = 'ocean'))
+
+        if target_grid == 't63grid':
+            mdata._apply_mask(get_T63_landseamask(False, area = 'ocean'))
+            mdata_all._apply_mask(get_T63_landseamask(False, area = 'ocean'))
+        else:
+            print 'WARNING: land/sea masking not possible!!!'
 
         mdata_mean = mdata_all.fldmean()
 
@@ -1028,6 +1076,28 @@ class JSBACH_RAW(Model):
 
 
 
+class CMIP3Data(CMIP5Data):
+    """
+    Class for CMIP3 model simulations. This class is derived from C{Model}.
+    """
+    def __init__(self,data_dir,model,experiment,dic_variables,name='',shift_lon=False,**kwargs):
+        """
 
+        @param data_dir: directory that specifies the root directory where the data is located
+        @param model: TBD tood
+        @param experiment: specifies the ID of the experiment (str)
+        @param dic_variables:
+        @param name: TBD todo
+        @param shift_lon: specifies if longitudes of data need to be shifted
+        @param kwargs: other keyword arguments
+        @return:
+        """
+        Model.__init__(self,None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+
+        self.model      = model; self.experiment = experiment
+        self.data_dir   = data_dir; self.shift_lon  = shift_lon
+        self.type       = 'CMIP3'
+
+        self._unique_name = self._get_unique_name()
 
 
