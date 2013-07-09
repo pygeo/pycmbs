@@ -98,7 +98,8 @@ def get_analysis_scripts():
     d.update({'hair':'hair_analysis'})
     d.update({'late':'late_analysis'})
     d.update({'budg':'budg_analysis'})
-    d.update({'seaice':'seaice_analysis'})
+    d.update({'seaice_extent':'seaice_extent_analysis'})
+    d.update({'seaice_concentration':'seaice_concentration_analysis'})
 
     return d
 
@@ -142,7 +143,8 @@ def get_methods4variables(variables, model_dict):
     hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
     hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
     hlp.update({'hair': 'get_model_data_generic(interval=interval, **%s)' % model_dict['hair']})
-    hlp.update({'seaice': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice']})
+    hlp.update({'seaice_concentration': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_concentration']})
+    hlp.update({'seaice_extent': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_extent']})
 
 
     res={}
@@ -245,7 +247,7 @@ model_dict = {'rain':  {'CMIP5':
                                 'model_prefix': 'Amon',
                                 'file_format' : 'nc',
                                 'scale_factor': 86400.,
-                                'mask_area': 'ocean'
+                                'valid_mask': 'ocean'
                             }
                         },
 
@@ -259,7 +261,7 @@ model_dict = {'rain':  {'CMIP5':
                                  'file_format' : 'nc',
                                  'model_prefix': 'Amon',
                                  'scale_factor': 86400.,
-                                 'mask_area': 'ocean'
+                                 'valid_mask': 'ocean'
                              }
                         },
 
@@ -273,7 +275,7 @@ model_dict = {'rain':  {'CMIP5':
                                  'file_format' : 'nc',
                                  'model_prefix': 'Amon',
                                  'scale_factor': 1.,
-                                 'mask_area': 'ocean'
+                                 'valid_mask': 'ocean'
                              }
               },
 
@@ -287,7 +289,7 @@ model_dict = {'rain':  {'CMIP5':
                                  'file_format' : 'nc',
                                  'model_prefix': 'Amon',
                                  'scale_factor': 1.,
-                                 'mask_area': 'ocean'
+                                 'valid_mask': 'ocean'
                              }
                         },
 
@@ -301,7 +303,7 @@ model_dict = {'rain':  {'CMIP5':
                                  'file_format' : 'nc',
                                  'model_prefix': 'Amon',
                                  'scale_factor': 1,
-                                 'mask_area': 'ocean'
+                                 'valid_mask': 'ocean'
                              }
                         },
 
@@ -315,7 +317,7 @@ model_dict = {'rain':  {'CMIP5':
                                  'file_format' : 'nc',
                                  'model_prefix': 'Amon',
                                  'scale_factor': 1,
-                                 'mask_area': 'ocean'
+                                 'valid_mask': 'ocean'
                              }
                         },
 
@@ -329,11 +331,11 @@ model_dict = {'rain':  {'CMIP5':
                                  'file_format' : 'nc',
                                  'model_prefix': 'Amon',
                                  'scale_factor': 1,
-                                 'mask_area': 'ocean'
+                                 'valid_mask': 'ocean'
                              }
                         },
 
-              'seaice':   {'CMIP5':
+              'seaice_concentration':   {'CMIP5':
                                {
                                 'variable': 'sic',
                                 'unit': '-',
@@ -343,7 +345,7 @@ model_dict = {'rain':  {'CMIP5':
                                 'file_format' : 'nc',
                                 'model_prefix': 'OImon',
                                 'scale_factor': 1,
-                                'mask_area': 'ocean',
+                                'valid_mask': 'ocean',
                                 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
                                },
 
@@ -357,7 +359,37 @@ model_dict = {'rain':  {'CMIP5':
                                 'file_format' : 'nc',
                                 'model_prefix': '',
                                 'scale_factor': 100.,
-                                'mask_area': 'ocean',
+                                'valid_mask': 'ocean',
+                                'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
+                                'level':0
+                               },
+                          },
+
+              'seaice_extent':   {'CMIP5':
+                               {
+                                'variable': 'sic',
+                                'unit': '-',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ens_mean_185001-200512',
+                                'file_format' : 'nc',
+                                'model_prefix': 'OImon',
+                                'scale_factor': 1,
+                                'valid_mask': 'ocean',
+                                'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
+                               },
+
+                           'CMIP3':
+                               {
+                                'variable': 'SICOMO',
+                                'unit': '-',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': '1860-2100.ext',
+                                'file_format' : 'nc',
+                                'model_prefix': '',
+                                'scale_factor': 100.,
+                                'valid_mask': 'ocean',
                                 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
                                 'level':0
                                },
@@ -373,7 +405,7 @@ model_dict = {'rain':  {'CMIP5':
                                 'file_format' : 'nc',
                                 'model_prefix': 'Amon',
                                 'scale_factor': 86400.,
-                                'mask_area': 'ocean',
+                                'valid_mask': 'ocean',
                                 'custom_path' : '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
                              }
                         }

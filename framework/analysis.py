@@ -98,7 +98,7 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     #cdo.monstd(options='-f nc',output=obs_monstd_file,input='-remapcon,t63grid ' + raw_file,force=force)
 
     #print 'input: ' + '-' + interpolation_method + ',' + target_grid +  seldate_str + ' ' + raw_file
-    print 'output: ', obs_mon_file
+    #print 'output: ', obs_mon_file
 
 
     #2) generate monthly mean or seasonal mean climatology as well as standard deviation
@@ -166,8 +166,11 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def seaice_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='seaice',regions=regions)
+def seaice_concentration_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='seaice_concentration',regions=regions)
+
+def seaice_extent_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='seaice_extent',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -311,12 +314,16 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     f_gleckler    = local_plot_options['OPTIONS']['gleckler_plot']
     f_hovmoeller    = local_plot_options['OPTIONS']['hovmoeller_plot']
     f_regional_analysis = local_plot_options['OPTIONS']['regional_analysis']
+    f_globalmeanplot = local_plot_options['OPTIONS']['global_mean']
     interpolation_method = local_plot_options['OPTIONS']['interpolation']
     targetgrid = local_plot_options['OPTIONS']['targetgrid']
     projection = local_plot_options['OPTIONS']['projection']
+    theunit = local_plot_options['OPTIONS']['units']
 
     if regions == None:
         f_regional_analysis = False
+
+
 
 
 
@@ -353,7 +360,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if targetgrid == 't63grid':
         ls_mask = get_T63_landseamask(shift_lon, area = valid_mask)
     else:
-        ls_mask = None
+        ls_mask = get_generic_landseamask(shift_lon,area=valid_mask,target_grid=targetgrid)
 
     #####################################################################
     # OBSERVATION DATA PREPROCESSING
@@ -369,10 +376,36 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
     obs_orig.addc(obs_add_offset,copy=False); obs_monthly.addc(obs_add_offset,copy=False)
 
+    # set unit
+    obs_orig.unit    = theunit
+    obs_monthly.unit = theunit
+
     #### IDENTIFY AREAS WHERE THERE IS AT LEAST SOME VALID DATA ####
     valid_obs=((~obs_orig.data.mask).sum(axis=0)) > 0 #find all data where there is at least SOME data
     obs_orig._apply_mask(valid_obs)
     obs_monthly._apply_mask(valid_obs)
+
+
+    def mask_seaice_extent(x,msk):
+        tmpmsk = x.data > 15.
+        x.data.mask[:,:,:] = False #set all to false to be able to put entire ocean to zero
+        x.data[:,:,:] = 0.
+        x.data[tmpmsk] = 1.
+        x._apply_mask(msk)
+
+        return x
+
+
+    if obs_type == 'seaice_extent':
+
+        stat_type = 'sum' #show area weighted sum as statistic
+        obs_orig    = mask_seaice_extent(obs_orig,ls_mask)
+        obs_monthly = mask_seaice_extent(obs_monthly,ls_mask)
+        obs_orig._apply_mask(valid_obs)
+        obs_monthly._apply_mask(valid_obs)
+
+    else:
+        stat_type = 'mean'
 
 
     #####################################################################
@@ -383,22 +416,26 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if f_reichler == True:
         Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
-    if GM == None:
-        fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-        GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
-    else:
-        if isinstance(GM, GlobalMeanPlot):
-            pass
+    if f_globalmeanplot:
+        if GM == None:
+            fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
+            GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
         else:
-            raise ValueError, 'Global mean variable GM has invalid object type'
+            if isinstance(GM, GlobalMeanPlot):
+                pass
+            else:
+                raise ValueError, 'Global mean variable GM has invalid object type'
+    else:
+        GM = None
+
 
     if GM != None:
-        GM.plot(obs_monthly, linestyle = '--',show_std=False,group='observations')
+        GM.plot(obs_monthly, linestyle = '--',show_std=False,group='observations',stat_type=stat_type)
 
     if f_mapseasons == True:  #seasonal mean plot
         f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',
                               show_zonal=True,zonal_timmean=True,nclasses=nclasses,
-                              vmin=vmin,vmax=vmax,cticks=cticks,proj=projection)
+                              vmin=vmin,vmax=vmax,cticks=cticks,proj=projection,stat_type=stat_type)
         report.figure(f_season,caption='Seasonal mean ' + obs_name)
 
 
@@ -413,11 +450,16 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         else:
             model_data = model.variables[obs_type].copy()
 
+        model_data.unit = theunit
+
+        #todo: make this more flexible !!!
+        if obs_type == 'seaice_extent':
+            model_data = mask_seaice_extent(model_data,ls_mask)
+
         if ls_mask != None:
             actmask = ls_mask.data & valid_obs
         else:
             actmask = valid_obs
-
         model_data._apply_mask(actmask)
 
         GP.add_model(model._unique_name) #register model name in GlecklerPlot
@@ -432,7 +474,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                 pass
             else:
                 if m_data_org in model.variables.keys():
-
                     if model.variables[m_data_org][2] == None: #invalid data for mean_model --> skip
                         pass
                     else:
@@ -442,7 +483,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                         #GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
                         GM.plot(tmp,label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
                         del tmp
-
 
         if model_data == None:
             sys.stdout.write('Data not existing for model %s' % model.name); continue
@@ -459,7 +499,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             f_dif  = map_difference(model_data, obs_orig, nclasses=nclasses,use_basemap=use_basemap,
                                     show_zonal=True,zonal_timmean=False,
                                     dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks,
-                                    proj=projection)
+                                    proj=projection,stat_type=stat_type,show_stat=True)
             report.figure(f_dif,caption='Mean and relative differences')
 
         if f_mapseasons == True:
@@ -468,7 +508,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #seasonal map
             f_season = map_season(model_data,use_basemap=use_basemap,cmap_data='jet',
                                   show_zonal=True,zonal_timmean=True,nclasses=nclasses,
-                                  vmin=vmin,vmax=vmax,cticks=cticks,proj=projection)
+                                  vmin=vmin,vmax=vmax,cticks=cticks,proj=projection,stat_type=stat_type,show_stat=True,
+                                  drawparallels=False,titlefontsize=10)
             report.figure(f_season,caption='Seasonal means model')
 
         if f_hovmoeller == True:
@@ -482,7 +523,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             s_stop_time  = '2012-12-31'
             start_time = pl.num2date(pl.datestr2num(s_start_time))
             stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
-
 
             #generate a reference monthly timeseries (datetime)
             tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
@@ -541,9 +581,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             f_regtaylor = REGSTAT.plot_taylor()
             report.figure(f_regtaylor,caption='Taylor plot for regional analysis (' + obs_name.upper() + ')')
             del f_regtaylor
-
-
-
             stop
 
         if f_reichler == True:

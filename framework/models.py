@@ -187,7 +187,7 @@ class CMIP5Data(Model):
         model_prefix = locdict.pop('model_prefix')
         file_format  = locdict.pop('file_format')
         scf = locdict.pop('scale_factor')
-        mask_area    = locdict.pop('mask_area')
+        valid_mask    = locdict.pop('valid_mask')
         custom_path  = locdict.pop('custom_path', None)
         thelevel  = locdict.pop('level', None)
 
@@ -285,12 +285,14 @@ class CMIP5Data(Model):
         mdata_all = Data(file_monthly,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False,time_cycle=12,scale_factor=scf,level=thelevel)
         mdata_all.adjust_time(day=15)
 
-
         if target_grid == 't63grid':
-            mdata._apply_mask(get_T63_landseamask(False, area = 'ocean'))
-            mdata_all._apply_mask(get_T63_landseamask(False, area = 'ocean'))
+            mdata._apply_mask(get_T63_landseamask(False, area = valid_mask))
+            mdata_all._apply_mask(get_T63_landseamask(False, area = valid_mask))
         else:
-            print 'WARNING: land/sea masking not possible!!!'
+            tmpmsk = get_generic_landseamask(False,area=valid_mask,target_grid=target_grid)
+            mdata._apply_mask(tmpmsk)
+            mdata_all._apply_mask(tmpmsk)
+            del tmpmsk
 
         mdata_mean = mdata_all.fldmean()
 

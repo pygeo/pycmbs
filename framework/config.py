@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -110,8 +109,8 @@ class ConfigFile():
         l = self.f.readline().replace('\n','')
         if 'TEMP_DIR=' in l.upper():
             s = l[9:]
-            if s[-1] != '/':
-                s = s+'/'
+            if s[-1] != os.sep:
+                s = s+os.sep
             self.options.update({'tempdir' : s.replace(' ','') })
         else:
             raise ValueError, 'Temporary directory not specified!'
@@ -127,6 +126,19 @@ class ConfigFile():
             self.options.update({'summary':self.__check_bool(l)})
         else:
             raise ValueError, 'Invalid option for SUMMARY_ONLY!'
+
+        l = self.f.readline().replace('\n','')
+        if 'CONFIG_DIR=' in l.upper():
+            s = l[11:]
+            if s[-1] != os.sep:
+                s = s+os.sep
+            if not os.path.exists(s):
+                print s
+                raise ValueError, 'Configuration path is invalid!'
+            self.options.update({'configdir' : s.replace(' ','') })
+        else:
+            raise ValueError, 'Temporary directory not specified!'
+
 
 
         #//// create / remove directories
@@ -181,8 +193,8 @@ class ConfigFile():
         l=self.__read_header()
         model,ty,experiment,ddir = self.__get_model_details(l)
         ddir = ddir.rstrip()
-        if ddir[-1] != '/':
-            ddir = ddir + '/'
+        if ddir[-1] != os.sep:
+            ddir = ddir + os.sep
         models.append(model); types.append(ty)
         experiments.append(experiment); ddirs.append(ddir.replace('\n',''))
 
@@ -193,8 +205,8 @@ class ConfigFile():
                 if (len(l) > 0) & (l[0] != '#'):
                     model,ty,experiment,ddir = self.__get_model_details(l)
                     ddir = ddir.rstrip()
-                    if ddir[-1] != '/':
-                        ddir = ddir + '/'
+                    if ddir[-1] != os.sep:
+                        ddir = ddir + os.sep
                     models.append(model); types.append(ty)
                     experiments.append(experiment); ddirs.append(ddir.replace('\n',''))
             except:
@@ -254,7 +266,7 @@ class PlotOptions():
             parser = SafeConfigParser()
 
             """ The plot options are assumed to be in a file that has the same name as the variable to look be analyzed """
-            file = './configuration/' + var + '.ini'
+            file = cfg.options['configdir'] + var + '.ini'
             if os.path.exists(file):
                 parser.read(file)
                 sys.stdout.write('\n *** Reading configuration for %s: ' % var + "\n")
@@ -423,7 +435,7 @@ class PlotOptions():
 
         #specify here the options that need to be given!
         locopt = ['obs_file','obs_var','gleckler_position','scale_data'] #variables that need to be specified (MUST!) for each observational dataset
-        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot','regional_analysis','interpolation','targetgrid','projection'] #options for each variable type
+        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot','regional_analysis','interpolation','targetgrid','projection','global_mean'] #options for each variable type
 
         for v in o.keys(): #all variables
             d = o[v] #dictionary for a specific variable
@@ -454,10 +466,10 @@ class PlotOptions():
                         cerr +=1
                     if k=='obs_file':
                         d[odat]['obs_file']=d[odat]['obs_file'].rstrip() #remove whitespaces at the end
-                        if (d[odat]['obs_file'][-1] == '/') or ((d[odat]['obs_file'][-3:] == '.nc')):
+                        if (d[odat]['obs_file'][-1] == os.sep) or ((d[odat]['obs_file'][-3:] == '.nc')):
                             pass
                         else:
-                            d[odat]['obs_file'] = d[odat]['obs_file'] + '/'
+                            d[odat]['obs_file'] = d[odat]['obs_file'] + os.sep
 
 
 
@@ -473,7 +485,7 @@ class AnalysisRegions():
     Class to handle information about regions to analyze in the framework
     """
 
-    def __init__(self,dir='./regions/'):
+    def __init__(self,dir='.' + os.sep + 'regions' + os.sep):
         """
         init AnalysisRegions
 

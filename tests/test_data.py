@@ -703,6 +703,82 @@ class TestData(TestCase):
         self.assertAlmostEqual(D1.fldstd()[0],ref,places=8)
 
 
+
+    def test_areasum(self):
+        """
+        unittest for areasum() function
+        @return:
+        """
+
+        #define testdata
+        D = self.D
+        x = np.ones((1,3,1))
+        for i in [0]:
+            x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
+        D.data = np.ma.array(x,mask=x!=x)
+        y = np.ones((3,1))
+        y[0,0] = 75.; y[1,0] = 25.; y[2,0] = 25.  #total area = 125.
+        D.cell_area = y
+
+        D1=D.copy() #2D version
+        xx = np.ones((3,1))
+        xx[0,0]=5.; xx[1,0]=10.; xx[2,0]=20.
+        D1.data = np.ma.array(xx,mask=xx!=xx)
+
+        #do test
+        r1  = D .areasum()[0] #result should be 5.*75. + 10.*25. + 20.*25.
+        r1a = D1.areasum()[0]
+
+        self.assertEqual(r1,5.*75. + 10.*25. + 20.*25.)
+        self.assertEqual(r1a,5.*75. + 10.*25. + 20.*25.)
+
+        r2 = D.areasum(apply_weights=False) #without weights
+        r2a = D1.areasum(apply_weights=False)
+        self.assertEqual(r2[0],x.sum())
+        self.assertEqual(r2a[0],xx.sum())
+
+
+        #2D case
+        D=self.D.copy()
+        x=np.ones((1,4))
+        x[0,1]=1.; x[0,2] = 5.
+        D.data = np.ma.array(x,mask=x==0.)
+        ny,nx = x.shape
+        ca = np.ones((ny,nx))
+        D.cell_area = np.ma.array(ca,mask=ca < 0.)
+        r = D.areasum()[0]
+        self.assertEquals(r,8.)
+
+        #testcase where some of data is not valid and different weighting approaches are applied
+        D = self.D.copy()
+
+        x=np.ones((1,1,4))
+        D.data = np.ma.array(x,mask=x==0.)
+        nt,ny,nx = x.shape
+        ca = np.ones((ny,nx))
+        D.cell_area = np.ma.array(ca,mask=ca < 0.)
+
+        D.weighting_type='valid'
+        r = D.areasum()[0]
+        self.assertEquals(r,4.)
+        x[:,0,0] = np.nan
+        D.data = np.ma.array(x,mask=np.isnan(x))
+        r = D.areasum()[0]
+        self.assertEquals(r,3.)
+
+        #... now check what happens if normalization factor is for ALL pixels and not only the valid ones! --> should give 0.75
+        D.weighting_type='all'
+        r = D.areasum()[0]
+        self.assertEquals(r,3.)
+
+
+
+
+
+
+
+
+
     def test__set_timecycle(self):
         D = self.D
 
