@@ -831,7 +831,7 @@ class GlobalMeanPlot():
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-',mask=None,group='A'):
+    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-',mask=None,group='A',stat_type='mean'):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -861,9 +861,13 @@ class GlobalMeanPlot():
         @param group: specifies a group that will be used to combine plots of the same type. The group is used as a key for a dictionary that stores the results
         @type group: str
 
-
+        @param stat_type: specifies which statistic shall be plotted ['mean','sum'], either area weighted mean or sum
+        @type stat_type: str
 
         """
+
+        if stat_type not in ['mean','sum']:
+            raise ValueError, 'Invalid stat_type in GlobalMean plot'
 
         if ((label==None) and (D1.label in self.labels)):
             #print 'Label already existing: ', D.label, ' skipping analysis'
@@ -884,8 +888,13 @@ class GlobalMeanPlot():
         if mask != None:
             D._apply_mask(mask)
 
-        #mean field
-        m = D.fldmean(return_data=True) #mean
+        if stat_type == 'mean':
+            #mean field
+            m = D.fldmean(return_data=True) #mean
+        elif stat_type == 'sum':
+            m = D.areasum(return_data=True) #area weighted sum
+        else:
+            raise ValueError, 'Unsupported stat_type: ' + stat_type
         mdata = m.data.flatten()
 
         #time
@@ -914,7 +923,7 @@ class GlobalMeanPlot():
         self.pdata.update({group:vdata}) #store results for current group
         del vdata
 
-        if show_std:
+        if show_std & (stat_type == 'mean'):
             s = D.fldstd (return_data=True) #std
             sdata = s.data.flatten()
             self.ax.fill_between(t,mdata-sdata,y2=mdata+sdata,color=p[0].get_color(),alpha=0.5)
@@ -2079,9 +2088,11 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- checks
 
-    if proj not in ['robin','npstere']:
+    if proj not in ['robin','npstere','spstere']:
         raise ValueError, 'ERROR: projection type not validated for map_plot so far: ' + proj
     if proj == 'npstere': #todo: for stereographic projection, scatter is used as method at the moment
+        plot_method = 'scatter'
+    if proj == 'spstere': #todo: for stereographic projection, scatter is used as method at the moment
         plot_method = 'scatter'
 
 
@@ -2144,6 +2155,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         lon_0=0.; lat_0=0.
     elif proj == 'npstere':
         lon_0 = 0.; lat_0 = 0.; boundinglat = boundinglat
+    elif proj == 'spstere':
+        lon_0 = 0.; lat_0 = 0.; boundinglat = -boundinglat
     else:
         raise ValueError,'Unsupported projection in map_plot (unsupported means, that it was not tested yet)'
 
@@ -2420,12 +2433,15 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             assert(len(st) == 1)
             me = me[0]; st=st[0]
             title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
-
-
+        elif stat_type == 'sum': #area sum
+            me = tmp_xm.areasum()
+            assert(len(me) == 1)
+            me = me[0]
+            title = title + '\n (Areasum: $' + str(round(me,2))  + '$' + ')'
 
         else:
             me = np.ma.median(tmp_xm.data)
-            title = title + '\n (median: ' + str(round(me,2)) + ')'
+            title = title + '\n ($median: ' + str(round(me,2)) + '$)'
 
 
 
@@ -2643,7 +2659,7 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 
 def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,
                    region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,
-                   rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, proj='robin',**kwargs):
+                   rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, proj='robin',stat_type='mean',**kwargs):
     """
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets
@@ -2722,19 +2738,19 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     #- plot first dataset
     map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,proj=proj, **kwargs)
+             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type, **kwargs)
 
     #- plot second dataset
     map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,proj=proj,  **kwargs)
+             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,  **kwargs)
 
     #-first minus second dataset
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,
              nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',
-             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj)
+             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type)
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data

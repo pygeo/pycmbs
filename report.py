@@ -36,7 +36,7 @@ class Report():
     @todo: example how to use report class
     """
 
-    def __init__(self,filename,title,author,format='png',outdir='./',dpi=300,logofile='Phytonlogo5.pdf'):
+    def __init__(self,filename,title,author,format='png',outdir='./',dpi=300,logofile='Phytonlogo5.pdf',usehyperlinks=True):
         """
         constructor for Latex report class
 
@@ -57,6 +57,12 @@ class Report():
 
         @param logofile: name of file for logo on first page; if None or file not existing, then nothing will be plotted
         @type logofile: str
+
+        @param usehyperlinks: use hyperlinks for table of contents
+        @type usehyperlinks: bool
+
+        @param author: Author of the document
+        @type author: str
         """
 
         ext = ''
@@ -68,9 +74,11 @@ class Report():
         self.author=author
         self.outdir=outdir
         self.logofile = logofile #needs to be before open()
+        self.usehyperlinks = usehyperlinks
         self.open()
         self.figure_counter = 0
         self.dpi = dpi
+
 
 #-----------------------------------------------------------------------
 
@@ -118,6 +126,10 @@ class Report():
         self.write('\lhead{\nouppercase{\leftmark}}')  #%writes section header
         self.write('\lfoot{\today}')
         self.write('\rfoot{\thepage}')
+
+        if self.usehyperlinks:
+            self.write('\usepackage{hyperref}')
+            self.write('\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}')
 
         self.write('\\begin{document}')
         self.write('\\title{' + self.title.replace('_',' ') + '}')

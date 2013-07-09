@@ -1,5 +1,11 @@
 version 0.1.1
 ============================
+o path of INI files can now be specified explicitely in benchmarking framework
+o implemented automatic calculation of land-sea masks using CDO operator topo on-the-fly.
+o implementation of sea-ice analysis in benchmarking framework
+o novel operator areasum() for data objet to perform weighted average calculations
+o novel functionality to specify remapping method and target grids for remapping in the benchmarking framework
+o implemented much more flexibility for configuring report.
 o implemented support for different calendars using netcdftime library provided in netCDF4 library. COPYRIGHT has been
   changed accordingly. Note that a major refactoring was needed for that purpose.
   NOTE all files written with older versions pyCMBS might now show a timeshift of one day! This is due to
