@@ -1930,7 +1930,7 @@ class Data():
         if return_object:
             S.unit += ' / day'
             R.unit = '-'
-            I.unit = 'mm'
+            I.unit = self.unit
             P.unit = '-'
             return R,S,I,P
         else:
