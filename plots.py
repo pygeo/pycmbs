@@ -1836,6 +1836,16 @@ def map_season(x,**kwargs):
     if x.data.ndim != 3:
         raise ValueError, 'only 3D data supported'
 
+    if 'vmin' not in kwargs.keys():
+        raise ValueError, 'vmin argument is obligatory for map_seasons()'
+    if 'vmax' not in kwargs.keys():
+        raise ValueError, 'vmax argument is obligatory for map_seasons()'
+
+    if kwargs['vmin'] == None:
+        raise ValueError, 'vmin MUST NOT be None!'
+    if kwargs['vmax'] == None:
+        raise ValueError, 'vmax MUST NOT be None!'
+
     #/// figure and axes
     if 'figure' in kwargs:
         f = kwargs['figure']
