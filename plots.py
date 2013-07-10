@@ -167,6 +167,7 @@ class HovmoellerPlot():
             self.figure = pl.figure()
             self.ax = self.figure.add_subplot(111)
         else:
+            self.ax = ax
             self.figure = self.ax.figure
 
         self.hov = hovmoeller(D.num2date(D.time),None,rescaley=rescaley,rescalex=rescalex)
@@ -2122,6 +2123,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             ax = fig.add_subplot(111)
     else:
         fig = ax.figure
+        if show_timeseries:
+            raise ValueError, 'Showing timeseries and providing some prior axis is currently not impelmented!' #todo
 
 
     #if cmap provided in kwargs, then remove it and set cmap_data

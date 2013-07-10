@@ -173,8 +173,6 @@ class hovmoeller:
 
         """
 
-        raise ValueError, 'Todo in hov.py: Support of num2date() and date2num() for different calendars!'
-
         #/// check consistency ///
         if value != None:
             if len(time) == len(value):
@@ -318,7 +316,7 @@ class hovmoeller:
 
 
                 #/// monthly ticks ///
-                data_days = generate_monthly_timeseries(input1.time) #convert times to monthly
+                data_days = generate_monthly_timeseries(pl.date2num(input1.num2date(input1.time))) #convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
                 all_days  = unique(data_days)
                 if showxticks:
                     self.generate_xticks(all_days,monthsamp=1) #todo
