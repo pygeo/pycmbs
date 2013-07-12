@@ -5,15 +5,29 @@ from matplotlib import pylab as pl
 
 pl.close('all')
 
-file='air.mon.mean.nc'
+file ='air.mon.mean.nc'
+file2='pr_wtr.eatm.mon.mean.nc'
 if not os.path.exists(file):
     try:
+        print 'Downloading sample data ... this might take a few minutes (only needed at first run)'
         os.system('wget ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/air.mon.mean.nc')
     except:
         raise ValueError, 'Can not download sampled data file from NCEP server. Please try manually'
 
     if not os.path.exists(file):
         raise ValueError, 'Something with the file download went wrong!'
+
+if not os.path.exists(file2):
+    try:
+        print 'Downloading sample data ... this might take a few minutes (only needed at first run)'
+        os.system('wget ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/pr_wtr.eatm.mon.mean.nc')
+    except:
+        raise ValueError, 'Can not download sampled data file from NCEP server. Please try manually'
+
+    if not os.path.exists(file2):
+        raise ValueError, 'Something with the file download went wrong!'
+
+
 
 #--- read data ---
 D = Data('./air.mon.mean.nc', 'air', lat_name='lat',lon_name='lon',read=True)
@@ -23,6 +37,7 @@ print '**********************************'
 print 'Basic plotting ...'
 print '**********************************'
 print 'The map_plot function always plots the temporal mean field!'
+
 map_plot(D) #simple plot of data matrix
 map_plot(D,use_basemap=True)
 
@@ -42,6 +57,10 @@ map_plot(D,show_stat=True,use_basemap=True,title='show_stat=True',ax=ax3)
 map_plot(D,show_stat=True,stat_type='median',use_basemap=True,title='show_stat=True,stat_type="median"',ax=ax4)
 
 pl.show()
+
+r=raw_input("Press Enter to continue...")
+
+pl.close('all')
 
 
 
