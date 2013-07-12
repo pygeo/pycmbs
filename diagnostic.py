@@ -449,7 +449,7 @@ class EOF():
 
             #print len(k)
             #if len(k)>1: #lineplot
-            ax.plot(self.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
+            ax.plot(self._x0.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
             #else: #nice plot with different colors for pos/neg. values
             #yupper = np.ma.masked_where(y < 0., y); ylower = np.ma.masked_where(y > 0., y)
             #ax.plot(plt.num2date(self._x0.time),yupper,color='red',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
@@ -2170,7 +2170,7 @@ class koeppen():
        cmap3 = col.ListedColormap(cpool[0:14], 'koeppen')
 #       plt.cm.register_cmap(cmap=cmap3,name='koeppen',lut=15)
        plt.cm.register_cmap(cmap=cmap3,name='koeppen')
-       return cmap3 
+       return cmap3
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -2260,13 +2260,13 @@ class koeppen():
 
     def _check_resolution(self):
      """
-          This routine just checks if all three array have a equal number of ny and nx values 
+          This routine just checks if all three array have a equal number of ny and nx values
      """
      nt_t, ny_t, nx_t = self.temp.data.data.shape
      nt_p, ny_p, nx_p = self.precip.data.data.shape
      ny_l, nx_l = self.lsm.data.data.shape
-     
-     
+
+
      if (ny_t != ny_p) or (ny_t != ny_l):
        sys.exit('ERROR: The resolution ot the three arrays differ in Y-dimension: \n' + str(ny_t)+ "(temp)  " + str(ny_p) + "(precip) " + str(ny_l) + "(lsm) ")
        return False
@@ -2274,19 +2274,19 @@ class koeppen():
      if (nx_t != nx_p) or (nx_t != nx_l):
        sys.exit('ERROR: The resolution ot the three arrays differ in X-dimension: \n' + str(nx_t)+ "(temp)  " + str(nx_p) + "(precip) " + str(nx_l) + "(lsm) ")
        return False
-     
+
      return True
 
 #-----------------------------------------------------------------------------------------------------------------------
 
     def _check_units(self):
      """
-          This routine just checks if all three array have a equal number of ny and nx values 
+          This routine just checks if all three array have a equal number of ny and nx values
      """
      if self.precip.unit !=  "kg/m^2s":
        sys.exit('ERROR: The unit of the precip is not [kg/m^2s] its set to ['+self.precip.unit+"]")
        return False
-       
+
      if self.temp.unit !=  "K":
        sys.exit('ERROR: The unit of the temperature is not [K] its set to ['+self.temp.unit+"]")
        return False
@@ -2327,32 +2327,32 @@ class koeppen():
           sys.exit('No precipitation given')
         if temp == None:
           sys.exit('No land-sea-mask given')
-          
+
         #/// set values of class ///
         self.temp = temp
         self.precip = precip
         self.lsm = lsm
-        
+
         if not self._check_resolution():
           sys.exit('ERROR:The three array differe in the resolution')
 
         if not self._check_units():
           sys.exit('ERROR:The units of one value is wrong')
-	  
+
         # Create new koeppen Color map
         self.koeppen_cmap()
         self.cmap = cm.get_cmap('koeppen')
         # convert from [kg m-2 s-1] to [kg m-2 day-1] (= [mm day-1])
-        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12.,copy=True) # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)' 
-        self.temp = temp.subc(273.15,copy=True) # ??? Unklar warum nicht 'temp.subc(273.15)' 
-  
+        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12.,copy=True) # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
+        self.temp = temp.subc(273.15,copy=True) # ??? Unklar warum nicht 'temp.subc(273.15)'
+
         Psum = self.precip.timsum(return_object=True)		     # Berechnet die Summe der Jahresniederschlag
-  
+
         nt, ny,nx = self.temp.data.data.shape
         nlat = ny
         nlon = nx
-  
-        Pmin = self.precip.data.min(axis=0) 
+
+        Pmin = self.precip.data.min(axis=0)
         Pmax = self.precip.data.max(axis=0)
 
         precipHS = self.precip.copy()
@@ -2360,13 +2360,13 @@ class koeppen():
         precipHS.data[(6,7,8,9,10,11),0:(nlat/2-1),:] = self.precip.data[(3,4,5,6,7,8),0:(nlat/2-1),:]
         precipHS.data[(0,1,2,3,4,5),(nlat/2):(nlat-1),:]   = self.precip.data[(0,1,2,9,10,11),(nlat/2):(nlat-1),:]
         precipHS.data[(6,7,8,9,10,11),(nlat/2):(nlat-1),:] = self.precip.data[(0,1,2,9,10,11),(nlat/2):(nlat-1),:]
-			     
-        precipHW = self.precip.copy() 
+
+        precipHW = self.precip.copy()
         precipHW.data[(0,1,2,3,4,5),0:(nlat/2-1),:]   = self.precip.data[(0,1,2,9,10,11),0:(nlat/2-1),:]
         precipHW.data[(6,7,8,9,10,11),0:(nlat/2-1),:] = self.precip.data[(0,1,2,9,10,11),0:(nlat/2-1),:]
         precipHW.data[(0,1,2,3,4,5),(nlat/2):(nlat-1),:]  = self.precip.data[(3,4,5,6,7,8),(nlat/2):(nlat-1),:]
         precipHW.data[(6,7,8,9,10,11),(nlat/2):(nlat-1),:] = self.precip.data[(3,4,5,6,7,8),(nlat/2):(nlat-1),:]
-  
+
         PminHS = precipHS.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PmaxHS
         PmaxHS = precipHS.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PmaxHS
         PminHW = precipHW.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PminHW
@@ -2376,8 +2376,8 @@ class koeppen():
         Tmin = self.temp.data.min(axis=0)     # Bestimmt die minimale Monatstemperatur
         Tmax = self.temp.data.max(axis=0)     # Bestimmt die maximale Jahrestemperatur
 
-        self.Clim = self.precip.timmean(return_object=True) 
-			     
+        self.Clim = self.precip.timmean(return_object=True)
+
         self.Clim.units = "climate type"
 
         for lat in range(0, nlat):
@@ -2392,8 +2392,8 @@ class koeppen():
             tmin   = Tmin[lat][lon]
             tmax   = Tmax[lat][lon]
             self.Clim.data.data[lat][lon] = self.set_clim(psum,pmin,pminhs,pminhw,pmaxhs,pmaxhw,tavg,tmin,tmax)
-       
-  
+
+
         self.Clim.data.mask[less(self.lsm.data,0.5)]=True
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -2408,7 +2408,7 @@ class koeppen():
 
     def climfrac(self):
       """
-          This routine calculats the fraction of each type in per centum. 
+          This routine calculats the fraction of each type in per centum.
           ToDo:
             Unclear id the print is OK or if the values should given back as an array.
       """
@@ -2420,7 +2420,7 @@ class koeppen():
         for nx in range(0, nx-1):
           clim = int(self.Clim.data.data[ny][nx])
           climfrac[clim-1] = climfrac[clim-1] + Aweight
-            
+
       s = sum(climfrac)
       climfrac[:] = [x / s for x in climfrac]
 
@@ -2473,7 +2473,7 @@ class koeppen():
       print "| ET: Tundra climate                             |"
       print "| EF: Frost climate                              |"
       print "|================================================|"
-      
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
