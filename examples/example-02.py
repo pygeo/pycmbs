@@ -14,7 +14,8 @@ if not os.path.exists(file):
     raise ValueError, 'Sample file not existing: see example-01.py'
 
 #--- read data ---
-D = Data('./air.mon.mean.nc', 'air', lat_name='lat',lon_name='lon',read=True)
+D = Data('air.mon.mean.nc', 'air',read=True)
+P = Data('pr_wtr.eatm.mon.mean.nc','pr_wtr',read=True)
 
 #--- some analysis ---
 print 'Temporal stdv. ...'
@@ -36,32 +37,38 @@ f.suptitle('Example of temporal correlation analysis results', size=20)
 
 
 print 'Calculate climatology and plot ...'
-map_season(D.get_climatology(return_object=True),use_basemap=True)
+#get_climatology() returns 12 values which are then used for plotting
+map_season(D.get_climatology(return_object=True),use_basemap=True,vmin=-20.,vmax=30.)
 
+print 'Map difference between datasets ...'
+map_difference(D,P)
 
-#map_difference
+print 'ZonalPlot ...'
+Z=ZonalPlot(); Z.plot(D)
 
-#LinePlot
-#ScatterPlot
-#...
+print 'Some LinePlot'
+L=LinePlot(regress=True, title='This is a LinePlot with regression')
+L.plot(D,label='2m air temperature')
+L.plot(P,label='Precipitable water',ax=L.ax.twinx() ,color='green') #use secondary axis for plotting here
+L.legend()
 
-#ZonalPlot
-
-
-
-
-
-
+print 'Scatterplot between different variables ...'
+S=ScatterPlot(D) #scatterplot is initialized with definition of X-axis object
+S.plot(P)
+S.legend()
 
 print 'Hovmoeller diagrams ...'
 hm = HovmoellerPlot(D)
 hm.plot(climits=[-20.,30.])
 
+print '... generate Hovmoeller plot from deseasonalized anomalies'
+ha=HovmoellerPlot(D.get_deseasonalized_anomaly(base='all'))
+ha.plot(climits=[-2.,2.],cmap='RdBu_r')
 
-
-
-#EOF analysis
-
-#todo
 
 pl.show()
+r=raw_input("Press Enter to continue...")
+
+pl.close('all')
+
+

@@ -648,7 +648,7 @@ class LinePlot():
             p = ax.plot(x.num2date(x.time), y , label=label, **kwargs)[0]
             self.lines.append(p)
             if self.regress:
-                ax.plot(x.time,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
+                ax.plot(x.num2date(x.time),x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
 
             if self.show_ylabel:
                 ax.set_ylabel(x._get_unit(),size=self.ticksize)
