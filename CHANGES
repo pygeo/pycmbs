@@ -15,6 +15,7 @@ o implemented support for different calendars using netcdftime library provided 
   behavior.
 o initial support for ICON generic unstructured grid. There are still some workarounds for plotting the unstructured data,
   but in general it works well.
+o added option to show values in Gleckler Plot in different colors
 
 version 0.1.0 (= rev240)
 ============================
