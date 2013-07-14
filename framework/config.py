@@ -96,7 +96,7 @@ class ConfigFile():
             else:
                 self.options.update({'report_format' : s })
         else:
-            sys.exit('report missing in configuration file!')
+            sys.exit('report format missing in configuration file!')
 
 
         l = self.f.readline().replace('\n','')
@@ -259,10 +259,10 @@ class PlotOptions():
         """
 
         from ConfigParser import SafeConfigParser
-        
+
 
         for var in cfg.variables:
-            
+
             parser = SafeConfigParser()
 
             """ The plot options are assumed to be in a file that has the same name as the variable to look be analyzed """
@@ -272,7 +272,7 @@ class PlotOptions():
                 sys.stdout.write('\n *** Reading configuration for %s: ' % var + "\n")
             else:
                 raise ValueError, 'Plot option file not existing: ' + file
-                
+
             print 'INI file: ', file
 
             """
@@ -304,13 +304,13 @@ class PlotOptions():
             #/// update options dictionary for this variable
             print '    OBSERVATIONS for this variable: ', dl.keys()
             self.options.update({var:dl})
-            
+
             #/// destroy parser (important, as otherwise problems)
             del parser
-            
 
-            
-            
+
+
+
 
         #convert options to bool/numerical values
         self._convert_options()
