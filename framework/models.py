@@ -238,6 +238,10 @@ class CMIP5Data(Model):
         #print 'cmd: ',  '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1
 
 
+        if not os.path.exists(filename1):
+            print 'WARNING: File not existing: ' + filename1
+            return None
+
         cdo.monmean(options='-f nc',output=file_monthly,input = '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
 
 
