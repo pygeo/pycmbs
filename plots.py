@@ -1329,7 +1329,14 @@ class GlecklerPlot():
 
         #--- add value as text if required
         if self.show_value:
-            ax.text(tpos[0],tpos[1],str(np.round(value,self.ndigits)),fontdict={'size':6},horizontalalignment='center',verticalalignment='center')
+            if self.labelthreshold == None:
+                labelcolor=self.labelcolor
+            else:
+                if np.abs(value) >= self.labelthreshold:
+                    labelcolor = self.labelcolor
+                else:
+                    labelcolor = 'black'
+            ax.text(tpos[0],tpos[1],str(np.round(value,self.ndigits)),fontdict={'size':6,'color':labelcolor},horizontalalignment='center',verticalalignment='center')
 
 
 #-----------------------------------------------------------------------
@@ -1397,7 +1404,7 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False,labelcolor='black',labelthreshold=None):
         """
         plot Gleckler diagram
 
@@ -1427,10 +1434,18 @@ class GlecklerPlot():
         @param logscale: reformats labels of colorbar to log with base 10. NOTE, this does NOT change the data! The data needs to be added in log10() scale already in function add_data() !!!
         @type logscale: bool
 
+        @param labelcolor: color of text labels
+        @type labelcolor: str
+
+        @param labelthreshold: allows for plotting of labels in different colors. if abs(data)>= labelthreshold, then the label is plotted in labelcolor, else it is plotted in black
+        @type labelthreshold: float
+
         """
 
 
         self.show_value=show_value
+        self.labelcolor=labelcolor
+        self.labelthreshold=labelthreshold
 
         if normalize:
             self._normalize_data(method=method)

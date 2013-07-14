@@ -170,7 +170,8 @@ def seaice_concentration_analysis(model_list,interval='season',GP=None,shift_lon
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='seaice_concentration',regions=regions)
 
 def seaice_extent_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='seaice_extent',regions=regions)
+    header='The sea ice extent is calculated based on sea-ice concentration. It is defined by all grid cells which have a sea ice concentration larger than 15 percent.'
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='seaice_extent',regions=regions,sectionheader=header)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -1223,7 +1224,7 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
 
 
 
-def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,actvar=None,regions=None):
+def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,actvar=None,regions=None,sectionheader=''):
     """
     actvar: variable to analyze
     """
@@ -1257,6 +1258,8 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     print '************************************************************'
 
     report.section(thelabel) #section header for current variable
+    if sectionheader != '':
+        report.write(sectionheader) #write header text for the section if needed
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
 
