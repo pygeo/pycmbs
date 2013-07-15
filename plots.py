@@ -29,12 +29,15 @@ Module that contains relevant classes for diagnostic plots
 @todo: faster implementation of Basemap plots. For large number of grid cells, the current KTree implementation is by far too slow!
 
 '''
+import matplotlib as mpl
+mpl.use('agg')
 
 from data import *
 
 from hov import *
 
 from matplotlib import pylab as plt
+
 
 from matplotlib.patches import Polygon
 import matplotlib.path as mpath
@@ -62,7 +65,7 @@ import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes
 
-import matplotlib as mpl
+
 
 #-----------------------------------------------------------------------
 
