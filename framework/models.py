@@ -83,11 +83,6 @@ class Model(Data):
         using functions specified in derived class
         """
 
-        #print 'xxx:', self.plot_options.options
-        #print self.dic_vars.keys()
-        #stop
-
-
         self.variables={}
         for k in self.dic_vars.keys():
             self._actplot_options = self.plot_options.options[k]['OPTIONS'] #set variable specific options (needed for interpolation when reading the data)
@@ -878,6 +873,7 @@ class JSBACH_RAW(Model):
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
 
         Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+
         self.experiment = experiment
         self.shift_lon = shift_lon
         self.get_data()
