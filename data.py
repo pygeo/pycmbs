@@ -31,6 +31,7 @@ import matplotlib.pylab as pl
 from scipy import stats
 from pyCDO import *
 import netcdftime as netcdftime
+from calendar import monthrange
 
 class Data():
     """
@@ -1516,7 +1517,9 @@ class Data():
         if self.time_str == 'day as %Y%m%d.%f':
             #in case of YYYYMMDD, convert to other time with basedate 0001-01-01 00:00:00
             self._convert_time()
-
+        elif 'months since' in self.time_str:
+        #months since is not supported by netCDF4 library at the moment. Therefore implementation here.
+            self._convert_monthly_timeseries()
 
         #--- time conversion using netCDF4 library routine ---
         # actually nothing needs to be done, as everything shall
@@ -1528,6 +1531,58 @@ class Data():
 
 
 #-----------------------------------------------------------------------
+
+    def _get_date_from_month(self,nmonths):
+        """
+        calculate a datetime object for a time given in 'months since' a basedate
+        The routine increments itteratively the number of months and returns a datetime object
+
+        This is done for a *single* timestep!
+
+        @param time_str: time string that specifies start date. Needs to contain 'months since'
+        @type time_str: str
+
+        @param nmonths: time as numeric value (number of months since basedate)
+        @type nmonths: float or int
+
+        @return: datetime object with actual date
+        """
+
+        if not 'months since' in self.time_str:
+            print self.time_str
+            raise ValueError, 'This routine is only for conversion of monthly data!'
+
+        basedate = self.time_str.split('since')[1].lstrip()
+
+        #--- start date
+        start_date = pl.datestr2num(basedate)
+        act_date = start_date*1.
+
+        for i in xrange(int(nmonths)): #increment months
+            d = pl.num2date(act_date)
+            ndays = monthrange(d.year,d.month)[1] #number of days in current month
+            act_date += ndays
+
+        return pl.num2date(act_date)
+
+#-----------------------------------------------------------------------
+
+    def _convert_monthly_timeseries(self):
+        """
+        convert monthly timeseries to a daily timeseries
+        """
+        if self.calendar not in ['standard','gregorian',None]:
+            print self.calendar
+            raise ValueError, 'Not sure if monthly timeseries conversion works with this calendar!'
+
+        newtime = [self._get_date_from_month(t) for t in self.time] #... estimate new time
+        self.calendar = 'standard'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        self.time = pl.date2num(newtime)+1. #plus one because of the num2date() basedate definition
+
+
+#-----------------------------------------------------------------------
+
 
     def xxxset_time(self):
         """
