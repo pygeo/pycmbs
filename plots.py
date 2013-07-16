@@ -1265,7 +1265,11 @@ class GlecklerPlot():
         @param v: value of data
         @type v: float
         """
-        return self.cmap(self.norm(v))
+        if np.isscalar(v):
+            r = self.cmap(self.norm(np.asarray([v])))
+        else:
+            r =  self.cmap(self.norm(v))
+        return r.flatten()
 
     def __plot_triangle(self,ax,value,pos='top'):
         """
@@ -1409,7 +1413,7 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False,labelcolor='black',labelthreshold=None):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,colorbar_boundaries=None):
         """
         plot Gleckler diagram
 
@@ -1451,6 +1455,7 @@ class GlecklerPlot():
         self.show_value=show_value
         self.labelcolor=labelcolor
         self.labelthreshold=labelthreshold
+        self.bounds = colorbar_boundaries
 
         if normalize:
             self._normalize_data(method=method)
@@ -1469,8 +1474,16 @@ class GlecklerPlot():
 
 
         #- colormap
-        self.cmap = plt.cm.get_cmap(cmap_name, nclasses)
-        self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        if cmap == None:
+            self.cmap = plt.cm.get_cmap(cmap_name, nclasses)
+            self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        else: #use provided colormap
+            self.cmap = cmap
+            if norm == None:
+                raise ValueError, 'If a colormap is provided, the NORM function shall also be provided!'
+            else:
+                self.norm = norm
+                #self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
         gs = gridspec.GridSpec(nm, nv, wspace=0.05,hspace=0.05,bottom=0.2) #generate grid for subplots
 
@@ -1682,9 +1695,13 @@ class GlecklerPlot():
             l_f = None
 
         cax = self.fig.add_axes([left,0.05,width,0.05]) #left, bottom, width, height
+        if self.bounds !=None:
+            extend = 'both'
+        else:
+            extend = 'neither'
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
                                    norm=self.norm,
-                                   orientation='horizontal',format=l_f)
+                                   orientation='horizontal',format=l_f,boundaries=self.bounds,extend=extend)
 
 
 
