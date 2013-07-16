@@ -693,7 +693,6 @@ class JSBACH_BOT(Model):
         Model.__init__(self,filename,dic_variables,name=name,**kwargs)
         self.experiment = experiment
         self.shift_lon = shift_lon
-        self.get_data()
         self.type = 'JSBACH_BOT'
 
         self._unique_name = self._get_unique_name()
@@ -835,7 +834,7 @@ class JSBACH_BOT(Model):
         s_start_time = str(self.start_time)[0:10]
         s_stop_time = str(self.stop_time)[0:10]
 
-        filename1 = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1982-2006_sel.nc'
+        filename1 = self.data_dir +  self.experiment + '_echam6_BOT_mm_1980_sel.nc'
         tmp  = pyCDO(filename1,s_start_time,s_stop_time).seldate()
         tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
         filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
@@ -876,7 +875,7 @@ class JSBACH_RAW(Model):
 
         self.experiment = experiment
         self.shift_lon = shift_lon
-        self.get_data()
+        #self.get_data()
         self.type = 'JSBACH_RAW'
 
         self._unique_name = self._get_unique_name()
