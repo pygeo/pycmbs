@@ -2,7 +2,7 @@ from distutils.core import setup
 import os
 
 setup(name='pyCMBS',
-      version='0.1.0',
+      version='0.1.1',
       py_modules=[],author='Alexander Loew',
       author_email='alexander.loew@zmaw.de',
       maintainer='Alexander Loew',
