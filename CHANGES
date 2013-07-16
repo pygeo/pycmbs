@@ -1,4 +1,9 @@
-version 0.1.1
+version 0.1.2
+============================
+
+
+
+version 0.1.1 (= rev258)
 ============================
 o path of INI files can now be specified explicitely in benchmarking framework
 o implemented automatic calculation of land-sea masks using CDO operator topo on-the-fly.

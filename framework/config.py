@@ -137,7 +137,7 @@ class ConfigFile():
                 raise ValueError, 'Configuration path is invalid!'
             self.options.update({'configdir' : s.replace(' ','') })
         else:
-            raise ValueError, 'Temporary directory not specified!'
+            raise ValueError, 'CONFIG directory not specified!'
 
 
 
