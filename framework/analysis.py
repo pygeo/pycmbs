@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -86,6 +85,7 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     #obs_monstd_file = obs_mon_file[:-3] + '_monstd.nc'
 
     #construct string for seldate; it is assumed that it was already chacked before that start_date,stop_date are valid datetime objects!
+
     if (start_date != None) and (stop_date != None):
         print 'Temporal subsetting for ' + raw_file + ' will be performed! ', start_date,stop_date
         seldate_str = ' -seldate,'+str(start_date)[0:10]+','+str(stop_date)[0:10]
@@ -270,23 +270,30 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     obs_var = local_plot_options[obs_name]['obs_var']
     gleckler_pos = local_plot_options[obs_name]['gleckler_position']
 
-    if 'start' in local_plot_options[obs_name].keys():
-        obs_start   = local_plot_options[obs_name]['start']
+
+    if 'start' in local_plot_options['OPTIONS'].keys():
+        obs_start   = local_plot_options['OPTIONS']['start']
         if isinstance(obs_start,datetime):
             pass
         else:
-            print 'WARNING: INVALID start time: ', obs_start, ' SETTING to NONE!'
-            obs_start = None
+            try:
+                obs_start = pl.num2date(pl.datestr2num(obs_start))
+            except:
+                print 'WARNING: INVALID start time: ', obs_start, ' SETTING to NONE!'
+                obs_start = None
     else:
         obs_start = None
 
-    if 'stop' in local_plot_options[obs_name].keys():
-        obs_stop   = local_plot_options[obs_name]['stop']
+    if 'stop' in local_plot_options['OPTIONS'].keys():
+        obs_stop   = local_plot_options['OPTIONS']['stop']
         if isinstance(obs_stop,datetime):
             pass
         else:
-            print 'WARNING: INVALID stop time: ', obs_stop, ' SETTING to NONE!'
-            obs_stop = None
+            try:
+                obs_stop = pl.num2date( pl.datestr2num(obs_stop) )
+            except:
+                print 'WARNING: INVALID stop time: ', obs_stop, ' SETTING to NONE!'
+                obs_stop = None
     else:
         obs_stop = None
 
@@ -437,7 +444,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         f_season = map_season(obs_orig,use_basemap=use_basemap,cmap_data='jet',
                               show_zonal=True,zonal_timmean=True,nclasses=nclasses,
                               vmin=vmin,vmax=vmax,cticks=cticks,proj=projection,stat_type=stat_type)
-        report.figure(f_season,caption='Seasonal mean ' + obs_name)
+        if len(obs_orig.data) == 4:
+            report.figure(f_season,caption='Seasonal mean ' + obs_name)
+        else:
+            report.figure(f_season,caption='Monthly mean ' + obs_name)
 
 
 
@@ -501,7 +511,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                                     show_zonal=True,zonal_timmean=False,
                                     dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks,
                                     proj=projection,stat_type=stat_type,show_stat=True)
-            report.figure(f_dif,caption='Mean and relative differences')
+            report.figure(f_dif,caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
 
         if f_mapseasons == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
@@ -511,7 +521,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                                   show_zonal=True,zonal_timmean=True,nclasses=nclasses,
                                   vmin=vmin,vmax=vmax,cticks=cticks,proj=projection,stat_type=stat_type,show_stat=True,
                                   drawparallels=False,titlefontsize=10)
-            report.figure(f_season,caption='Seasonal means model')
+            if len(model_data.data) == 4:
+                report.figure(f_season,caption='Seasonal mean climatology for ' + model.name)
+            else:
+                report.figure(f_season,caption='Monthly mean climatology for ' + model.name)
 
         if f_hovmoeller == True:
             print '    Doing Hovmoeller plot ...'
@@ -605,7 +618,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if f_reichler == True:
         sys.stdout.write('\n *** Reichler plot.\n')
         f_reich = Rplot.bar(title='relative model error: %s' % obs_type.upper())
-        report.figure(f_reich,caption='Relative model performance for ' + obs_type.upper() + ' after Reichler and Kim, 2008')
+        report.figure(f_reich,caption='Relative model performance for ' + obs_type.upper() )
         report.newpage()
         del Rplot
 
@@ -1263,7 +1276,6 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
 
-
     if thevar in plot_options.options.keys():
         for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
 
@@ -1281,7 +1293,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     fGa = GM.plot_mean_result(dt=5.,colors={'observations':'blue','models':'red'})
     fGb = GM.plot_mean_result(dt=0.,colors={'observations':'blue','models':'red'},plot_clim=True)
 
-    report.figure(fGa,caption='Global means for ' + thelabel + ' (summary)',bbox_inches=None)
+    report.figure(fGa,caption='Global means for ' + thelabel + ' (summary); areas indicate $\pm 1 \sigma$ as derived from the ensemble of models or observations',bbox_inches=None)
     report.figure(fGb,caption='Global means for ' + thelabel + ' (summary climatology)',bbox_inches=None)
     del GM
     del fG

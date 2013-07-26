@@ -936,7 +936,7 @@ class GlobalMeanPlot():
 
         #- plot climatology if desired
         if self.climatology:
-            if hasattr(self,'time_cycle'):
+            if hasattr(D,'time_cycle'):
                 tmp = D.get_climatology(return_object=True)
                 tmp.adjust_time(year=1700,day=15)
                 tmp.timsort()
@@ -1894,6 +1894,14 @@ def map_season(x,**kwargs):
     else:
         tit = x.label
 
+    if 'savefile' in kwargs:
+        savefile = kwargs.pop('savefile')
+        if '.nc' in savefile:
+            savefile=savefile[:-3]
+    else:
+        savefile = None
+
+
     #/// plot
     if year:
         labels=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
@@ -1929,7 +1937,13 @@ def map_season(x,**kwargs):
         else:
             overlay = overlays[i,:,:]
 
-        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay, **kwargs); del d
+        if savefile != None:
+            tmpoutname=savefile + '_' + labels[i]
+        else:
+            tmpoutname = None
+
+
+        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname, **kwargs); del d
 
     f.suptitle(tit,size=16)
 
@@ -1952,7 +1966,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
              zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
              contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, colorbar_orientation='vertical',stat_type='mean',
-             cax_rotation=0.,cticklabels=None, proj='robin',plot_method='colormesh', boundinglat=60., **kwargs):
+             cax_rotation=0.,cticklabels=None, proj='robin',plot_method='colormesh', boundinglat=60.,savefile=None, **kwargs):
     """
     produce a nice looking map plot
 
@@ -2199,6 +2213,17 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         else: logoffset = logoffset
         print '     logoffset: ', logoffset
         xm = np.log10( xm + logoffset )
+
+    #--- save field that is plotted as file
+    if savefile != None:
+        if savefile[:-3] != '.nc':
+            savefile = savefile + '.nc'
+        tmp = x.copy()
+        tmp.data = xm*1.
+        tmp.time = None
+        tmp.save(savefile,varname='temporal_mean_field')
+        del tmp
+
 
     #--- set projection parameters
     if proj == 'robin': #todo: more flexible handling of projection parameters (dictionary ??)
@@ -2482,19 +2507,15 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             assert(len(me) == 1)
             assert(len(st) == 1)
             me = me[0]; st=st[0]
-            title = title + '\n ($' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
+            title = title + '\n (weighted mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
         elif stat_type == 'sum': #area sum
             me = tmp_xm.areasum()
             assert(len(me) == 1)
             me = me[0]
-            title = title + '\n (Areasum: $' + str(round(me,2))  + '$' + ')'
-
+            title = title + '\n (weighted sum: $' + str(round(me,2))  + '$' + ')'
         else:
             me = np.ma.median(tmp_xm.data)
-            title = title + '\n ($median: ' + str(round(me,2)) + '$)'
-
-
-
+            title = title + '\n (median: $' + str(round(me,2)) + '$)'
 
     ax.set_title(title,size=titlefontsize)
 
@@ -2709,7 +2730,7 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 
 def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,
                    region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,
-                   rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, proj='robin',stat_type='mean',**kwargs):
+                   rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, proj='robin',stat_type='mean',savefile=None,**kwargs):
     """
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets
@@ -2766,6 +2787,10 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     """
 
+    if savefile != None:
+        if '.nc' in savefile:
+            savefile = savefile[:-3]
+
 
     if 'cticks_diff' in kwargs:
         cticks_diff = kwargs.pop('cticks_diff')
@@ -2786,21 +2811,35 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     #proj='robin'; lon_0=0.; lat_0=0.
 
     #- plot first dataset
+    if savefile is None:
+        tmpoutname=None
+    else:
+        tmpoutname = savefile + '_xvar'
     map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type, **kwargs)
+             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname, **kwargs)
 
     #- plot second dataset
+    if savefile is None:
+        tmpoutname=None
+    else:
+        tmpoutname = savefile + '_yvar'
+
     map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,  **kwargs)
+             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,  **kwargs)
 
     #-first minus second dataset
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
+    if savefile is None:
+        tmpoutname=None
+    else:
+        tmpoutname = savefile + '_absdif'
+
     map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,
              nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',
-             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type)
+             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname)
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data
@@ -2808,10 +2847,15 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
 
+    if savefile is None:
+        tmpoutname=None
+    else:
+        tmpoutname = savefile + '_reldif'
+
     map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',
              cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=nclasses,
              cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,stat_type='median',proj=proj)
+             zonal_timmean=zonal_timmean,stat_type='median',proj=proj,savefile=tmpoutname)
 
 
     return fig

@@ -203,6 +203,8 @@ CF = ConfigFile(file)
 #/// read plotting options ///
 PCFG = PlotOptions(); PCFG.read(CF); plot_options=PCFG
 
+
+
 #/// init regions ///
 REGIONS = AnalysisRegions()
 
@@ -467,7 +469,7 @@ for i in range(len(CF.models)):
     #--- read data for current model ---
     themodel.plot_options = plot_options #options that specify regrid options etc.
 
-    print themodel.plot_options
+    #print themodel.plot_options
     themodel.get_data()
 
     #--- copy current model to a variable named modelXXXX ---

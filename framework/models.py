@@ -87,18 +87,14 @@ class Model(Data):
         for k in self.dic_vars.keys():
             self._actplot_options = self.plot_options.options[k]['OPTIONS'] #set variable specific options (needed for interpolation when reading the data)
 
-            routine = self.dic_vars[k] #get name of routine to perform data extraction
+            routine  = self.dic_vars [k] #get name of routine to perform data extraction
             interval = self.intervals[k]
             cmd = 'dat = self.' + routine
-#            print cmd
-#            print routine[0:routine.index('(')]
-#            print hasattr(self,routine[0:routine.index('(')])
-            #~ if hasattr(self,routine)
-            #print routine
+
             if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
                 exec(cmd)
 
-                #if a tuple is returned, then it is the data + a tuple for the original global mean field
+                #--- if a tuple is returned, then it is the data + a tuple for the original global mean field
                 if 'tuple' in str(type(dat)):
                     self.variables.update({ k : dat[0] }) #update field with data
                     self.variables.update({ k + '_org' : dat[1]}) #(time, meanfield, originalfield)
@@ -216,7 +212,7 @@ class CMIP5Data(Model):
         #/// PREPROCESSING ///
         cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
-        s_stop_time  = str(self.stop_time)[0:10]
+        s_stop_time  = str(self.stop_time )[0:10]
 
         #1) select timeperiod and generate monthly mean file
         if target_grid == 't63grid':
@@ -228,10 +224,6 @@ class CMIP5Data(Model):
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
 
         sys.stdout.write('\n *** Model file monthly: %s\n' % file_monthly)
-
-        #print 'output: ', file_monthly
-        #print 'cmd: ',  '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1
-
 
         if not os.path.exists(filename1):
             print 'WARNING: File not existing: ' + filename1
@@ -270,8 +262,15 @@ class CMIP5Data(Model):
             return None
 
         #3) read data
-        mdata = Data(mdata_clim_file,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel)
-        mdata_std = Data(mdata_clim_std_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False,level=thelevel)
+        if interval == 'monthly':
+            thetime_cylce = 12
+        elif interval == 'season':
+            thetime_cylce = 4
+        else:
+            print interval
+            raise ValueError, 'Unsupported interval!'
+        mdata = Data(mdata_clim_file,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel,time_cycle=thetime_cylce)
+        mdata_std = Data(mdata_clim_std_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False,level=thelevel,time_cycle=thetime_cylce)
         mdata.std = mdata_std.data.copy(); del mdata_std
         mdata_N = Data(mdata_N_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel)
         mdata.n = mdata_N.data.copy(); del mdata_N

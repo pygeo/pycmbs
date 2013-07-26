@@ -1,4 +1,4 @@
-   #region definition for Africa (name,lon1,lon2,lat1,lat2)
+#region definition for Africa (name,lon1,lon2,lat1,lat2)
 w1,-10.,10.,10.,20.
 w2,-10.,10.,10.,20.
 w3,-10.,10.,10.,20.
