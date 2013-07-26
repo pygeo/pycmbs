@@ -186,7 +186,9 @@ class ConfigFile():
     def __read_date_block(self):
         date1 = self.__read_header()
         date2 = self.f.readline().replace('\n','')
-        return date1,date2
+        tmp = self.f.readline().replace('\n','') #same time for observations
+        same_for_obs = self.__check_bool(tmp)
+        return date1,date2,same_for_obs
 
     def __read_model_block(self):
         models=[];types=[]; experiments=[]; ddirs=[]
@@ -223,7 +225,7 @@ class ConfigFile():
 
         self.__read_options()
         self.variables,self.intervals  = self.__read_var_block()
-        self.start_date,self.stop_date  = self.__read_date_block()
+        self.start_date,self.stop_date,self.same_time4obs  = self.__read_date_block()
         self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
 
         for k in self.dtypes:
@@ -328,6 +330,21 @@ class PlotOptions():
                     if vv in lopt['OPTIONS'].keys():
                         print 'Setting variable ', vv, ' to FALSE because of global option for ', var
                         lopt['OPTIONS'].update({vv:False})
+
+        #if the option is set that the observation time shall be the same as the models
+        #then overwrite options that were set in the INI files
+        if cfg.same_time4obs:
+            for var in cfg.variables:
+                lopt = self.options[var]
+                lopt['OPTIONS']['start']=cfg.start_date
+                lopt['OPTIONS']['stop'] =cfg.stop_date
+
+        #print lopt
+        #print lopt['OPTIONS']['start']
+        #print lopt['OPTIONS']['stop']
+        #stop
+
+
 
         #--- map interpolation methods ---
         # the interpolation method is used by the CDOs. It needs to be
