@@ -430,7 +430,11 @@ class ScatterPlot():
         @type fldmean: bool
         """
 
-        label=y.label
+        if y.label is None:
+            label=''
+        else:
+            label=y.label
+
 
         if fldmean:
             xdat = self.x.fldmean(); ydat = y.fldmean()
@@ -448,14 +452,15 @@ class ScatterPlot():
 
         #- calculate linear regression
         if regress:
-            slope, intercept, r_value, p_value, std_err = stats.linregress(xdat,ydat)
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat,ydat)
+            rms_error = np.sqrt(np.mean(((xdat-ydat)**2)))
+            std_error = np.std(xdat-ydat)
             if p_value < 0.01:
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
-            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', slope:' + str(slope) + ', ' + 'intercept: ' + str(intercept) + ')'
-            rms_error = np.mean(((xdat-ydat)**2))
-            std_error = np.std(xdat-ydat)
+            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', slope:' + str(slope) + ', ' + 'intercept: ' + str(intercept) + ', ' + 'rmsd: ' + str(rms_error) +  ')'
+
 
         #- actual plot
         if hexbin:
@@ -1212,7 +1217,7 @@ class GlecklerPlot():
     G.plot() #do plot
     """
 
-    def __init__(self,fig=None):
+    def __init__(self,fig=None,figsize=(8,6)):
         """
         constructor of C{GlecklerPlot}
 
@@ -1221,7 +1226,7 @@ class GlecklerPlot():
         """
         if fig == None:
             color='grey'
-            fig = plt.figure(facecolor=color,edgecolor=color)
+            fig = plt.figure(facecolor=color,edgecolor=color,figsize=figsize)
         self.fig = fig
 
         self.models = []
@@ -1413,7 +1418,7 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,colorbar_boundaries=None):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,colorbar_boundaries=None,show_colorbar=True):
         """
         plot Gleckler diagram
 
@@ -1448,6 +1453,9 @@ class GlecklerPlot():
 
         @param labelthreshold: allows for plotting of labels in different colors. if abs(data)>= labelthreshold, then the label is plotted in labelcolor, else it is plotted in black
         @type labelthreshold: float
+
+        @param show_colorbar: show colorbar plot
+        @type show_colorbar: bool
 
         """
 
@@ -1520,7 +1528,8 @@ class GlecklerPlot():
         #draw legend
         c=0.75
         width=(right-left)*c
-        self._draw_colorbar(left,width,logscale=logscale)
+        if show_colorbar:
+            self._draw_colorbar(left,width,logscale=logscale)
 
         if title != None:
             self.fig.suptitle(title)

@@ -25,6 +25,7 @@ __email__ = "alexander.loew@zmaw.de"
 from pyCMBS import *
 from utils import *
 from cdo import *
+import tempfile as tempfile
 
 '''
 @todo: implement reading of air temperature fields
@@ -863,6 +864,317 @@ class JSBACH_BOT(Model):
 
 #-----------------------------------------------------------------------
 
+class JSBACH_RAW2(Model):
+    """
+    Class for RAW JSBACH model output
+    """
+
+    def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,model_dict=None,**kwargs):
+
+        Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+
+        self.experiment = experiment
+        self.shift_lon = shift_lon
+        #self.get_data()
+        self.type = 'JSBACH_RAW2'
+
+        self._unique_name = self._get_unique_name()
+
+        #--- do preprocessing of streams (only needed once!) ---
+        self.files={}
+        self._preproc_streams()
+        self.model_dict=model_dict
+        self.model = 'JSBACH'
+
+
+
+    def _preproc_streams(self):
+        """
+        It is assumed that the standard JSBACH postprocessing scripts have been applied.
+        Thus monthly mean data is available for each stream and code tables still need to be applied.
+
+        This routine does the following:
+        1) merge all times from individual (monthly mean) output files
+        2) assign codetables to work with proper variable names
+        3) aggregate data from tiles to gridbox values
+        """
+
+        print 'Preprocessing JSBACH raw data streams (may take a while) ...'
+
+        cdo = Cdo()
+
+        # --- jsbach stream
+        print '   JSBACH stream ...'
+        outfile = get_temporary_directory()  + self.experiment + '_jsbach_mm_full.nc'
+        if os.path.exists(outfile):
+            pass
+        else:
+            codetable = self.data_dir + 'log/' + self.experiment + '_jsbach.codes'
+            tmp = tempfile.mktemp(suffix='.nc',prefix=self.experiment + '_jsbach_',dir=get_temporary_directory()) #temporary file
+            cdo.mergetime(options='-f nc',output=tmp,input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_main_mm_*.grb')
+            cdo.monmean(options='-f nc' ,output=outfile,input='-setpartab,' + codetable + ' ' + tmp) #monmean needed here, as otherwise interface does not work
+            os.remove(tmp)
+        self.files.update({'jsbach':outfile})
+
+        #--- veg stream
+        print '   VEG stream ...'
+        outfile = get_temporary_directory()  + self.experiment + '_jsbach_veg_mm_full.nc'
+        if os.path.exists(outfile):
+            pass
+        else:
+            codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_veg.codes'
+            tmp = tempfile.mktemp(suffix='.nc',prefix=self.experiment + '_jsbach_veg_',dir=get_temporary_directory()) #temporary file
+            cdo.mergetime(options='-f nc',output=tmp,input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_veg_mm_*.grb')
+            cdo.monmean(options='-f nc' ,output=outfile,input='-setpartab,' + codetable + ' ' + tmp) #monmean needed here, as otherwise interface does not work
+            os.remove(tmp)
+        self.files.update({'veg':outfile})
+
+        #--- veg land
+        print '   LAND stream ...'
+        outfile = get_temporary_directory()  + self.experiment + '_jsbach_land_mm_full.nc'
+        if os.path.exists(outfile):
+            pass
+        else:
+            codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_land.codes'
+            tmp = tempfile.mktemp(suffix='.nc',prefix=self.experiment + '_jsbach_land_',dir=get_temporary_directory()) #temporary file
+            cdo.mergetime(options='-f nc',output=tmp,input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_land_mm_*.grb')
+            cdo.monmean(options='-f nc' ,output=outfile,input='-setpartab,' + codetable + ' ' + tmp) #monmean needed here, as otherwise interface does not work
+            os.remove(tmp)
+        self.files.update({'land':outfile})
+
+        #--- surf stream
+        print '   SURF stream ...'
+        outfile = get_temporary_directory()  + self.experiment + '_jsbach_surf_mm_full.nc'
+        if os.path.exists(outfile):
+            pass
+        else:
+            codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_surf.codes'
+            tmp = tempfile.mktemp(suffix='.nc',prefix=self.experiment + '_jsbach_surf_',dir=get_temporary_directory()) #temporary file
+            cdo.mergetime(options='-f nc',output=tmp,input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_surf_mm_*.grb')
+            cdo.monmean(options='-f nc' ,output=outfile,input='-setpartab,' + codetable + ' ' + tmp) #monmean needed here, as otherwise interface does not work
+            os.remove(tmp)
+        self.files.update({'surf':outfile})
+
+        #--- ECHAM BOT stream
+        print '   BOT stream ...'
+        outfile = get_temporary_directory()  + self.experiment + '_echam6_echam_mm_full.nc'
+        if os.path.exists(outfile):
+            pass
+        else:
+            codetable = self.data_dir + 'log/' + self.experiment + '_echam6_echam.codes'
+            tmp = tempfile.mktemp(suffix='.nc',prefix=self.experiment + '_echam6_echam_',dir=get_temporary_directory()) #temporary file
+            cdo.mergetime(options='-f nc',output=tmp,input=self.data_dir + 'outdata/echam6/' + self.experiment + '_echam6_BOT_mm_*.sz')
+            cdo.monmean(options='-f nc' ,output=outfile,input='-setpartab,' + codetable + ' ' + tmp) #monmean needed here, as otherwise interface does not work
+            os.remove(tmp)
+        self.files.update({'echam':outfile})
+
+
+
+
+    def _get_unique_name(self):
+        """
+        get unique name from model and experiment
+        @return: string with unique combination of models and experiment
+        """
+        return self.name.replace(' ','') + '-' + self.experiment.replace(' ','')
+
+
+    def get_albedo_data(self, interval='season'):
+        """
+        calculate albedo as ratio of upward and downwelling fluxes
+        first the monthly mean fluxes are used to calculate the albedo,
+        """
+
+        if interval != 'season':
+            raise ValueError, 'Other temporal sampling than SEASON not supported yet for JSBACH RAW files, sorry'
+
+        if self.start_time is None:
+            raise ValueError, 'Start time needs to be specified'
+        if self.stop_time is None:
+            raise ValueError, 'Stop time needs to be specified'
+
+        sw_down = self.get_jsbach_data_generic(interval=interval,**self.model_dict['sis'])
+        sw_up   = self.get_surface_shortwave_radiation_up(interval=interval)
+
+        #climatological mean
+        alb     = sw_up[0].div(sw_down[0])
+        alb.label = self.experiment + ' albedo'
+        alb.unit = '-'
+
+        #original data
+        alb_org  = sw_up[1][2].div(sw_down[1][2])
+        alb_org.label = self.experiment + ' albedo'
+        alb_org.unit = '-'
+
+        retval = (alb_org.time,alb_org.fldmean(),alb_org)
+
+        return alb, retval
+
+    def get_surface_shortwave_radiation_up(self,interval='season'):
+        return self.get_jsbach_data_generic(interval=interval,**self.model_dict['surface_upward_flux'])
+
+    def get_rainfall_data(self,interval='season'):
+        return self.get_jsbach_data_generic(interval=interval,**self.model_dict['rain'])
+
+    def get_temperature_2m(self,interval='season'):
+        return self.get_jsbach_data_generic(interval=interval,**self.model_dict['temperature'])
+
+    def get_jsbach_data_generic(self,interval='season', **kwargs):
+        """
+        unique parameters are:
+            filename - file basename
+            variable - name of the variable as the short_name in the netcdf file
+
+            kwargs is a dictionary with keys for each model. Then a dictionary with properties follows
+
+        """
+
+        if not self.type in kwargs.keys():
+            print 'WARNING: it is not possible to get data using generic function, as method missing: ', self.type, kwargs.keys()
+            return None
+
+        locdict = kwargs[self.type]
+
+        # read settings and details from the keyword arguments
+        # no defaults; everything should be explicitely specified in either the config file or the dictionaries
+        varname  = locdict.pop('variable')
+        units    = locdict.pop('unit', 'Crazy Unit')
+        #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
+
+        lat_name     = locdict.pop('lat_name', 'lat')
+        lon_name     = locdict.pop('lon_name', 'lon')
+        #model_suffix = locdict.pop('model_suffix')
+        #model_prefix = locdict.pop('model_prefix')
+        file_format  = locdict.pop('file_format')
+        scf = locdict.pop('scale_factor')
+        valid_mask    = locdict.pop('valid_mask')
+        custom_path  = locdict.pop('custom_path', None)
+        thelevel  = locdict.pop('level', None)
+
+        target_grid   = self._actplot_options['targetgrid']
+        interpolation = self._actplot_options['interpolation']
+
+        if self.type != 'JSBACH_RAW2':
+            print self.type
+            raise ValueError, 'Invalid data format here!'
+
+
+        if varname in ['swdown_acc','swdown_reflect_acc']:
+            filename1= self.files['jsbach']
+        elif varname in ['precip_acc']:
+            filename1 = self.files['land']
+        elif varname in ['temp2']:
+            filename1 = self.files['echam']
+        else:
+            print varname
+            raise ValueError, 'Unknown variable type for JSBACH_RAW2 processing!'
+
+
+        force_calc = False
+
+        if self.start_time == None:
+            raise ValueError, 'Start time needs to be specified'
+        if self.stop_time == None:
+            raise ValueError, 'Stop time needs to be specified'
+
+        #/// PREPROCESSING ///
+        cdo = Cdo()
+        s_start_time = str(self.start_time)[0:10]
+        s_stop_time  = str(self.stop_time )[0:10]
+
+        #1) select timeperiod and generate monthly mean file
+        if target_grid == 't63grid':
+            gridtok = 'T63'
+        else:
+            gridtok = 'SPECIAL_GRID'
+
+        file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_' + gridtok + '_monmean.nc' #target filename
+        file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
+
+        sys.stdout.write('\n *** Model file monthly: %s\n' % file_monthly)
+
+        if not os.path.exists(filename1):
+            print 'WARNING: File not existing: ' + filename1
+            return None
+
+        cdo.monmean(options='-f nc',output=file_monthly,input = '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
+
+        sys.stdout.write('\n *** Reading model data... \n')
+        sys.stdout.write('     Interval: ' + interval + '\n')
+
+        #2) calculate monthly or seasonal climatology
+        if interval == 'monthly':
+            mdata_clim_file     = file_monthly[:-3] + '_ymonmean.nc'
+            mdata_sum_file      = file_monthly[:-3] + '_ymonsum.nc'
+            mdata_N_file        = file_monthly[:-3] + '_ymonN.nc'
+            mdata_clim_std_file = file_monthly[:-3] + '_ymonstd.nc'
+            cdo.ymonmean(options='-f nc -b 32',output = mdata_clim_file,input=file_monthly, force=force_calc)
+            cdo.ymonsum(options='-f nc -b 32',output = mdata_sum_file,input=file_monthly, force=force_calc)
+            cdo.ymonstd(options='-f nc -b 32',output = mdata_clim_std_file,input=file_monthly, force=force_calc)
+            cdo.div(options='-f nc',output = mdata_N_file,input=mdata_sum_file + ' ' + mdata_clim_file, force=force_calc) #number of samples
+        elif interval == 'season':
+            mdata_clim_file     = file_monthly[:-3] + '_yseasmean.nc'
+            mdata_sum_file      = file_monthly[:-3] + '_yseassum.nc'
+            mdata_N_file        = file_monthly[:-3] + '_yseasN.nc'
+            mdata_clim_std_file = file_monthly[:-3] + '_yseasstd.nc'
+            cdo.yseasmean(options='-f nc -b 32',output = mdata_clim_file,input=file_monthly, force=force_calc)
+            cdo.yseassum(options='-f nc -b 32',output = mdata_sum_file,input=file_monthly, force=force_calc)
+            cdo.yseasstd(options='-f nc -b 32',output = mdata_clim_std_file,input=file_monthly, force=force_calc)
+            cdo.div(options='-f nc -b 32',output = mdata_N_file,input=mdata_sum_file + ' ' + mdata_clim_file, force=force_calc) #number of samples
+        else:
+            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+
+        if not os.path.exists(mdata_clim_file):
+            return None
+
+        #3) read data
+        if interval == 'monthly':
+            thetime_cylce = 12
+        elif interval == 'season':
+            thetime_cylce = 4
+        else:
+            print interval
+            raise ValueError, 'Unsupported interval!'
+        mdata = Data(mdata_clim_file,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel,time_cycle=thetime_cylce)
+        mdata_std = Data(mdata_clim_std_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False,level=thelevel,time_cycle=thetime_cylce)
+        mdata.std = mdata_std.data.copy(); del mdata_std
+        mdata_N = Data(mdata_N_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel)
+        mdata.n = mdata_N.data.copy(); del mdata_N
+
+        #ensure that climatology always starts with J  anuary, therefore set date and then sort
+        mdata.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        mdata.timsort()
+
+        #4) read monthly data
+        mdata_all = Data(file_monthly,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False,time_cycle=12,scale_factor=scf,level=thelevel)
+        mdata_all.adjust_time(day=15)
+
+        if target_grid == 't63grid':
+            mdata._apply_mask(get_T63_landseamask(False, area = valid_mask))
+            mdata_all._apply_mask(get_T63_landseamask(False, area = valid_mask))
+        else:
+            tmpmsk = get_generic_landseamask(False,area=valid_mask,target_grid=target_grid)
+            mdata._apply_mask(tmpmsk)
+            mdata_all._apply_mask(tmpmsk)
+            del tmpmsk
+
+        mdata_mean = mdata_all.fldmean()
+
+        #/// return data as a tuple list
+        retval = (mdata_all.time,mdata_mean,mdata_all)
+
+        del mdata_all
+
+
+        return mdata,retval
+
+
+
+
+
+#-----------------------------------------------------------------------
+
+
 class JSBACH_RAW(Model):
     """
     Class for RAW JSBACH model output
@@ -973,7 +1285,7 @@ class JSBACH_RAW(Model):
         v = 'swdown_acc'
 
         #y1 = '1979-01-01'; y2 = '2010-12-31'
-        y1 = '1999-01-01'; y2 = '2010-12-31'
+        y1 = '1980-01-01'; y2 = '2010-12-31'
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
         #rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
 
@@ -1013,7 +1325,7 @@ class JSBACH_RAW(Model):
         v = 'swdown_reflect_acc'
 
         #y1 = '1979-01-01'; y2 = '2010-12-31'
-        y1 = '1999-01-01'; y2 = '2010-12-31'
+        y1 = '1980-01-01'; y2 = '2010-12-31'
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
         #rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
 

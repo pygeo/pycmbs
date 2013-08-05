@@ -484,11 +484,15 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             if model.name == 'mean-model':
                 pass
             else:
+
+
+
+
                 if m_data_org in model.variables.keys():
                     if model.variables[m_data_org][2] == None: #invalid data for mean_model --> skip
                         pass
                     else:
-                        print model.variables[m_data_org][2].label
+                        #print model.variables[m_data_org][2].label
                         tmp = model.variables[m_data_org][2]
                         tmp._apply_mask(actmask)
                         #GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
@@ -1226,8 +1230,8 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 # TEMPERATURE -- begin
 #=======================================================================
 
-def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='temperature')
+def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='temperature',regions=regions)
 
 #=======================================================================
 # TEMPERATURE -- end
@@ -1331,7 +1335,7 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 #=======================================================================
 
 
-def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None):
+def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None,regions=None):
     """
     main routine for SIS analysis
 
