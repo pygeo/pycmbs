@@ -229,7 +229,7 @@ class ConfigFile():
         self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
 
         for k in self.dtypes:
-            if k.upper() not in ['CMIP5','JSBACH_BOT','JSBACH_RAW','CMIP3']:
+            if k.upper() not in ['CMIP5','JSBACH_BOT','JSBACH_RAW','CMIP3','JSBACH_RAW2']:
                 print k
                 raise ValueError, 'Unknown model type'
 

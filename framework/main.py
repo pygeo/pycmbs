@@ -250,8 +250,21 @@ model_dict = {'rain':  {'CMIP5':
                                 'file_format' : 'nc',
                                 'scale_factor': 86400.,
                                 'valid_mask': 'ocean'
+                            },
+
+
+                        'JSBACH_RAW2':
+                            {
+                                'variable': 'precip_acc',
+                                'unit': 'mm/day',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'file_format' : 'nc',
+                                'scale_factor': 86400.,
+                                'valid_mask': 'global'
                             }
                         },
+
 
               'evap':   {'CMIP5':
                              {
@@ -410,7 +423,50 @@ model_dict = {'rain':  {'CMIP5':
                                 'valid_mask': 'ocean',
                                 'custom_path' : '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
                              }
+                        },
+
+
+              'sis':   {'JSBACH_RAW2':
+                             {
+                                'variable': 'swdown_acc',
+                                'unit': '$W/m^2$',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'file_format' : 'nc',
+                                'scale_factor' : 1.,
+                                'valid_mask' : 'land'
+                             }
+                        },
+
+              'surface_upward_flux':   {'JSBACH_RAW2':
+                             {
+                                'variable': 'swdown_reflect_acc',
+                                'unit': '$W/m^2$',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'file_format' : 'nc',
+                                'scale_factor' : 1.,
+                                'valid_mask' : 'land'
+                             }
+                        },
+
+              'temperature':   {'JSBACH_RAW2':
+                             {
+                                'variable': 'temp2',
+                                'unit': 'K',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'file_format' : 'nc',
+                                'scale_factor' : 1.,
+                                'valid_mask' : 'global'
+                             }
                         }
+
+
+
+
+
+
               }
 
 
@@ -459,6 +515,9 @@ for i in range(len(CF.models)):
         themodel = JSBACH_BOT(data_dir,varmethods,experiment,intervals=CF.intervals,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
     elif CF.dtypes[i].upper() == 'JSBACH_RAW':
         themodel = JSBACH_RAW(data_dir,varmethods,experiment,intervals=CF.intervals,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon)
+    elif CF.dtypes[i].upper() == 'JSBACH_RAW2':
+        themodel = JSBACH_RAW2(data_dir,varmethods,experiment,intervals=CF.intervals,start_time=start_time,stop_time=stop_time,name=model,shift_lon=shift_lon,model_dict=model_dict)
+
     elif CF.dtypes[i].upper() == 'CMIP3':
         themodel = CMIP3Data(data_dir,model,experiment,varmethods,intervals=CF.intervals,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time,shift_lon=shift_lon)
     else:
