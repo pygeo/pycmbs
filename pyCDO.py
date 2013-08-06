@@ -48,6 +48,10 @@ class pyCDO():
 
         '''
 
+
+        raise ValueError, 'The usage of pyCDO is obsolete! It should not be used any more and replace by the generic cdo-python interface!'
+
+
         if 'CDOTEMPDIR' in os.environ.keys():
             self.tempdir = os.environ['CDOTEMPDIR']
         else:

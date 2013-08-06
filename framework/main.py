@@ -7,7 +7,7 @@ __date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
 
 '''
-# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# Copyright (C) 2011-2013 Alexander Loew, alexander.loew@zmaw.de
 # See COPYING file for copying and redistribution conditions.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -129,6 +129,7 @@ def get_methods4variables(variables, model_dict):
     hlp={}
     hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
+    #hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
     hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
     hlp.update({'surface_upward_flux' : 'get_surface_shortwave_radiation_up(interval=interval)'})
     hlp.update({'tree' : 'get_tree_fraction(interval=interval)'})
@@ -461,11 +462,6 @@ model_dict = {'rain':  {'CMIP5':
                                 'valid_mask' : 'global'
                              }
                         }
-
-
-
-
-
 
               }
 
