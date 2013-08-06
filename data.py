@@ -29,9 +29,9 @@ from matplotlib import pylab as plt
 from statistic import get_significance, ttest_ind
 import matplotlib.pylab as pl
 from scipy import stats
-from pyCDO import *
 import netcdftime as netcdftime
 from calendar import monthrange
+from cdo import *
 
 class Data():
     """
@@ -573,8 +573,8 @@ class Data():
         cell_file = self.filename[:-3]+'_cell_area.nc'
 
         if not os.path.exists(cell_file): #calculate grid area using CDO's
-            cdo = pyCDO(self.filename,None,None)
-            cell_file = cdo.gridarea()
+            cdo = Cdo()
+            cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
 
         #--- read cell_area file ---
         if os.path.exists(cell_file):
@@ -1700,7 +1700,8 @@ class Data():
             f_err = True
 
         if f_err:
-            r = self.copy(); r.data = np.zeros(nt,ny,nx)
+            tmp = np.zeros((nt,ny,nx))
+            r = self.copy(); r.data = np.ma.array(tmp,mask=tmp>0.) #return some dummy result
             return r
 
         #/// construct weighting matrix

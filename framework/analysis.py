@@ -317,6 +317,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     cticks = local_plot_options['OPTIONS']['cticks']
     f_mapdifference = local_plot_options['OPTIONS']['map_difference']
     f_mapseasons    = local_plot_options['OPTIONS']['map_seasons']
+    f_mapseason_difference    = local_plot_options['OPTIONS']['map_season_difference']
     f_preprocess    = local_plot_options['OPTIONS']['preprocess']
     f_reichler    = local_plot_options['OPTIONS']['reichler_plot']
     f_gleckler    = local_plot_options['OPTIONS']['gleckler_plot']
@@ -451,6 +452,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
 
 
+
+
+
     for model in model_list:
 
         sys.stdout.write('\n *** %s analysis of model: ' % (obs_type.upper()) + model.name + "\n")
@@ -530,6 +534,24 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             else:
                 report.figure(f_season,caption='Monthly mean climatology for ' + model.name)
 
+
+        if f_mapseason_difference:
+            #generate seasonal plot of difference
+            f_season_dif = map_season(model_data.sub(obs_orig),use_basemap=use_basemap,cmap_data='RdBu_r',
+                                  show_zonal=True,zonal_timmean=True,nclasses=nclasses,
+                                  vmin=dmin,vmax=dmax,cticks=cticks,proj=projection,stat_type=stat_type,show_stat=True,
+                                  drawparallels=False,titlefontsize=10)
+
+            if len(model_data.data) == 4:
+                report.figure(f_season_dif,caption='Seasonal mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
+            else:
+                report.figure(f_season_dif,caption='Monthly mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
+
+
+
+
+
+
         if f_hovmoeller == True:
             print '    Doing Hovmoeller plot ...'
             #raise ValueError, 'Hovmoeller Not validated yet!!!!'
@@ -553,7 +575,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             tmp = tmp.interp_time(pl.date2num(tref))
             if ls_mask != None:
                 tmp._apply_mask(ls_mask)
-            #print '      interpol done 1'
 
             hov_model = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
             hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
@@ -566,11 +587,12 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #i1,i2 = tmp._get_time_indices(start_time,stop_time)
             #tmp._temporal_subsetting(i1,i2)
             tmp = tmp.interp_time(pl.date2num(tref))
-            #print 'interpol done 2'
+
+
             if ls_mask != None:
                 tmp._apply_mask(ls_mask)
 
-            hov_obs = hovmoeller(num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_obs = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
             hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
             hov_obs.hov = None
             hov_obs.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
@@ -874,7 +896,7 @@ def tree_fraction_analysis(model_list,pft='tree'):
 # ALBEDO -- begin
 #=======================================================================
 
-def surface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season'):
+def surface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
 
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'

@@ -1852,7 +1852,11 @@ def pm_bar(x,y=None,pcolor='red',ncolor='blue',ax=None,**kwargs):
 
 
 
+
 #-----------------------------------------------------------------------
+
+
+
 
 def map_season(x,**kwargs):
     """
@@ -1861,6 +1865,12 @@ def map_season(x,**kwargs):
 
     if kwargs contain a 'figure' argument, then this figure fill be used
     for plotting. Otherwise a new figure will be generated
+
+    Note, that it is not checked, if the seasonal mean values were precalculated correctly.
+    It is ASSUMED that the seasonal means are calculated using cdo, which leads to
+
+    a) yseasmean --> DJF,MAM,JJA,SON where the timestamp in the file corresponds to the LAST valid data used
+    b) ymonmean --> monthly means
 
     @param x: C{Data} object
     @type x : C{Data}
@@ -1915,7 +1925,17 @@ def map_season(x,**kwargs):
     if year:
         labels=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     else:
-        labels=['JFM','AMJ','JAS','OND']
+        labels=['DJF','MAM','JJA','SON']
+
+    #/// check dates
+    if year:
+        mo = 1
+        for t in x.time:
+            if x.num2date(t).month != mo:
+                print x.num2date(t), mo
+                raise ValueError, 'Invalid monthly sequence! Can not plot results!'
+            mo +=1
+
 
 
     #/// in case that an overlay is provided, this needs to be processed for each timestep individually
