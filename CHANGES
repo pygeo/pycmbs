@@ -1,5 +1,8 @@
 version 0.1.2
 ============================
+o implemented new class JSBACH_RAW2, which automatically preprocessed JSBACH and ECHAM output from different (yearly) files
+o removed dependencies from old pyCDO module which is supposed to be obsolete and will be removed in the future
+o applied several bugfixes
 
 
 

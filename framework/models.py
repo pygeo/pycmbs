@@ -26,6 +26,7 @@ from pyCMBS import *
 from utils import *
 from cdo import *
 import tempfile as tempfile
+import copy
 
 '''
 @todo: implement reading of air temperature fields
@@ -883,7 +884,8 @@ class JSBACH_RAW2(Model):
         #--- do preprocessing of streams (only needed once!) ---
         self.files={}
         self._preproc_streams()
-        self.model_dict=model_dict
+        self.model_dict=copy.deepcopy(model_dict)
+
         self.model = 'JSBACH'
 
 
@@ -985,16 +987,17 @@ class JSBACH_RAW2(Model):
         first the monthly mean fluxes are used to calculate the albedo,
         """
 
-        if interval != 'season':
-            raise ValueError, 'Other temporal sampling than SEASON not supported yet for JSBACH RAW files, sorry'
-
         if self.start_time is None:
             raise ValueError, 'Start time needs to be specified'
         if self.stop_time is None:
             raise ValueError, 'Stop time needs to be specified'
 
-        sw_down = self.get_jsbach_data_generic(interval=interval,**self.model_dict['sis'])
-        sw_up   = self.get_surface_shortwave_radiation_up(interval=interval)
+        print ''
+        print 'in get_albedo() before call: ', self.model_dict['sis']
+        print ''
+
+        sw_down = self.get_surface_shortwave_radiation_down(interval=interval)
+        sw_up   = self.get_surface_shortwave_radiation_up  (interval=interval)
 
         #climatological mean
         alb     = sw_up[0].div(sw_down[0])
@@ -1011,13 +1014,20 @@ class JSBACH_RAW2(Model):
         return alb, retval
 
     def get_surface_shortwave_radiation_up(self,interval='season'):
-        return self.get_jsbach_data_generic(interval=interval,**self.model_dict['surface_upward_flux'])
+        tmpdict = copy.deepcopy(self.model_dict['surface_upward_flux'])
+        return self.get_jsbach_data_generic(interval=interval,**tmpdict)
+
+    def get_surface_shortwave_radiation_down(self,interval='season'):
+        tmpdict = copy.deepcopy(self.model_dict['sis'])
+        return self.get_jsbach_data_generic(interval=interval,**tmpdict)
 
     def get_rainfall_data(self,interval='season'):
-        return self.get_jsbach_data_generic(interval=interval,**self.model_dict['rain'])
+        tmpdict = copy.deepcopy(self.model_dict['rain'])
+        return self.get_jsbach_data_generic(interval=interval,**tmpdict)
 
     def get_temperature_2m(self,interval='season'):
-        return self.get_jsbach_data_generic(interval=interval,**self.model_dict['temperature'])
+        tmpdict = copy.deepcopy(self.model_dict['temperature'])
+        return self.get_jsbach_data_generic(interval=interval,**tmpdict)
 
     def get_jsbach_data_generic(self,interval='season', **kwargs):
         """
@@ -1033,10 +1043,14 @@ class JSBACH_RAW2(Model):
             print 'WARNING: it is not possible to get data using generic function, as method missing: ', self.type, kwargs.keys()
             return None
 
+        print self.type
+        print kwargs
+
         locdict = kwargs[self.type]
 
         # read settings and details from the keyword arguments
         # no defaults; everything should be explicitely specified in either the config file or the dictionaries
+
         varname  = locdict.pop('variable')
         units    = locdict.pop('unit', 'Crazy Unit')
         #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
