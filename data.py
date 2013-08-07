@@ -574,7 +574,14 @@ class Data():
 
         if not os.path.exists(cell_file): #calculate grid area using CDO's
             cdo = Cdo()
-            cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
+            try:
+                cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
+            except:
+                print 'Seems that cell_area file can not be generated, try to generate in temporary directory' #occurs if you dont have write permissions
+                cell_file = tempfile.mktemp(prefix='cell_area_',suffix='.nc') #generate some temporary filename
+                cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
+                print 'Cell area file generated sucessfully in temporary file: ' + cell_file
+
 
         #--- read cell_area file ---
         if os.path.exists(cell_file):

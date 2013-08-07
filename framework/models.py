@@ -1358,6 +1358,11 @@ class JSBACH_RAW(Model):
         shift_lon=self.shift_lon,
         mask=ls_mask.data.data)
 
+
+
+
+
+
         return sw_up
 
 #-----------------------------------------------------------------------

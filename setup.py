@@ -2,7 +2,7 @@ from distutils.core import setup
 import os
 
 setup(name='pyCMBS',
-      version='0.1.1',
+      version='0.1.3',
       py_modules=[],author='Alexander Loew',
       author_email='alexander.loew@zmaw.de',
       maintainer='Alexander Loew',
@@ -11,6 +11,19 @@ setup(name='pyCMBS',
       description='pyCMBS - python Climate Model Benchmarking Suite',
       long_description='The pyCMBS project is a suite of tools to process, analyze, visualize and benchmark scientific model output against each other or against observational data. It is in particular useful for analyzing in an efficient way output from climate model simulations.'
       )
+
+
+#~ setup(name='pyCMBS',
+      #~ version='0.1.3',
+      #~ py_modules=[],author='Alexander Loew',
+      #~ author_email='alexander.loew@zmaw.de',
+      #~ maintainer='Alexander Loew',
+      #~ maintainer_email='alexander.loew@zmaw.de',
+      #~ url='https://code.zmaw.de/projects/pycmbs',
+      #~ description='pyCMBS - python Climate Model Benchmarking Suite',
+      #~ long_description='The pyCMBS project is a suite of tools to process, analyze, visualize and benchmark scientific model output against each other or against observational data. It is in particular useful for analyzing in an efficient way output from climate model simulations.',
+      #~ scripts=['framework/main.py']
+      #~ )
 
 
 print ''
