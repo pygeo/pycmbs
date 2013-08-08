@@ -810,8 +810,9 @@ class GlobalMeanPlot():
                     n[m]=n[m]+1.
 
                     if plot_clim:
-                        print 'coregister mask: ', m
-                        print 'data: ', y,y[m]
+                        pass
+                        #print 'coregister mask: ', m
+                        #print 'data: ', y,y[m]
 
                     del m
 
