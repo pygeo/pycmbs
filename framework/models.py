@@ -970,6 +970,25 @@ class JSBACH_RAW2(Model):
             os.remove(tmp)
         self.files.update({'echam':outfile})
 
+        #--- ALBEDO file
+        #albedo files as preprocessed by a script of Thomas
+        print '   ALBEDO VIS stream ...'
+        outfile = get_temporary_directory()  + self.experiment + '_jsbach_VIS_albedo_mm_full.nc'
+        if os.path.exists(outfile):
+            pass
+        else:
+            cdo.mergetime(options='-f nc',output=outfile,input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_VIS_albedo.grb')
+        self.files.update({'albedo_vis':outfile})
+
+        print '   ALBEDO NIR stream ...'
+        outfile = get_temporary_directory()  + self.experiment + '_jsbach_NIR_albedo_mm_full.nc'
+        if os.path.exists(outfile):
+            pass
+        else:
+            cdo.mergetime(options='-f nc',output=outfile,input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_NIR_albedo.grb')
+        self.files.update({'albedo_nir':outfile})
+
+
 
 
 
@@ -1012,6 +1031,29 @@ class JSBACH_RAW2(Model):
         retval = (alb_org.time,alb_org.fldmean(),alb_org)
 
         return alb, retval
+
+    def get_albedo_data_vis(self, interval='season'):
+        """
+        THis routine retrieves the JSBACH albedo information for VIS
+        it requires a preprocessing with a script that aggregates from tile
+        to box values!
+        @param interval:
+        @return:
+        """
+        tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
+        return self.get_jsbach_data_generic(interval=interval,**tmpdict)
+
+    def get_albedo_data_nir(self, interval='season'):
+        """
+        THis routine retrieves the JSBACH albedo information for VIS
+        it requires a preprocessing with a script that aggregates from tile
+        to box values!
+        @param interval:
+        @return:
+        """
+        tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
+        return self.get_jsbach_data_generic(interval=interval,**tmpdict)
+
 
     def get_surface_shortwave_radiation_up(self,interval='season'):
         tmpdict = copy.deepcopy(self.model_dict['surface_upward_flux'])
@@ -1072,13 +1114,17 @@ class JSBACH_RAW2(Model):
             print self.type
             raise ValueError, 'Invalid data format here!'
 
-
+        #define from which stream of JSBACH data needs to be taken for specific variables
         if varname in ['swdown_acc','swdown_reflect_acc']:
             filename1= self.files['jsbach']
         elif varname in ['precip_acc']:
             filename1 = self.files['land']
         elif varname in ['temp2']:
             filename1 = self.files['echam']
+        elif varname in ['var14']: #albedo vis
+            filename1 = self.files['albedo_vis']
+        elif varname in ['var15']: #albedo NIR
+            filename1 = self.files['albedo_nir']
         else:
             print varname
             raise ValueError, 'Unknown variable type for JSBACH_RAW2 processing!'

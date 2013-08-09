@@ -1,6 +1,8 @@
 include README
 include CHANGES
 global-include *.py
+global-include *.ini
+global-include pyCMBS_template.cfg
 graft tests
 prune test_eof
 exclude test_hov.py

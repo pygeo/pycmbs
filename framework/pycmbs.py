@@ -85,6 +85,8 @@ def get_analysis_scripts():
     d={}
     d.update({'rain':'rainfall_analysis'})
     d.update({'albedo':'albedo_analysis'})
+    d.update({'albedo_vis':'albedo_analysis_vis'})
+    d.update({'albedo_nir':'albedo_analysis_nir'})
     d.update({'sis':'sis_analysis'})
     d.update({'surface_upward_flux':'surface_upward_flux_analysis'})
     d.update({'tree':'tree_fraction_analysis'})
@@ -129,6 +131,8 @@ def get_methods4variables(variables, model_dict):
     hlp={}
     hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
+    hlp.update({'albedo_vis' : 'get_albedo_data_vis(interval=interval)'})
+    hlp.update({'albedo_nir' : 'get_albedo_data_nir(interval=interval)'})
     #hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
     hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
     hlp.update({'surface_upward_flux' : 'get_surface_shortwave_radiation_up(interval=interval)'})
@@ -443,6 +447,30 @@ model_dict = {'rain':  {'CMIP5':
                              {
                                 'variable': 'swdown_reflect_acc',
                                 'unit': '$W/m^2$',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'file_format' : 'nc',
+                                'scale_factor' : 1.,
+                                'valid_mask' : 'land'
+                             }
+                        },
+
+              'albedo_vis':   {'JSBACH_RAW2':
+                             {
+                                'variable': 'var14',
+                                'unit': '-',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'file_format' : 'nc',
+                                'scale_factor' : 1.,
+                                'valid_mask' : 'land'
+                             }
+                        },
+
+              'albedo_nir':   {'JSBACH_RAW2':
+                             {
+                                'variable': 'var15',
+                                'unit': '-',
                                 'lat_name': 'lat',
                                 'lon_name': 'lon',
                                 'file_format' : 'nc',
