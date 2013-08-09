@@ -539,7 +539,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #generate seasonal plot of difference
             f_season_dif = map_season(model_data.sub(obs_orig),use_basemap=use_basemap,cmap_data='RdBu_r',
                                   show_zonal=True,zonal_timmean=True,nclasses=nclasses,
-                                  vmin=dmin,vmax=dmax,cticks=cticks,proj=projection,stat_type=stat_type,show_stat=True,
+                                  vmin=dmin,vmax=dmax,proj=projection,stat_type=stat_type,show_stat=True,
                                   drawparallels=False,titlefontsize=10)
 
             if len(model_data.data) == 4:
@@ -1077,7 +1077,11 @@ def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_bas
 
 
 
+def albedo_analysis_vis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='albedo_vis',regions=regions)
 
+def albedo_analysis_nir(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='albedo_nir',regions=regions)
 
 
 
@@ -1125,7 +1129,6 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     #climatological means
     fGa = GM.plot_mean_result(dt=5.,colors={'observations':'blue','models':'red'})
     fGb = GM.plot_mean_result(dt=0.1,colors={'observations':'blue','models':'red'},plot_clim=True)
-
 
     report.figure(fG,caption ='Global means for land surface albedo',bbox_inches=None)
     report.figure(fGa,caption='Global means for land surface albedo (summary)',bbox_inches=None)
