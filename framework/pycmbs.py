@@ -102,6 +102,8 @@ def get_analysis_scripts():
     d.update({'budg':'budg_analysis'})
     d.update({'seaice_extent':'seaice_extent_analysis'})
     d.update({'seaice_concentration':'seaice_concentration_analysis'})
+    d.update({'gpp':'gpp_analysis'})
+
 
     return d
 
@@ -150,6 +152,7 @@ def get_methods4variables(variables, model_dict):
     hlp.update({'hair': 'get_model_data_generic(interval=interval, **%s)' % model_dict['hair']})
     hlp.update({'seaice_concentration': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_concentration']})
     hlp.update({'seaice_extent': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_extent']})
+    hlp.update({'gpp': 'get_gpp_data(interval=interval)'})
 
 
     res={}
