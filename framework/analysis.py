@@ -1463,10 +1463,11 @@ def beer_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=Non
       if k == 'BEER':
         f_beer = figure()
         ax_Beer = f_beer.add_subplot(111)
+        ls_mask = get_T63_landseamask(shift_lon)
         
         obs_raw = local_plot_options['BEER']['obs_file']
         obs_var = local_plot_options['BEER']['obs_var']
-        GPP_BEER   = Data(obs_raw,obs_var,read=True,lat_name='lat',lon_name='lon',label='GPP Beer_etal_2010',unit='gC m-2 a-1')
+        GPP_BEER   = Data(obs_raw,obs_var,read=True,lat_name='lat',lon_name='lon',label='GPP Beer_etal_2010',mask=ls_mask.data.data,unit='gC m-2 a-1')
         Beer_zonal = GPP_BEER.get_zonal_mean(return_object=True)
         ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')       
         map_plot(GPP_BEER,title='Beer etal T63',vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_Beer)
