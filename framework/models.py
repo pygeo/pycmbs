@@ -1448,6 +1448,49 @@ class JSBACH_RAW(Model):
 
         return rain
 
+#-----------------------------------------------------------------------
+
+    def get_gpp_data(self,interval = 'season'):
+        """
+        get surface GPP data for JSBACH
+
+        todo temporal aggregation of data --> or leave it to the user!
+        """
+        cdo = Cdo()
+        v='var167'
+        y1 = str(self.start_time)[0:10]
+        y2 = str(self.stop_time)[0:10]
+        rawfilename = self.data_dir +  'data/model/'+self.experiment +'_' + y1[0:4] + '-' + y2[0:4] + '.nc'
+        times_in_file = int(''.join(cdo.ntime(input = rawfilename)))
+        
+        if interval == 'season':
+	  if times_in_file != 4:
+	    tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
+	    cdo.yseasmean(options='-f nc -b 32 -r ',input = '-selvar,'+v+' '+rawfilename,output=tmp_file[:-3] + '_yseasmean.nc')
+	    rawfilename = tmp_file[:-3] + '_yseasmean.nc'
+
+        if interval == 'monthly':
+	  if times_in_file != 12:
+	    tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
+	    cdo.ymonmean(options='-f nc -b 32 -r ',input = '-selvar,'+v+' '+rawfilename,output=tmp_file[:-3] + '_ymonmean.nc')
+	    rawfilename = tmp_file[:-3] + '_ymonmean.nc'
+	    
+        if not os.path.exists(rawfilename):
+            return None
+
+        filename = rawfilename
+
+        #--- read land-sea mask
+        ls_mask = get_T63_landseamask(self.shift_lon)
+
+        #--- read SW up data
+        gpp = Data4D(filename,v,read=True,
+          label=self.experiment + ' ' + v, unit = 'gC m-2 a-1',lat_name='lat',lon_name='lon',
+          shift_lon=self.shift_lon,
+          mask=ls_mask.data.data,scale_factor = 3600.*24.*30./0.083
+        )
+        
+        return gpp.sum_data4D()
 
 #-----------------------------------------------------------------------
 

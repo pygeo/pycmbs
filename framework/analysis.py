@@ -24,6 +24,7 @@ from external_analysis import *
 from datetime import *
 from dateutil.rrule import *
 from cdo import *
+from matplotlib.font_manager import FontProperties
 
 
 
@@ -214,6 +215,10 @@ def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='budg',regions=regions)
 
 #-------------------------------------------------------------------------------------------------------------
+
+def gpp_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+#    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='gpp',regions=regions)
+    beer_analysis(model_list,interval="season",GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options)
 
 
 
@@ -1423,6 +1428,93 @@ def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_base
 
 #-----------------------------------------------------------------------
 
+#=======================================================================
+# Beer -- begin
+#=======================================================================
+
+def beer_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None):
+
+    if shift_lon == None:
+        raise ValueError, 'You need to specify shift_lon option!'
+    if use_basemap == None:
+        raise ValueError, 'You need to specify use_basemap option!'
+    if report == None:
+        raise ValueError, 'You need to specify report option!'
+
+    print
+    print '************************************************************'
+    print '* BEGIN Beer analysis ...'
+    print '************************************************************'
+
+    report.section('GPP')
+
+    local_plot_options = plot_options.options["gpp"]
+    cticks=(0.0,300.0,600.0,900.0,1200.0,1500.0,1800.0,2100.0,2400.0,2700.0)
+
+    fG = figure()
+    ax = fG.add_subplot(111,
+         xlabel = 'lat',
+         ylabel = 'GPP [gC m-2 a-1]',
+         xlim   = [90.0,-90.0],
+         xticks = [90, 60, 30, 0, -30, -60, -90])
+
+
+    for k in plot_options.options['gpp'].keys():
+      if k == 'BEER':
+        f_beer = figure()
+        ax_Beer = f_beer.add_subplot(111)
+        
+        obs_raw = local_plot_options['BEER']['obs_file']
+        obs_var = local_plot_options['BEER']['obs_var']
+        GPP_BEER   = Data(obs_raw,obs_var,read=True,lat_name='lat',lon_name='lon',label='GPP Beer_etal_2010',unit='gC m-2 a-1')
+        Beer_zonal = GPP_BEER.get_zonal_mean(return_object=True)
+        ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')       
+        map_plot(GPP_BEER,title='Beer etal T63',vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_Beer)
+        
+        report.subsection('Beer')
+        report.figure(f_beer,caption='Beer etal 2010',bbox_inches=None)
+
+        
+      if k == 'OPTIONS':
+        for model in model_list:
+	  if model.name != 'mean-model':
+	      
+            f_model = figure()
+            ax_model = f_model.add_subplot(111)
+            obs_mon_file     = get_temporary_directory()
+	    f=obs_mon_file + model.experiment + '_' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4] + '_ymonmean.nc'
+            GPP_Model   = Data4D(f,'var167',read=True,lat_name='lat',lon_name='lon',
+                          label=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',
+                          unit='gC m-2 a-1',
+            scale_factor = 3600.*24.*30./0.083).sum_data4D()
+
+            GPP_Model2 = GPP_Model.timmean(return_object=True)
+            GPP_Model2.data.mask[less(GPP_Model2.data,0.1)]=True
+            map_plot(GPP_Model2,title=model.name,vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_model)
+	    JSBACH_zonal = GPP_Model2.get_zonal_mean(return_object=True)
+            ax.plot(JSBACH_zonal.lat,JSBACH_zonal.data.data,label=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')')
+            report.subsection('Model ('+model.name+')')
+            report.figure(f_model,caption=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',bbox_inches=None)
+
+    fontP = FontProperties()
+    fontP.set_size('xx-small')
+    ax.legend(prop = fontP,frameon=True,labelspacing=0.2,loc='upper left')
+
+
+    report.subsection('Zonal')
+    report.figure(fG,caption='Zonal mean GPP for model and Beer from '+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',bbox_inches=None)
+
+
+
+    print '************************************************************'
+    print '* END Beer analysis ...'
+    print '************************************************************'
+    print
+
+#    del GM
+#    del fGa
+    del f_model
+    del fG
 
 
 
