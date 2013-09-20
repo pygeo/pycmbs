@@ -493,10 +493,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             if model.name == 'mean-model':
                 pass
             else:
-
-
-
-
                 if m_data_org in model.variables.keys():
                     if model.variables[m_data_org][2] == None: #invalid data for mean_model --> skip
                         pass
