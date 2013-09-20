@@ -57,10 +57,12 @@ __date__ = "0000/00/00"
 from pyCMBS import *
 
 #--- always use plot backend which is not interactive for benchmarking framework
-import matplotlib
-matplotlib.use('agg')
+import matplotlib as mpl
+mpl.use('agg')
 
-import matplotlib.pylab as pl
+#import mpl.pylab as pl
+pl = mpl.pylab
+
 import sys
 import os
 
