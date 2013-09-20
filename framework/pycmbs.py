@@ -131,7 +131,8 @@ def get_methods4variables(variables, model_dict):
     """
 
     hlp={}
-    hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
+    #hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
+    hlp.update({'rain': 'get_model_data_generic(interval=interval, **%s)' % model_dict['rain']})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
     hlp.update({'albedo_vis' : 'get_albedo_data_vis(interval=interval)'})
     hlp.update({'albedo_nir' : 'get_albedo_data_nir(interval=interval)'})
@@ -575,7 +576,7 @@ for i in range(len(CF.models)):
 
 if False: #todo put this as an option!
 
-    #raise ValueError, 'This mean model appraoch can not work, as the timesteps are not the same!!! We need to use the mean climatologigy! --> preprocessing (generic analysis ???)'
+    raise ValueError, 'This mean model appraoch can not work, as the timesteps are not the same!!! We need to use the mean climatologigy! --> preprocessing (generic analysis ???)'
 
     for i in range(len(proc_models)):
         exec('actmodel = ' + proc_models[i] + '.copy()')
