@@ -341,7 +341,7 @@ class CMIP5Data(Model):
 
 
 
-    def get_rainfall_data(self,interval=None):
+    def xxxget_rainfall_data(self,interval=None):
 
         '''
         return data object of
