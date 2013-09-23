@@ -933,8 +933,8 @@ class GlobalMeanPlot():
 
         #--- plot generation ---
         if color == None:
-            print m.time
-            print t
+            #print m.time
+            #print t
             p = self.ax.plot(t,mdata,linewidth=linewidth,linestyle=linestyle)
 
         else:
