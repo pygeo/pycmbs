@@ -65,6 +65,7 @@ import matplotlib.gridspec as gridspec
 #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
 from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes
+import datetime
 
 
 
@@ -910,16 +911,18 @@ class GlobalMeanPlot():
 
         #time
         thlp = m.num2date(m.time) #this gives a datetime object based on the calendar of the dataset first and this is then converted to the standard matplotlib datetime object
-        print type(thlp)
-        print type(thlp[0])
-        import pickle
+        t = [datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in thlp] #datetime object
+        del thlp
 
-        out={'m':m,'time': thlp}
-        pickle.dump(out,open('test1.pkl','w'))
+        #print type(thlp)
+        #print type(thlp[0])
+        #import pickle
 
-        thlp1 = pl.date2num(thlp)
-        t = pl.num2date(thlp1)
+        #out={'m':m,'time': thlp}
+        #pickle.dump(out,open('test1.pkl','w'))
 
+        #thlp1 = pl.date2num(thlp)
+        #t = pl.num2date(thlp1)
 
         #print 'Time details:'
         #print m.time_str
@@ -927,7 +930,6 @@ class GlobalMeanPlot():
         #print m.time[0:5]
         #print D1.time[0:5]
         #print m.label
-
 
         #--- plot generation ---
         if color == None:
