@@ -909,7 +909,11 @@ class GlobalMeanPlot():
         mdata = m.data.flatten()
 
         #time
-        t = pl.num2date(pl.date2num(m.num2date(m.time))) #this gives a datetime object based on the calendar of the dataset first and this is then converted to the standard matplotlib datetime object
+        thlp = m.num2date(m.time) #this gives a datetime object based on the calendar of the dataset first and this is then converted to the standard matplotlib datetime object
+        thlp1 = pl.date2num(thlp)
+        t = pl.num2date(thlp1)
+
+
         #print 'Time details:'
         #print m.time_str
         #print m.calendar
