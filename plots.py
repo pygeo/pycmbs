@@ -915,7 +915,7 @@ class GlobalMeanPlot():
         import pickle
 
         out={'m':m,'time': thlp}
-        pickle.dump(out,'test.pkl')
+        pickle.dump(out,open('test1.pkl','w'))
 
         thlp1 = pl.date2num(thlp)
         t = pl.num2date(thlp1)
