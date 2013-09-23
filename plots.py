@@ -913,7 +913,9 @@ class GlobalMeanPlot():
         print type(thlp)
         print type(thlp[0])
         import pickle
-        pickle.dump({'m':m,'time': thlp},'test.pkl')
+
+        out={'m':m,'time': thlp}
+        pickle.dump(out,'test.pkl')
 
         thlp1 = pl.date2num(thlp)
         t = pl.num2date(thlp1)
