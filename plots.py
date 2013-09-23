@@ -910,6 +910,11 @@ class GlobalMeanPlot():
 
         #time
         thlp = m.num2date(m.time) #this gives a datetime object based on the calendar of the dataset first and this is then converted to the standard matplotlib datetime object
+        print type(thlp)
+        print type(thlp[0])
+        import pickle
+        pickle.dump({'m':m,'time': thlp},'test.pkl')
+
         thlp1 = pl.date2num(thlp)
         t = pl.num2date(thlp1)
 
