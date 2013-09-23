@@ -36,8 +36,8 @@ from data import *
 
 from hov import *
 
-#from matplotlib import pylab as plt
-plt = mpl.pylab
+from matplotlib import pylab as plt
+#plt = mpl.pylab
 
 
 from matplotlib.patches import Polygon
