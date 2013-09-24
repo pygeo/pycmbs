@@ -570,7 +570,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
 
             #generate a reference monthly timeseries (datetime)
-            tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
+            tref = np.asarray(rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True)) #monthly timeseries
 
             #perform temporal subsetting and interpolation for hovmoeller plot
             tmp = model.variables[obs_type+'_org'][2]
