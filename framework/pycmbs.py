@@ -72,6 +72,7 @@ import os
 from models   import *
 from config   import *
 from analysis import *
+import pickle
 
 #=======================================================================
 
@@ -607,8 +608,9 @@ if f_mean_model:
 global_gleckler = GlecklerPlot()
 
 # Report
+outdir='.' + os.sep + 'report_' + CF.options['report'] + os.sep
 rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],
-             outdir='.' + os.sep + 'report_' + CF.options['report'] + os.sep,
+             outdir=outdir,
              dpi=300,format=CF.options['report_format'])
 cmd = 'cp ../logo/Phytonlogo5.pdf ' + rep.outdir
 os.system(cmd )
@@ -644,6 +646,10 @@ for variable in variables:
 
 #/// generate Gleckler analysis plot for all variables and models analyzed ///
 global_gleckler.plot(vmin=-0.1,vmax=0.1,nclasses=25,show_value=True)
+oname = outdir + 'gleckler.pkl'
+if os.path.exists(oname):
+    os.remove(oname)
+pickle.dump(global_gleckler,open(oname,'w')) #store gleckler plot as separate file for further finetuning if necessary
 
 rep.section('Summary error statistics')
 rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')

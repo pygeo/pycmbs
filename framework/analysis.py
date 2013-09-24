@@ -430,6 +430,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if f_reichler == True:
         Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
+    print f_reichler
+
     if f_globalmeanplot:
         if GM == None:
             fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
