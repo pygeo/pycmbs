@@ -580,7 +580,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             if ls_mask != None:
                 tmp._apply_mask(ls_mask)
 
-            hov_model = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
+            tmptime = [datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)] #convert to datetime objects
+            hov_model = hovmoeller(tmptime,None,rescaley=20,rescalex=20)
             hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
             hov_model.hov = None
             hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
