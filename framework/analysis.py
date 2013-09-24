@@ -460,6 +460,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
 
 
+
     for model in model_list:
 
         sys.stdout.write('\n *** %s analysis of model: ' % (obs_type.upper()) + model.name + "\n")
@@ -560,7 +561,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
             ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
 
-            s_start_time = '1979-01-01'
+            s_start_time = '1979-01-01' #todo: use periods specified in options !!!!
             s_stop_time  = '2012-12-31'
             start_time = pl.num2date(pl.datestr2num(s_start_time))
             stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
