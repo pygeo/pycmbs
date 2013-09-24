@@ -129,8 +129,10 @@ class MeanModel(Model):
         one needs to call ensmean() afterwards to get the ensemble mean!
         """
 
-        if not isinstance(M,Model):
-            raise ValueError, 'Model instance expected here!'
+        if not (M,Model): #check if Model class or subclass of Model at least!
+            if not issubclass(M,Model)
+                raise ValueError, 'Model instance or derived class expected here!'
+
         if self.n == 0:
             self.model_mean = M.copy()
             self.model_mean.name = 'mean-model'
