@@ -581,8 +581,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             if ls_mask != None:
                 tmp._apply_mask(ls_mask)
 
-            tmptime = np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
             pickle.dump(tmp,open('testtime.pkl','w'))
+            tmptime = np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
+
             pickle.dump(tmptime,open('tmptime.pkl','w'))
             #tmptime = tmp.num2date(tmp.time)
             hov_model = hovmoeller(tmptime,None,rescaley=20,rescalex=20)
