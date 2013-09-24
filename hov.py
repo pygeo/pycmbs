@@ -294,6 +294,7 @@ class hovmoeller:
 
                 nlat,nt = input1.data.shape
                 if nt != len(self.time):
+                    print input1.shape
                     print nt, len(self.time)
                     raise ValueError, 'inconsistent time shape!'
 
