@@ -584,7 +584,7 @@ if f_mean_model:
     #sum up all models
     for i in range(len(proc_models)):
         exec('actmodel = ' + proc_models[i] + '.copy()')
-         MEANMODEL.add_member(actmodel); del actmodel
+        MEANMODEL.add_member(actmodel); del actmodel
 
     #calculate ensemble mean
     MEANMODEL.ensmean()
