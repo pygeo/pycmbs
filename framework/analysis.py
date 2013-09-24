@@ -582,7 +582,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                 tmp._apply_mask(ls_mask)
 
             pickle.dump(tmp,open('testtime.pkl','w'))
-            tmptime = np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
+            x=tmp.time[0]
+            print datetime(x.year,x.month,x.day,x.hour,x.minute,x.second)
+
+            tmptime = np.asarray([datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
 
             pickle.dump(tmptime,open('tmptime.pkl','w'))
             #tmptime = tmp.num2date(tmp.time)
