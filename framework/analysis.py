@@ -592,7 +592,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
 
             print 'STRUCTURES:'
-            print len(tmp.time)
+            print len(tmp.time), len(tmptime), len(tref)
             print tmp.shape
 
             hov_model = hovmoeller(tmptime,None,rescaley=20,rescalex=20)
