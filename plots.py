@@ -784,7 +784,7 @@ class GlobalMeanPlot():
         groups = pdata.keys()
 
         for g in groups:
-            dat = pdata[g] #this gives a list, where each entry is a dictionary of ['time','data']
+            dat = pdata[g] #this gives a list, where each entry is a dictionary of ['time','data','unit']
 
             for i in xrange(len(dat)):
 
@@ -834,6 +834,8 @@ class GlobalMeanPlot():
 
             ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
             ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
+            ax.set_ylabel(dat['unit'])
+            ax.set_xlabel('months')
 
         ax.legend()
         ax.grid()
@@ -914,23 +916,6 @@ class GlobalMeanPlot():
         t = [datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in thlp] #datetime object
         del thlp
 
-        #print type(thlp)
-        #print type(thlp[0])
-        #import pickle
-
-        #out={'m':m,'time': thlp}
-        #pickle.dump(out,open('test1.pkl','w'))
-
-        #thlp1 = pl.date2num(thlp)
-        #t = pl.num2date(thlp1)
-
-        #print 'Time details:'
-        #print m.time_str
-        #print m.calendar
-        #print m.time[0:5]
-        #print D1.time[0:5]
-        #print m.label
-
         #--- plot generation ---
         if color == None:
             #print m.time
@@ -944,7 +929,8 @@ class GlobalMeanPlot():
             vdata = self.pdata[group]
         else:
             vdata=[]
-        vdata.append({'time':t,'data':mdata})
+        vdata.append({'time':t,'data':mdata,'unit':m._get_unit()})
+
         #print 'vdata: ', t
         self.pdata.update({group:vdata}) #store results for current group
         del vdata
@@ -1433,7 +1419,10 @@ class GlecklerPlot():
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,normalize=True,size=10,method='median',title=None,show_value=False,logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,colorbar_boundaries=None,show_colorbar=True):
+    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,
+             normalize=True,size=10,method='median',title=None,show_value=False,
+             logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,
+             colorbar_boundaries=None,show_colorbar=True):
         """
         plot Gleckler diagram
 
