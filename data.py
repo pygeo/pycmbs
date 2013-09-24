@@ -1686,6 +1686,7 @@ class Data(object):
         @todo: still some boundary effects for last timestep
         """
 
+
         if method != 'linear':
             raise ValueError, 'Only linear interpolation supported at the moment so far!'
 
@@ -1719,7 +1720,7 @@ class Data(object):
 
         if f_err:
             tmp = np.zeros((nt,ny,nx))
-            r = self.copy(); r.data = np.ma.array(tmp,mask=tmp>0.) #return some dummy result
+            r = self.copy(); r.data = np.ma.array(tmp,mask=tmp>0.); r.time=t #return some dummy result
             return r
 
         #/// construct weighting matrix
