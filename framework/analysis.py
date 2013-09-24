@@ -581,14 +581,20 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             if ls_mask != None:
                 tmp._apply_mask(ls_mask)
 
-            pickle.dump(tmp,open('testtime.pkl','w'))
-            x=tmp.num2date(tmp.time[0])
-            print datetime(x.year,x.month,x.day,x.hour,x.minute,x.second)
+            #pickle.dump(tmp,open('testtime.pkl','w'))
+            #x=tmp.num2date(tmp.time[0])
+            #print datetime(x.year,x.month,x.day,x.hour,x.minute,x.second)
 
             tmptime = np.asarray([datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
 
-            pickle.dump(tmptime,open('tmptime.pkl','w'))
+            #pickle.dump(tmptime,open('tmptime.pkl','w'))
             #tmptime = tmp.num2date(tmp.time)
+
+
+            print 'STRUCTURES:'
+            print len(tmp.time)
+            print tmp.shape
+
             hov_model = hovmoeller(tmptime,None,rescaley=20,rescalex=20)
             hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
             hov_model.hov = None
