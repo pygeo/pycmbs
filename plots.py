@@ -912,9 +912,10 @@ class GlobalMeanPlot():
         mdata = m.data.flatten()
 
         #time
-        thlp = m.num2date(m.time) #this gives a datetime object based on the calendar of the dataset first and this is then converted to the standard matplotlib datetime object
-        t = [datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in thlp] #datetime object
-        del thlp
+        #thlp = m.num2date(m.time) #this gives a datetime object based on the calendar of the dataset first and this is then converted to the standard matplotlib datetime object
+        #t = [datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in thlp] #datetime object
+        t = m.date
+        #del thlp
 
         #--- plot generation ---
         if color == None:
