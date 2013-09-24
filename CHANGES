@@ -3,6 +3,7 @@ version 0.1.3
 o albedo analysis for VIS and NIR separately for JSBACH raw output
 o bugfix with datetime conversion for GlobalMean plot.
 o proper implementation of multimodel mean
+o implemented Data.date to allow for an easier access to date from a Data object using datetime.datetime
 
 
 version 0.1.2 (=rev274)

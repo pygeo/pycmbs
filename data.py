@@ -32,6 +32,7 @@ from scipy import stats
 import netcdftime as netcdftime
 from calendar import monthrange
 from cdo import *
+import datetime
 
 class Data(object):
     """
@@ -186,6 +187,12 @@ class Data(object):
 
     def _get_shape(self): return self.data.shape
     shape = property(_get_shape)
+
+    def _get_date(self):
+        #--- convert to datetime objects ---
+        #use this approach to ensure that a datetime.datetime array is available for further processing
+        return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in self.num2date(self.time)])
+    date  = property(_get_date)
 
 
 
