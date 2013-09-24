@@ -33,7 +33,7 @@ import netcdftime as netcdftime
 from calendar import monthrange
 from cdo import *
 
-class Data():
+class Data(object):
     """
     Data class: main class
     """
@@ -182,6 +182,14 @@ class Data():
                 print '_lon360: ', self._lon360
                 print self.lon.min(), self.lon.max()
                 print  'WARNING: plotting etc not supported for longitudes which are not equal to 0 ... 360'
+
+
+    def _get_shape(self): return self.data.shape
+    shape = property(_get_shape)
+
+
+
+
 
 #-----------------------------------------------------------------------
 
