@@ -317,7 +317,7 @@ class hovmoeller:
 
 
                 #/// monthly ticks ///
-                data_days = generate_monthly_timeseries(pl.date2num(input1.num2date(input1.time))) #convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
+                data_days = generate_monthly_timeseries(pl.date2num(input1.date)) #convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
                 all_days  = unique(data_days)
                 if showxticks:
                     self.generate_xticks(all_days,monthsamp=1) #todo

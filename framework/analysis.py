@@ -579,8 +579,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #tmp._temporal_subsetting(i1,i2)
 
 
-            print 'min/max time ref: ', tref.min(), tref.max()
-            print 'min/max time    : ', tmp.num2date(tmp.time.min()), tmp.num2date(tmp.time.max())
+            #print 'min/max time ref: ', tref.min(), tref.max()
+            #print 'min/max time    : ', tmp.num2date(tmp.time.min()), tmp.num2date(tmp.time.max())
 
             tmp = tmp.interp_time(pl.date2num(tref))
 
@@ -591,17 +591,15 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #x=tmp.num2date(tmp.time[0])
             #print datetime(x.year,x.month,x.day,x.hour,x.minute,x.second)
 
-            tmptime = np.asarray([datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
+            #tmptime = np.asarray([datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
 
             #pickle.dump(tmptime,open('tmptime.pkl','w'))
             #tmptime = tmp.num2date(tmp.time)
 
 
-            print 'STRUCTURES:'
-            print len(tmp.time), len(tmptime), len(tref)
-            print tmp.shape
 
-            hov_model = hovmoeller(tmptime,None,rescaley=20,rescalex=20)
+
+            hov_model = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
             hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
             hov_model.hov = None
             hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
