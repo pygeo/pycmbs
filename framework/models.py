@@ -135,25 +135,27 @@ class MeanModel(Model):
 
         if self.n == 0:
             self.model_mean = M.copy()
-            self.model_mean.name = 'mean-model'
-            self.model_mean._unique_name = 'model_mean'
+            tmp = M.copy()
+            self.variables = tmp.variables; del tmp
+            self.name = 'mean-model'
+            self._unique_name = 'model_mean'
         else:
             for k in self.model_mean.variables.keys():
                 print '    Processing ... ', k
 
                 #the variables[] list contains Data objects!
-                hlp1 = self.model_mean.variables[k] #is a Data object or a tuple! The Data object contains already the climatological mean value!
+                hlp1 = self.variables[k] #is a Data object or a tuple! The Data object contains already the climatological mean value!
                 hlp2 = M.variables[k]
 
                 if isinstance(hlp1,tuple):
-                    self.model_mean.variables.update( { k : (None,None,None) } )
+                    self.variables.update( { k : (None,None,None) } )
                 else: #mean model!
                     if hlp1 == None:
                         continue
                     theD = hlp1.copy()
                     theD.add(hlp2,copy=False) #SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
                     theD.label = 'Mean-model'
-                    self.model_mean.variables.update( { k : theD } )
+                    self.variables.update( { k : theD } )
                 del hlp1,hlp2 #, theD
 
         self.n += 1
@@ -166,14 +168,14 @@ class MeanModel(Model):
             raise ValueError, 'Ensemble mean has been already called! MUST NOT be called a second time !'
 
         #now we have the sum and can calculate the average
-        for k in self.model_mean.variables.keys():
+        for k in self.variables.keys():
             #hlp1 = self.model_mean.variables[k]
-            if isinstance(self.model_mean.variables[k],tuple):
+            if isinstance(self.variables[k],tuple):
                 pass
                 #model_mean.variables.update( { k : (hlp1[0],hlp1[1],hlp1[2].mulc(1./float(len(proc_models)),copy=False )  ) } )
             else:
-                if self.model_mean.variables[k] != None:
-                    self.model_mean.variables[k].mulc(1./float(self.n),copy=False) #weight with number of models
+                if self.variables[k] != None:
+                    self.variables[k].mulc(1./float(self.n),copy=False) #weight with number of models
 
         self.ensmean_called = True
 
