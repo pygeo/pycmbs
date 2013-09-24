@@ -578,6 +578,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #i1,i2 = tmp._get_time_indices(start_time,stop_time)
             #tmp._temporal_subsetting(i1,i2)
 
+
+            print 'min/max time ref: ', tref.min(), tref.max()
+            print 'min/max time    : ', tmp.num2date(tmp.time.min()), tmp.num2date(tmp.time.max())
+
             tmp = tmp.interp_time(pl.date2num(tref))
 
             if ls_mask != None:
