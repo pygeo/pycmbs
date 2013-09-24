@@ -1790,7 +1790,13 @@ class Data(object):
         N.shape = (nt,ny,nx)
 
         res = self.copy()
+
+        print 'Length in interpolation:'
+        print 't: ', len(t)
+        print 'res.time1: ', len(res.time)
+
         res.time = t
+        print 'res.time2: ', len(res.time)
         res.data = np.ma.array(N,mask=np.isnan(N))
         del N
 
