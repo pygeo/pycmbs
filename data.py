@@ -1721,6 +1721,7 @@ class Data(object):
         f_err = False
 
         #A) all data is BEFORE desired period
+        print self.date.max(), d.min(),type(self.date.max()), type(d.min())
         if self.date.max() < d.min():
             print self.date.max(), d.min()
             print 'WARNING: specified time period is BEFORE any data availability. NO INTERPOLATION CAN BE DONE!'
