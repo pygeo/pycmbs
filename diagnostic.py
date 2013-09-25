@@ -49,49 +49,101 @@ from anova import *
 from taylor import *
 
 from pylab import *
+import pickle
 
 
 #-----------------------------------------------------------------------
 
-class RegionalAnalysis():
+class RegionalAnalysis(object):
     """
     a class to perform comparisons between two datasets on a regional basis
     """
-    def __init__(self,x,y,region,mean=False):
+    def __init__(self,x,y,region,f_standard=True, f_correlation=True):
         """
         @param x : first dataset
         @type x: Data
         @param y : second dataset
         @type y: Data
-        @param region: region to analyze in both datasets
-        @type region: Region
-        @param mean: use temporal mean field instead of all data
-        @type mean: bool
+        @param region: region to analyze in both datasets; needs to be a Data object which contains IDs for each region
+        @type region: Data
+
+        @param f_standard: calculate standard first and second moment statistics
+        @type f_standard: bool
+
+        @param f_correlation: calculate correlation statistics between datasets
+        @type f_correlation: bool
         """
 
-        #raise ValueError, 'Does not work yet!!!! Some problem with getting the right data!'
-
-
         self.region = region
-        self.use_mean = mean
         self._preprocessed = False
+        self.f_standard = f_standard
+        self.f_correlation = f_correlation
         self.statistics={}
 
         if (x == None) or (y==None):
             #in case of dummy data, do not perform data check
-            self.x = x; self.y=y
+            if x == None:
+                self.x = None
+            else:
+                self.x = x.copy()
+            if y == None:
+                self.y = None
+            else:
+                self.y = y.copy()
+
         else:
             self.x = x.copy()
             self.y = y.copy()
             self._check() #check input data
+
+#---
+    def save(self,fname='regional_statistics.pkl'):
+        """
+        save statistics to a file using pickle
+        @return:
+        """
+        if os.path.exists(fname):
+            os.remove(fname)
+        pickle.dump(self.statistics,open(fname,'w'))
+
+
+
+#---
 
     def _check(self):
         """
         check consistency of data
         """
 
-        if self.use_mean:
-            raise ValueError, 'Mean option not validated yet in RegionalAnalysis!'
+
+        if not isinstance(self.region,Data):
+            raise ValueError, 'Region needs to be of instance C{Data}!'
+        if self.x != None:
+            if self.x.ndim == 2:
+                if self.x.shape != self.region.shape:
+                    print self.x.shape, self.region.shape
+                    raise ValueError, 'Inconsistent shape of X-data with Region'
+            elif self.x.ndim == 3:
+                if self.x.data[0,:,:].shape != self.region.shape:
+                    print self.x.data[0,:,:].shape, self.region.shape
+                    raise ValueError, 'Inconsistent shape of X-data with Region'
+            else:
+                raise ValueError, 'Unknown geometry!'
+
+        if self.y != None:
+            if self.y.ndim == 2:
+                if self.y.shape != self.region.shape:
+                    print self.y.shape, self.region.shape
+                    raise ValueError, 'Inconsistent shape of Y-data with Region'
+            elif self.y.ndim == 3:
+                if self.y.data[0,:,:].shape != self.region.shape:
+                    print self.y.data[0,:,:].shape, self.region.shape
+                    raise ValueError, 'Inconsistent shape of Y-data with Region'
+            else:
+                raise ValueError, 'Unknown geometry!'
+
+
+
 
         #--- check datatypes
         if not isinstance(self.x,Data):
@@ -102,11 +154,13 @@ class RegionalAnalysis():
         #    raise ValueError, 'Error: RegionalAnalysis - region is not of type Region!'
 
         #--- check geometries
-        if self.x.data.shape != self.y.data.shape:
-            print self.x.data.shape,self.y.data.shape
+        if self.x.shape != self.y.shape:
+            print self.x.shape,self.y.shape
             raise ValueError, 'ERROR: RegionalAnalyis - inconsistent geometries!'
 
-    def _prepare(self):
+#---
+
+    def xxxxx_prepare(self):
 
         #--- apply regional mask
         if self.region.type == 'latlon':
@@ -118,7 +172,7 @@ class RegionalAnalysis():
             self.y = self.y.get_aoi(self.region)
 
 
-        #--- reduce data volume by cutting uncnecessary data
+        #--- reduce data volume by cutting unnecessary data
         self.x = self.x.cut_bounding_box(return_object=True)
         self.y = self.y.cut_bounding_box(return_object=True)
 
@@ -130,26 +184,89 @@ class RegionalAnalysis():
 
 #---
 
-    def get_correlation(self):
+    def _get_correlation(self,pthres = 1.01):
         """
-        calculate correlation between fields
+        calculate correlation between two fields
+
+        in general one can think of two ways to calculate the correlation between X and Y
+        a) correlate per pixel --> map of correlation measures; calculate then regional mean of this skill score (e.g. R)
+        b) use multidimensional array [time,ny,nx] and correlate whole dataset for a region, without averaging
+
+        Here we implement both to allow for comparisons
         """
-        if not self._preprocessed:
-            self._prepare()
 
-        x = self.x.data.flatten(); y = self.y.data.flatten()
-        slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x,y)
+        if (self.x == None) or (self.y == None):
+            return {'corrstat1':None,'corrstat2':None}
 
-        return r_value, p_value
+        # A) calculate once correlation and then calculate regional statistics
+        RO,PO = self.x.correlate(self.y,pthres=pthres,spearman=False,detrend=False)
+        corrstat1 = RO.condstat(self.region) #gives a dictionary already
 
-    def get_mean(self):
+        # B) calculate regional statistics based on entire dataset
+        correlations = []; slopes = []; pvalues=[]; intercepts=[]; ids=[]
+        vals = np.unique(self.region.data.flatten())
+        for v in vals:
+            print 'Regional analysis - correlation for ID: ' + str(v).zfill(3)
+            msk = self.region.data == v #generate mask
+            x = self.x.copy()
+            y = self.y.copy()
+            x._apply_mask(msk)
+            y._apply_mask(msk)
+            del msk
+            xvec = x.data.flatten(); yvec = y.data.flatten()
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xvec,yvec)
+            ids.append(v); slopes.append(slope);correlations.append(r_value); pvalues.append(p_value);intercepts.append(intercept)
+            del xvec,yvec,x,y
+        ids = np.asarray(ids)
+        slopes = np.asarray(slopes)
+        correlations = np.asarray(correlations)
+        pvalues = np.asarray(pvalues)
+        intercepts = np.asarray(intercepts)
+
+        corrstat2 = {'id':vals,'slope':slopes,'correlation':correlations,'pvalue':pvalues,'intercept':intercepts}
+
+        #--- return result ---
+        return {'corrstat1':corrstat1,'corrstat2':corrstat2}
+
+
+    def xxxxget_mean(self):
         if not self._preprocessed:
             self._prepare()
         return self.x.timmean(return_object=True).fldmean(),self.y.timmean(return_object=True).fldmean()
 
+
+
+    def calculate(self,pthres=1.01):
+        """
+        perform calculation of regional statistics
+        @return: returns a dictionary with details on regional statistics
+        @rtype: dict
+        """
+
+        #--- 1) standard statistic for X and Y datasets ---
+        xstat = None; ystat = None
+        if self.f_standard:
+            if self.x != None:
+                xstat = self.x.condstat(self.region) #returns a dictionary with statistics for each region (could be for all timesteps!)
+            if self.y != None:
+                ystat = self.y.condstat(self.region)
+
+        self.statistics.update({'xstat':xstat})
+        self.statistics.update({'ystat':ystat})
+
+        #--- 2) correlation statistics ---
+        corrstat = None
+        if self.f_correlation:
+            self.statistics.update({'corrstat':self._get_correlation(pthres=pthres)})
+
+
+
+
+
+
 #---
 
-    def save_result(self,key,corr,pcorr):
+    def xxxxxsave_result(self,key,corr,pcorr):
         """
         save result for later plotting/table statistics etc.
 
@@ -162,8 +279,9 @@ class RegionalAnalysis():
         @param pcorr: p-value of correlation value
         @type pcorr: float
         """
-
         self.statistics.update({key:{'correlation':corr,'p-value':pcorr}})
+
+#---
 
     def print_table(self,format='txt',filename=None):
         """
@@ -173,32 +291,82 @@ class RegionalAnalysis():
         if format not in ['txt']:
             raise ValueError, 'ERROR: invalid output format in print_table()'
 
-        keys = self.statistics.keys(); keys.sort()
+        def _get_string(d,id):
+            #d: dictionary (self.statistics)
+            #id region id
 
-        print 'Region\tcorrelation\tp-value\n'
-        for k in keys:
-            s = k + '\t' + str(self.statistics[k]['correlation']) + '\t' + str(self.statistics[k]['p-value'])
-            print s
+            #xmean,xstd,ymean,ystd
+
+            sep = '\t'
+            s=str(id) + sep
+
+            #xstat and ystat needs to be printed separately, as it can be a function of time !!!
+            # xstat = d['xstat']
+            # if xstat == None:
+            #     s += '' + sep + '' + sep
+            # else:
+            #     m = d['xstat']['id'] == id
+            #     s += str(d['xstat']['mean'][m]) + sep + str(d['xstat']['std'][m]) + sep
+            #
+            # ystat = d['ystat']
+            # if ystat == None:
+            #     s += '' + sep + '' + sep
+            # else:
+            #     m = d['ystat']['id'] == id
+            #     s += str(d['ystat']['mean'][m]) + sep + str(d['ystat']['std'][m]) + sep
+
+
+            # id, mean correlation, std of correlation
+            if d['corrstat']['corrstat1'] == None:
+                s += '' + sep + '' + sep
+            else:
+                stat = d['corrstat']['corrstat1']
+                m = stat['id'] == id
+                #print id
+                #print stat['id']
+                #print m, len(m)
+                #print stat['mean']
+                #print stat['mean'][0]
+                if len(m) > 0:
+                    s += str(stat['mean'][0][m]) + sep + str(stat['std'][0][m]) + sep
+                else:
+                    s += '' + sep + '' + sep
+
+            return s
+
+
+
 
         if filename != None:
             if os.path.exists(filename):
                 os.remove(filename)
-            print filename
             o = open(filename,'w')
-            o.write('Region\tcorrelation\tp-value\n')
-            for k in keys:
+
+        #--- loop over all regions ---
+        keys = np.unique(self.region.data.flatten()); keys.sort()
+        for k in keys:
+            s = _get_string(self.statistics,k) #get formatted string for a particular region
+            print s
+            if filename != None:
                 if format == 'txt':
-                    s = k + '\t' + str(self.statistics[k]['correlation']) + '\t' + str(self.statistics[k]['p-value'])
                     o.write(s+'\n')
                 else:
                     raise ValueError, 'Unsupported output format!'
+
+        if filename != None:
             o.close()
+
+#---
+
+
 
     def plot_taylor(self):
         """
         Taylor plot of statistics
         requires that correlation and STDV. have been calculated and are available in self.statistics
         """
+
+        raise ValueError, 'Taylopr plot not validated yet !!!'
 
         #--- check
         keys = self.statistics.keys()
