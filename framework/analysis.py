@@ -615,7 +615,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             if ls_mask != None:
                 tmp._apply_mask(ls_mask)
 
-            hov_obs = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_obs = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
             hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
             hov_obs.hov = None
             hov_obs.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)

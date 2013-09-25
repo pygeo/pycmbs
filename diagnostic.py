@@ -60,7 +60,7 @@ class RegionalAnalysis(object):
     """
     def __init__(self,x,y,region,f_standard=True, f_correlation=True):
         """
-        @param x : first dataset
+        @param x : first dataset (is assumed to be the reference dataset!)
         @type x: Data
         @param y : second dataset
         @type y: Data
@@ -203,7 +203,7 @@ class RegionalAnalysis(object):
         corrstat1 = RO.condstat(self.region) #gives a dictionary already
 
         # B) calculate regional statistics based on entire dataset
-        correlations = []; slopes = []; pvalues=[]; intercepts=[]; ids=[]
+        correlations = []; slopes = []; pvalues=[]; intercepts=[]; ids=[]; stdx=[]; stdy=[]
         vals = np.unique(self.region.data.flatten())
         for v in vals:
             print 'Regional analysis - correlation for ID: ' + str(v).zfill(3)
@@ -216,14 +216,16 @@ class RegionalAnalysis(object):
             xvec = x.data.flatten(); yvec = y.data.flatten()
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xvec,yvec)
             ids.append(v); slopes.append(slope);correlations.append(r_value); pvalues.append(p_value);intercepts.append(intercept)
+            stdx.append(xvec.std()); stdy.append(yvec.std())
             del xvec,yvec,x,y
         ids = np.asarray(ids)
         slopes = np.asarray(slopes)
         correlations = np.asarray(correlations)
         pvalues = np.asarray(pvalues)
         intercepts = np.asarray(intercepts)
+        stdx=np.asarray(stdx); stdy=np.asarray(stdy)
 
-        corrstat2 = {'id':vals,'slope':slopes,'correlation':correlations,'pvalue':pvalues,'intercept':intercepts}
+        corrstat2 = {'id':vals,'slope':slopes,'correlation':correlations,'pvalue':pvalues,'intercept':intercepts,'stdx':stdx,'stdy':stdy}
 
         #--- return result ---
         return {'corrstat1':corrstat1,'corrstat2':corrstat2}
@@ -339,20 +341,20 @@ class RegionalAnalysis(object):
 
             #--- corrstat2 ---
             if d['corrstat']['corrstat2'] == None:
-                s += '' + sep + '' + sep + '' + sep + '' + sep
+                s += '' + sep + '' + sep + '' + sep + '' + sep + '' + sep + '' + sep
             else:
                 stat = d['corrstat']['corrstat2']
                 m = stat['id'] == id
 
                 if len(m) > 0:
                     if sum(m) == 1:
-                        s += str(stat['correlation'][m][0]) + sep + str(stat['pvalue'][m][0]) + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) + sep
+                        s += str(stat['correlation'][m][0]) + sep + str(stat['pvalue'][m][0]) + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) + sep + str(stat['stdx'][m][0]) + sep + str(stat['stdy'][m][0]) + sep
                     else:
                         print id
                         print m
                         raise ValueError, 'The ID seems not to be unique here!'
                 else:
-                    s += '' + sep + '' + sep + '' + sep + '' + sep
+                    s += '' + sep + '' + sep + '' + sep + '' + sep + '' + sep + '' + sep
 
             return s
 
@@ -367,7 +369,7 @@ class RegionalAnalysis(object):
         #--- loop over all regions ---
         keys = np.unique(self.region.data.flatten()); keys.sort()
         sep = '\t'
-        header = 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2' + sep + 'intercept2' + sep
+        header = 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2' + sep + 'intercept2' + sep + 'stdx' + sep + 'stdy' + sep
         print header
         if filename != None:
             o.write(header + '\n')
@@ -387,29 +389,31 @@ class RegionalAnalysis(object):
 
 
 
-    def plot_taylor(self):
+    def plot_taylor(self,dia=None):
         """
         Taylor plot of statistics
         requires that correlation and STDV. have been calculated and are available in self.statistics
         """
 
-        raise ValueError, 'Taylopr plot not validated yet !!!'
-
         #--- check
-        keys = self.statistics.keys()
-        for var in ['correlation','stdv']:
-            for k in self.statistics.keys():
-                thekeys = self.statistics[k].keys()
-                if var not in thekeys:
-                    print var, thekeys
-                    raise ValueError, 'Missing key in statistics dictionary!'
+        keys = np.unique(self.region.data.flatten()); keys.sort()
 
-        #--- Taylor diagram ---
-        tay=taylor()
-        for k in self.statistics.keys(): #todo stratify by two keys (e.g. Region and Model Name ! --> marker and color!!)
-            tay.plot(self.statistics[k]['correlation'],self.statistics[k]['stdv'],markerfacecolor='green',marker='^',label=k) #plot some data
+        if dia == None:
+            tay = taylor()
+        else:
+            if not isinstance(dia,taylor):
+                print type(dia)
+                raise ValueError, 'Provided argument is no taylor class! '
+            else:
+                tay = dia
 
-        return tay.figure
+        for k in keys: #loop over all IDs
+            r = self.statistics['corrstat']['corrstat2']['correlation']
+            sx = self.statistics['corrstat']['corrstat2']['stdx']
+            sy = self.statistics['corrstat']['corrstat2']['stdy']
+            tay.plot(r,sy/sx,markerfacecolor='green',marker='^',label=k)
+
+        return tay
 
 
 
