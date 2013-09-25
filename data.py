@@ -195,7 +195,7 @@ class Data(object):
         #set also timezone as UTC as otherwise comparisons of dates is not possible!
         #CAUTION: assumes that timezone is always UTC !!
 
-        return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,pytz.UTZ) for x in self.num2date(self.time)])
+        return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,pytz.UTC) for x in self.num2date(self.time)])
     date  = property(_get_date)
 
     def _get_ndim(self): return self.data.ndim
