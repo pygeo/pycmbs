@@ -459,11 +459,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             report.figure(f_season,caption='Monthly mean ' + obs_name)
 
 
-
-
-
-
-
     for model in model_list:
 
         sys.stdout.write('\n *** %s analysis of model: ' % (obs_type.upper()) + model.name + "\n")
@@ -613,24 +608,17 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
         if f_regional_analysis:
             raise ValueError, 'Feature for regional analysis not implemented so far'
-            REGSTAT = RegionalAnalysis(None,None,None)
-            #todo set regions for each variable separately instead of using the same regions for all variables!
-            for r in regions:
-                RD = RegionalAnalysis(obs_orig,model_data,r)
-                corr_value, p_corr = RD.get_correlation()
+            REGSTAT = RegionalAnalysis(obs_orig,model_data,r)
+            REGSTAT.calculate()
 
-                #--- save results in dummy variable
-                REGSTAT.save_result(r.label + '_' + model_data.label,corr_value,p_corr)
-                del RD
+            tay=REGSTAT.plot_taylor() #tay_reg is a taylor plot which is used for all models !
 
-            #--- save regional analysis results in separate file
-            regfile = report.outdir + 'regional_results_' + obs_type + '_' + obs_name + '.txt'
-            REGSTAT.print_table(filename=regfile)
+            #todo: print results ???
+            REGSTAT.print_table(filename=report.outdir + 'regional_results_' + obs_type + '_' + obs_name + '_' + model._unique_name + '.txt')
 
             #--- Taylor plot for regional analysis ---
-            f_regtaylor = REGSTAT.plot_taylor()
-            report.figure(f_regtaylor,caption='Taylor plot for regional analysis (' + obs_name.upper() + ')')
-            del f_regtaylor
+            report.figure(tay.figure,caption='Taylor plot for regional analysis (' + obs_name.upper() + ', ' + model._unique_name.upper() +  ')')
+            del tay, REGSTAT
             stop #todo
 
         if f_reichler == True:

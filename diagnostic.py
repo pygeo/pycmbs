@@ -389,40 +389,52 @@ class RegionalAnalysis(object):
 
 
 
-    def plot_taylor(self,dia=None):
+    def plot_taylor(self,dia=None,color='red'):
         """
         Taylor plot of statistics
-        requires that correlation and STDV. have been calculated and are available in self.statistics
+
+        The plot produced contains the IDs of each region as default.
+        todo: as an alternative one should be able to provide a dictionary that specifies how to plot results (e.hg. labels, markerstyles etc.)
+
+        requires that statistics have alredy been calculated
+
+        @param color: color for specifiying the current plot
+        @type color: str
+
+        @param dia: Taylor plot instance
+        @type dia: Taylor
+
         """
 
         #--- check
         keys = np.unique(self.region.data.flatten()); keys.sort()
 
+        #---
+        r = self.statistics['corrstat']['corrstat2']['correlation']
+        sx = self.statistics['corrstat']['corrstat2']['stdx']
+        sy = self.statistics['corrstat']['corrstat2']['stdy']
+
+        ratio = sy/sx
+
         if dia == None:
-            tay = Taylor(stdmax=10.) #todo: revise stdmax
+            tay = Taylor(stdmax=max(ratio.max()*1.2,2.)  )
         else:
             if not isinstance(dia,Taylor):
                 print type(dia)
                 raise ValueError, 'Provided argument is no taylor class! '
             else:
                 tay = dia
-
-        r = self.statistics['corrstat']['corrstat2']['correlation']
-        sx = self.statistics['corrstat']['corrstat2']['stdx']
-        sy = self.statistics['corrstat']['corrstat2']['stdy']
+                tay.stdmax=max(max(ratio.max()*1.2,2.),dia.stdmax) #preserve stdmax information when possible
 
         sid = map(str,self.statistics['corrstat']['corrstat2']['id'])
-        tay.plot(r,sy/sx,labels=sid)
-
+        tay.plot(r,ratio,labels=sid,color=color)
 
         return tay
 
 
 
 
-
-
-class EOF():
+class EOF(object):
     """
     main class to perform an EOF analysis
 
