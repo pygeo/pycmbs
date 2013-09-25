@@ -399,7 +399,7 @@ class RegionalAnalysis(object):
         keys = np.unique(self.region.data.flatten()); keys.sort()
 
         if dia == None:
-            tay = Taylor()
+            tay = Taylor(stdmax=10.) #todo: revise stdmax
         else:
             if not isinstance(dia,Taylor):
                 print type(dia)
@@ -414,24 +414,6 @@ class RegionalAnalysis(object):
         sid = map(str,self.statistics['corrstat']['corrstat2']['id'])
         tay.plot(r,sy/sx,labels=sid)
 
-
-
-
-        for k in keys: #loop over all IDs
-            m = self.statistics['corrstat']['corrstat2']['id'] == k
-            if sum(m) != 1:
-                print k
-                print self.statistics['corrstat']['corrstat2']['id']
-                print m
-                raise ValueError, 'No corresponding ID value found!'
-
-            r = self.statistics['corrstat']['corrstat2']['correlation'][m]
-            sx = self.statistics['corrstat']['corrstat2']['stdx'][m]
-            sy = self.statistics['corrstat']['corrstat2']['stdy'][m]
-            print r, sx, sy
-
-            tay.plot(r,sy/sx,markerfacecolor='green',marker='^',label=k)
-            del m
 
         return tay
 
