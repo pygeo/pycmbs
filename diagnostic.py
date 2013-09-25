@@ -337,7 +337,7 @@ class RegionalAnalysis(object):
                 else:
                     s += '' + sep + '' + sep
 
-
+            #--- corrstat2 ---
             if d['corrstat']['corrstat2'] == None:
                 s += '' + sep + '' + sep + '' + sep + '' + sep
             else:
@@ -346,7 +346,7 @@ class RegionalAnalysis(object):
 
                 if len(m) > 0:
                     if sum(m) == 1:
-                        s += str(stat['correlation'][0][m]) + sep + str(stat['pvalue'][0][m]) + sep + str(stat['slope'][0][m]) + sep + str(stat['intercept'][0][m]) + sep
+                        s += str(stat['correlation'][m][0]) + sep + str(stat['pvalue'][m][0]) + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) + sep
                     else:
                         print id
                         print m

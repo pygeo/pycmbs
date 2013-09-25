@@ -34,6 +34,7 @@ from calendar import monthrange
 from cdo import *
 import datetime
 import pytz
+import pickle
 
 class Data(object):
     """
@@ -198,6 +199,9 @@ class Data(object):
         try:
             return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC) for x in self.num2date(self.time)])
         except: #if an exception occurs then write data on screen for bughandling
+            if os.path.exists('dump.pkl'):
+                os.remove('dump.pkl')
+            pickle(self,open('dump.pkl','w'))
             print 'An error occured in Data.date! Printing data for bugfixing'
             for i in range(len(self.time)):
                 x = self.num2date(self.time[i])
