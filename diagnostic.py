@@ -367,7 +367,10 @@ class RegionalAnalysis(object):
         #--- loop over all regions ---
         keys = np.unique(self.region.data.flatten()); keys.sort()
         sep = '\t'
-        print 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2' + sep + 'intercept2' + sep
+        header = 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2' + sep + 'intercept2' + sep
+        print header
+        if filename != None:
+            o.write(header + '\n')
         for k in keys:
             s = _get_string(self.statistics,k) #get formatted string for a particular region
             print s
