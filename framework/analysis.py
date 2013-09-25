@@ -572,54 +572,41 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             #generate a reference monthly timeseries (datetime)
             tref = np.asarray(rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True)) #monthly timeseries
 
-            #perform temporal subsetting and interpolation for hovmoeller plot
+            ####################################################
+            # HOVMOELLER PLOT FOR MODEL
+            ####################################################
+
+            #--- perform temporal subsetting and interpolation for hovmoeller plot
             tmp = model.variables[obs_type+'_org'][2]
+            if tmp != None:
+                tmp = tmp.interp_time(pl.date2num(tref))
 
-            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
-            #tmp._temporal_subsetting(i1,i2)
+                if ls_mask != None:
+                    tmp._apply_mask(ls_mask)
 
+                hov_model = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
+                hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
 
-            #print 'min/max time ref: ', tref.min(), tref.max()
-            #print 'min/max time    : ', tmp.num2date(tmp.time.min()), tmp.num2date(tmp.time.max())
+                hov_model.hov = None
+                hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
+                del hov_model, tmp
 
-            tmp = tmp.interp_time(pl.date2num(tref))
-
-            if ls_mask != None:
-                tmp._apply_mask(ls_mask)
-
-            #pickle.dump(tmp,open('testtime.pkl','w'))
-            #x=tmp.num2date(tmp.time[0])
-            #print datetime(x.year,x.month,x.day,x.hour,x.minute,x.second)
-
-            #tmptime = np.asarray([datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in tmp.num2date(tmp.time)]) #convert to datetime objects
-
-            #pickle.dump(tmptime,open('tmptime.pkl','w'))
-            #tmptime = tmp.num2date(tmp.time)
-
-
-
-
-            hov_model = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
-            hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
-            hov_model.hov = None
-            hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
-            del hov_model, tmp
-
-            #hovmoeller for observations
+            ####################################################
+            # HOVMOELLER PLOT FOR OBSERVATIONS
+            ####################################################
             tmp = obs_monthly.copy()
-            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
-            #tmp._temporal_subsetting(i1,i2)
-            tmp = tmp.interp_time(pl.date2num(tref))
+            if tmp != None:
+                tmp = tmp.interp_time(pl.date2num(tref))
 
+                if ls_mask != None:
+                    tmp._apply_mask(ls_mask)
 
-            if ls_mask != None:
-                tmp._apply_mask(ls_mask)
+                hov_obs = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
+                hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
 
-            hov_obs = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
-            hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
-            hov_obs.hov = None
-            hov_obs.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
-            del hov_obs, tmp
+                hov_obs.hov = None
+                hov_obs.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
+                del hov_obs, tmp
 
             report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')' )
             del f_hov
