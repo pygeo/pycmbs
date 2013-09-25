@@ -644,7 +644,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             f_regtaylor = REGSTAT.plot_taylor()
             report.figure(f_regtaylor,caption='Taylor plot for regional analysis (' + obs_name.upper() + ')')
             del f_regtaylor
-            stop
+            stop #todo
 
         if f_reichler == True:
             #/// Reichler statistics ///
