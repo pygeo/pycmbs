@@ -33,6 +33,7 @@ import netcdftime as netcdftime
 from calendar import monthrange
 from cdo import *
 import datetime
+import pytz
 
 class Data(object):
     """
@@ -191,7 +192,10 @@ class Data(object):
     def _get_date(self):
         #--- convert to datetime objects ---
         #use this approach to ensure that a datetime.datetime array is available for further processing
-        return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in self.num2date(self.time)])
+        #set also timezone as UTC as otherwise comparisons of dates is not possible!
+        #CAUTION: assumes that timezone is always UTC !!
+
+        return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,pytz.UTZ) for x in self.num2date(self.time)])
     date  = property(_get_date)
 
     def _get_ndim(self): return self.data.ndim
