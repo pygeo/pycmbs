@@ -24,7 +24,7 @@ from matplotlib import pylab as plt
 
 import numpy as np
 
-class taylor:
+class Taylor(object):
     def __init__(self,stdmax=2., plot_r_mesh=True, plot_std_mesh=True,
                  ref_std=1., plot_reference=True, r_meshstep=0.1, std_meshstep=0.25,
                  edgecolor='black', r_meshcolor='red', std_meshcolor='blue', title='',
@@ -371,12 +371,9 @@ class taylor:
 
 
     def map2xy(self,R,S):
-        '''
+        """
         map R and S coordinates into x and y
-        '''
-
-        #print ''
-        #print R
+        """
 
         theta = np.deg2rad((1.-R)*90.); r = S
         if self.r_equidistant:
@@ -384,7 +381,6 @@ class taylor:
         else:
             x=S*R; y=S*np.sin(np.arccos(R))
 
-        #print x,y
 
         return x,y
 
