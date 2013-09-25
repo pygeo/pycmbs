@@ -834,6 +834,7 @@ class GlobalMeanPlot():
 
             ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
             ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
+            print 'datkeys: ', dat[0].keys()
             ax.set_ylabel(dat[0]['unit'])
             ax.set_xlabel('months')
 

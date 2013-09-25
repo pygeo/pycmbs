@@ -328,6 +328,8 @@ class Taylor(object):
         #/// get coordinates
         x,y = self.map2xy(R,S)
 
+        print 'coordinates: ', R,S,x,y
+
         #/// generate plots
         if labels == None:
             self.ax.plot(x, y, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor,linewidth=linewidth,
