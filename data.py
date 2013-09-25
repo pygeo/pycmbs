@@ -195,7 +195,16 @@ class Data(object):
         #set also timezone as UTC as otherwise comparisons of dates is not possible!
         #CAUTION: assumes that timezone is always UTC !!
 
-        return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC) for x in self.num2date(self.time)])
+        try:
+            return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC) for x in self.num2date(self.time)])
+        except: #if an exception occurs then write data on screen for bughandling
+            print 'An error occured in Data.date! Printing data for bugfixing'
+            for i in range(len(self.time)):
+                x = self.num2date(self.time[i])
+                print self.time[i], x , datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC)
+            raise ValueError, 'Some error in time conversion happened!'
+
+
     date  = property(_get_date)
 
     def _get_ndim(self): return self.data.ndim
@@ -1811,12 +1820,12 @@ class Data(object):
 
         res = self.copy()
 
-        print 'Length in interpolation:'
-        print 't: ', len(t)
-        print 'res.date1: ', len(res.date)
+        #print 'Length in interpolation:'
+        #print 't: ', len(t)
+        #print 'res.date1: ', len(res.date)
 
         res.time = t
-        print 'res.date2: ', len(res.date)
+        #print 'res.date2: ', len(res.date)
         res.data = np.ma.array(N,mask=np.isnan(N))
         del N
 
