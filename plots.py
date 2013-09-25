@@ -953,7 +953,7 @@ class GlobalMeanPlot():
                 self.ax1.plot(np.arange(1,13),m,linestyle=linestyle)
                 self.ax1.set_xlim(0.,13.)
                 self.ax1.set_ylabel(tmp._get_unit())
-                del tmp
+
 
                 self.ax1.set_xlabel('months')
 
@@ -965,9 +965,9 @@ class GlobalMeanPlot():
                     vdata = self.pdata_clim[group]
                 else:
                     vdata=[]
-                vdata.append({'time':np.arange(1,13),'data':m})
+                vdata.append({'time':np.arange(1,13),'data':m,'unit':tmp._get_unit()})
                 self.pdata_clim.update({group:vdata}) #store results for current group
-                del vdata
+                del vdata, tmp
             else:
                 print 'WARNING: Global mean plot can not be generated due to missing time_cycle!'
 
