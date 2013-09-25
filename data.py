@@ -194,6 +194,9 @@ class Data(object):
         return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second) for x in self.num2date(self.time)])
     date  = property(_get_date)
 
+    def _get_ndim(self): return self.data.ndim
+    ndim = property(_get_ndim)
+
 
 
 
@@ -1458,12 +1461,12 @@ class Data(object):
         #--- checks ---
         if self.data.ndim == 2:
             if self.data.shape != m.shape:
-                print self.data.shape
+                print self.shape
                 print m.shape
                 raise ValueError, 'Invalid geometry!'
         elif self.data.ndim == 3:
             if self.data[0,:,:].shape != m.shape:
-                print self.data.shape
+                print self.shape
                 print m.shape
                 raise ValueError, 'Invalid geometry!'
         else:
@@ -1518,7 +1521,7 @@ class Data(object):
             raise ValueError, 'Invalid geometry!'
 
         #output arrays are all of shape (nt,nvals)
-        res = {'id':vals,'mean':means,'sum':sums,'min':mins,'max':maxs}
+        res = {'id':vals,'mean':means,'sum':sums,'min':mins,'max':maxs,'std':stds}
 
         return res
 
@@ -1694,6 +1697,8 @@ class Data(object):
         """
 
 
+        d = pl.num2date(t)
+
         if method != 'linear':
             raise ValueError, 'Only linear interpolation supported at the moment so far!'
 
@@ -1705,7 +1710,7 @@ class Data(object):
         if not np.all(np.diff(self.time) > 0):
             raise ValueError, 'Time array of data is not in ascending order! This must not happen! Please ensure ascending order'
 
-        nt0,ny,nx = self.data.shape #original dimensions
+        nt0,ny,nx = self.shape #original dimensions
         nt = len(t) #target length of time
 
         #/// copy data
@@ -1716,12 +1721,14 @@ class Data(object):
         f_err = False
 
         #A) all data is BEFORE desired period
-        if self.time.max() < t.min():
+        if self.date.max() < d.min():
+            print self.date.max(), d.min()
             print 'WARNING: specified time period is BEFORE any data availability. NO INTERPOLATION CAN BE DONE!'
             f_err = True
 
         #B) all data is AFTER desired period
-        if self.time.min() > t.max():
+        if self.date.min() > d.max():
+            self.date.min(), d.max()
             print 'WARNING: specified time period is AFTER any data availability. NO INTERPOLATION CAN BE DONE!'
             f_err = True
 
@@ -1737,7 +1744,7 @@ class Data(object):
         for i in xrange(nt-1):
             #1) find start of interpolation period
             if f_init:
-                while self.time[i2] <= t[0]: #do nothing while data coverage not reached yet
+                while self.date[i2] <= d[0]: #do nothing while data coverage not reached yet
                     i2+=1
                     continue
             f_init=False
@@ -1748,18 +1755,18 @@ class Data(object):
 
             #/// increment
             if i2 < nt0:
-                if self.time[i2] < t[i]:
+                if self.date[i2] < d[i]:
                     if i2 <= nt0-1:
                         i2 += 1
             if i1 < nt0-1:
-                if self.time[i1+1]< t[i]:
+                if self.date[i1+1]< d[i]:
                     i1 += 1
             else:
                 continue
 
 
             #2) check consistency
-            if self.time[i1] > t[i]:
+            if self.date[i1] > d[i]:
                 #the first timeperiod with valid data has not been reached yet
                 # ... loop
                 continue
@@ -1769,8 +1776,8 @@ class Data(object):
 
 
 
-            if self.time[i2] < t[i]:
-                print self.time[i1], t[i], self.time[i2]
+            if self.date[i2] < d[i]:
+                print self.date[i1], d[i], self.date[i2]
                 print i1,i,i2
                 raise ValueError, 'interp_time: this should not happen!'
 
@@ -1780,7 +1787,7 @@ class Data(object):
 
             #... here we have valid data
             #print i,i1,i2, nt0
-            t1   = self.time[i1]; t2=self.time[i2]
+            t1   = pl.date2num(self.date[i1]); t2=pl.date2num(self.date[i2])
             W[i,i1] = (t2 - t[i]) / (t2-t1)
             W[i,i2] = 1.-W[i,i1]
 
@@ -1793,7 +1800,7 @@ class Data(object):
         N = np.ma.dot(W,X) #could become a problem for really large matrices!
         N[nt-1,:] = np.nan #avoid boundary problem (todo: where is the problem coming from ??)
         #mask all data that is outside of valid time period
-        msk = (t < self.time.min()) | (t > self.time.max())
+        msk = (d < self.date.min()) | (d > self.date.max())
         N[msk,:] = np.nan
         N.shape = (nt,ny,nx)
 
@@ -1801,10 +1808,10 @@ class Data(object):
 
         print 'Length in interpolation:'
         print 't: ', len(t)
-        print 'res.time1: ', len(res.time)
+        print 'res.date1: ', len(res.date)
 
         res.time = t
-        print 'res.time2: ', len(res.time)
+        print 'res.date2: ', len(res.date)
         res.data = np.ma.array(N,mask=np.isnan(N))
         del N
 
