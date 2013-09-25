@@ -1697,7 +1697,7 @@ class Data(object):
         """
 
 
-        d = pl.num2date(t)
+        d = np.asarray(pl.num2date(t))
 
         if method != 'linear':
             raise ValueError, 'Only linear interpolation supported at the moment so far!'
