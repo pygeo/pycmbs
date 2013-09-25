@@ -328,9 +328,23 @@ class RegionalAnalysis(object):
                 #print stat['mean']
                 #print stat['mean'][0]
                 if len(m) > 0:
-                    s += str(stat['mean'][0][m]) + sep + str(stat['std'][0][m]) + sep
+                    if len(m) == 1:
+                        s += str(stat['mean'][0][m][0]) + sep + str(stat['std'][0][m][0]) + sep
+                    else:
+                        print id
+                        print m
+                        raise ValueError, 'The ID seems not to be unique here!'
                 else:
                     s += '' + sep + '' + sep
+
+
+            if d['corrstat']['corrstat2'] == None:
+                s += '' + sep + '' + sep
+
+
+
+
+
 
             return s
 
@@ -344,6 +358,8 @@ class RegionalAnalysis(object):
 
         #--- loop over all regions ---
         keys = np.unique(self.region.data.flatten()); keys.sort()
+        sep = '\t'
+        print 'r1' + sep + 'sig_r1' + sep
         for k in keys:
             s = _get_string(self.statistics,k) #get formatted string for a particular region
             print s
