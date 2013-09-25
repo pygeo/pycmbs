@@ -328,7 +328,7 @@ class RegionalAnalysis(object):
                 #print stat['mean']
                 #print stat['mean'][0]
                 if len(m) > 0:
-                    if len(m) == 1:
+                    if sum(m) == 1:
                         s += str(stat['mean'][0][m][0]) + sep + str(stat['std'][0][m][0]) + sep
                     else:
                         print id
@@ -345,8 +345,8 @@ class RegionalAnalysis(object):
                 m = stat['id'] == id
 
                 if len(m) > 0:
-                    if len(m) == 1:
-                        s += str(stat['correlation'][0][m][0]) + sep + str(stat['pvalue'][0][m][0]) + sep + str(stat['slope'][0][m][0]) + sep + str(stat['intercept'][0][m][0]) + sep
+                    if sum(m) == 1:
+                        s += str(stat['correlation'][0][m]) + sep + str(stat['pvalue'][0][m]) + sep + str(stat['slope'][0][m]) + sep + str(stat['intercept'][0][m]) + sep
                     else:
                         print id
                         print m
@@ -367,7 +367,7 @@ class RegionalAnalysis(object):
         #--- loop over all regions ---
         keys = np.unique(self.region.data.flatten()); keys.sort()
         sep = '\t'
-        print 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2' + sep + 'intercept2' + sep
+        print 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2' + sep + 'intercept2' + sep
         for k in keys:
             s = _get_string(self.statistics,k) #get formatted string for a particular region
             print s
