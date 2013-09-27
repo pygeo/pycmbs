@@ -658,7 +658,8 @@ class EOF(object):
         for i in k:
             y = self.eigvec[:,i].copy()
             if norm:
-                y -= y.mean(); y /= y.std() #normalize to zero mean and unit std #todo: this kind of noramlization is not a standard. needs revision!
+                y -= y.mean()
+                y /= y.std() #normalize to zero mean and unit std #todo: this kind of noramlization is not a standard. needs revision!
 
             #print len(k)
             #if len(k)>1: #lineplot

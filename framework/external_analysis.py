@@ -125,7 +125,7 @@ class ExternalAnalysis():
             
             #change to working directory and run script ...
             os.chdir(thedir)  #change to directory where script is located
-            r = os.system(cmd) #@todo: use subprocess
+            r = os.system(cmd)
             
             #check status of program execution if desired
             if statusfile != None:

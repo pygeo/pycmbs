@@ -147,6 +147,12 @@ class MeanModel(Model):
                 hlp1 = self.variables[k] #is a Data object or a tuple! The Data object contains already the climatological mean value!
                 hlp2 = M.variables[k]
 
+                if hlp2 == None:
+                    print 'WARNING: Provided model is missing data field for variable ' + k.upper()
+                    print '         Ensemble member can not be added!'
+                    stop
+
+
                 if isinstance(hlp1,tuple):
                     self.variables.update( { k : (None,None,None) } )
                 else: #mean model!
@@ -579,11 +585,11 @@ class CMIP5Data(Model):
 
         tas = Data(filename,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False)
 
-        tasall = Data(filename1,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12)
-        #todo: automatic check that data is monthly! use get_months for that!
+        tasall = Data(filename1,'tas',read=True,label=self.model,unit='K',lat_name='lat',lon_name='lon',shift_lon=False)
+        if tasall.time_cycle != 12:
+            raise ValueError, 'Timecycle of 12 expected here!'
 
         tasmean = tasall.fldmean()
-
         retval = (tasall.time,tasmean,tasall); del tasall
 
         tas.data = np.ma.array(tas.data,mask=tas.data < 0.)
@@ -668,7 +674,9 @@ class CMIP5Data(Model):
         sis.timsort()
 
         #4) read monthly data
-        sisall = Data(file_monthly,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12) #todo check timecycle
+        sisall = Data(file_monthly,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False)
+        if sisall.time_cycle != 12:
+            raise ValueError, 'Timecycle of 12 expected here!'
         sisall.adjust_time(day=15)
 
         sis._apply_mask(get_T63_landseamask(False))
@@ -752,7 +760,9 @@ class CMIP5Data(Model):
         sup.timsort()
 
         #4) read monthly data
-        supall = Data(file_monthly,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False,time_cycle=12) #todo check timecycle
+        supall = Data(file_monthly,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
+        if supall.time_cycle != 12:
+            raise ValueError, 'Monthly timecycle expected here!'
         supmean = supall.fldmean()
 
         #/// return data as a tuple list
@@ -877,7 +887,7 @@ class JSBACH_BOT(Model):
 
         v = 'var176'
 
-        filename = self.data_dir + 'data/model1/' + self.experiment + '_echam6_BOT_mm_1979-2006_albedo_yseasmean.nc' #todo: proper files
+        filename = self.data_dir + 'data/model1/' + self.experiment + '_echam6_BOT_mm_1979-2006_albedo_yseasmean.nc'
         ls_mask = get_T63_landseamask(self.shift_lon)
 
         albedo = Data(filename,v,read=True,
