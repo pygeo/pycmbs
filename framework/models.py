@@ -27,6 +27,7 @@ from utils import *
 from cdo import *
 import tempfile as tempfile
 import copy
+import pickle
 
 '''
 @todo: implement reading of air temperature fields
@@ -149,7 +150,8 @@ class MeanModel(Model):
 
                 if hlp2 == None:
                     print 'WARNING: Provided model is missing data field for variable ' + k.upper()
-                    print '         Ensemble member can not be added!'
+                    print '         Ensemble member can not be added! Do debugging using pickled file!'
+                    pickle(M,open('model.pkl','w'))
                     stop
 
 
