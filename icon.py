@@ -17,9 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
-"""
-Main class for ICON data handling
-"""
+
 from pyCMBS.data import Data
 import os
 import Nio
@@ -27,6 +25,10 @@ import numpy as np
 
 
 class Icon(Data):
+    """
+    Main class for ICON data handling
+    """
+
     def __init__(self,filename,gridfile,varname,read=False,**kwargs):
         """
         @param filename: filename of data file

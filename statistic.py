@@ -20,9 +20,6 @@ __email__ = "alexander.loew@zmaw.de"
 # GNU General Public License for more details.
 '''
 
-'''
-statistical module for pyCMBS
-'''
 
 
 from scipy import stats
@@ -88,7 +85,7 @@ def ttest_ind(a, b, axis=0):
     (n1, n2) = (a.count(axis), b.count(axis))
     df = n1+n2-2
     svar = ((n1-1)*v1+(n2-1)*v2) / (df*1.)  #AL <<<<<<<<<<<<<< fix, as float() functions from mstats_basic.py does not work for multidimensional arrays!
-    svar == 0
+    #svar == 0
     t = (x1-x2)/np.ma.sqrt(svar*(1.0/n1 + 1.0/n2))  # N-D COMPUTATION HERE!!!!!!
     t = np.ma.filled(t, 1)           # replace NaN t-values with 1.0
     probs = betai(0.5*df,0.5,(df*1.)/(df+t*t)).reshape(t.shape)   #AL <<<<<<<<<<<<<<

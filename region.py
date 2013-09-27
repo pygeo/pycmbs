@@ -101,11 +101,7 @@ class Region():
         """
         return a list of corner indices
         """
-        l = []
-        l.append( (self.x1,self.y1)   )
-        l.append( (self.x1,self.y2)   )
-        l.append( (self.x2,self.y2)   )
-        l.append( (self.x2,self.y1)   )
+        l = [(self.x1, self.y1), (self.x1, self.y2), (self.x2, self.y2), (self.x2, self.y1)]
         return l
 
 #-----------------------------------------------------------------------

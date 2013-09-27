@@ -20,9 +20,6 @@ __email__ = "alexander.loew@zmaw.de"
 # GNU General Public License for more details.
 '''
 
-'''
-module to generate a LaTex report
-'''
 
 
 import os,sys

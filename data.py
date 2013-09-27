@@ -172,7 +172,7 @@ class Data(object):
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var,checklat=checklat)
 
         #--- check if longitudes are from 0 ... 360
-        if self.lon != None:
+        if self.lon is not None:
             if self._lon360:
                 if self.lon.min() < 0.:
                     #self._shift_lon_360() #shift coordinates to [0 ... 360.]
@@ -388,7 +388,7 @@ class Data(object):
                 raise ValueError, 'File already existing. Please delete manually or use DELETE option: ' + filename
 
         #/// variable name
-        if varname == None:
+        if varname is None:
             if self.varname is None:
                 varname = 'var1'
             else:
@@ -410,7 +410,7 @@ class Data(object):
         F.create_dimension('nx',nx)
 
         #/// create variable
-        if self.time != None:
+        if self.time is not None:
             F.create_variable('time','d',('time',))
             F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
 
@@ -425,7 +425,7 @@ class Data(object):
             F.variables['lat'].axis  = "Y"
             F.variables['lat'].long_name  = "latitude"
 
-        if self.lon != None:
+        if self.lon is not None:
             F.create_variable('lon','d',('ny','nx'))
             F.variables['lon'].units = 'degrees_east'
             F.variables['lon'].axis  = "X"
@@ -444,7 +444,7 @@ class Data(object):
         F.variables[varname].assign_value(self.data)
         if self.lat != None:
             F.variables['lat'].assign_value(self.lat)
-        if self.lon != None:
+        if self.lon is not None:
             F.variables['lon'].assign_value(self.lon)
         if hasattr(self,'cell_area'):
             F.variables['cell_area'].assign_value(self.cell_area)
@@ -589,10 +589,10 @@ class Data(object):
         @todo: implement the calculation of cell_area in a pythonic way
         """
 
-        if not self.cell_area == None:
+        if not self.cell_area is None:
             return
 
-        if (self.lat == None) or (self.lon == None):
+        if (self.lat == None) or (self.lon is None):
             #logger.warning('WARNING: cell area can not be calculated (missing coordinates)!')
             print '        WARNING: cell area can not be calculated (missing coordinates)!'
             if self.data.ndim == 2:
@@ -751,7 +751,7 @@ class Data(object):
         get a nice looking string for units
         @return: string with unit like [unit]
         """
-        if self.unit == None:
+        if self.unit is None:
             u = ''
         else:
             u = '[' + self.unit + ']'
@@ -858,7 +858,7 @@ class Data(object):
             self._squeeze()
 
         #--- mask data when desired ---
-        if self.inmask != None:
+        if self.inmask is not None:
             self._apply_mask(self.inmask)
 
         #read lat/lon
@@ -1855,7 +1855,7 @@ class Data(object):
         """
 
         #- no subsetting
-        if (start == None or stop == None):
+        if start == None or stop == None:
             return 0, len(self.time)
         if stop < start:
             sys.exit('Error: startdate > stopdate')
@@ -2274,7 +2274,7 @@ class Data(object):
         """
         (unittest)
 
-        get matrix for area weigthing of grid cells. For each timestep
+        get matrix for area weighting of grid cells. For each timestep
         the weights are calculated as a function of either the  number of valid
         grid cells or all grid cells.
 
@@ -2362,7 +2362,7 @@ class Data(object):
         """
         if apply_weights:
             #area weighting
-            w = self._get_weighting_matrix(self.weighting_type) #get weighting matrix for each timestep (taking care of invalid data)
+            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
             w *= self.data #multiply the data with the weighting matrix in memory efficient way
             return w.sum() #... gives weighted sum = mean
         else:
