@@ -307,9 +307,9 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 
     def simple_plot(self):
-        '''
+        """
         do a very simple plot of diagnostics
-        '''
+        """
         for i in np.arange(len(self.e2)):
             self.ax.plot(self.e2[i],'o',label=self.labels[i])
 
@@ -883,7 +883,7 @@ class GlobalMeanPlot():
         if stat_type not in ['mean','sum']:
             raise ValueError, 'Invalid stat_type in GlobalMean plot'
 
-        if ((label==None) and (D1.label in self.labels)):
+        if (label==None) and (D1.label in self.labels):
             #print 'Label already existing: ', D.label, ' skipping analysis'
             return
         elif ((label != None) and (label in self.labels)):
@@ -2273,7 +2273,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     if use_basemap:
         llcrnrlon=None; llcrnrlat=None; urcrnrlon=None; urcrnrlat=None
 
-        """ if a region is specfied, then the plotting boundaries are set """
+        #if a region is specfied, then the plotting boundaries are set
         if region !=None:
             if not hasattr(region,'lonmin'):
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'

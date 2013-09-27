@@ -169,7 +169,7 @@ class ConfigFile():
         while l[0] != '#':
             l = self.f.readline().replace('\n','')
             l = l.lstrip()
-            if (len(l) > 0):
+            if len(l) > 0:
                 if l[0] == '#':
                     pass
                 else:

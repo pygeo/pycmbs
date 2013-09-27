@@ -86,11 +86,11 @@ def align(x,y):
 
 
 def generate_monthly_timeseries(t,sday='01'):
-    '''
+    """
     generate a vector monthly timeseries
 
     t: time (numeric)
-    '''
+    """
 
 
     tn=[]; d=num2date(t)
@@ -590,9 +590,9 @@ class hovmoeller:
 
 
     def time_to_day_hour_fast(self,yticksampling=1,monthsamp=1,yearonly=False):
-        '''
+        """
         routine to make a fast calculation of hovmoeller data using pandas
-        '''
+        """
 
         print 'time_to_day_hour_fast not checked for new geometry yet!'
         stop
@@ -656,9 +656,9 @@ class hovmoeller:
 
 
     def time_to_day_hour(self,mode='average',monthsamp=1,yticksampling=1,yearonly=False):
-        '''
+        """
         convert timeseries to hovemoeller matrix
-        '''
+        """
 
         print 'time_to_day_hour not checked for new geometry yet!'
         stop
@@ -678,7 +678,7 @@ class hovmoeller:
         outsum = zeros((24.,len(all_days)))
 
         if (self.var_unc != None):
-            if (shape(self.var_unc) == shape(self.value)):
+            if shape(self.var_unc) == shape(self.value):
                 f_var = True
             else:
                 print 'HOV: inconsistent values for data array and variance array!', shape(self.var_unc), shape(self.value)

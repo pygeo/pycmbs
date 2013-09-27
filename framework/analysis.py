@@ -733,14 +733,11 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP1
         #//////////////////////////////////////
-        tags = []
-        tags.append({'tag':'<STARTYEAR>','value':'1995'})
-        tags.append({'tag':'<STOPYEAR>','value':'2005'})
-        tags.append({'tag':'<OUTDIR>','value':outdir })
-        tags.append({'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')})
-        tags.append({'tag':'<INPUTDATAFILE>','value':data_file})
-        tags.append({'tag':'<DATAVARNAME>','value':varname})
-        tags.append({'tag':'<FFTMASKFILE>','value':outdir+'/fft_mask.mat'})
+        tags = [{'tag': '<STARTYEAR>', 'value': '1995'}, {'tag': '<STOPYEAR>', 'value': '2005'},
+                {'tag': '<OUTDIR>', 'value': outdir},
+                {'tag': '<FFTFIGNAME>', 'value': 'FFT-Mask-' + model.name.replace(' ', '')},
+                {'tag': '<INPUTDATAFILE>', 'value': data_file}, {'tag': '<DATAVARNAME>', 'value': varname},
+                {'tag': '<FFTMASKFILE>', 'value': outdir + '/fft_mask.mat'}]
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template1,tags,options=',quit',output_directory=rundir ) #temporary scripts are stored in directories that have same name as model
         E.run(execute=f_execute,remove_extension=True)
 
