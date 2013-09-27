@@ -151,7 +151,7 @@ class MeanModel(Model):
                 if hlp2 == None:
                     print 'WARNING: Provided model is missing data field for variable ' + k.upper()
                     print '         Ensemble member can not be added! Do debugging using pickled file!'
-                    pickle(M,open('model.pkl','w'))
+                    pickle.dump(M,open('model.pkl','w'))
                     stop
 
 
