@@ -483,7 +483,7 @@ class PlotOptions():
                         cerr +=1
                     if k=='obs_file':
                         d[odat]['obs_file']=d[odat]['obs_file'].rstrip() #remove whitespaces at the end
-                        if (d[odat]['obs_file'][-1] == os.sep) or ((d[odat]['obs_file'][-3:] == '.nc') or ((d[odat]['obs_file'][-4:] == '.nc4')  ):
+                        if ((d[odat]['obs_file'][-1] == os.sep) or (d[odat]['obs_file'][-3:] == '.nc') or (d[odat]['obs_file'][-4:] == '.nc4')  ):
                             pass
                         else:
                             d[odat]['obs_file'] = d[odat]['obs_file'] + os.sep #directory
