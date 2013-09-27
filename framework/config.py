@@ -72,7 +72,7 @@ class ConfigFile():
 
     def __read_options(self):
         #read header of variable plot
-        self.options={};
+        self.options={}
         l=self.__read_header()
         l=l.lstrip()
 
