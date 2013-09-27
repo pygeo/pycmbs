@@ -116,7 +116,7 @@ class MeanModel(Model):
     """
     def __init__(self,dic_variables,intervals=None,**kwargs):
         super(MeanModel,self).__init__(None,dic_variables,name='mean-model',intervals=intervals,**kwargs)
-        self.n=0
+        self.n=0 #specifies only the number of models that were used in general, does NOT specify if the data is valid!
         self._unique_name = 'model_mean'
         self.model_mean=None
         self.ensmean_called = False
@@ -135,11 +135,17 @@ class MeanModel(Model):
                 raise ValueError, 'Model instance or derived class expected here!'
 
         if self.n == 0:
-            self.model_mean = M.copy()
+            #self.model_mean = M.copy()
             tmp = M.copy()
             self.variables = tmp.variables; del tmp
             self.name = 'mean-model'
             self._unique_name = 'model_mean'
+            self.N = {}
+            for k in self.model_mean.variables.keys(): #count for each variable the number of valid models
+                if self.variables[k] != None:
+                    self.N.update({k:1})
+                else:
+                    self.N.update({k:0})
         else:
             for k in self.model_mean.variables.keys():
                 print '    Processing ... ', k
@@ -150,9 +156,10 @@ class MeanModel(Model):
 
                 if hlp2 == None:
                     print 'WARNING: Provided model is missing data field for variable ' + k.upper()
-                    print '         Ensemble member can not be added! Do debugging using pickled file!'
-                    pickle.dump(M,open('model.pkl','w'))
-                    stop
+                    #print '         Ensemble member can not be added! Do debugging using pickled file!'
+                    #pickle.dump(M,open('model.pkl','w'))
+                    continue
+                    #stop
 
 
                 if isinstance(hlp1,tuple):
@@ -164,9 +171,12 @@ class MeanModel(Model):
                     theD.add(hlp2,copy=False) #SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
                     theD.label = 'Mean-model'
                     self.variables.update( { k : theD } )
+                    nn = self.N[k]
+                    self.N.update({k:nn+1})
                 del hlp1,hlp2 #, theD
 
-        self.n += 1
+        self.n += 1 #specifies only the number of models that were used in general, does NOT specify if the data is valid!
+
 
     def ensmean(self):
         """
@@ -183,7 +193,7 @@ class MeanModel(Model):
                 #model_mean.variables.update( { k : (hlp1[0],hlp1[1],hlp1[2].mulc(1./float(len(proc_models)),copy=False )  ) } )
             else:
                 if self.variables[k] != None:
-                    self.variables[k].mulc(1./float(self.n),copy=False) #weight with number of models
+                    self.variables[k].mulc(1./float(self.N[k]),copy=False) #weight with number of models
 
         self.ensmean_called = True
 
