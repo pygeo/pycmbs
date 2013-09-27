@@ -41,7 +41,7 @@ import matplotlib as  mpl
 from plots import map_plot, pm_bar, add_nice_legend
 from data import Data
 
-from scipy import linalg, dot;
+from scipy import linalg, dot
 
 import matplotlib.gridspec as gridspec
 
@@ -1777,11 +1777,11 @@ class Diagnostic():
             hlpx = self.x.data.copy(); hlpy = self.y.data.copy()
 
             if detrend_linear:
-                hlpx = plt.detrend_linear(hlpx);
-                hlpy = plt.detrend_linear(hlpy);
+                hlpx = plt.detrend_linear(hlpx)
+                hlpy = plt.detrend_linear(hlpy)
             if detrend_mean:
-                hlpx = plt.detrend_mean(hlpx);
-                hlpy = plt.detrend_mean(hlpy);
+                hlpx = plt.detrend_mean(hlpx)
+                hlpy = plt.detrend_mean(hlpy)
 
             #1) temporal subsetting of data
             if lag > 0:
@@ -1810,23 +1810,23 @@ class Diagnostic():
 #-----------------------------------------------------------------------
 
     def get_correlation_value(self):
-        '''
+        """
         get correlation between two vectors
-        '''
+        """
         c = np.ma.corrcoef(self.xvec,self.yvec)[0][1]
         return c #correlation coefficient
 
 #-----------------------------------------------------------------------
 
     def _mat2vec(self,mask = None):
-        '''
+        """
         concatenate all information into
         a vector and apply a given
         mask if desired
 
         @param mask: mask to be applied
         @type mask: numpy array
-        '''
+        """
 
         #--- generated copies and mask data if desired
         X = self.x.copy()
@@ -2367,10 +2367,10 @@ class Diagnostic():
 #
 #===========================================================================================
 class koeppen():
-    '''
+    """
     KOEPPEN CLASS
     class to generate koeppen plot
-    '''
+    """
 
 #-----------------------------------------------------------------------------------------------------------------------
     def koeppen_cmap(self):

@@ -405,7 +405,7 @@ class TestData(TestCase):
     def test_partial_correlation(self):
         """Test of partial correlation """
 
-        x = self.D;
+        x = self.D
         nt,ny,nx = x.data.shape
         y = x.copy(); y.data = y.data + pl.rand(nt,ny,nx)*1000.
         z = x.copy(); z.data = z.data * pl.rand(nt,ny,nx)*100.

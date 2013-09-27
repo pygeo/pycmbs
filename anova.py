@@ -137,11 +137,11 @@ class Anova2():
             self.print_results()
 
     def get_fractional_variance_explained(self,s,adjust=True):
-        '''
+        """
         s: a,b,i,e
 
         @todo: not absolutely sure about these formulas, need some reference!
-        '''
+        """
         if adjust:
             print 'WARNING: AJUSTED FRACTIONAL VARIANCE NOT VALIDATED WITH SOME REFERENCE DATA'
             if s=='a':

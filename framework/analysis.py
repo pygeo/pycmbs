@@ -1360,8 +1360,12 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 # SIS -- begin
 #=======================================================================
 
-
 def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='sis',regions=regions)
+
+
+
+def xxxxxxsis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None,regions=None):
     """
     main routine for SIS analysis
 
