@@ -141,13 +141,13 @@ class MeanModel(Model):
             self.name = 'mean-model'
             self._unique_name = 'model_mean'
             self.N = {}
-            for k in self.model_mean.variables.keys(): #count for each variable the number of valid models
+            for k in self.variables.keys(): #count for each variable the number of valid models
                 if self.variables[k] != None:
                     self.N.update({k:1})
                 else:
                     self.N.update({k:0})
         else:
-            for k in self.model_mean.variables.keys():
+            for k in self.variables.keys():
                 print '    Processing ... ', k
 
                 #the variables[] list contains Data objects!
