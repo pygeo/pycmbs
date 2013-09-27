@@ -73,12 +73,12 @@ def agg_hourly(d,v,timestamp='mid',mode='mean'):
 
 
 def align(x,y):
-    '''
+    """
     aligns two pandas timeseries and returns
     values two pandas timeseries which are aligned
 
     this is a hack as I dont know how to do it better at the moment
-    '''
+    """
 
     t=x+y #just add the two series and then substract the individuals again
 

@@ -137,8 +137,8 @@ class Report():
 
         self.write('\maketitle')
 
-        #if self.logofile != None:
-        #    self._write_single_figure(self.logofile,None) #logo for report
+        if self.logofile != None:
+            self._write_single_figure(self.logofile,None) #logo for report
 
 
         self.write('\\newpage')
