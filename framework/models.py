@@ -134,6 +134,9 @@ class MeanModel(Model):
             if not issubclass(M,Model):
                 raise ValueError, 'Model instance or derived class expected here!'
 
+
+        print('Adding model %s to MeanModel' % M._unique_name)
+
         if self.n == 0:
             #self.model_mean = M.copy()
             tmp = M.copy()
@@ -141,6 +144,7 @@ class MeanModel(Model):
             self.name = 'mean-model'
             self._unique_name = 'model_mean'
             self.N = {}
+
             for k in self.variables.keys(): #count for each variable the number of valid models
                 if self.variables[k] != None:
                     self.N.update({k:1})
