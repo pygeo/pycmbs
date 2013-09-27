@@ -930,7 +930,7 @@ class GlobalMeanPlot():
         if group in self.pdata.keys():
             vdata = self.pdata[group]
         else:
-            vdata=[]1
+            vdata=[]
         vdata.append({'time':t,'data':mdata,'unit':m._get_unit()})
 
         #print 'vdata: ', t
