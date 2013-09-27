@@ -891,10 +891,15 @@ def tree_fraction_analysis(model_list,pft='tree'):
 
 
 #=======================================================================
-# ALBEDO -- begin
+# SURFACE UPWARD FLUX -- begin
 #=======================================================================
 
-def surface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
+def surface_upward_flux_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='surface_upward_flux',regions=regions)
+
+
+
+def xxxxxxxxxxxsurface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
 
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
@@ -942,7 +947,7 @@ def surface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=F
 
 
 
-def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
+def xxxxxxxxxxxsurface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
     """
     model_list = list which contains objects of data type MODEL
     """
@@ -1067,11 +1072,15 @@ def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_bas
 
 
 
+#=======================================================================
+# SURFACE UPWARD FLUX -- end
+#=======================================================================
 
 
 
-
-
+#=======================================================================
+# ALBEDO -- begin
+#=======================================================================
 
 
 
@@ -1080,12 +1089,6 @@ def albedo_analysis_vis(model_list,interval='season',GP=None,shift_lon=False,use
 
 def albedo_analysis_nir(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='albedo_nir',regions=regions)
-
-
-
-#=======================================================================
-# ALBEDO -- begin
-#=======================================================================
 
 def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
 
