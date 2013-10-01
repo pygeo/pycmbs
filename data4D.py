@@ -36,7 +36,8 @@ becase all data are stored in the data4D array, the normal data attribude is del
 
 '''
 from pylab import *
-from pyCMBS import *
+
+from data import Data
 import matplotlib.colors as col
 import matplotlib.cm as cm
 from matplotlib import pyplot as plt

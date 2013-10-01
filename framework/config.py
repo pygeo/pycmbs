@@ -26,6 +26,7 @@ from utils import get_data_pool_directory
 import pylab as pl
 import glob
 from pyCMBS import Region
+from cdo import *
 
 
 class ConfigFile():
@@ -416,6 +417,7 @@ class PlotOptions():
 
         #3) check if some code should be executed (specified by starting and trailing #)
         if (h[0] == '#') and (h[-1] == '#'):
+            cdo = Cdo()
             cmd = h[1:-1]
             exec('res = ' + cmd)
             return res
