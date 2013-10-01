@@ -608,7 +608,7 @@ class Data(object):
         cell_file = self.filename[:-3]+'_cell_area.nc'
 
         if not os.path.exists(cell_file): #calculate grid area using CDO's
-            cdo = Cdo()
+            #cdo = Cdo()
             try:
                 cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
             except:
@@ -934,8 +934,6 @@ class Data(object):
                         self._latitudecheckok = False
                         #raise ValueError, 'Can not handle automatic flipping of lat!'
 
-
-
         #- calculate climatology from ORIGINAL (full dataset)
         if hasattr(self,'time_cycle'):
             self._climatology_raw = self.get_climatology()
@@ -945,7 +943,9 @@ class Data(object):
             #- now perform temporal subsetting
             # BEFORE the conversion to the right time is required!
             m1,m2 = self._get_time_indices(start_time,stop_time)
+            #print 'Before subsetting: ', m1, m2, self.date[m1],self.date[m2]
             self._temporal_subsetting(m1,m2)
+            #print 'After subsetting: ', self.date.min(), self.date.max()
 
         #calculate time_cycle automatically if not set already. Try to detect it automatically
         if self.time != None:
@@ -1673,8 +1673,16 @@ class Data(object):
 
         if i2<i1:
             sys.exit('Invalid indices _temporal_subsetting')
+        i2 += 1 #increme last index, as otherwise the last dataset is missing!
+        if i2 > len(self.time):
+            i2 = len(self.time)
+
+        #print 'In subsetting: ', i1,i2
+        #print self.date[i1], self.date[i2]
 
         self.time = self.time[i1:i2]
+
+
         if self.data.ndim == 3:
             if self.verbose:
                 print 'Temporal subsetting for 3D variable ...'
@@ -1856,7 +1864,7 @@ class Data(object):
 
         #- no subsetting
         if start == None or stop == None:
-            return 0, len(self.time)
+            return 0, len(self.time)-1
         if stop < start:
             sys.exit('Error: startdate > stopdate')
 
@@ -1870,12 +1878,22 @@ class Data(object):
         #- determine indices
         m1 = abs(self.time - s1).argmin(); m2 = abs(self.time - s2).argmin()
 
+        #~ print ''
+        #~ print 'Init'
+        #~ print self.date[m1], start
+        #~ print self.date[m2], stop
+
         if self.time[m1] < s1:
             m1 += 1
         if self.time[m2] > s2:
             m2 -= 1
         if m2 < m1:
             sys.exit('Something went wrong _get_time_indices')
+
+        #~ print 'Final'
+        #~ print self.date[m1], start
+        #~ print self.date[m2], stop
+
 
         return m1,m2
 

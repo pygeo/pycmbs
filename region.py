@@ -69,6 +69,9 @@ class Region():
         self.type = type
         self.mask = mask
 
+    def _get_label(self):
+        return self.label.replace(' ','')
+
 #-----------------------------------------------------------------------
 
     def get_corners(self):
