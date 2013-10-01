@@ -77,7 +77,6 @@ import pickle
 #=======================================================================
 
 
-
 #=======================================================================
 
 def get_analysis_scripts():
@@ -106,23 +105,11 @@ def get_analysis_scripts():
     d.update({'seaice_extent':'seaice_extent_analysis'})
     d.update({'seaice_concentration':'seaice_concentration_analysis'})
     d.update({'gpp':'gpp_analysis'})
+    d.update({'cfc':'cfc_analysis'})
 
 
     return d
 
-
-
-#=======================================================================
-
-
-
-#####################################################################
-#####################################################################
-#####################################################################
-
-pl.close('all')
-
-#-----------------------------------------------------------------------
 
 def get_methods4variables(variables, model_dict):
     """
@@ -136,6 +123,7 @@ def get_methods4variables(variables, model_dict):
     hlp={}
     #hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
     hlp.update({'rain': 'get_model_data_generic(interval=interval, **%s)' % model_dict['rain']})
+    hlp.update({'cfc': 'get_model_data_generic(interval=interval, **%s)' % model_dict['cfc']})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
     hlp.update({'albedo_vis' : 'get_albedo_data_vis(interval=interval)'})
     hlp.update({'albedo_nir' : 'get_albedo_data_nir(interval=interval)'})
@@ -175,8 +163,12 @@ def get_methods4variables(variables, model_dict):
 
 
 
-#=======================================================================
-#=======================================================================
+#####################################################################
+
+pl.close('all')
+
+#-----------------------------------------------------------------------
+
 
 """
 HOWTO
@@ -189,10 +181,10 @@ Add a new variable:
 """
 
 
-########################################################################################################################
+#######################################################################
 # START
 # read command line options ...
-########################################################################################################################
+#######################################################################
 
 if len(sys.argv) > 1:
     if len(sys.argv) == 2:
@@ -201,13 +193,14 @@ if len(sys.argv) > 1:
             raise ValueError, 'Configuration file can not be found: ' + file
     else:
         raise ValueError, 'Currently not more than one command line parameter supported!'
+
 else: #default
     file='pyCMBS.cfg'
 
 
-########################################################################################################################
+######################################################################
 # CONFIGURATION and OPTIONS
-########################################################################################################################
+######################################################################
 
 #/// read configuration file ///
 CF = ConfigFile(file)
@@ -225,7 +218,6 @@ for thevar in plot_options.options.keys():
     if thevar in plot_options.options.keys():
         print 'Variable: ', thevar
         for k in plot_options.options[thevar].keys():
-
             print '    Observation: ', k
 
 
@@ -240,9 +232,9 @@ shift_lon = use_basemap = not f_fast
 print 'Using Basemap: ', use_basemap
 
 
-########################################################################################################################
+#####################################################################
 # TIMES
-########################################################################################################################
+#####################################################################
 s_start_time = CF.start_date #'1983-01-01' #todo where is this used ?
 s_stop_time  = CF.stop_date  #'2005-12-31'
 start_time   = pl.num2date(pl.datestr2num(s_start_time))
@@ -277,6 +269,20 @@ model_dict = {'rain':  {'CMIP5':
                             }
                         },
 
+               'cfc':  {'CMIP5':
+                            {
+                                'variable': 'clt',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'Amon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path': '/data/workspace/projects/evaclimod/data/CMIP5/clt/merged'
+                            },
+                        },
 
               'evap':   {'CMIP5':
                              {
@@ -512,8 +518,6 @@ variables = CF.variables
 varmethods = get_methods4variables(variables, model_dict)
 
 
-
-
 #=======================================================================
 #global_settings_dict = {'landsea_mask': {'filename': ''}}
 #default_analysis = {}
@@ -562,6 +566,7 @@ for i in range(len(CF.models)):
     #print themodel.plot_options
     themodel.get_data()
 
+
     #--- copy current model to a variable named modelXXXX ---
     cmd = 'model' + str(model_cnt).zfill(4) + ' = ' + 'themodel.copy(); del themodel'
     exec(cmd) #store copy of cmip5 model in separate variable
@@ -576,7 +581,7 @@ for i in range(len(CF.models)):
 ########################################################################################################################
 #--- here we have now all the model and variables read. The list of all models is contained in the variable proc_models.
 
-f_mean_model = True #todo put this as an option!
+f_mean_model = False #todo put this as an option!
 if f_mean_model:
     #calculate climatological mean values: The models contain already climatological information in the variables[] list. Thus there is not need to take care for the different timesteps here. This should have been handled already in the preprocessing.
     #generate instance of MeanModel to store result

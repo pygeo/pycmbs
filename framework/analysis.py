@@ -25,7 +25,6 @@ from datetime import *
 from dateutil.rrule import *
 from cdo import *
 from matplotlib.font_manager import FontProperties
-import pickle
 
 
 
@@ -145,9 +144,16 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
     #read monthly data (needed for global means and hovmoeller plots)
     obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
-    if obs_monthly.time_cycle != 12:
-        raise ValueError, 'A time_cycle different from 12 is not allowed here! ' + obs_mon_file
+    
 
+    if hasattr(obs_monthly,'time_cycle'):
+        if obs_monthly.time_cycle != 12:
+            obs_monthly._pad_timeseries()
+            print obs_monthly._get_months()[30:50]
+            print obs_monthly.time_cycle
+        
+    if obs_monthly.time_cycle != 12:
+            raise ValueError, 'Timecycle could still not be set!!!' + obs_mon_file
 
     #/// center dates of months
     obs_monthly.adjust_time(day=15)
@@ -212,6 +218,10 @@ def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
 #-----------------------------------------------------------------------------------------------------------------------
 
+def cfc_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cfc',regions=regions)
+
+#-----------------------------------------------------------------------------------------------------------------------
 def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='budg',regions=regions)
 
@@ -224,9 +234,6 @@ def gpp_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basema
 
 
 
-
-#global_settings_dict = {'landsea_mask':
-#                            {'filename': ''}}
 
 #=======================================================================
 # GENERIC - start
@@ -257,6 +264,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #---- PLOT OPTIONS -----------------------------------------------------------------------
 
     local_plot_options = plot_options.options[obs_type] #gives a dictionary with all the options for the current variable
+    
+
     if 'OPTIONS' not in local_plot_options.keys():
         raise ValueError, 'No OPTIONS specified for analysis of variable ' + obs_type
     if obs_name not in local_plot_options.keys():
@@ -338,10 +347,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if regions == None:
         f_regional_analysis = False
 
-
-
-
-
     if 'nclasses' in local_plot_options['OPTIONS'].keys():
         nclasses            = local_plot_options['OPTIONS']['nclasses']
     else:
@@ -381,6 +386,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     # OBSERVATION DATA PREPROCESSING
     #####################################################################
     #if f_preprocess == True: #always do preprocessing
+
+
     obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask,
                                                      force = False, obs_var = obs_var, label = obs_name,
                                                      shift_lon = shift_lon,start_date=obs_start,stop_date=obs_stop,
@@ -411,6 +418,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         return x
 
 
+
     if obs_type == 'seaice_extent':
 
         stat_type = 'sum' #show area weighted sum as statistic
@@ -430,8 +438,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #--- initialize Reichler plot
     if f_reichler == True:
         Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    print f_reichler
 
     if f_globalmeanplot:
         if GM == None:
@@ -457,7 +463,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             report.figure(f_season,caption='Seasonal mean ' + obs_name)
         else:
             report.figure(f_season,caption='Monthly mean ' + obs_name)
-
 
     for model in model_list:
 
@@ -515,6 +520,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         if f_mapdifference == True:
             sys.stdout.write('\n *** Map difference plotting. \n')
             #--- generate difference map
+            import ipdb; ipdb.set_trace()
             f_dif  = map_difference(model_data, obs_orig, nclasses=nclasses,use_basemap=use_basemap,
                                     show_zonal=True,zonal_timmean=False,
                                     dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks,
@@ -559,67 +565,69 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             ax1=f_hov.add_subplot(4,1,1); ax2=f_hov.add_subplot(4,1,2)
             ax3=f_hov.add_subplot(4,1,3); ax4=f_hov.add_subplot(4,1,4)
 
-            s_start_time = '1979-01-01' #todo: use periods specified in options !!!!
-            s_stop_time  = '2012-12-31'
+            s_start_time = '1992-01-01'
+            s_stop_time  = '1993-12-31'
             start_time = pl.num2date(pl.datestr2num(s_start_time))
             stop_time  = pl.num2date(pl.datestr2num(s_stop_time ))
 
             #generate a reference monthly timeseries (datetime)
-            tref = np.asarray(rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True)) #monthly timeseries
+            tref = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True) #monthly timeseries
 
-            ####################################################
-            # HOVMOELLER PLOT FOR MODEL
-            ####################################################
-
-            #--- perform temporal subsetting and interpolation for hovmoeller plot
+            #perform temporal subsetting and interpolation for hovmoeller plot
             tmp = model.variables[obs_type+'_org'][2]
-            if tmp != None:
-                tmp = tmp.interp_time(pl.date2num(tref))
 
-                if ls_mask != None:
-                    tmp._apply_mask(ls_mask)
+            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+            #tmp._temporal_subsetting(i1,i2)
+            tmp = tmp.interp_time(pl.date2num(tref))
+            if ls_mask != None:
+                tmp._apply_mask(ls_mask)
 
-                hov_model = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
-                hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
+            hov_model = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_model.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax1,showcolorbar=True,showxticks=False)
+            hov_model.hov = None
+            hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
+            del hov_model, tmp
 
-                hov_model.hov = None
-                hov_model.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax2,showcolorbar=True,showxticks=True)
-                del hov_model, tmp
-
-            ####################################################
-            # HOVMOELLER PLOT FOR OBSERVATIONS
-            ####################################################
+            #hovmoeller for observations
             tmp = obs_monthly.copy()
-            if tmp != None:
-                tmp = tmp.interp_time(pl.date2num(tref))
+            #i1,i2 = tmp._get_time_indices(start_time,stop_time)
+            #tmp._temporal_subsetting(i1,i2)
+            tmp = tmp.interp_time(pl.date2num(tref))
 
-                if ls_mask != None:
-                    tmp._apply_mask(ls_mask)
 
-                hov_obs = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
-                hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
+            if ls_mask != None:
+                tmp._apply_mask(ls_mask)
 
-                hov_obs.hov = None
-                hov_obs.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
-                del hov_obs, tmp
+            hov_obs = hovmoeller(tmp.num2date(tmp.time),None,rescaley=20,rescalex=20)
+            hov_obs.plot(climits=[vmin,vmax],input=tmp,xtickrotation=90,cmap='jet',ax=ax3,showcolorbar=True,showxticks=False)
+            hov_obs.hov = None
+            hov_obs.plot(climits=[dmin,dmax],input=tmp.get_deseasonalized_anomaly(base='current'),xtickrotation=90,cmap='RdBu_r',ax=ax4,showcolorbar=True)
+            del hov_obs, tmp
 
             report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')' )
             del f_hov
 
         if f_regional_analysis:
             raise ValueError, 'Feature for regional analysis not implemented so far'
-            REGSTAT = RegionalAnalysis(obs_orig,model_data,r)
-            REGSTAT.calculate()
+            REGSTAT = RegionalAnalysis(None,None,None)
+            #todo set regions for each variable separately instead of using the same regions for all variables!
+            for r in regions:
+                RD = RegionalAnalysis(obs_orig,model_data,r)
+                corr_value, p_corr = RD.get_correlation()
 
-            tay=REGSTAT.plot_taylor() #tay_reg is a taylor plot which is used for all models !
+                #--- save results in dummy variable
+                REGSTAT.save_result(r.label + '_' + model_data.label,corr_value,p_corr)
+                del RD
 
-            #todo: print results ???
-            REGSTAT.print_table(filename=report.outdir + 'regional_results_' + obs_type + '_' + obs_name + '_' + model._unique_name + '.txt')
+            #--- save regional analysis results in separate file
+            regfile = report.outdir + 'regional_results_' + obs_type + '_' + obs_name + '.txt'
+            REGSTAT.print_table(filename=regfile)
 
             #--- Taylor plot for regional analysis ---
-            report.figure(tay.figure,caption='Taylor plot for regional analysis (' + obs_name.upper() + ', ' + model._unique_name.upper() +  ')')
-            del tay, REGSTAT
-            stop #todo
+            f_regtaylor = REGSTAT.plot_taylor()
+            report.figure(f_regtaylor,caption='Taylor plot for regional analysis (' + obs_name.upper() + ')')
+            del f_regtaylor
+            stop
 
         if f_reichler == True:
             #/// Reichler statistics ///
@@ -733,11 +741,14 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP1
         #//////////////////////////////////////
-        tags = [{'tag': '<STARTYEAR>', 'value': '1995'}, {'tag': '<STOPYEAR>', 'value': '2005'},
-                {'tag': '<OUTDIR>', 'value': outdir},
-                {'tag': '<FFTFIGNAME>', 'value': 'FFT-Mask-' + model.name.replace(' ', '')},
-                {'tag': '<INPUTDATAFILE>', 'value': data_file}, {'tag': '<DATAVARNAME>', 'value': varname},
-                {'tag': '<FFTMASKFILE>', 'value': outdir + '/fft_mask.mat'}]
+        tags = []
+        tags.append({'tag':'<STARTYEAR>','value':'1995'})
+        tags.append({'tag':'<STOPYEAR>','value':'2005'})
+        tags.append({'tag':'<OUTDIR>','value':outdir })
+        tags.append({'tag':'<FFTFIGNAME>','value':'FFT-Mask-'+model.name.replace(' ','')})
+        tags.append({'tag':'<INPUTDATAFILE>','value':data_file})
+        tags.append({'tag':'<DATAVARNAME>','value':varname})
+        tags.append({'tag':'<FFTMASKFILE>','value':outdir+'/fft_mask.mat'})
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>',template1,tags,options=',quit',output_directory=rundir ) #temporary scripts are stored in directories that have same name as model
         E.run(execute=f_execute,remove_extension=True)
 
@@ -888,15 +899,10 @@ def tree_fraction_analysis(model_list,pft='tree'):
 
 
 #=======================================================================
-# SURFACE UPWARD FLUX -- begin
+# ALBEDO -- begin
 #=======================================================================
 
-def surface_upward_flux_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='surface_upward_flux',regions=regions)
-
-
-
-def xxxxxxxxxxxsurface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
+def surface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
 
     if shift_lon == None:
         raise ValueError, 'You need to specify shift_lon option!'
@@ -944,7 +950,7 @@ def xxxxxxxxxxxsurface_upward_flux_analysis(model_list,GP=None,shift_lon=None,us
 
 
 
-def xxxxxxxxxxxsurface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
+def surface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
     """
     model_list = list which contains objects of data type MODEL
     """
@@ -1069,15 +1075,11 @@ def xxxxxxxxxxxsurface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=N
 
 
 
-#=======================================================================
-# SURFACE UPWARD FLUX -- end
-#=======================================================================
 
 
 
-#=======================================================================
-# ALBEDO -- begin
-#=======================================================================
+
+
 
 
 
@@ -1086,6 +1088,12 @@ def albedo_analysis_vis(model_list,interval='season',GP=None,shift_lon=False,use
 
 def albedo_analysis_nir(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='albedo_nir',regions=regions)
+
+
+
+#=======================================================================
+# ALBEDO -- begin
+#=======================================================================
 
 def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
 
@@ -1301,7 +1309,9 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     if sectionheader != '':
         report.write(sectionheader) #write header text for the section if needed
     fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
+    print "GM plotting..."
     GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
+    print "end GM. .."
 
     if thevar in plot_options.options.keys():
         for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
@@ -1357,12 +1367,8 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 # SIS -- begin
 #=======================================================================
 
+
 def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='sis',regions=regions)
-
-
-
-def xxxxxxsis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None,regions=None):
     """
     main routine for SIS analysis
 
