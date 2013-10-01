@@ -69,19 +69,19 @@ class TestData4D(TestCase):
         
 # At the moment not included
 
-    def test_get_time_indices(self):
-        print "\nDoing test get_time_indices"
-        d1 = pl.num2date(pl.datestr2num('2001-01-05'))
-        d2 = pl.num2date(pl.datestr2num('2001-05-05'))
-        i1,i2 = self.D4d._get_time_indices(d1,d2)
-        s1 = str(pl.num2date(self.D4d.time[i1]))
-        s2 = str(pl.num2date(self.D4d.time[i2]))
-
-        print s1, i1
-        print s2, i2
-
-        self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
-        self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
+    #def test_get_time_indices(self):
+    #    print "\nDoing test get_time_indices"
+    #    d1 = pl.num2date(pl.datestr2num('2001-01-05'))
+    #    d2 = pl.num2date(pl.datestr2num('2001-05-05'))
+    #    i1,i2 = self.D4d._get_time_indices(d1,d2)
+    #    s1 = str(pl.num2date(self.D4d.time[i1]))
+    #    s2 = str(pl.num2date(self.D4d.time[i2]))
+    #
+    #    print s1, i1
+    #    print s2, i2
+    #
+    #    self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
+    #    self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
 
 
 #================================================================================
