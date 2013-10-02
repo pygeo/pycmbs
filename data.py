@@ -35,6 +35,7 @@ from cdo import *
 import datetime
 import pytz
 import pickle
+import datetime
 
 class Data(object):
     """
@@ -151,7 +152,10 @@ class Data(object):
         self._latitudecheckok = False #specifies if latitudes have been checked for increasing order (required for zonal plot)
 
         if label is None:
-            self.label = self.filename
+            if self.filename is None:
+                self.label = ''
+            else:
+                self.label = self.filename
         else:
             self.label = label
 
@@ -213,6 +217,9 @@ class Data(object):
 
     def _get_ndim(self): return self.data.ndim
     ndim = property(_get_ndim)
+
+    def _get_nt(self): return len(self.time)
+    nt = property(_get_nt)
 
 
 
@@ -1014,7 +1021,7 @@ class Data(object):
             #generate data object
             r = self.copy()
             r.data = res
-            r.time = pl.datestr2num(np.asarray([str(years[i])+'-01-01' for i in range(len(years))]))
+            r.time = self.date2num(np.asarray([datetime.datetime(year,1,1) for year in years]))
             r.time_cycle = 1
             return r
         else:
@@ -1078,7 +1085,7 @@ class Data(object):
             #generate data object
             r = self.copy()
             r.data = res
-            r.time = pl.datestr2num(np.asarray([str(years[i])+'-01-01' for i in range(len(years))]))
+            r.time = self.date2num(np.asarray([datetime.datetime(year,1,1) for year in years]))
             r.time_cycle = 1
             return r
         else:
@@ -1307,7 +1314,7 @@ class Data(object):
             raise ValueError, 'Invalid type for mask generation ' + mtype
 
         #--- generate mask with all months
-        mask = pl.zeros(len(self.time)).astype('bool')
+        mask = pl.zeros(self.nt).astype('bool')
 
         for m in v:
             hlp = vals == m
@@ -3712,15 +3719,12 @@ class Data(object):
 
         @return: list of C{Data} objects for correlation, slope, intercept, p-value, covariance
         @rtype: list
-
-        @todo significance of correlation (is the calculation correct? currently it assumes that all data is valid!)
-        @todo: it is still not ensured that masked data is handled properly!!!
         """
 
-        if self.data.ndim != 3:
+        if self.ndim != 3:
             raise ValueError, 'Invalid geometry!'
 
-        nt,ny,nx = sz = np.shape(self.data)
+        nt,ny,nx = sz = self.shape
 
         if nt != len(x):
             raise ValueError, 'Inconsistent geometries'
@@ -3742,7 +3746,7 @@ class Data(object):
         CO.shape = (-1)
 
         print 'Calculating correlation ...'
-        res = [stats.mstats.linregress(x,dat[:,i]) for i in range(n)] #@todo: still rather inefficient for masked arrays
+        res = [stats.mstats.linregress(x,dat[:,i]) for i in range(n)]
         res = np.asarray(res)
 
         slope = res[:,0]; intercept = res[:,1]
