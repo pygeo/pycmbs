@@ -27,6 +27,10 @@ from cdo import *
 from matplotlib.font_manager import FontProperties
 import pickle
 
+import matplotlib.pylab as pl
+
+matplotlib.rcParams['backend'] = 'Agg'
+
 
 
 #///////////////////////////////////////////////////////////////////////
@@ -1132,15 +1136,18 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     report.figure(fGa,caption='Global means for land surface albedo (summary)',bbox_inches=None)
     report.figure(fGb,caption='Global means for land surface albedo (climatological summary)',bbox_inches=None)
 
+    pl.close(fGa.number); del fGa
+    pl.close(fGb.number); del fGb
+    pl.close(fG.number); del fG
+
+
     print '************************************************************'
     print '* END ALBEDO analysis ...'
     print '************************************************************'
     print
 
     del GM
-    del fGa
-    del fGb
-    del fG
+
 
 
 def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None,regions=None):
@@ -1322,9 +1329,12 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
     report.figure(fGa,caption='Global means for ' + thelabel + ' (summary); areas indicate $\pm 1 \sigma$ as derived from the ensemble of models or observations',bbox_inches=None)
     report.figure(fGb,caption='Global means for ' + thelabel + ' (summary climatology)',bbox_inches=None)
+
+    pl.close(fG.number); del fG
+    pl.close(fGa.number); del fGa
+    pl.close(fGb.number); del fGb
+
     del GM
-    del fG
-    del fGa,fGb
 
     print
     print '************************************************************'
@@ -1461,22 +1471,22 @@ def beer_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=Non
         f_beer = figure()
         ax_Beer = f_beer.add_subplot(111)
         ls_mask = get_T63_landseamask(shift_lon)
-        
+
         obs_raw = local_plot_options['BEER']['obs_file']
         obs_var = local_plot_options['BEER']['obs_var']
         GPP_BEER   = Data(obs_raw,obs_var,read=True,lat_name='lat',lon_name='lon',label='GPP Beer_etal_2010',mask=ls_mask.data.data,unit='gC m-2 a-1')
         Beer_zonal = GPP_BEER.get_zonal_mean(return_object=True)
-        ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')       
+        ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')
         map_plot(GPP_BEER,title='Beer etal T63',vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_Beer)
-        
+
         report.subsection('Beer')
         report.figure(f_beer,caption='Beer etal 2010',bbox_inches=None)
 
-        
+
       if k == 'OPTIONS':
         for model in model_list:
 	  if model.name != 'mean-model':
-	      
+
             f_model = figure()
             ax_model = f_model.add_subplot(111)
             obs_mon_file     = get_temporary_directory()

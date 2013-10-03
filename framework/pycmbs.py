@@ -58,7 +58,8 @@ from pyCMBS import *
 
 #--- always use plot backend which is not interactive for benchmarking framework
 import matplotlib as mpl
-mpl.use('agg')
+mpl.rcParams['backend'] = 'Agg'
+#mpl.use('agg')
 
 #import mpl.pylab as pl
 pl = mpl.pylab
