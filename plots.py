@@ -626,7 +626,7 @@ class LinePlot():
                 ax = ax
                 set_axiscolor=True
 
-            if x.data.ndim == 1: #if a vector already provided
+            if x.ndim == 1: #if a vector already provided
                 y = x.data * 1.
             else:
                 y = x.fldmean() #... otherwise use fldmean() to get timeseries
@@ -655,10 +655,10 @@ class LinePlot():
 
             self.labels.append(label)
 
-            p = ax.plot(x.num2date(x.time), y , label=label, **kwargs)[0]
+            p = ax.plot(x.date, y , label=label, **kwargs)[0]
             self.lines.append(p)
             if self.regress:
-                ax.plot(x.num2date(x.time),x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
+                ax.plot(x.date,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
 
             if self.show_ylabel:
                 ax.set_ylabel(x._get_unit(),size=self.ticksize)

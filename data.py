@@ -2055,7 +2055,8 @@ class Data(object):
         @return: returns either C{Data} object or a numpy array. The following variables are returned: correlation, slope, intercept, p-value
                  the slope which is returned has unit [dataunit/day]
         """
-        x = self.time
+        dt = np.asarray([x.days for x in self.date-self.date[0]]) #time difference in days
+        x = dt
         R,S,I,P,C = self.corr_single(x,pthres=pthres)
 
         R.label = self.label + '(correlation)'
