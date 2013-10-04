@@ -197,7 +197,7 @@ class Anova2():
         s = 0.
         for i in np.arange(self.I): #eq.9.23
             for j in np.arange(self.J):
-                s = s + (ensmean[j,i] - self.tmean[i] - self.bmean[j] + self.mean)**2
+                s += (ensmean[j,i] - self.tmean[i] - self.bmean[j] + self.mean)**2
         self.ssi = self.n * s
 
     def _calc_sse(self):

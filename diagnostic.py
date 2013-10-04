@@ -653,7 +653,7 @@ class EOF(object):
         if label == None:
             label=''
         else:
-            label = label + ' '
+            label += ' '
 
         for i in k:
             y = self.eigvec[:,i].copy()
@@ -770,7 +770,7 @@ class EOF(object):
         if label == None:
             label = ''
         else:
-            label = label + ' '
+            label +=  ' '
 
         if ax == None:
             f = plt.figure()
@@ -1478,7 +1478,7 @@ class SVD():
             mu = U.data.mean(); su = U.data.std()
             mv = V.data.mean(); sv = V.data.std()
 
-            su = 1.96*su; sv = 1.96*sv #not used at the moment
+            su *= 1.96; sv *= 1.96 #not used at the moment
 
             if logplot:
                 umin=None;umax=None
@@ -1990,12 +1990,12 @@ class Diagnostic():
                     slope, intercept, r_value, p_value, std_err = sci.stats.linregress(xx[msk],yy[msk])
                 else:
 
-                    print nlags
+                    #print nlags
                     if nlags == None:
                         nlags = len(xx[msk])
                         if np.mod(nlags,2) == 0:
-                            nlags = nlags + 1
-                    print nlags
+                            nlags += 1
+                    #print nlags
 
                     r1,lags = NormCrossCorrSlow(xx[msk],yy[msk],nlags=nlags)
                     idx = nlags/2+lag #todo something does not work with the indices !!!
