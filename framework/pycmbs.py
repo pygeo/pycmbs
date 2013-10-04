@@ -665,7 +665,8 @@ for variable in variables:
         if k == 'OPTIONS':
             continue
         else:
-            thelabels.update({int(varoptions[k]['gleckler_position']) : k}) #generate dictionary for GlecklerPLot legend
+            if varoptions[k]['add_to_report']: #only add observation to legend, if option in INI file is set
+                thelabels.update({int(varoptions[k]['gleckler_position']) : k}) #generate dictionary for GlecklerPLot legend
     fl = global_gleckler._draw_legend(thelabels,title=variable.upper())
     rep.figure(fl,width='8cm',bbox_inches=None)
     del fl, thelabels
