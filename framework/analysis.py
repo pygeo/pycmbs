@@ -329,15 +329,15 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     f_mapseasons    = local_plot_options['OPTIONS']['map_seasons']
     f_mapseason_difference    = local_plot_options['OPTIONS']['map_season_difference']
     f_preprocess    = local_plot_options['OPTIONS']['preprocess']
-    f_reichler    = local_plot_options['OPTIONS']['reichler_plot']
-    f_gleckler    = local_plot_options['OPTIONS']['gleckler_plot']
-    f_hovmoeller    = local_plot_options['OPTIONS']['hovmoeller_plot']
-    f_regional_analysis = local_plot_options['OPTIONS']['regional_analysis']
-    f_globalmeanplot = local_plot_options['OPTIONS']['global_mean']
+    f_reichler           = local_plot_options['OPTIONS']['reichler_plot']
+    f_gleckler           = local_plot_options['OPTIONS']['gleckler_plot']
+    f_hovmoeller         = local_plot_options['OPTIONS']['hovmoeller_plot']
+    f_regional_analysis  = local_plot_options['OPTIONS']['regional_analysis']
+    f_globalmeanplot     = local_plot_options['OPTIONS']['global_mean']
     interpolation_method = local_plot_options['OPTIONS']['interpolation']
     targetgrid = local_plot_options['OPTIONS']['targetgrid']
     projection = local_plot_options['OPTIONS']['projection']
-    theunit = local_plot_options['OPTIONS']['units']
+    theunit    = local_plot_options['OPTIONS']['units']
 
     if regions == None:
         f_regional_analysis = False
@@ -435,7 +435,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     if f_reichler == True:
         Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
-    print f_reichler
+    #print f_reichler
 
     if f_globalmeanplot:
         if GM == None:
@@ -524,6 +524,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                                     dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks,
                                     proj=projection,stat_type=stat_type,show_stat=True)
             report.figure(f_dif,caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
+            pl.close(f_dif.number); del f_dif
 
         if f_mapseasons == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
@@ -537,6 +538,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                 report.figure(f_season,caption='Seasonal mean climatology for ' + model.name)
             else:
                 report.figure(f_season,caption='Monthly mean climatology for ' + model.name)
+            pl.close(f_season.number); del f_season
 
 
         if f_mapseason_difference:
@@ -550,7 +552,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                 report.figure(f_season_dif,caption='Seasonal mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
             else:
                 report.figure(f_season_dif,caption='Monthly mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
-
+            pl.close(f_season_dif.number); del f_season_dif
 
 
 
@@ -608,7 +610,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                 del hov_obs, tmp
 
             report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')' )
-            del f_hov
+            pl.close(f_hov.number); del f_hov
 
         if f_regional_analysis:
             raise ValueError, 'Feature for regional analysis not implemented so far'
