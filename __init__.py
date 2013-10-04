@@ -52,7 +52,10 @@ __email__ = "alexander.loew@zmaw.de"
 #------------------------------
 
 #- generic classes
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pylab as pl
+
 
 from scipy import stats
 
