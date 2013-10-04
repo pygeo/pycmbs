@@ -602,9 +602,9 @@ class Data(object):
         if (self.lat == None) or (self.lon is None):
             #logger.warning('WARNING: cell area can not be calculated (missing coordinates)!')
             print '        WARNING: cell area can not be calculated (missing coordinates)!'
-            if self.data.ndim == 2:
+            if self.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
-            elif self.data.ndim == 3:
+            elif self.ndim == 3:
                 self.cell_area = np.ones(self.data[0,:,:].shape)
             else:
                 #logger.error('Invalid geometry')
@@ -615,17 +615,17 @@ class Data(object):
         cell_file = self.filename[:-3]+'_cell_area.nc'
 
         if not os.path.exists(cell_file): #calculate grid area using CDO's
-            #cdo = Cdo()
+            cdo = Cdo()
             try:
                 cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
             except:
-                print 'Seems that cell_area file can not be generated, try to generate in temporary directory' #occurs if you dont have write permissions
+                print '   Seems that cell_area file can not be generated, try to generate in temporary directory' #occurs if you dont have write permissions
                 cell_file = tempfile.mktemp(prefix='cell_area_',suffix='.nc') #generate some temporary filename
                 try:
                     cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
-                    print 'Cell area file generated sucessfully in temporary file: ' + cell_file
+                    print '   Cell area file generated sucessfully in temporary file: ' + cell_file
                 except:
-                    print 'WARNING: Cell area could NOT be generated!'
+                    print '   WARNING: Cell area could NOT be generated!'
 
 
         #--- read cell_area file ---
@@ -814,8 +814,6 @@ class Data(object):
             if mask[i]:
                 self.data.mask[i,:,:] = True
 
-
-
 #-----------------------------------------------------------------------
 
 
@@ -858,7 +856,7 @@ class Data(object):
         if self.scale_factor == None:
             raise ValueError, 'The scale_factor for file ' + self.filename + 'is NONE, this must not happen!'
 
-        self.data = self.data * self.scale_factor
+        self.data *= self.scale_factor
 
         #--- squeeze data to singletone
         if self.squeeze:
@@ -1418,8 +1416,6 @@ class Data(object):
                     clim = self._climatology_raw
                 else:
                     raise ValueError, 'Climatology can not be calculated because of missing time_cycle!'
-
-
         else:
             raise ValueError, 'Anomalies can not be calculated, invalid BASE'
 
