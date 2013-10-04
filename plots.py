@@ -809,7 +809,7 @@ class GlobalMeanPlot():
 
                     y[m]=y[m]+yo[m]
                     ys[m] = ys[m] + yo[m]*yo[m]
-                    n[m]=n[m]+1.
+                    n[m] += 1.
 
                     if plot_clim:
                         pass
@@ -818,8 +818,8 @@ class GlobalMeanPlot():
 
                     del m
 
-            ym = y / n
-            ys = ys / n #squared values
+            ym = y / float(n)
+            ys /=  float(n) #squared values
             std_data = np.sqrt(ys - ym*ym)
 
             color=None
@@ -1077,9 +1077,9 @@ class HistogrammPlot():
         #--- calculate frequency distribution
         f,b = np.histogram(x,bins = self.bins,**kwargs)
         if self.normalize:
-            f = f / float(sum(f))
+            f /= float(sum(f))
             if self.percent:
-                f = f*100.
+                f *= 100.
 
         self.ax.plot(b[0:-1],f,color=color,linestyle=linestyle,linewidth=linewidth,label=label)
 
@@ -2251,7 +2251,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #--- save field that is plotted as file
     if savefile != None:
         if savefile[:-3] != '.nc':
-            savefile = savefile + '.nc'
+            savefile += '.nc'
         tmp = x.copy()
         tmp.data = xm*1.
         tmp.time = None

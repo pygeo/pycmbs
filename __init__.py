@@ -53,7 +53,7 @@ __email__ = "alexander.loew@zmaw.de"
 
 #- generic classes
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg')   #this is the first level import of Matplotlib. activate or deactivate here if you want to change the backend used
 from matplotlib import pylab as pl
 
 
