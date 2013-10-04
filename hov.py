@@ -544,8 +544,8 @@ class hovmoeller:
 
                     #print unique(v1), ulats[j]
                     if len(v1)>0.:
-                        outsum[j,i] = outsum[j,i] + sum(v1) #... and average them
-                        outn  [j,i] = outn  [j,i] + len(v1)
+                        outsum[j,i] +=  sum(v1) #... and average them
+                        outn  [j,i] +=  len(v1)
                     #~ print sum (v1), outsum[j,i], outn[j,i]
                 else:
                     print 'Da sollten wir beim Testen nicht landen todo'

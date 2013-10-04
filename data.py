@@ -775,7 +775,7 @@ class Data(object):
 
         changes lon field of Data object and sets variable _lon360
         """
-        self.lon[self.lon>=180.] = self.lon[self.lon>=180.]-360.
+        self.lon[self.lon>=180.] -= 360.
         self._lon360 = False
 
     def _shift_lon_360(self):
@@ -785,7 +785,7 @@ class Data(object):
 
         changes lon field of Data object and sets variable _lon360
         """
-        self.lon[self.lon<0.] = 360. + self.lon[self.lon<0.]
+        self.lon[self.lon<0.] += 360.
         self._lon360 = True
         print 'Longitudes were shifted to 0 ... 360!'
 
@@ -1369,7 +1369,7 @@ class Data(object):
 
         if return_object:
             r = self.copy()
-            r.label = r.label + ' - climatology'
+            r.label += ' - climatology'
             r.data = clim
             r.time = []
             for i in xrange(self.time_cycle):
