@@ -817,7 +817,8 @@ class GlobalMeanPlot():
 
                     del m
 
-            if n > 0:
+            print 'n: ', n
+            if len(n) > 0:
                 ym = y / float(n)
                 ys /=  float(n) #squared values
                 std_data = np.sqrt(ys - ym*ym)
