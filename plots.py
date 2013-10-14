@@ -821,7 +821,7 @@ class GlobalMeanPlot():
             if len(n) > 0:
                 n = map(float,n)
                 ym = y / n
-                ys /=  float(n) #squared values
+                ys /=  n #squared values
                 std_data = np.sqrt(ys - ym*ym)
 
                 color=None
