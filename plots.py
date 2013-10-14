@@ -784,6 +784,7 @@ class GlobalMeanPlot():
         for g in groups:
             dat = pdata[g] #this gives a list, where each entry is a dictionary of ['time','data','unit']
 
+            n = 0
             for i in xrange(len(dat)):
 
                 if i == 0:
@@ -816,24 +817,25 @@ class GlobalMeanPlot():
 
                     del m
 
-            ym = y / float(n)
-            ys /=  float(n) #squared values
-            std_data = np.sqrt(ys - ym*ym)
+            if n > 0:
+                ym = y / float(n)
+                ys /=  float(n) #squared values
+                std_data = np.sqrt(ys - ym*ym)
 
-            color=None
-            if colors != None:
-                if g in colors.keys():
-                    color=colors[g]
+                color=None
+                if colors != None:
+                    if g in colors.keys():
+                        color=colors[g]
 
-            if plot_clim:
-                tval = tref
-            else:
-                tval = pl.num2date(tref)
+                if plot_clim:
+                    tval = tref
+                else:
+                    tval = pl.num2date(tref)
 
-            ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
-            ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
-            ax.set_ylabel(dat[0]['unit'])
-            ax.set_xlabel('months')
+                ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
+                ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
+                ax.set_ylabel(dat[0]['unit'])
+                ax.set_xlabel('months')
 
         ax.legend()
         ax.grid()
