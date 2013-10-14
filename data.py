@@ -35,7 +35,7 @@ from cdo import *
 import datetime
 import pytz
 import pickle
-import datetime
+
 
 class Data(object):
     """
@@ -356,11 +356,11 @@ class Data(object):
                 raise ValueError, 'File already existing. Please delete manually or use DELETE option: ' + filename
 
         #/// variable name
-        if varname == None:
-            if self.varname is None:
-                varname = 'var1'
-            else:
-                varname = self.varname
+        #if varname is None:
+        #    if self.varname is None:
+        #        varname = 'var1'
+        #    else:
+        #        varname = self.varname
 
 
         F = open(filename,'w')
@@ -408,10 +408,13 @@ class Data(object):
         if self.data.ndim == 3:
             if self.time == None:
                 raise ValueError, 'No time variable existing! Can not write 3D data!'
-            nt,ny,nx = self.data.shape
+            nt,ny,nx = self.shape
             F.create_dimension('time',nt)
         elif self.data.ndim == 2:
-            ny,nx = self.data.shape
+            ny,nx = self.shape
+        else:
+            print self.shape
+            raise ValueError, 'Current shape not supported here'
 
         F.create_dimension('ny',ny)
         F.create_dimension('nx',nx)
@@ -426,7 +429,7 @@ class Data(object):
         elif self.data.ndim == 2:
             F.create_variable(varname,'d',('ny','nx'))
 
-        if self.lat != None:
+        if self.lat is not None:
             F.create_variable('lat','d',('ny','nx'))
             F.variables['lat'].units = 'degrees_north'
             F.variables['lat'].axis  = "Y"
@@ -449,7 +452,7 @@ class Data(object):
             F.variables['time'].calendar = self.calendar
 
         F.variables[varname].assign_value(self.data)
-        if self.lat != None:
+        if self.lat is not None:
             F.variables['lat'].assign_value(self.lat)
         if self.lon is not None:
             F.variables['lon'].assign_value(self.lon)
@@ -851,7 +854,7 @@ class Data(object):
         if self.verbose:
             print 'scale_factor : ', self.scale_factor
 
-        if self.data == None:
+        if self.data is None:
             raise ValueError, 'The data in the file ' + self.filename + ' is not existing. This must not happen!'
         if self.scale_factor == None:
             raise ValueError, 'The scale_factor for file ' + self.filename + 'is NONE, this must not happen!'
@@ -867,11 +870,11 @@ class Data(object):
             self._apply_mask(self.inmask)
 
         #read lat/lon
-        if self.lat_name == None: #try reading lat/lon using default names
+        if self.lat_name is None: #try reading lat/lon using default names
             self.lat_name = 'lat'
-        if self.lon_name == None:
+        if self.lon_name is None:
             self.lon_name = 'lon'
-        if self.lat_name != None:
+        if self.lat_name is not None:
             self.lat = self.read_netcdf(self.lat_name)
             #ensure that lat has NOT dimension (1,nlat)
             if self.lat != None:
@@ -884,7 +887,7 @@ class Data(object):
         if not self.lon_name is None:
             self.lon = self.read_netcdf(self.lon_name)
             #ensure that lon has NOT dimension (1,nlon)
-            if self.lon != None:
+            if self.lon is not None:
                 if self.lon.ndim == 2:
                     if self.lon.shape[0] == 1:
                         self.lon = self.lon[0,:]
@@ -896,14 +899,14 @@ class Data(object):
             self.lon = None
 
         #- read time
-        if self.time_var != None:
+        if self.time_var is not None:
             self.time = self.read_netcdf(self.time_var) #returns either None or a masked array
             if hasattr(self.time,'mask'):
                 self.time = self.time.data
             else:
                 self.time = None
 
-            if self.time != None:
+            if self.time is not None:
                 if self.time.ndim != 1:
                     self.time = self.time.flatten() #remove singletone dimensions
 
@@ -911,7 +914,7 @@ class Data(object):
             self.time = None
 
         #- determine time
-        if self.time != None:
+        if self.time is not None:
             self.set_time()
 
         #- lat lon to 2D matrix
@@ -928,7 +931,7 @@ class Data(object):
         #- check if latitude in decreasing order (N ... S)?
         if checklat:
             if hasattr(self,'lat'):
-                if self.lat != None:
+                if self.lat is not None:
                     if np.all(np.diff(self.lat[:,0])>0.): #increasing order!
                         self._flipud()
                         self._latitudecheckok = True
@@ -953,9 +956,9 @@ class Data(object):
             #print 'After subsetting: ', self.date.min(), self.date.max()
 
         #calculate time_cycle automatically if not set already. Try to detect it automatically
-        if self.time != None:
+        if self.time is not None:
             if hasattr(self,'time_cycle'):
-                if self.time_cycle == None:
+                if self.time_cycle is None:
                     self._set_timecycle()
             else:
                 self._set_timecycle()
@@ -978,7 +981,7 @@ class Data(object):
         @type return_data: bool
         """
 
-        if mask == None:
+        if mask is None:
             #if not mask is provided, take everything
             mask = np.ones(len(self.time)).astype('bool')
         else:
@@ -1129,7 +1132,7 @@ class Data(object):
         assert isinstance(Y,Data); assert isinstance(Z,Data)
 
         #if a second condition is given, use it ...
-        if ZY != None:
+        if ZY is not None:
             assert isinstance(ZY,Data)
         else:
             ZY = Z
@@ -1288,7 +1291,7 @@ class Data(object):
         @type v : list of numerical values
 
         @param mtype: specifies which mask should be applied (valid values: ['monthly','yearly'])
-        @type mytpe : str
+        @type mtype : str
 
         Example:
         get_temporal_mask([1,2,3],mtype='monthly')
@@ -1583,9 +1586,6 @@ class Data(object):
 
         This is done for a *single* timestep!
 
-        @param time_str: time string that specifies start date. Needs to contain 'months since'
-        @type time_str: str
-
         @param nmonths: time as numeric value (number of months since basedate)
         @type nmonths: float or int
 
@@ -1866,7 +1866,7 @@ class Data(object):
         """
 
         #- no subsetting
-        if start == None or stop == None:
+        if start == None or stop is None:
             return 0, len(self.time)-1
         if stop < start:
             sys.exit('Error: startdate > stopdate')
@@ -2914,7 +2914,7 @@ class Data(object):
 
             if ~all(msk):
                 #--- the months are not equally spaced, therefore generate a list manually
-                from datetime import date
+                ###from datetime import date
                 from dateutil.relativedelta import relativedelta
                 x=[]
                 bdate0 = datetime(bdate.year,bdate.month,bdate.day)
@@ -3127,8 +3127,6 @@ class Data(object):
         apply a mask to C{Data}. All data where mask==True
         will be masked. Former data and mask will be stored
 
-        @param msk: mask
-        @type msk : numpy boolean array or Data
 
         @param keep_mask: keep old masked
         @type keep_mask : boolean

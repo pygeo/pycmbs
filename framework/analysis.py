@@ -272,7 +272,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #//////////////////////////////////////////////////////////////////
     #--- plot options which are SPECIFIC to observational data sets
     for_report = local_plot_options[obs_name]['add_to_report'] #add a certain observational dataset to report
-    if for_report == False:
+    if not for_report:
         print '   The following data will not be included in the report as option for reporting is not set: ' + obs_name + ' ' +  obs_type
         return
 
@@ -324,27 +324,23 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
     #//////////////////////////////////////////////////////////////////
     #--- plot options which are the same for all datasets
-    cticks = local_plot_options['OPTIONS']['cticks']
-    f_mapdifference = local_plot_options['OPTIONS']['map_difference']
-    f_mapseasons    = local_plot_options['OPTIONS']['map_seasons']
+    cticks               = local_plot_options['OPTIONS']['cticks']
+    f_mapdifference           = local_plot_options['OPTIONS']['map_difference']
+    f_mapseasons              = local_plot_options['OPTIONS']['map_seasons']
     f_mapseason_difference    = local_plot_options['OPTIONS']['map_season_difference']
-    f_preprocess    = local_plot_options['OPTIONS']['preprocess']
-    f_reichler           = local_plot_options['OPTIONS']['reichler_plot']
-    f_gleckler           = local_plot_options['OPTIONS']['gleckler_plot']
-    f_hovmoeller         = local_plot_options['OPTIONS']['hovmoeller_plot']
-    f_regional_analysis  = local_plot_options['OPTIONS']['regional_analysis']
-    f_globalmeanplot     = local_plot_options['OPTIONS']['global_mean']
-    interpolation_method = local_plot_options['OPTIONS']['interpolation']
-    targetgrid = local_plot_options['OPTIONS']['targetgrid']
-    projection = local_plot_options['OPTIONS']['projection']
-    theunit    = local_plot_options['OPTIONS']['units']
+    f_preprocess              = local_plot_options['OPTIONS']['preprocess']
+    f_reichler                = local_plot_options['OPTIONS']['reichler_plot']
+    f_gleckler                = local_plot_options['OPTIONS']['gleckler_plot']
+    f_hovmoeller              = local_plot_options['OPTIONS']['hovmoeller_plot']
+    f_regional_analysis       = local_plot_options['OPTIONS']['regional_analysis']
+    f_globalmeanplot          = local_plot_options['OPTIONS']['global_mean']
+    interpolation_method      = local_plot_options['OPTIONS']['interpolation']
+    targetgrid                = local_plot_options['OPTIONS']['targetgrid']
+    projection                = local_plot_options['OPTIONS']['projection']
+    theunit                   = local_plot_options['OPTIONS']['units']
 
     if regions == None:
         f_regional_analysis = False
-
-
-
-
 
     if 'nclasses' in local_plot_options['OPTIONS'].keys():
         nclasses            = local_plot_options['OPTIONS']['nclasses']
@@ -355,11 +351,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         vmin = local_plot_options['OPTIONS']['vmin']
     else:
         vmin = None
+
     if 'vmax' in local_plot_options['OPTIONS'].keys():
         vmax = local_plot_options['OPTIONS']['vmax']
     else:
         vmax = None
-
 
     if 'dmin' in local_plot_options['OPTIONS'].keys():
         dmin = local_plot_options['OPTIONS']['dmin']
@@ -434,8 +430,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #--- initialize Reichler plot
     if f_reichler == True:
         Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    #print f_reichler
 
     if f_globalmeanplot:
         if GM == None:

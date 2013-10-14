@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -21,14 +20,14 @@ __email__ = "alexander.loew@zmaw.de"
 '''
 
 
-'''
+"""
 Module that contains relevant classes for diagnostic plots
 
 @todo: implement writing of statistics to an ASCII file as export
 @todo: implement taylor plots
 @todo: faster implementation of Basemap plots. For large number of grid cells, the current KTree implementation is by far too slow!
 
-'''
+"""
 import matplotlib as mpl
 mpl.use('agg')
 
@@ -316,9 +315,9 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 
     def circle_plot(self):
-        '''
+        """
         nice looking plot of Reichler index
-        '''
+        """
         print 'Doing Reichler plot as circle plot ...'
         self._normalize()
 
@@ -563,7 +562,6 @@ class LinePlot():
 
         self.xtickrotation = xtickrotation
 
-        #~ self.showxticks = showxticks
 
 #-----------------------------------------------------------------------
 
@@ -743,13 +741,13 @@ class GlobalMeanPlot():
 
 
         def coregister(x,x1,y1,d):
-            '''
+            """
             This routine provides the functionality to coregister two timeseries of data
             x : reference x vector
             x1: x-value of data
             y1: y-value of data
             d : difference in t (threshold)
-            '''
+            """
 
             o=[]
             for xx in x:
@@ -1093,7 +1091,7 @@ class HistogrammPlot():
 
 class ZonalPlot():
     def __init__(self,ax=None,dir='y'):
-        '''
+        """
         @todo: still needs to take into account appropriately area weighting
 
         constructor for zonal plot
@@ -1102,7 +1100,7 @@ class ZonalPlot():
 
         CAUTION: the class simply aggregates x/y. Thus the user needs to ensure, that the data is projected
         in a way that all lon/lat are on the same row/col
-        '''
+        """
 
         #--- directionalities
         if dir == 'y': #zonal plot
