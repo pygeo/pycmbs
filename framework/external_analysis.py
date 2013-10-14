@@ -24,7 +24,7 @@ import os
 
 class ExternalAnalysis():
     def __init__(self,executable,template,tags,output_directory='./',options=''):
-        '''
+        """
         constructor for ExternalAnalysis class
 
         @param executable: name of system executable to be called to run analysis. This string need to include all options and have a tag <INPUTFILE>
@@ -45,7 +45,7 @@ class ExternalAnalysis():
         @param options: options that will be appended to the filename in the end
         @type options: str
 
-        '''
+        """
 
         if not '<INPUTFILE>' in executable:
             raise ValueError, 'The commmand needs to include <INPUTFILE> tag'
@@ -61,11 +61,11 @@ class ExternalAnalysis():
 
 
     def _create_script(self):
-        '''
+        """
         replace tags in a template file
 
         returns filename
-        '''
+        """
 
         #--- check if template file existing
         if not os.path.exists(self.template):
@@ -94,7 +94,7 @@ class ExternalAnalysis():
 
 
     def run(self,execute=True,remove_extension=False,statusfile = None):
-        '''
+        """
         run external program
         the execution of the program will be done in the directory where the modified script is located
         this is done, because programs like e.g. matlab have problems when the scriptname is provided with
@@ -105,7 +105,7 @@ class ExternalAnalysis():
 
         @param remove_extension: remove extension from filename. This is for instance needed for matlab calls from the command line, as matlab does NOT accept script names with a fileextension
         @type remove_extension: bool
-        '''
+        """
 
         #/// generate run script (returns filename) ///
         filename = self._create_script()

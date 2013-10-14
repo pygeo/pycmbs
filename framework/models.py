@@ -6,7 +6,7 @@ __version__ = "0.1.1"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
 
-'''
+"""
 # Copyright (C) 2012-2013 Alexander Loew, alexander.loew@zmaw.de
 # See COPYING file for copying and redistribution conditions.
 #
@@ -18,7 +18,7 @@ __email__ = "alexander.loew@zmaw.de"
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-'''
+"""
 
 
 
@@ -28,11 +28,6 @@ from cdo import *
 import tempfile as tempfile
 import copy
 import pickle
-
-'''
-@todo: implement reading of air temperature fields
-'''
-
 
 
 
@@ -48,8 +43,6 @@ class Model(Data):
         @param intervals: a dictionary from configuration, that specifies the temporal interval to be used within each analyis
         @type intervals: dict
 
-
-
         INPUT
         -----
         filename: name of the file to read data from (single file currently)
@@ -63,11 +56,11 @@ class Model(Data):
         if intervals == None:
             raise ValueError, 'Invalid intervals for Model data: needs specification!'
         #--- set a list with different datasets for different models
-        self.dic_vars = dic_variables
+        self.dic_vars  = dic_variables
         self.intervals = intervals
 
         #--- set some metadata
-        self.name = name
+        self.name     = name
         self.data_dir = data_dir
 
         if 'start_time' in kwargs.keys():
@@ -156,9 +149,13 @@ class MeanModel(Model):
 
                 #the variables[] list contains Data objects!
                 hlp1 = self.variables[k] #is a Data object or a tuple! The Data object contains already the climatological mean value!
-                hlp2 = M.variables[k]
+                if k in M.variables.keys():
+                    hlp2 = M.variables[k]
+                else:
+                    print('Warning: variable %s is not available!' % k)
+                    hlp2 = None
 
-                if hlp2 == None:
+                if hlp2 is None:
                     print 'WARNING: Provided model is missing data field for variable ' + k.upper()
                     #print '         Ensemble member can not be added! Do debugging using pickled file!'
                     #pickle.dump(M,open('model.pkl','w'))
@@ -169,7 +166,7 @@ class MeanModel(Model):
                 if isinstance(hlp1,tuple):
                     self.variables.update( { k : (None,None,None) } )
                 else: #mean model!
-                    if hlp1 == None:
+                    if hlp1 is None:
                         continue
                     theD = hlp1.copy()
                     theD.add(hlp2,copy=False) #SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
@@ -299,7 +296,6 @@ class CMIP5Data(Model):
     """
     def __init__(self,data_dir,model,experiment,dic_variables,name='',shift_lon=False,**kwargs):
         """
-
         @param data_dir: directory that specifies the root directory where the data is located
         @param model: TBD tood
         @param experiment: specifies the ID of the experiment (str)
@@ -309,10 +305,14 @@ class CMIP5Data(Model):
         @param kwargs: other keyword arguments
         @return:
         """
-        Model.__init__(self,None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+        #Model.__init__(self,None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
 
-        self.model      = model; self.experiment = experiment
-        self.data_dir   = data_dir; self.shift_lon  = shift_lon
+        super(CMIP5Data,self).__init__(data_dir,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+
+        self.model      = model
+        self.experiment = experiment
+        self.data_dir   = data_dir
+        self.shift_lon  = shift_lon
         self.type       = 'CMIP5'
 
         self._unique_name = self._get_unique_name()
@@ -522,11 +522,11 @@ class CMIP5Data(Model):
 
     def xxxget_rainfall_data(self,interval=None):
 
-        '''
+        """
         return data object of
         a) seasonal means for precipitation
         b) global mean timeseries for PR at original temporal resolution
-        '''
+        """
 
         if interval != 'season':
             raise ValueError, 'Other data than seasonal not supported at the moment for CMIP5 data and rainfall!'
