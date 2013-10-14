@@ -953,6 +953,7 @@ class Data(object):
                 if self.time_cycle == None:
                     self._set_timecycle()
             else:
+                self._pad_timeseries()
                 self._set_timecycle()
 
 #-----------------------------------------------------------------------
@@ -3847,6 +3848,10 @@ class Data(object):
 
             # get value of unique differences between months; only values 1 and -11 are allowed
             di = np.unique(np.diff(mo))
+
+            print self.num2date(self.time)
+            print "DI: ", np.diff(mo)
+            print "DI SHAPE: ", len(mo)
             if len(di) > 2:
                 return False
 
@@ -3867,6 +3872,53 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
+    def _pad_timeseries(self,fill_value=-99.):
+        
+        import numpy as np
+        from matplotlib import dates
+        from dateutil.rrule import rrule, MONTHLY
+
+        data   = self.data
+        time   = self.time
+        
+        dummy_data = np.ma.array(np.ones(data[0,:,:].shape)*data.fill_value,\
+                                        fill_value=data.fill_value,\
+                                        mask=np.ones(data[0,:,:].shape)*True)
+
+        months = self._get_months()
+        mondif = np.diff(months)
+        
+        gaps = np.where(mondif>1)
+        new_time = self.num2date(time)
+        new_data = data.copy()
+
+        print "GAPS", gaps
+
+        idx_shift = 0
+
+        for i in gaps[0]:
+            start_time = new_time[i+idx_shift]
+            stop_time  = new_time[i+1+idx_shift]
+            gap_months = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True)[1:-1]
+
+            # gap_months = np.ceil(\
+            #                 np.linspace(new_time[i+idx_shift],new_time[i+1+idx_shift],mondif[i]+1)\
+            #                 )[1:-1] # skip first and last members
+
+            new_time = np.insert(new_time,i+1+idx_shift,gap_months)
+            new_data = np.insert(new_data,i+1+idx_shift,dummy_data,axis=0)
+
+            idx_shift = idx_shift + len(gap_months)
+
+        data_masked = np.ma.array(new_data.data,mask = new_data == fill_value,fill_value=fill_value)
+
+        self.time = self.date2num(new_time)
+        self.data = data_masked.copy()
+
+        mondif = np.diff(self._get_months())
+        #print "MONDIF new;", mondif
+#-----------------------------------------------------------------------
+
     def _set_timecycle(self):
         """
         determine automatically the timecycle of the data and set the appropriate variable if possible
@@ -3878,7 +3930,7 @@ class Data(object):
         if self._is_monthly():
             self.time_cycle=12
         else:
-            print 'WARNING: timecycle can not be set automatically!'
+            print "WARNING: timecycle can not be set automatically, exiting"
 
 #-----------------------------------------------------------------------
 
