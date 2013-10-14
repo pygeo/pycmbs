@@ -91,11 +91,8 @@ class Region():
         """
         return a list of corner lat/lon
         """
-        l = []
-        l.append( (self.lonmin,self.latmin)   )
-        l.append( (self.lonmin,self.latmax)   )
-        l.append( (self.lonmax,self.latmax)   )
-        l.append( (self.lonmax,self.latmin)   )
+        l = [(self.lonmin, self.latmin), (self.lonmin, self.latmax), (self.lonmax, self.latmax),
+             (self.lonmax, self.latmin)]
         return l
 
 #-----------------------------------------------------------------------
