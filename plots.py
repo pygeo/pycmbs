@@ -1535,12 +1535,12 @@ class GlecklerPlot():
             return l[0], r[-1], b[-1], t[0]
 
         if autoscale:
-            self.fig.set_size_inches(2.+0.5*nv,4.+0.5*nm) #important to have this *before* drawring the colorbar
+            self.fig.set_size_inches(5.+0.5*nv,4.+0.5*nm) #important to have this *before* drawring the colorbar
 
 
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
         #draw legend
-        c=0.75
+        c=1.
         width=(right-left)*c
         if show_colorbar:
             self._draw_colorbar(left,width,logscale=logscale)
