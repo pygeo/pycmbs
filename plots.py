@@ -1425,7 +1425,7 @@ class GlecklerPlot():
     def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,
              normalize=True,size=10,method='median',title=None,show_value=False,
              logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,
-             colorbar_boundaries=None,show_colorbar=True):
+             colorbar_boundaries=None,show_colorbar=True,autoscale=True):
         """
         plot Gleckler diagram
 
@@ -1463,6 +1463,9 @@ class GlecklerPlot():
 
         @param show_colorbar: show colorbar plot
         @type show_colorbar: bool
+
+        @param autoscale: autoscale figure size
+        @type autoscale: bool
 
         """
 
@@ -1531,6 +1534,10 @@ class GlecklerPlot():
             b = x[0]; t = x[1]; l = x[2]; r = x[3]
             return l[0], r[-1], b[-1], t[0]
 
+        if autoscale:
+            self.fig.set_size_inches(2.+0.5*nv,4.+0.5*nm) #important to have this *before* drawring the colorbar
+
+
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
         #draw legend
         c=0.75
@@ -1540,6 +1547,8 @@ class GlecklerPlot():
 
         if title != None:
             self.fig.suptitle(title)
+
+
 
         return self.fig
 
