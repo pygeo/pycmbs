@@ -1517,7 +1517,7 @@ class GlecklerPlot():
 
                 #labels
                 if cnt_v == 0:
-                    ax.set_ylabel(model,size=size,rotation='horizontal')
+                    ax.set_ylabel(model,size=size,rotation='horizontal',horizontalalignment='right') #set labels for models
                 if cnt_m == nm:
                     ax.set_xlabel(variable,size=size)
 
@@ -1535,7 +1535,7 @@ class GlecklerPlot():
             return l[0], r[-1], b[-1], t[0]
 
         if autoscale:
-            self.fig.set_size_inches(8.+0.5*nv,4.+0.5*nm) #important to have this *before* drawring the colorbar
+            self.fig.set_size_inches(3.+0.5*nv,4.+0.5*nm) #important to have this *before* drawring the colorbar
 
 
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
