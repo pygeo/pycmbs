@@ -44,7 +44,7 @@ class Data(object):
     def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,
                  label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,
                  time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,
-                 time_var='time',checklat=True,weighting_type='valid',oldtime=False):
+                 time_var='time',checklat=True,weighting_type='valid',oldtime=False,warnings=True):
         """
         Constructor for Data class
 
@@ -107,6 +107,9 @@ class Data(object):
         @param cell_area: area size [m**2] of each grid cell. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
         @type cell_area: numpy array
 
+        @param warnings: log warnings in a separate logfile
+        @type warnings: bool
+
 
         @param weighting_type: specifies how normalization shall be done ['valid','all']
                         'valid': the weights are calculated based on all VALID values, thus the sum of all these weights is one
@@ -150,6 +153,9 @@ class Data(object):
         self.gridtype = None
         self._oldtime = oldtime
         self._latitudecheckok = False #specifies if latitudes have been checked for increasing order (required for zonal plot)
+
+        self.warnings = warnings
+
 
         if label is None:
             if self.filename is None:
@@ -222,8 +228,26 @@ class Data(object):
     nt = property(_get_nt)
 
 
+    def _log_warning(self,s):
+        """
+        log warnings in a datafile
 
+        @param s: string with warning message
+        @type s: str
+        """
 
+        file = 'data_warnings.log'
+
+        if os.path.exists(file):
+            mode = 'a'
+        else:
+            mode = 'w'
+
+        print("   " + s)
+
+        f = open(file,mode)
+        f.write(self.filename + '\t' + s + '\n')
+        f.close()
 
 #-----------------------------------------------------------------------
 
@@ -335,6 +359,9 @@ class Data(object):
 
 
 #-----------------------------------------------------------------------
+
+
+
 
     def _save_ascii(self,filename,varname=None,delete=False):
         """
@@ -604,7 +631,7 @@ class Data(object):
 
         if (self.lat == None) or (self.lon is None):
             #logger.warning('WARNING: cell area can not be calculated (missing coordinates)!')
-            print '        WARNING: cell area can not be calculated (missing coordinates)!'
+            self._log_warning("WARNING: cell area can not be calculated (missing coordinates)!")
             if self.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
             elif self.ndim == 3:
@@ -640,8 +667,10 @@ class Data(object):
             #--- no cell are calculation possible!!!
             #logger.warning('Can not estimate cell area! (setting all equal) ' + cell_file)
 
-            print '*** WARNING: Can not estimate cell area! ' + cell_file
-            print '    setting cell_area all to equal'
+            self._log_warning('*** WARNING: Can not estimate cell area! ' + cell_file)
+            self._log_warning(' setting cell_area all to equal')
+
+
             if self.data.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
             elif self.data.ndim == 3:
@@ -672,7 +701,7 @@ class Data(object):
         """
 
         if self.cell_area is None:
-            print 'WARNING: no cell area given, zonal means are based on equal weighting!'
+            self._log_warning('WARNING: no cell area given, zonal means are based on equal weighting!')
             w = np.ones(self.data.shape)
         else:
             w = self._get_weighting_matrix()
@@ -962,6 +991,7 @@ class Data(object):
                     self._set_timecycle()
             else:
                 self._set_timecycle()
+
 
 #-----------------------------------------------------------------------
 
@@ -1953,7 +1983,7 @@ class Data(object):
             print 'Reading file ', self.filename
         if not varname in F.variables.keys():
             if self.verbose:
-                print '        WARNING: data can not be read. Variable not existing! ', varname
+                self._log_warning('WARNING: data can not be read. Variable not existing! ', varname)
             F.close()
             return None
 
@@ -3877,7 +3907,7 @@ class Data(object):
         if self._is_monthly():
             self.time_cycle=12
         else:
-            print 'WARNING: timecycle can not be set automatically!'
+            self._log_warning('WARNING: timecycle can not be set automatically!')
 
 #-----------------------------------------------------------------------
 
