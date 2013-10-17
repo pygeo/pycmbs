@@ -875,6 +875,8 @@ class Data(object):
 
         self.time_var = time_var
 
+        self._log_warning('Reading ...')
+
 
         #read data
         self.data = self.read_netcdf(self.varname) #o.k.
