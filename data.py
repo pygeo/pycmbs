@@ -875,7 +875,7 @@ class Data(object):
 
         self.time_var = time_var
 
-        self._log_warning('Reading ...')
+        #self._log_warning('Reading ...')
 
 
         #read data

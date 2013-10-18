@@ -683,7 +683,7 @@ for variable in variables:
 # COPY logfiles of Data (e..g warnings related to unvalid area weighting!)
 ########################################################################################################################
 if os.path.exists('data_warnings.log'):
-    os.system('mv data_warnings.log ' + oudir)
+    os.system('mv data_warnings.log ' + outdir)
     print("**********************************+")
     print("THERE WERE DATA WARNINGS !!!!")
     print("**********************************+")
