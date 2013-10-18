@@ -447,6 +447,13 @@ class ScatterPlot():
             else:
                 xdat = self.x.data.flatten(); ydat = y.data.flatten()
 
+        assert(isinstance(xdat,np.ma.core.MaskedArray))
+        assert(isinstance(ydat,np.ma.core.MaskedArray))
+
+        #--- mask invalid data
+        xdat = np.ma.masked_where(np.isnan(xdat),xdat)
+        ydat = np.ma.masked_where(np.isnan(ydat),ydat)
+
         if self.normalize:
             xdat = self.__normalize_data(xdat)
             ydat = self.__normalize_data(ydat)
@@ -454,6 +461,8 @@ class ScatterPlot():
         #- calculate linear regression
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat,ydat)
+
+
             rms_error = np.sqrt(np.mean(((xdat-ydat)**2)))
             std_error = np.std(xdat-ydat)
             if p_value < 0.01:
