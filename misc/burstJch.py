@@ -42,9 +42,12 @@ def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192)):
     set_attrs(olat,lat)
     set_attrs(olon,lon)
     set_attrs(oclisccp,cli)
+
+    print clisccp.shape
+    print oclisccp.shape
     
     otime[:] = time[:]
-    oclisccp[:] = clisccp[:]
+    oclisccp[:] = clisccp
     olat[:] = lat[:]
     olon[:] = lon[:]
 
@@ -66,7 +69,7 @@ def burst_9_types(filename,ldict,outputdir="."):
         dirname  = outputdir
         ofilename = dirname + "/" + "%s-%s" % (name,basename)
 
-        create_ofile(ofilename,time,lat,lon,cli,clsum)
+        create_ofile(ofilename,time,lat,lon,cli,clsum,shape=(lat.shape[0],lon.shape[0]))
         print "*** Created new file: %s" % ofilename
 
 
@@ -93,9 +96,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
