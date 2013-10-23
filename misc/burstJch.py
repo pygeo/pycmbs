@@ -4,7 +4,11 @@ from pylab import imshow, show, colorbar
 import Nio
 import numpy as np
 import os,sys
+import optparse
 
+'''
+usage: ./burstJch.py clisccp.nc outputdir
+'''
 
 def get_ncdata(ifilename):
     
@@ -26,9 +30,9 @@ def sum2d(arr, axis=0):
 
 def set_attrs(newvar,oldvar):
     for att in oldvar.ncattrs():
-        newvar.setncattr(att,oldvar.getncattr(att))
+        newvar.setncattr(att,str(oldvar.getncattr(att)))
 
-def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192)):
+def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192),varname='clisccp'):
     ofile = nc.Dataset(ofilename,'w',format='NETCDF3_CLASSIC')
     ofile.createDimension('time',time.shape[0])
     ofile.createDimension('lat',shape[0])
@@ -36,15 +40,17 @@ def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192)):
     otime = ofile.createVariable('time','f8', ('time',))
     olat  = ofile.createVariable('lat','f8',('lat',))
     olon  = ofile.createVariable('lon','f8',('lon',))
-    oclisccp = ofile.createVariable('clisccp','f8',('time','lat','lon'))
+    oclisccp = ofile.createVariable(varname,'f8',('time','lat','lon'), fill_value=1.0e+20)
 
     set_attrs(otime,time)
     set_attrs(olat,lat)
     set_attrs(olon,lon)
-    set_attrs(oclisccp,cli)
-
-    print clisccp.shape
-    print oclisccp.shape
+    #set_attrs(oclisccp,cli)
+    
+    ## quick fix
+    #oclisccp._FillValue = float(cli._FillValue)
+    oclisccp.long_name = "%s cloud fraction" % ( varname.split("_")[0].title())
+    oclisccp.units = "%"
     
     otime[:] = time[:]
     oclisccp[:] = clisccp
@@ -62,21 +68,27 @@ def burst_9_types(filename,ldict,outputdir="."):
         name, bnds = key,ldict[key]
         tb = bnds[0]
         pb = bnds[1]
-        clouds = cli[:,tb[0]:tb[1],pb[0]:pb[1]].copy()
+        clouds = cli[:,tb[0]:tb[1],pb[0]:pb[1],:,:].copy()
         clsum  = sum2d(clouds,axis=1)
 
         basename = os.path.basename(filename)
         dirname  = outputdir
         ofilename = dirname + "/" + "%s-%s" % (name,basename)
 
-        create_ofile(ofilename,time,lat,lon,cli,clsum,shape=(lat.shape[0],lon.shape[0]))
+        create_ofile(ofilename,time,lat,lon,cli,clsum,shape=(lat.shape[0],lon.shape[0]),varname="%s_jch"%name)
         print "*** Created new file: %s" % ofilename
 
 
 def main():
 
-    plow = [0,2]; pmid = [2,4]; phigh = [4,6]
+
+    parser = optparse.OptionParser()
+    parser.add_option('-c', action="store", default='ns', dest="cloud_type", type="str")
+
+    options, args = parser.parse_args()
+
     tlow = [0,3]; tmid = [3,5]; thigh = [5,7]
+    plow = [0,2]; pmid = [2,4]; phigh = [4,7]
     
     ldict = {
         'ci': [ tlow ,  phigh ],
@@ -90,8 +102,8 @@ def main():
         'st': [ thigh,  plow  ] }
 
 
-    ifile = sys.argv[1]
-    burst_9_types(ifile,ldict,outputdir=sys.argv[2])
+    ifile = args[0]
+    burst_9_types(ifile,ldict,outputdir=args[1])
 
 
 if __name__ == "__main__":
