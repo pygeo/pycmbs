@@ -623,7 +623,12 @@ class Data(object):
         nothing will happen. Otherwise it will be tried to calculate cell_area from
         coordinates using the CDO's
 
-        @todo: implement the calculation of cell_area in a pythonic way
+        The estimation of the cell area follows the following steps:
+        1) try to estimate cellarea using cdo gridarea
+        2) if this does not work:
+            a) directory is write protected --> write to temporary directory
+            b) unknown grid --> try to select another grid, using cdo selgrid
+        3) if all this does not work, then cell_area is set to unity for all grid cells and a WARNING is raised
         """
 
         if not self.cell_area is None:
@@ -655,7 +660,15 @@ class Data(object):
                     cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
                     print '   Cell area file generated sucessfully in temporary file: ' + cell_file
                 except:
-                    print '   WARNING: Cell area could NOT be generated!'
+                    #--- not sucessfull so far ... last try here by selecting an alternative grid (if available)
+                    print("   Try to calculate gridarea using alternative grid")
+                    cell_file = tempfile.mktemp(prefix='cell_area_',suffix='.nc') #generate some temporary filename
+                    try:
+                        cdo.gridarea(options='-f nc',output=cell_file,input='-selgrid,2 ' + self.filename)
+                        print '   Cell area file generated sucessfully in temporary file: ' + cell_file
+                    except:
+                        print('WARNING: no cell area could be generated!')
+
 
 
         #--- read cell_area file ---
