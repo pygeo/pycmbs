@@ -1455,17 +1455,23 @@ class JSBACH_RAW(Model):
         @rtype: C{Data}
         """
 
-        if interval != 'season':
-            raise ValueError, 'Other temporal sampling than SEASON not supported yet for JSBACH RAW files, sorry'
 
-        v = 'surface_temperature'
+        print "********* WARNING: This class is obsolete and a lot of things are hardwired at the moment !!! **********"
+
+
+
+
+        if interval != 'monthly':
+            raise ValueError, 'Other temporal sampling than MONTHLY not supported yet for JSBACH RAW files, sorry'
+
+        v = 'temp2'
 
         y1 = '1979-01-01'; y2 = '2010-12-31'
-        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_land_' + y1[0:4] + '_' + y2[0:4] + '.nc'
-
+        rawfilename = self.data_dir + self.id + '/ymonmean_mm_temp_' + self.experiment + '.nc'
 
         if not os.path.exists(rawfilename):
             print 'File not existing (rawfile): ', rawfilename
+            stop
             return None
 
         filename = rawfilename
