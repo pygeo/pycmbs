@@ -1467,7 +1467,7 @@ class JSBACH_RAW(Model):
         v = 'temp2'
 
         y1 = '1979-01-01'; y2 = '2010-12-31'
-        rawfilename = self.data_dir + self.id + '/ymonmean_mm_temp_' + self.experiment + '.nc'
+        rawfilename = self.data_dir + self.name + '/ymonmean_mm_temp_' + self.experiment + '.nc'
 
         if not os.path.exists(rawfilename):
             print 'File not existing (rawfile): ', rawfilename
