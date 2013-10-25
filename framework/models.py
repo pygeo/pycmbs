@@ -1051,6 +1051,7 @@ class JSBACH_BOT(Model):
 class JSBACH_RAW2(Model):
     """
     Class for RAW JSBACH model output
+    works on the real raw output
     """
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,model_dict=None,**kwargs):
@@ -1421,6 +1422,7 @@ class JSBACH_RAW2(Model):
 class JSBACH_RAW(Model):
     """
     Class for RAW JSBACH model output
+    works on manually preprocessed yseasmena / ymonmean files
     """
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
@@ -1645,7 +1647,7 @@ class JSBACH_RAW(Model):
         y2 = str(self.stop_time)[0:10]
         rawfilename = self.data_dir +  'data/model/'+self.experiment +'_' + y1[0:4] + '-' + y2[0:4] + '.nc'
         times_in_file = int(''.join(cdo.ntime(input = rawfilename)))
-        
+
         if interval == 'season':
 	  if times_in_file != 4:
 	    tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
@@ -1657,7 +1659,7 @@ class JSBACH_RAW(Model):
 	    tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
 	    cdo.ymonmean(options='-f nc -b 32 -r ',input = '-selvar,'+v+' '+rawfilename,output=tmp_file[:-3] + '_ymonmean.nc')
 	    rawfilename = tmp_file[:-3] + '_ymonmean.nc'
-	    
+
         if not os.path.exists(rawfilename):
             return None
 
@@ -1672,7 +1674,7 @@ class JSBACH_RAW(Model):
           shift_lon=self.shift_lon,
           mask=ls_mask.data.data,scale_factor = 3600.*24.*30./0.083
         )
-        
+
         return gpp.sum_data4D()
 
 #-----------------------------------------------------------------------
