@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -36,17 +35,6 @@ __email__ = "alexander.loew@zmaw.de"
 
 
 
-# - regional analysis based on an input mask
-#@todo: correlation and RMSE analysis and Taylor plotting
-#
-# other colorbar for vegetation fraction analysis
-# implement grass cover fraction analysis
-
-#
-# todo: interpolation method for fractional coverage !!!
-
-
-
 
 __author__ = "Alexander Loew"
 __version__ = "0.1"
@@ -59,9 +47,6 @@ from pyCMBS import *
 #--- always use plot backend which is not interactive for benchmarking framework
 import matplotlib as mpl
 mpl.rcParams['backend'] = 'Agg'
-#mpl.use('agg')
-
-#import mpl.pylab as pl
 pl = mpl.pylab
 
 import sys
@@ -656,7 +641,7 @@ global_gleckler.plot(vmin=-0.1,vmax=0.1,nclasses=25,show_value=True)
 oname = outdir + 'gleckler.pkl'
 if os.path.exists(oname):
     os.remove(oname)
-#pickle.dump(global_gleckler,open(oname,'w')) #store gleckler plot as separate file for further finetuning if necessary
+pickle.dump(global_gleckler,open(oname,'w')) #store gleckler plot as separate file for further finetuning if necessary
 
 rep.section('Summary error statistics')
 rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')
