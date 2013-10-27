@@ -144,15 +144,15 @@ class Taylor(object):
             c_r = nstdmax
             if self.r_equidistant:
                 self.ax.plot([0,c_r*np.cos(c_theta)] , [0,c_r*np.sin(c_theta)],':',color=color )
-                xa,ya = self.map2xy(corr1,1.05*nstdmax)
+                xa,ya = self.map2xy(corr1,1.0*nstdmax)
                 #self.ax.annotate(str(corr1), [c_theta, nstdmax*1.11], xycoords='polar',color=color)
-                self.ax.annotate(str(corr1), [xa,ya],color=color)
+                self.ax.annotate(str(corr1), [xa,ya],color=color, horizontalalignment='center')
 
             else:
                 self.ax.plot([0,c_r*corr1] , [0,c_r*np.sin(np.arccos(corr1))],':',color=color )
                 xa,ya = self.map2xy(corr1,1.0*nstdmax)
                 #self.ax.annotate(str(corr1), [np.arccos(corr1), nstdmax*1.11], xycoords='polar',color=color)
-                self.ax.annotate(str(corr1), [xa,ya], color=color)
+                self.ax.annotate(str(corr1), [xa,ya], color=color, horizontalalignment='center')
 
         if self.r_equidistant:
             pass
@@ -177,9 +177,6 @@ class Taylor(object):
         alpha = np.arctan(self.stdmax / x)
         xlab=x - r * np.cos(alpha)
         ylab=y + r * np.sin(alpha)
-
-        #xlab=mean(XN[~isnan(XN)])
-        #ylab=mean(YN[~isnan(YN)])
 
         self.ax.plot(XN,YN,'--',color=color)
         if label != None:
@@ -238,28 +235,28 @@ class Taylor(object):
 
 
     def plot_reference_circle(self,linestyle='-',linewidth=2,color='orange',marker='None'):
-        '''
+        """
         plot reference circle of equal std which corresponds to ref_std
-        '''
+        """
         R=np.linspace(-1.,1.,1000)
         S=np.ones(len(R))*self.ref_std
         self.plot(R,S,linestyle=linestyle,linewidth=linewidth,color=color,marker=marker)
 
 
     def plot_reference_point(self,color='orange',marker='o'):
-        '''
+        """
         plot reference point at location with r=1 and std=ref_std
-        '''
+        """
         R=np.asarray([1])
         S=np.asarray([self.ref_std])
         self.plot(R,S,color=color,marker=marker)
 
 
     def plot_taylor_legend(self):
-        '''
+        """
         plots a legend for the relationship between
         R,RMSE and std
-        '''
+        """
 
         ax = self.figure.add_axes([0.8,0.8,0.15,0.15],frameon=False)
         ax.set_xticks([])
@@ -323,12 +320,10 @@ class Taylor(object):
         else:
             self.S1_mean = None
 
-
-
         #/// get coordinates
         x,y = self.map2xy(R,S)
 
-        print 'coordinates: ', R,S,x,y
+        #~ print 'coordinates: ', R,S,x,y
 
         #/// generate plots
         if labels == None:
@@ -336,7 +331,7 @@ class Taylor(object):
                          label=label, markeredgecolor=markeredgecolor, markersize=markersize, markeredgewidth=markeredgewidth)
         else:
             for i in range(len(x)):
-                self.ax.text(x[i],y[i],labels[i],color=color,fontsize=markersize)
+                self.ax.text(x[i],y[i],labels[i],color=color,fontsize=markersize,horizontalalignment='center')
 
 
         if plot_mean:
@@ -382,15 +377,13 @@ class Taylor(object):
             x=r*np.cos(theta); y=r*np.sin(theta)
         else:
             x=S*R; y=S*np.sin(np.arccos(R))
-
-
         return x,y
 
 
     def set_legend_plot(self,label,color='black',marker='o'):
-        '''
+        """
         set a plot to be registered for the legend
-        '''
+        """
         self.labelnames.append(label)
         self.plots.append(self.ax.scatter([-1],[-1],color=color,marker=marker, s=8)) #fake plot for legend
         self.ax.set_xlim(0.,self.stdmax)

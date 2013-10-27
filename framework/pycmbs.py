@@ -641,7 +641,13 @@ global_gleckler.plot(vmin=-0.1,vmax=0.1,nclasses=25,show_value=True)
 oname = outdir + 'gleckler.pkl'
 if os.path.exists(oname):
     os.remove(oname)
-pickle.dump(global_gleckler,open(oname,'w')) #store gleckler plot as separate file for further finetuning if necessary
+#pickle.dump(global_gleckler,open(oname,'w')) #store gleckler plot as separate file for further finetuning if necessary
+pickle.dump(global_gleckler.models,open(outdir + 'gleckler_models.pkl','w'))
+pickle.dump(global_gleckler.variables,open(outdir + 'gleckler_variables.pkl','w'))
+pickle.dump(global_gleckler.data,open(outdir + 'gleckler_data.pkl','w'))
+pickle.dump(global_gleckler._raw_data,open(outdir + 'gleckler_rawdata.pkl','w'))
+
+
 
 rep.section('Summary error statistics')
 rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')

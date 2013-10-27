@@ -436,7 +436,6 @@ class ScatterPlot():
         else:
             label=y.label
 
-
         if fldmean:
             xdat = self.x.fldmean(); ydat = y.fldmean()
         else:
@@ -461,16 +460,18 @@ class ScatterPlot():
         #- calculate linear regression
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat,ydat)
+            nval = (~(xdat-ydat).mask).sum() #number of valid datasets used for comparison
 
+            assert(isinstance(xdat,np.ma.core.MaskedArray))
+            assert(isinstance(ydat,np.ma.core.MaskedArray))
 
-            rms_error = np.sqrt(np.mean(((xdat-ydat)**2)))
+            rms_error = np.sqrt(np.mean(((xdat-ydat)**2.)))
             std_error = np.std(xdat-ydat)
             if p_value < 0.01:
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
-            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', slope:' + str(slope) + ', ' + 'intercept: ' + str(intercept) + ', ' + 'rmsd: ' + str(rms_error) +  ')'
-
+            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', y=' + str(slope) + 'x+' + str(intercept) + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) +  ')'
 
         #- actual plot
         if hexbin:
@@ -496,9 +497,12 @@ class ScatterPlot():
         self._change_ticklabels()
 
         if regress:
-            return r_value,p_value,rms_error, std_error
+
+            return r_value,p_value,rms_error, std_error, nval
         else:
             return None
+
+#-----------------------------------------------------------------------
 
     def _change_ticklabels(self):
         for tick in self.ax.xaxis.get_major_ticks():
@@ -1532,8 +1536,8 @@ class GlecklerPlot():
 
                 self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top')    #upper triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle
-                self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left') #left triangle
-                self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right') #right triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left')   #left triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right')  #right triangle
                 cnt += 1; cnt_v += 1
 
         #--- legend
