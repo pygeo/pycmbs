@@ -324,7 +324,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
     #//////////////////////////////////////////////////////////////////
     #--- plot options which are the same for all datasets
-    cticks               = local_plot_options['OPTIONS']['cticks']
+    cticks                    = local_plot_options['OPTIONS']['cticks']
     f_mapdifference           = local_plot_options['OPTIONS']['map_difference']
     f_mapseasons              = local_plot_options['OPTIONS']['map_seasons']
     f_mapseason_difference    = local_plot_options['OPTIONS']['map_season_difference']
@@ -519,6 +519,33 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                                     proj=projection,stat_type=stat_type,show_stat=True)
             report.figure(f_dif,caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
             pl.close(f_dif.number); del f_dif
+
+        f_compare_timeseries = False
+        if f_compare_timeseries == True:
+            """
+            compare timeseries of two datasets
+            1) apply same mask
+            2) calculate regional statistics based on a predefined mask
+            3) report back figure with timeseries
+            """
+
+            #--- in general it would be good to define a mask based on predefined regions.
+            # in general, such a RegionalAnalysis is already implemented at 80% in pyCMBS, but not finished yet
+            #I therefore propose to just use simple latitudinal bands here for the EvaClimod purposes at the moment
+
+            themask = np.ones(model_data.timmean().shape) #generate a mask with proper geometry
+
+            #1) lat-band 1
+            tmp = (model_data.lat > 30.) #extratropic 1
+            themask[tmp] = 2.; del tmp
+
+            tmp = (model_data.lat < -30.) #extratropic 2
+            themask[tmp] = 3.; del tmp
+
+            fig_comp_time = time_series_regional_analysis(model_data,obs_orig,themask)
+            report.figure(fig_comp_time,caption='Here your user defined caption ... Have fun')
+            pl.close(fig_comp_time.number); del fig_comp_time
+
 
         if f_mapseasons == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
@@ -1521,6 +1548,47 @@ def beer_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=Non
     del fG
 
 
+
+def time_series_regional_analysis(x,y,msk):
+    """
+    This is a dummy routine to perform a comparison of timeseries on a regional basis
+    The routine does
+    1) apply common mask; prerequesite is that both datasets have same geometry
+    2) calculate timeseries
+    3) plots results
+    """
+
+    if x.shape != y.shape:
+        raise ValueError, 'Datasets have not the same geometry'
+
+    X = x.copy(); Y=y.copy() #copy data to not work on the original datasets
+
+    #--- mask data as invalid ---
+    invalid = x.data.mask | y.data.mask #mask as invalid if one of the datasets is invalid
+    X.data.mask[invalid]=True
+    Y.data.mask[invalid]=True
+
+    X.weighting_type = 'all' #whole globe for weighting
+    Y.weighting_type = 'all'
+
+    L = LinePlot(title='mytitle')
+
+    for v in np.unique(msk): #analysis for all unique values in mask
+
+        #--- now do analysis for each region ---
+
+        #1) calculate mask
+        m = msk == v
+        tmpx = X.copy(); tmpx._apply_mask(m)
+        tmpy = Y.copy(); tmpy._apply_mask(m)
+
+        #2) plot results
+        L.plot(tmpx,label='X region ' + str(int(v)).zfill(4)  ) #calculates automatically the fldmean()
+        L.plot(tmpy,label='X region ' + str(int(v)).zfill(4)  )
+
+        del tmpx,tmpy
+
+    return L.figure
 
 
 
