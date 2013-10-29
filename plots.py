@@ -5,7 +5,7 @@ __version__ = "0.1.1"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@zmaw.de"
 
-'''
+"""
 # Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
 # See COPYING file for copying and redistribution conditions.
 #
@@ -17,7 +17,7 @@ __email__ = "alexander.loew@zmaw.de"
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-'''
+"""
 
 
 """
@@ -32,20 +32,16 @@ import matplotlib as mpl
 mpl.use('agg')
 
 from data import *
-
 from hov import *
 
 from matplotlib import pylab as plt
 #plt = mpl.pylab
 
-
 from matplotlib.patches import Polygon
 import matplotlib.path as mpath
 from matplotlib.collections import PatchCollection
 
-
 from mpl_toolkits.basemap import Basemap,shiftgrid
-
 from scipy import stats
 
 import numpy as np
@@ -53,10 +49,10 @@ import numpy as np
 from matplotlib.patches import Circle
 import matplotlib.patches as mpatches
 import sys
+import copy
 
 
 from scipy.spatial import cKDTree as KDTree #import the C version of KDTree (faster)
-
 from matplotlib.ticker import MaxNLocator
 
 import matplotlib.gridspec as gridspec
@@ -471,7 +467,7 @@ class ScatterPlot():
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
-            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', y=' + str(slope) + 'x+' + str(intercept) + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) +  ')'
+            label = '\n' + label + '\nr=' + str(round(r_value,2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
 
         #- actual plot
         if hexbin:
@@ -512,11 +508,11 @@ class ScatterPlot():
 
 #-----------------------------------------------------------------------
 
-    def legend(self):
+    def legend(self,size=8.):
         """
         plot legend
         """
-        self.ax.legend(self.lines,self.labels,prop={'size':8})
+        self.ax.legend(self.lines,self.labels,prop={'size':size})
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -1211,7 +1207,7 @@ class ZonalPlot():
 
 #-----------------------------------------------------------------------
 
-class GlecklerPlot():
+class GlecklerPlot(object):
     """
     Class to generate a plot that to illustrate multi-model, multi-variable scores
 
@@ -1381,18 +1377,19 @@ class GlecklerPlot():
                        uses the median, that's why it is the default. another option is to use the 'mean'
                        ['median','mean']
         @type method: str
-
         """
         pos = np.unique(self.pos.values())
         if hasattr(self,'_raw_data'):
             #data has been already normalized; take original data
-            self.data = self._raw_data.copy()
+            self.data = copy.deepcopy(self._raw_data)
         else:
-            self._raw_data = self.data.copy() #preserve original calculated data
+            self._raw_data = copy.deepcopy(self.data) #preserve original calculated data
 
         for var in self.variables:
             for p in pos:
                 xm = self._get_mean_value(p,var,method=method) #calculate multimodel mean/median
+                #~ if p == 2:
+                    #~ print 'Mean: ', p, var, xm, method
                 for k in self.data:
                     if (self.pos[k] == p) & ('_' + var + '_' in k):
                         self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
@@ -1413,13 +1410,14 @@ class GlecklerPlot():
                        uses the median, that's why it is the default. another option is to use the 'mean'
                        ['median','mean']
         @type method: str
-
         """
         x = []
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
         x = np.asarray(x)
+        #~ if pos == 2:
+            #~ print 'X in get_mean(): ', x
 
         if method == 'median':
             return np.median(x)   #todo unittest for this!
@@ -1536,6 +1534,8 @@ class GlecklerPlot():
 
                 self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top')    #upper triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle
+                #~ if variable == 'albedo':
+                    #~ print 'POS 2: ', self.get_data(variable,model,2)
                 self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left')   #left triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right')  #right triangle
                 cnt += 1; cnt_v += 1
@@ -1560,8 +1560,6 @@ class GlecklerPlot():
 
         if title != None:
             self.fig.suptitle(title)
-
-
 
         return self.fig
 
