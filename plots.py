@@ -1974,7 +1974,8 @@ def map_season(x,**kwargs):
     for i in range(nvals):
         if year:
             ax = f.add_subplot(4,3,i+1)
-            if i % 3 == 2:
+            #if i % 3 == 2:
+            if i > 8:
                 show_colorbar = True
             else:
                 show_colorbar=False
@@ -1999,7 +2000,7 @@ def map_season(x,**kwargs):
             tmpoutname = None
 
 
-        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname, **kwargs); del d
+        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal', **kwargs); del d
 
     f.suptitle(tit,size=16)
 
@@ -2853,6 +2854,20 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     else:
         cticks_diff = None
 
+    if 'colorbar_orientation' in kwargs:
+        colorbar_orientation = kwargs.pop('colorbar_orientation')
+    else:
+        colorbar_orientation='horizontal'
+
+    if 'drawparallels' in kwargs:
+        drawparallels = kwargs.pop('drawparallels')
+    else:
+        drawparallels=False
+
+
+
+
+
     fig = plt.figure()
 
     ax1 = fig.add_subplot(221); ax2 = fig.add_subplot(222)
@@ -2873,7 +2888,8 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
         tmpoutname = savefile + '_xvar'
     map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname, **kwargs)
+             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, **kwargs)
 
     #- plot second dataset
     if savefile is None:
@@ -2883,7 +2899,8 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,  **kwargs)
+             zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels,  **kwargs)
 
     #-first minus second dataset
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
@@ -2895,7 +2912,8 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,
              nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',
-             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname)
+             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels)
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data
@@ -2911,7 +2929,8 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',
              cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=nclasses,
              cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,stat_type='median',proj=proj,savefile=tmpoutname)
+             zonal_timmean=zonal_timmean,stat_type='median',proj=proj,savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels)
 
 
     return fig
