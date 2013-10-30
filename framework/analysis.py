@@ -514,9 +514,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             sys.stdout.write('\n *** Map difference plotting. \n')
             #--- generate difference map
             f_dif  = map_difference(model_data, obs_orig, nclasses=nclasses,use_basemap=use_basemap,
-                                    show_zonal=True,zonal_timmean=False,
+                                    show_zonal=True,zonal_timmean=True,
                                     dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks,
-                                    proj=projection,stat_type=stat_type,show_stat=True)
+                                    proj=projection,stat_type=stat_type,show_stat=True,drawparallels=True,colorbar_orientation='horizontal')
             report.figure(f_dif,caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
             pl.close(f_dif.number); del f_dif
 
