@@ -35,6 +35,8 @@ from cdo import *
 import datetime
 import pytz
 import pickle
+import datetime
+import calendar
 
 
 class Data(object):
@@ -216,9 +218,7 @@ class Data(object):
             for i in range(len(self.time)):
                 x = self.num2date(self.time[i])
                 print self.time[i], x , datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC)
-            raise ValueError, 'Some error in time conversion happened!'
-
-
+            raise ValueError, 'Some error in time conversion happened! Look in dump.pkl to fix it'
     date  = property(_get_date)
 
     def _get_ndim(self): return self.data.ndim
@@ -226,6 +226,52 @@ class Data(object):
 
     def _get_nt(self): return len(self.time)
     nt = property(_get_nt)
+
+    def _get_mindate(self,base=None):
+        """
+        get minimum date
+
+        @param base: ['day','month']; if given, then e.g. the first of the month or the first time of the day is returned instead of the actual minimum value
+                                    this allows to easily round the mindate
+        @type base: str
+        """
+
+        dmin = self.date.min()
+
+        if base == None:
+            rval = dmin
+        elif base == 'month':
+            rval = datetime.datetime(dmin.year,dmin.month,1,0,0,0,0,dmin.tzinfo)
+        elif base == 'day':
+            rval = datetime.datetime(dmin.year,dmin.month,dmin.day,0,0,0,0,dmin.tzinfo)
+        elif base == 'year':
+            rval = datetime.datetime(dmin.year,1,1,0,0,0,0,dmin.tzinfo)
+
+        return rval
+
+
+    def _get_maxdate(self,base=None):
+        """
+        get maximum date
+
+        @param base: ['day','month']; if given, then e.g. the first of the month or the first time of the day is returned instead of the actual minimum value
+                                    this allows to easily round the mindate
+        @type base: str
+        """
+
+        dmax = self.date.max()
+
+        if base == None:
+            rval = dmax
+        elif base == 'month':
+            rval = datetime.datetime(dmax.year,dmax.month,calendar.monthrange(dmax.year,dmax.month)[1],23,59,59,0,dmax.tzinfo)
+        elif base == 'day':
+            rval = datetime.datetime(dmax.year,dmax.month,dmax.day,23,59,59,0,dmax.tzinfo)
+        elif base == 'year':
+            rval = datetime.datetime(dmax.year,12,31,23,59,59,0,dmax.tzinfo)
+
+        return rval
+
 
 
     def _log_warning(self,s):
