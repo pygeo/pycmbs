@@ -1940,6 +1940,13 @@ def map_season(x,**kwargs):
     else:
         tit = x.label
 
+    if 'drawparallels' in kwargs:
+        drawparallels = kwargs.pop('drawparallels')
+    else:
+        drawparallels = False
+
+
+
     if 'savefile' in kwargs:
         savefile = kwargs.pop('savefile')
         if '.nc' in savefile:
@@ -2000,7 +2007,7 @@ def map_season(x,**kwargs):
             tmpoutname = None
 
 
-        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal', **kwargs); del d
+        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal',drawparallels=drawparallels, **kwargs); del d
 
     f.suptitle(tit,size=16)
 
