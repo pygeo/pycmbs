@@ -647,10 +647,9 @@ pickle.dump(global_gleckler.variables,open(outdir + 'gleckler_variables.pkl','w'
 pickle.dump(global_gleckler.data,open(outdir + 'gleckler_data.pkl','w'))
 pickle.dump(global_gleckler._raw_data,open(outdir + 'gleckler_rawdata.pkl','w'))
 
-
-
 rep.section('Summary error statistics')
-rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')
+rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model performance index')
+
 
 #/// legend for gleckler plot ///
 for variable in variables:
@@ -667,6 +666,14 @@ for variable in variables:
     fl = global_gleckler._draw_legend(thelabels,title=variable.upper())
     rep.figure(fl,width='8cm',bbox_inches=None)
     del fl, thelabels
+
+
+#/// plot model ranking between different observational datasets ///
+for v in global_gleckler.variables:
+    tmpfig = global_gleckler.plot_model_ranking(v,show_text=True)
+    rep.figure(tmpfig,width='12cm',bbox_inches=None,caption='Model ranking for different observational datasets: ' + v.upper())
+    del tmpfig
+
 
 #---
 
