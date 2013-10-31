@@ -1248,6 +1248,7 @@ class GlecklerPlot(object):
         self.pos = {} #store position of plot
         self.ndigits = 2 #number of digits for number plotting
 
+
     def add_model(self,label):
         """
         register a model in the class
@@ -1255,8 +1256,24 @@ class GlecklerPlot(object):
         @type label: str
         """
         s = label.replace(' ','_')
+
         if s not in self.models:
             self.models.append(s)
+
+    def _get_model_sequence(self):
+        seq = {}
+        cnt = 1
+        for m in self.models:
+            seq.update({m:cnt})
+            cnt += 1
+        return seq
+
+    def _model2short_label(self,m):
+        """
+        given a model key a short label for plotting is returned
+        """
+        return str(self._get_model_sequence()[m])
+
 
     def add_variable(self,label):
         """
@@ -1393,6 +1410,151 @@ class GlecklerPlot(object):
                 for k in self.data:
                     if (self.pos[k] == p) & ('_' + var + '_' in k):
                         self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
+
+#-----------------------------------------------------------------------
+
+    def __draw_ranking_scatter(self,p1,p2,var,ax=None,marker='o',color='red',show_text=False):
+        """
+        ranking scatterplot between two positions
+        """
+
+        def _pos2label(p):
+            if p == 1:
+                return 'top'
+            elif p == 2:
+                return 'bottom'
+            elif p == 3:
+                return 'left'
+            elif p == 4:
+                return 'right'
+
+        r1=self._get_model_ranking(p1,var) #ranking for first position
+        r2=self._get_model_ranking(p2,var) #ranking for second position
+
+        if len(r1) == 0:
+            return None
+        if len(r2) == 0:
+            return None
+
+
+        #generate two array where each specifies the rank of a particular model
+        x = np.arange(len(r1))+1    #pos1
+        y = np.ones_like(x)*np.nan  #pos 2
+        for i in xrange(len(r1)):
+            for j in xrange(len(r1)):
+                if r1[i] == r2[j]:
+                    y[i] = j+1
+
+        #--- generate plot ---
+        if ax is None:
+            f = pl.figure()
+            ax = f.add_subplot(1,2,1)
+        else:
+            f = ax.figure
+
+        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2),linestyle='None')
+        if show_text:
+            for i in xrange(len(x)):
+                xy = (x[i],y[i])
+                #label = r1[i]
+                label = self._model2short_label(r1[i])
+                ax.annotate(label,xy,color=color)
+                #ax.text(x[i],y[i],'Hallo',color=color)
+
+
+        return ax
+
+
+    def plot_model_ranking(self,var,show_text=False):
+        """
+        plots a model ranking scatterplot, indicating
+        if models have similar ranks between different observational datasets
+
+        in case that a certain combination does not exist, the corresponding
+        plot is simply not generated.
+
+        @param var: name of variable to analyze
+        @type var: str
+
+        @param show_text: annotate plot using text for models as labels
+        @type show_text: bool
+
+        """
+
+        tmp=self._get_model_ranking(1,var)
+
+        fig = pl.figure()
+        gs = gridspec.GridSpec(1, 2, wspace=0.05,hspace=0.05,bottom=0.2,width_ratios = [3,1])
+        ax = fig.add_subplot(gs[0])
+
+        # 1 vs. 2
+        self.__draw_ranking_scatter(1,2,var,color='red',marker='o',show_text=show_text,ax=ax)
+        # 1 vs. 3
+        self.__draw_ranking_scatter(1,3,var,color='green',marker='*',ax=ax,show_text=show_text)
+        # 1 vs. 4
+        self.__draw_ranking_scatter(1,4,var,color='blue',marker='^',ax=ax,show_text=show_text)
+        # 2 vs. 3
+        self.__draw_ranking_scatter(2,3,var,color='grey',marker='x',ax=ax,show_text=show_text)
+        # 2 vs 4
+        self.__draw_ranking_scatter(2,4,var,color='m',marker='+',ax=ax,show_text=show_text)
+        # 3 vs 4
+        self.__draw_ranking_scatter(3,4,var,color='c',marker='h',ax=ax,show_text=show_text)
+
+        if ax is not None:
+            ax.legend(prop={'size':8},mode='expand',ncol=4,fancybox=True)
+            ax.set_xlabel('rank(observation X)')
+            ax.set_ylabel('rank(observation Y)')
+            ax.set_ylim(ymin=0,ymax=len(tmp)+1)
+            ax.set_xlim(xmin=0,xmax=len(tmp)+1)
+            ax.grid()
+            ax.set_title('Comparison of model ranking: ' + var.upper())
+            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
+
+        ax2 = fig.add_subplot(gs[1])
+
+        dy = 0.1
+        yoff = dy
+        for k in tmp:
+            ax2.text(0.1,yoff,self._model2short_label(k) + ': ' + k)
+            yoff += dy
+        ax2.set_ylim(0.,yoff)
+        ax2.set_xticks([])
+        ax2.set_yticks([])
+
+        return fig
+
+#-----------------------------------------------------------------------
+
+    def _get_model_ranking(self,pos,var):
+        """
+        get ranking of each model for a certain variable and observation
+        NOTE: to obtain a realtive model ranking, one needs to normalize the data before, otherwise the absolute values
+              are used!
+        """
+        x = []; keys=[]
+        for k in self.pos:
+            if (self.pos[k] == pos) & ('_' + var + '_' in k):
+                x.append(self.data[k])
+                keys.append(k[:k.index(var)-1]) #model name
+
+        x    = np.asarray(x)
+        keys = np.asarray(keys)
+        idx  = x.argsort()
+        rnk  = np.arange(len(x))
+
+        #print 'original'
+        #print 'x   ', x
+        #print 'keys', keys
+        #print 'rnk', rnk
+
+        #print ''
+        #print 'sorted'
+        #print 'x   ', x[idx]
+        #print 'keys', keys[idx]
+        #print rnk[idx]+1
+
+        return keys[idx] #return list with keys which given ranked sequence
+
 
 #-----------------------------------------------------------------------
 
