@@ -1437,6 +1437,8 @@ class GlecklerPlot(object):
             return None
 
 
+
+
         #generate two array where each specifies the rank of a particular model
         x = np.arange(len(r1))+1    #pos1
         y = np.ones_like(x)*np.nan  #pos 2
@@ -1445,6 +1447,9 @@ class GlecklerPlot(object):
                 if r1[i] == r2[j]:
                     y[i] = j+1
 
+        #Spearman correlation coefficient based on ranks
+        spear = np.corrcoef(np.asarray(x),np.asarray(y))[0][1]
+
         #--- generate plot ---
         if ax is None:
             f = pl.figure()
@@ -1452,7 +1457,7 @@ class GlecklerPlot(object):
         else:
             f = ax.figure
 
-        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2),linestyle='None')
+        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r_s$=' + str(spear) + ')' ,linestyle='None')
         if show_text:
             for i in xrange(len(x)):
                 xy = (x[i],y[i])
@@ -1501,7 +1506,7 @@ class GlecklerPlot(object):
         self.__draw_ranking_scatter(3,4,var,color='c',marker='h',ax=ax,show_text=show_text)
 
         if ax is not None:
-            ax.legend(prop={'size':8},mode='expand',ncol=4,fancybox=True)
+            ax.legend(prop={'size':8},ncol=1,fancybox=True,loc='upper left')
             ax.set_xlabel('rank(observation X)')
             ax.set_ylabel('rank(observation Y)')
             ax.set_ylim(ymin=0,ymax=len(tmp)+1)
