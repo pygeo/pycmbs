@@ -1457,7 +1457,7 @@ class GlecklerPlot(object):
         else:
             f = ax.figure
 
-        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r_s$=' + str(spear) + ')' ,linestyle='None')
+        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r_s$=' + str(round(spear,2)) + ')' ,linestyle='None')
         if show_text:
             for i in xrange(len(x)):
                 xy = (x[i],y[i])
