@@ -191,11 +191,7 @@ else: #default
     file='pyCMBS.cfg'
 
 
-########################################################################################################################
-# REMOVE previous Data warnings
-########################################################################################################################
-if os.path.exists('data_warnings.log'):
-    os.remove('data_warnings.log')
+
 
 ########################################################################################################################
 # CONFIGURATION and OPTIONS
@@ -207,6 +203,14 @@ CF = ConfigFile(file)
 #/// read plotting options ///
 PCFG = PlotOptions(); PCFG.read(CF); plot_options=PCFG
 
+########################################################################################################################
+# REMOVE previous Data warnings
+########################################################################################################################
+outdir='.' + os.sep + 'report_' + CF.options['report'] + os.sep
+os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' + CF.options['report'] + '.log'
+
+if os.path.exists(os.environ['DATA_WARNING_FILE']):
+    os.remove(os.environ['DATA_WARNING_FILE'])
 
 
 #/// init regions ///
@@ -600,7 +604,7 @@ if f_mean_model:
 global_gleckler = GlecklerPlot()
 
 # Report
-outdir='.' + os.sep + 'report_' + CF.options['report'] + os.sep
+
 rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],
              outdir=outdir,
              dpi=300,format=CF.options['report_format'])
@@ -677,14 +681,6 @@ for v in global_gleckler.variables:
 
 #---
 
-########################################################################################################################
-# COPY logfiles of Data (e..g warnings related to unvalid area weighting!)
-########################################################################################################################
-if os.path.exists('data_warnings.log'):
-    os.system('mv data_warnings.log ' + outdir)
-    print("**********************************+")
-    print("THERE WERE DATA WARNINGS !!!!")
-    print("**********************************+")
 
 ########################################################################################################################
 # CLEAN up and finish

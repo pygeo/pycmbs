@@ -282,7 +282,14 @@ class Data(object):
         @type s: str
         """
 
-        file = 'data_warnings.log'
+        if 'DATA_WARNING_FILE' in os.environ.keys():
+            file = os.environ['DATA_WARNING_FILE']
+        else:
+            file = 'data_warnings.log'
+
+        if not os.path.exists(os.path.dirname(file)): #create output directory if necessary
+            os.makedirs(os.path.dirname(file))
+
 
         if os.path.exists(file):
             mode = 'a'
@@ -292,7 +299,9 @@ class Data(object):
         print("   " + s)
 
         f = open(file,mode)
-        f.write(self.filename + '\t' + s + '\n')
+        if self.filename is None:
+            filename = 'data object has not filename'
+        f.write(filename + '\t' + s + '\n')
         f.close()
 
 #-----------------------------------------------------------------------
