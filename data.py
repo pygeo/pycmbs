@@ -301,6 +301,9 @@ class Data(object):
         f = open(file,mode)
         if self.filename is None:
             filename = 'data object has not filename'
+        else:
+            filename = self.filename
+
         f.write(filename + '\t' + s + '\n')
         f.close()
 
