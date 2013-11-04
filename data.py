@@ -284,12 +284,10 @@ class Data(object):
 
         if 'DATA_WARNING_FILE' in os.environ.keys():
             file = os.environ['DATA_WARNING_FILE']
+            if not os.path.exists(os.path.dirname(file)): #create output directory if necessary
+                os.makedirs(os.path.dirname(file))            
         else:
             file = 'data_warnings.log'
-
-        if not os.path.exists(os.path.dirname(file)): #create output directory if necessary
-            os.makedirs(os.path.dirname(file))
-
 
         if os.path.exists(file):
             mode = 'a'
