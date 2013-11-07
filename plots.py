@@ -446,8 +446,9 @@ class ScatterPlot():
         assert(isinstance(ydat,np.ma.core.MaskedArray))
 
         #--- mask invalid data
-        xdat = np.ma.masked_where(np.isnan(xdat),xdat)
-        ydat = np.ma.masked_where(np.isnan(ydat),ydat)
+        msk = np.isnan(xdat) | np.isnan(ydat)
+        xdat = np.ma.masked_where(msk,xdat)
+        ydat = np.ma.masked_where(msk,ydat)
 
         if self.normalize:
             xdat = self.__normalize_data(xdat)
@@ -461,8 +462,28 @@ class ScatterPlot():
             assert(isinstance(xdat,np.ma.core.MaskedArray))
             assert(isinstance(ydat,np.ma.core.MaskedArray))
 
-            rms_error = np.sqrt(np.mean(((xdat-ydat)**2.)))
+
+            #~ xdat = np.random.random(100) #this woks !!!
+            #~ ydat = np.random.random(100)
+
+            rms_error = calc_rms_error(xdat,ydat)
+            bias,c_rms = calc_centered_rms_error(xdat,ydat)
             std_error = np.std(xdat-ydat)
+
+            #centered rms error (see Taylor, 2001 eq. (2))
+            #c_rms = np.sqrt( np.ma.mean(  (    (xdat - np.ma.mean(xdat) ) - (ydat - np.ma.mean(ydat)))**2.)    )
+            #bias = np.ma.mean(xdat) - np.ma.mean(ydat)
+
+            #control, should be equal to rms**2
+            #~ print 'E**2', rms_error**2.
+            #~ print 'bias ', bias
+            #~ print 'c_rms ', c_rms
+            #~ print 'Ebias**2 + anom**2 ', bias**2. + c_rms**2.
+#~
+            #~ pickle.dump(xdat,open('xdat.pkl','w'))
+            #~ pickle.dump(ydat,open('ydat.pkl','w'))
+            #~ stop
+
             if p_value < 0.01:
                 spvalue = 'p < 0.01'
             else:
@@ -494,7 +515,7 @@ class ScatterPlot():
 
         if regress:
 
-            return r_value,p_value,rms_error, std_error, nval
+            return r_value,p_value,rms_error,c_rms, std_error, nval, np.ma.std(xdat.flatten()), np.ma.std(ydat.flatten())
         else:
             return None
 
@@ -1469,6 +1490,113 @@ class GlecklerPlot(object):
 
         return ax
 
+#-----------------------------------------------------------------------
+
+    def _draw_error_scatter(self,p1,p2,var,color='red',marker='*',ax=None):
+        """
+        draw scatterplot of errors for a combination
+        of two different observations p1,p2
+        """
+
+        def _pos2label(p):
+            if p == 1:
+                return 'top'
+            elif p == 2:
+                return 'bottom'
+            elif p == 3:
+                return 'left'
+            elif p == 4:
+                return 'right'
+
+        if ax is None:
+            f = pl.figure()
+            ax = f.add_subplot(111)
+        d1 = self._get_model_error(p1,var) #this gives a dict with (key,value)
+        d2 = self._get_model_error(p2,var)
+
+        if len(d1) == 0:
+            return None
+        if len(d2) == 0:
+            return None
+
+        x = []; y=[]
+        labels=[]
+        for k in d1.keys():
+            labels.append(k)
+            x.append(d1[k])
+            #find corresponding model in second observation
+            for l in d2.keys():
+                if l == k:
+                    y.append(d2[k])
+        x = np.asarray(x)
+        y = np.asarray(y)
+
+        if len(x) != len(y):
+            print d1
+            print d2
+            raise ValueError, 'The length of the arrays are not the same !'
+
+        slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x,y)
+
+        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value,2)) + ')' ,linestyle='None')
+
+
+        return ax
+
+
+
+
+
+    def plot_model_error(self,var):
+        """
+        plots a scatterplot of errors of different models
+        for a particular variable
+
+        @param var: variable to be investigated
+        @type var: str
+        """
+
+        fig = pl.figure()
+        gs = gridspec.GridSpec(1, 2, wspace=0.05,hspace=0.05,bottom=0.2,width_ratios = [3,1])
+        ax = fig.add_subplot(gs[0])
+
+
+        # 1 vs. 2
+        self._draw_error_scatter(1,2,var,color='red',marker='o',ax=ax)
+
+        # 1 vs. 3
+        self._draw_error_scatter(1,3,var,color='green',marker='*',ax=ax)
+
+        # 1 vs. 4
+        self._draw_error_scatter(1,4,var,color='blue',marker='^',ax=ax)
+
+        # 2 vs. 3
+        self._draw_error_scatter(2,3,var,color='grey',marker='x',ax=ax)
+
+        # 2 vs 4
+        self._draw_error_scatter(2,4,var,color='m',marker='+',ax=ax)
+
+        # 3 vs 4
+        self._draw_error_scatter(3,4,var,color='c',marker='h',ax=ax)
+
+        if ax is not None:
+            ax.legend(prop={'size':8},ncol=1,fancybox=True,loc='upper left')
+            ax.set_xlabel('$\epsilon$ (observation X)')
+            ax.set_ylabel('$\epsilon$ (observation Y)')
+
+            xmi,xma = ax.get_xlim()
+            ymi,yma = ax.get_ylim()
+
+            ax.set_ylim(min(xmi,ymi),max(xma,yma))
+            ax.set_xlim(min(xmi,ymi),max(xma,yma))
+            ax.grid()
+            ax.set_title('Comparison of model errors: ' + var.upper())
+            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
+
+
+        return fig
+
+
 
     def plot_model_ranking(self,var,show_text=False):
         """
@@ -1530,10 +1658,31 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
+    def _get_model_error(self,pos,var):
+        """
+        get error of each model for a certain variable and observation
+        NOTE: to obtain a relative model ranking, one needs to normalize the data before, otherwise the absolute values
+              are used!
+        """
+        x = []; keys=[]
+        for k in self.pos:
+            if (self.pos[k] == pos) & ('_' + var + '_' in k):
+                x.append(self.data[k])
+                keys.append(k[:k.index(var)-1]) #model name
+
+        x    = np.asarray(x)
+        keys = np.asarray(keys)
+
+        return dict(zip(keys,x))
+
+
+#-----------------------------------------------------------------------
+
+
     def _get_model_ranking(self,pos,var):
         """
         get ranking of each model for a certain variable and observation
-        NOTE: to obtain a realtive model ranking, one needs to normalize the data before, otherwise the absolute values
+        NOTE: to obtain a relative model ranking, one needs to normalize the data before, otherwise the absolute values
               are used!
         """
         x = []; keys=[]
@@ -3158,6 +3307,33 @@ def plot_hovmoeller(x,rescaley=10,rescalex=1,monthsamp=24,dlat=1.,cmap=None,ax=N
     add_nice_legend(ax,h.im,cmap,cticks=cticks)
 
     return h
+
+
+
+def calc_rms_error(x,y):
+    """
+    calculate RMS error
+
+    x,y: masked arrays
+    """
+
+    xdat = x.flatten(); ydat=y.flatten()
+
+    return np.sqrt(np.ma.mean((xdat-ydat)**2.))
+
+def calc_centered_rms_error(x,y):
+    """
+    calculate centererd RMS error
+
+    REFERENCES:
+     * Taylor et al. (2001), eq. 2
+    """
+    xdat = x.flatten(); ydat=y.flatten()
+    xm = np.ma.mean(xdat); ym = np.ma.mean(ydat)
+
+    anom = np.sqrt(np.ma.mean(((xdat-xm) - (ydat-ym))**2.))
+
+    return xm-ym,anom
 
 
 
