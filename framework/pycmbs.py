@@ -675,8 +675,16 @@ for variable in variables:
 #/// plot model ranking between different observational datasets ///
 for v in global_gleckler.variables:
     tmpfig = global_gleckler.plot_model_ranking(v,show_text=True)
-    rep.figure(tmpfig,width='12cm',bbox_inches=None,caption='Model ranking for different observational datasets: ' + v.upper())
+    rep.figure(tmpfig,width='12cm',bbox_inches=None,caption='Model RANKING for different observational datasets: ' + v.upper())
     del tmpfig
+
+    #/// plot absolut model error
+
+    tmpfig = global_gleckler.plot_model_error(v)
+    rep.figure(tmpfig,width='12cm',bbox_inches=None,caption='Model ERROR for different observational datasets: ' + v.upper())
+    del tmpfig
+
+
 
 
 #---
