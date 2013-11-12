@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Walter Sauf"
-__version__ = "0.1"
+__version__ = "0.1.4"
 __date__ = "2013/04/16"
 __email__ = "walter.sauf@zmaw.de"
 
 '''
 # Copyright (C) 2013 
-# Alexander Loew, alexander.loew@zmaw.de
+# Alexander Loew, alexander.loew@mpimet.mpg.de
 # See COPYING file for copying and redistribution conditions.
 #
 # This program is free software; you can redistribute it and/or modify
