@@ -1,3 +1,19 @@
+version 0.1.4
+============================
+o This version is the reference version for the EvaCliMod project
+o major improvements of reporting functionalities as needed for EvaClimod project
+o added new functionality in GlecklerPlot class to plor errors and ranked errors
+o several major bugfixes in the timeconversion in different parts of the code to be compliant with new calendar handling functionality
+o implemented standard analysis for surface_radiation_flux
+o implementation of a ModelMean class to handle multimodel mean datasets
+o implemented standard analysis for SIS analysis
+o implemented additional datasets for ocean surface fluxes
+o removal of pyCDO
+o implemented more robust calculation of cell_area (using temp. directories if no write access to data directory)
+o automatic logging of errors in the Data class (uses environment variable)
+o implemented mindate/maxdate for Data object
+
+
 version 0.1.3
 ============================
 o albedo analysis for VIS and NIR separately for JSBACH raw output

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.1.1"
+__version__ = "0.1.4"
 __date__ = "2012/10/29"
-__email__ = "alexander.loew@zmaw.de"
+__email__ = "alexander.loew@mpimet.mpg.de"
 
 """
-# Copyright (C) 2012 Alexander Loew, alexander.loew@zmaw.de
+# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
 # See COPYING file for copying and redistribution conditions.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -97,7 +97,7 @@ def rotate_ticks(ax,angle):
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class CorrelationAnalysis():
+class CorrelationAnalysis(object):
         """
         perform correlation analysis between two datasets
         and plot results
@@ -147,14 +147,14 @@ class CorrelationAnalysis():
             r    = D.get_correlation_value()
             n    = D. get_n()
 
-            print 'RMSE: ', rmse
-            print 'R   : ', r
-            print 'N   : ', n
+            #print 'RMSE: ', rmse
+            #print 'R   : ', r
+            #print 'N   : ', n
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class HovmoellerPlot():
+class HovmoellerPlot(object):
     def __init__(self,D,rescaley=10,rescalex=10,yticksampling=1,monthly=False,ax=None):
         """
         D : C{Data} object
@@ -184,7 +184,7 @@ class HovmoellerPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class ReichlerPlot():
+class ReichlerPlot(object):
     """
     class for Reichler plot generation
 
@@ -366,7 +366,7 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class ScatterPlot():
+class ScatterPlot(object):
     """
     Class for generation of scatterplots
     """
@@ -538,7 +538,7 @@ class ScatterPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class LinePlot():
+class LinePlot(object):
     """
     class for a pyCMBS Line Plot
     This class is usefull for plotting timeseries
@@ -709,7 +709,7 @@ class LinePlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class GlobalMeanPlot():
+class GlobalMeanPlot(object):
     """
     plots timeseries of global mean field
     """
@@ -1030,7 +1030,7 @@ class GlobalMeanPlot():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class HistogrammPlot():
+class HistogrammPlot(object):
     """
     class to plot histograms based on C{Data} objects
     """
@@ -1057,9 +1057,9 @@ class HistogrammPlot():
             self.ax = ax
             self.figure = self.ax.figure
 
-        self.bins = bins
+        self.bins      = bins
         self.normalize = normalize
-        self.percent = percent
+        self.percent   = percent
 
     def plot(self,X,color='black',linestyle='-',linewidth=1.,label='',shown=False,show_legend=False,**kwargs):
         """
