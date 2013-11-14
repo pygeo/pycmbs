@@ -33,7 +33,7 @@ class Report():
     @todo: example how to use report class
     """
 
-    def __init__(self,filename,title,author,format='png',outdir='./',dpi=300,logofile='Phytonlogo5.pdf',usehyperlinks=True):
+    def __init__(self,filename,title,author,format='png',outdir='./',dpi=300,logofile='Phytonlogo5.pdf',usehyperlinks=True,autocompile=True):
         """
         constructor for Latex report class
 
@@ -60,6 +60,9 @@ class Report():
 
         @param author: Author of the document
         @type author: str
+
+        @param autocompile: ensure automatic PDF creation when report is closed
+        @type autocompile: bool
         """
 
         ext = ''
@@ -75,6 +78,7 @@ class Report():
         self.open()
         self.figure_counter = 0
         self.dpi = dpi
+        self.autocompile = autocompile
 
 
 #-----------------------------------------------------------------------
@@ -106,6 +110,10 @@ class Report():
         self._write_footer()
         self.file.close()
 
+        if self.autocompile:
+            print 'Compiling REPORT ...'
+            self.compile()
+
 #-----------------------------------------------------------------------
 
     def _write_header(self):
@@ -115,6 +123,7 @@ class Report():
         self.write('\documentclass{article}')
         self.write('\usepackage{fancyhdr}')
         self.write('\usepackage{graphicx}')
+        self.write('\usepackage{placeins}') #facilitates handling of floating environments
         #self.write('\usepackage{todonotes}')
 
         self.write('\pagestyle{fancy}')
@@ -149,7 +158,7 @@ class Report():
     def _write_single_figure(self,figpath,caption):
         #/// LOGO ///
         self._write_separator()
-        self.write('\\begin{figure}[htp]')
+        self.write('\\begin{figure}[!htp]')
         self.write('   \centering')
         self.write('   \includegraphics[width=4cm]{'+ figpath + '} ')
         if caption != None:
@@ -226,7 +235,7 @@ class Report():
         @param s: title of section
         @type s: str
         """
-        self.write('\clearpage')
+        self.clearpage()
         self.write('\section{' + s.replace('_',' ') + '}')
 
 #-----------------------------------------------------------------------
@@ -238,7 +247,8 @@ class Report():
         @param s: title of subsection
         @type s: str
         """
-        self.write('\clearpage')
+        #self.write('\clearpage')
+        self.barrier()
         self.write('\subsection{' + s.replace('_',' ') + '}')
 
 #-----------------------------------------------------------------------
@@ -250,7 +260,7 @@ class Report():
         @param s: title of subsection
         @type s: str
         """
-        self.write('\clearpage')
+        self.barrier()
         self.write('\subsubsection{' + s.replace('_',' ') + '}')
 
 #-----------------------------------------------------------------------
@@ -273,7 +283,7 @@ class Report():
         """
         create a new page
         """
-        self.write('\clearpage')
+        self.clearpage()
         self.write('\\newpage')
 
 #-----------------------------------------------------------------------
@@ -281,8 +291,26 @@ class Report():
     def clearpage(self):
         """
         create a new page
+        as an alternative, one could also use the placeins package
+
+        http://tug.ctan.org/tex-archive/info/l2picfaq/german/l2picfaq.pdf
+
+        \usepackage{placeins}
+
+        ...
+
+        \FloatBarrier
+
+        This ensures that all Figures/tables before the breakpoint are put to paper
+        WITHOUT generating a new page. It is thus the opposite to \clearpage
+
+
         """
         self.write('\clearpage')
+
+
+    def barrier(self):
+        self.write('\FloatBarrier')
 
 #-----------------------------------------------------------------------
 
@@ -301,4 +329,16 @@ class Report():
         """
         compile latex document
         """
-        os.system('pdflatex ' + self.filename)
+
+        curdir = os.getcwd()
+
+        pdfdir = os.path.dirname(self.filename)
+        texfile = os.path.basename(self.filename)
+
+        os.chdir(pdfdir)
+
+        #--- compile report twice
+        os.system('pdflatex ' + texfile)
+        os.system('pdflatex ' + texfile)
+
+        os.chdir(curdir)

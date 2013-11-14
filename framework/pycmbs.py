@@ -652,7 +652,8 @@ pickle.dump(global_gleckler.data,open(outdir + 'gleckler_data.pkl','w'))
 pickle.dump(global_gleckler._raw_data,open(outdir + 'gleckler_rawdata.pkl','w'))
 
 rep.section('Summary error statistics')
-rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model performance index')
+rep.subsection('Gleckler metric')
+rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model performance index',width='10cm')
 
 
 #/// legend for gleckler plot ///
@@ -673,15 +674,17 @@ for variable in variables:
 
 
 #/// plot model ranking between different observational datasets ///
+rep.subsection('Model ranking consistency')
 for v in global_gleckler.variables:
+    rep.subsubsection(v.upper())
     tmpfig = global_gleckler.plot_model_ranking(v,show_text=True)
-    rep.figure(tmpfig,width='12cm',bbox_inches=None,caption='Model RANKING for different observational datasets: ' + v.upper())
+    rep.figure(tmpfig,width='8cm',bbox_inches=None,caption='Model RANKING for different observational datasets: ' + v.upper())
     del tmpfig
 
     #/// plot absolut model error
 
     tmpfig = global_gleckler.plot_model_error(v)
-    rep.figure(tmpfig,width='12cm',bbox_inches=None,caption='Model ERROR for different observational datasets: ' + v.upper())
+    rep.figure(tmpfig,width='8cm',bbox_inches=None,caption='Model ERROR for different observational datasets: ' + v.upper())
     del tmpfig
 
 
@@ -693,8 +696,10 @@ for v in global_gleckler.variables:
 ########################################################################################################################
 # CLEAN up and finish
 ########################################################################################################################
-rep.close()
 pl.close('all')
+rep.close()
+
+
 
 
 print '##########################################'
