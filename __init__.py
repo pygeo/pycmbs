@@ -2,7 +2,7 @@
 
 #details how to set global SVN variables can be found in http://blogchuck.com/2009/09/adding-svn-headers-revisited/
 
-'''
+"""
 # Copyright (C) 2012-2013 Alexander Loew, alexander.loew@zmaw.de
 # See COPYING file for copying and redistribution conditions.
 #
@@ -14,7 +14,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-'''
+"""
 
 __name__ = "pyCMBS"
 """The project name."""
@@ -52,7 +52,10 @@ __email__ = "alexander.loew@zmaw.de"
 #------------------------------
 
 #- generic classes
+import matplotlib
+matplotlib.use('Agg')   #this is the first level import of Matplotlib. activate or deactivate here if you want to change the backend used
 from matplotlib import pylab as pl
+
 
 from scipy import stats
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -21,14 +20,14 @@ __email__ = "alexander.loew@zmaw.de"
 '''
 
 
-'''
+"""
 Module that contains relevant classes for diagnostic plots
 
 @todo: implement writing of statistics to an ASCII file as export
 @todo: implement taylor plots
 @todo: faster implementation of Basemap plots. For large number of grid cells, the current KTree implementation is by far too slow!
 
-'''
+"""
 import matplotlib as mpl
 mpl.use('agg')
 
@@ -316,9 +315,9 @@ class ReichlerPlot():
 #-----------------------------------------------------------------------
 
     def circle_plot(self):
-        '''
+        """
         nice looking plot of Reichler index
-        '''
+        """
         print 'Doing Reichler plot as circle plot ...'
         self._normalize()
 
@@ -437,7 +436,6 @@ class ScatterPlot():
         else:
             label=y.label
 
-
         if fldmean:
             xdat = self.x.fldmean(); ydat = y.fldmean()
         else:
@@ -448,6 +446,13 @@ class ScatterPlot():
             else:
                 xdat = self.x.data.flatten(); ydat = y.data.flatten()
 
+        assert(isinstance(xdat,np.ma.core.MaskedArray))
+        assert(isinstance(ydat,np.ma.core.MaskedArray))
+
+        #--- mask invalid data
+        xdat = np.ma.masked_where(np.isnan(xdat),xdat)
+        ydat = np.ma.masked_where(np.isnan(ydat),ydat)
+
         if self.normalize:
             xdat = self.__normalize_data(xdat)
             ydat = self.__normalize_data(ydat)
@@ -455,14 +460,18 @@ class ScatterPlot():
         #- calculate linear regression
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat,ydat)
-            rms_error = np.sqrt(np.mean(((xdat-ydat)**2)))
+            nval = (~(xdat-ydat).mask).sum() #number of valid datasets used for comparison
+
+            assert(isinstance(xdat,np.ma.core.MaskedArray))
+            assert(isinstance(ydat,np.ma.core.MaskedArray))
+
+            rms_error = np.sqrt(np.mean(((xdat-ydat)**2.)))
             std_error = np.std(xdat-ydat)
             if p_value < 0.01:
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
-            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', slope:' + str(slope) + ', ' + 'intercept: ' + str(intercept) + ', ' + 'rmsd: ' + str(rms_error) +  ')'
-
+            label = label + ' (r=' + str(round(r_value,2)) + ', ' + spvalue + ', y=' + str(slope) + 'x+' + str(intercept) + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) +  ')'
 
         #- actual plot
         if hexbin:
@@ -488,9 +497,12 @@ class ScatterPlot():
         self._change_ticklabels()
 
         if regress:
-            return r_value,p_value,rms_error, std_error
+
+            return r_value,p_value,rms_error, std_error, nval
         else:
             return None
+
+#-----------------------------------------------------------------------
 
     def _change_ticklabels(self):
         for tick in self.ax.xaxis.get_major_ticks():
@@ -563,7 +575,6 @@ class LinePlot():
 
         self.xtickrotation = xtickrotation
 
-        #~ self.showxticks = showxticks
 
 #-----------------------------------------------------------------------
 
@@ -626,7 +637,7 @@ class LinePlot():
                 ax = ax
                 set_axiscolor=True
 
-            if x.data.ndim == 1: #if a vector already provided
+            if x.ndim == 1: #if a vector already provided
                 y = x.data * 1.
             else:
                 y = x.fldmean() #... otherwise use fldmean() to get timeseries
@@ -655,10 +666,10 @@ class LinePlot():
 
             self.labels.append(label)
 
-            p = ax.plot(x.num2date(x.time), y , label=label, **kwargs)[0]
+            p = ax.plot(x.date, y , label=label, **kwargs)[0]
             self.lines.append(p)
             if self.regress:
-                ax.plot(x.num2date(x.time),x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
+                ax.plot(x.date,x.time*slope+intercept,'--',color=p.get_color()) #plot regression line
 
             if self.show_ylabel:
                 ax.set_ylabel(x._get_unit(),size=self.ticksize)
@@ -743,13 +754,13 @@ class GlobalMeanPlot():
 
 
         def coregister(x,x1,y1,d):
-            '''
+            """
             This routine provides the functionality to coregister two timeseries of data
             x : reference x vector
             x1: x-value of data
             y1: y-value of data
             d : difference in t (threshold)
-            '''
+            """
 
             o=[]
             for xx in x:
@@ -786,6 +797,7 @@ class GlobalMeanPlot():
         for g in groups:
             dat = pdata[g] #this gives a list, where each entry is a dictionary of ['time','data','unit']
 
+            n = 0
             for i in xrange(len(dat)):
 
                 if i == 0:
@@ -809,7 +821,7 @@ class GlobalMeanPlot():
 
                     y[m]=y[m]+yo[m]
                     ys[m] = ys[m] + yo[m]*yo[m]
-                    n[m]=n[m]+1.
+                    n[m] += 1.
 
                     if plot_clim:
                         pass
@@ -818,24 +830,27 @@ class GlobalMeanPlot():
 
                     del m
 
-            ym = y / n
-            ys = ys / n #squared values
-            std_data = np.sqrt(ys - ym*ym)
+            print 'n: ', n
+            if len(n) > 0:
+                n = map(float,n)
+                ym = y / n
+                ys /=  n #squared values
+                std_data = np.sqrt(ys - ym*ym)
 
-            color=None
-            if colors != None:
-                if g in colors.keys():
-                    color=colors[g]
+                color=None
+                if colors != None:
+                    if g in colors.keys():
+                        color=colors[g]
 
-            if plot_clim:
-                tval = tref
-            else:
-                tval = pl.num2date(tref)
+                if plot_clim:
+                    tval = tref
+                else:
+                    tval = pl.num2date(tref)
 
-            ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
-            ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
-            ax.set_ylabel(dat[0]['unit'])
-            ax.set_xlabel('months')
+                ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
+                ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
+                ax.set_ylabel(dat[0]['unit'])
+                ax.set_xlabel('months')
 
         ax.legend()
         ax.grid()
@@ -1077,9 +1092,9 @@ class HistogrammPlot():
         #--- calculate frequency distribution
         f,b = np.histogram(x,bins = self.bins,**kwargs)
         if self.normalize:
-            f = f / float(sum(f))
+            f /= float(sum(f))
             if self.percent:
-                f = f*100.
+                f *= 100.
 
         self.ax.plot(b[0:-1],f,color=color,linestyle=linestyle,linewidth=linewidth,label=label)
 
@@ -1093,7 +1108,7 @@ class HistogrammPlot():
 
 class ZonalPlot():
     def __init__(self,ax=None,dir='y'):
-        '''
+        """
         @todo: still needs to take into account appropriately area weighting
 
         constructor for zonal plot
@@ -1102,7 +1117,7 @@ class ZonalPlot():
 
         CAUTION: the class simply aggregates x/y. Thus the user needs to ensure, that the data is projected
         in a way that all lon/lat are on the same row/col
-        '''
+        """
 
         #--- directionalities
         if dir == 'y': #zonal plot
@@ -1423,7 +1438,7 @@ class GlecklerPlot():
     def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,
              normalize=True,size=10,method='median',title=None,show_value=False,
              logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,
-             colorbar_boundaries=None,show_colorbar=True):
+             colorbar_boundaries=None,show_colorbar=True,autoscale=True):
         """
         plot Gleckler diagram
 
@@ -1461,6 +1476,9 @@ class GlecklerPlot():
 
         @param show_colorbar: show colorbar plot
         @type show_colorbar: bool
+
+        @param autoscale: autoscale figure size
+        @type autoscale: bool
 
         """
 
@@ -1512,14 +1530,14 @@ class GlecklerPlot():
 
                 #labels
                 if cnt_v == 0:
-                    ax.set_ylabel(model,size=size,rotation='horizontal')
+                    ax.set_ylabel(model,size=size,rotation='horizontal',horizontalalignment='right') #set labels for models
                 if cnt_m == nm:
                     ax.set_xlabel(variable,size=size)
 
                 self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top')    #upper triangle
                 self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle
-                self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left') #left triangle
-                self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right') #right triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left')   #left triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right')  #right triangle
                 cnt += 1; cnt_v += 1
 
         #--- legend
@@ -1529,15 +1547,21 @@ class GlecklerPlot():
             b = x[0]; t = x[1]; l = x[2]; r = x[3]
             return l[0], r[-1], b[-1], t[0]
 
+        if autoscale:
+            self.fig.set_size_inches(3.+0.5*nv,4.+0.5*nm) #important to have this *before* drawring the colorbar
+
+
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
         #draw legend
-        c=0.75
+        c=1.
         width=(right-left)*c
         if show_colorbar:
             self._draw_colorbar(left,width,logscale=logscale)
 
         if title != None:
             self.fig.suptitle(title)
+
+
 
         return self.fig
 
@@ -2251,7 +2275,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
     #--- save field that is plotted as file
     if savefile != None:
         if savefile[:-3] != '.nc':
-            savefile = savefile + '.nc'
+            savefile += '.nc'
         tmp = x.copy()
         tmp.data = xm*1.
         tmp.time = None

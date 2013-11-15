@@ -98,7 +98,7 @@ def ttest_ind(a, b, axis=0):
 
 
 def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
-    '''
+    """
     REFERENCES:
     http://econpy.googlecode.com/svn/trunk/pytrix/stat.py
     http://comments.gmane.org/gmane.comp.python.scientific.user/12907
@@ -136,7 +136,7 @@ def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
     :license: BSD_
 
     .. BSD: http://www.opensource.org/licenses/bsd-license.php
-    '''
+    """
     svm1 = sem1**2 * n1
     svm2 = sem2**2 * n2
     t_s_prime = (mean1 - mean2)/np.sqrt(svm1/n1+svm2/n2)
