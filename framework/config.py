@@ -237,6 +237,116 @@ class ConfigFile():
         sys.stdout.write(" *** Done reading config file. \n")
 
 
+    def get_analysis_scripts(self):
+        """
+        returns names of analysis scripts for all variables as a dictionary
+        in general.
+
+        The names of the different analysis routines are taken from file
+        <configuration_dir>/analysis_scripts.json
+
+        which has the format
+
+        VARIABLE,NAME OF ANALYSIS ROUTINE
+        """
+        #d={}
+        #d.update({'rain':'rainfall_analysis'})
+        #d.update({'albedo':'albedo_analysis'})
+        #d.update({'albedo_vis':'albedo_analysis_vis'})
+        #d.update({'albedo_nir':'albedo_analysis_nir'})
+        #d.update({'sis':'sis_analysis'})
+        #d.update({'surface_upward_flux':'surface_upward_flux_analysis'})
+        #d.update({'tree':'tree_fraction_analysis'})
+        #d.update({'grass':'grass_fraction_analysis'})
+        #d.update({'phenology_faPAR':'phenology_faPAR_analysis'})
+        #d.update({'temperature':'temperature_analysis'})
+        #d.update({'evap':'evaporation_analysis'})
+        #d.update({'wind':'wind_analysis'})
+        #d.update({'twpa':'twpa_analysis'})
+        #d.update({'wvpa':'wvpa_analysis'})
+        #d.update({'hair':'hair_analysis'})
+        #d.update({'late':'late_analysis'})
+        #d.update({'budg':'budg_analysis'})
+        #d.update({'seaice_extent':'seaice_extent_analysis'})
+        #d.update({'seaice_concentration':'seaice_concentration_analysis'})
+        #d.update({'gpp':'gpp_analysis'})
+
+        #if os.path.exists(jsonfile):
+        #    os.remove(jsonfile)
+        #json.dump(d,open(jsonfile,'w'),sort_keys=True,indent=4)
+
+        import json
+        jsonfile = self.options['configdir'] + 'analysis_routines.json'
+        if not os.path.exists(jsonfile):
+            raise ValueError, 'REQUIRED file analysis_routines.json not existing!'
+        d = json.load(open(jsonfile,'r'))
+        return d
+
+
+
+    def get_methods4variables(self,variables, model_dict):
+        """
+        for a given list of variables, return a dictionary
+        with information on methods how to read the data
+
+        IMPORTANT: all options provided to the routines need to be
+        specified here and arguments must be set in calling routine get_data()
+        """
+
+        #hlp={}
+        ####hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
+        #hlp.update({'rain': 'get_model_data_generic(interval=interval, **%s)' % model_dict['rain']})
+        #hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
+        #hlp.update({'albedo_vis' : 'get_albedo_data_vis(interval=interval)'})
+        #hlp.update({'albedo_nir' : 'get_albedo_data_nir(interval=interval)'})
+        ##hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
+        #hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
+        #hlp.update({'surface_upward_flux' : 'get_surface_shortwave_radiation_up(interval=interval)'})
+        #hlp.update({'tree' : 'get_tree_fraction(interval=interval)'})
+        #hlp.update({'grass' : 'get_grass_fraction(interval=interval)'})
+        #hlp.update({'phenology_faPAR' : 'get_faPAR(interval=interval)'})
+        #hlp.update({'temperature' : 'get_temperature_2m(interval=interval)'})
+        #hlp.update({'snow' : 'get_snow_fraction(interval=interval)'})
+        #hlp.update({'evap': 'get_model_data_generic(interval=interval, **%s)' % model_dict['evap']})
+        #hlp.update({'wind': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wind']})
+        #hlp.update({'twpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['twpa']})
+        #hlp.update({'wvpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wvpa']})
+        #hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
+        #hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
+        #hlp.update({'hair': 'get_model_data_generic(interval=interval, **%s)' % model_dict['hair']})
+        #hlp.update({'seaice_concentration': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_concentration']})
+        #hlp.update({'seaice_extent': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_extent']})
+        #hlp.update({'gpp': 'get_gpp_data(interval=interval)'})
+        #hlp.update({'snow': 'get_snow_fraction()'})
+
+
+        jsonfile = self.options['configdir'] + 'model_data_routines.json'
+        #if os.path.exists(jsonfile):
+        #    os.remove(jsonfile)
+        #json.dump(hlp,open(jsonfile,'w'),sort_keys=True,indent=4)
+
+        import json
+        if not os.path.exists(jsonfile):
+            raise ValueError, 'File model_data_analysis.json MISSING!'
+        hlp = json.load(open(jsonfile,'r'))
+
+        res={}
+        for k in hlp.keys(): #only use the variables that should be analyzed!
+            if k in variables:
+                res.update({k:hlp[k]})
+
+        #--- implement here also dependencies between variables for anylssi
+        #e.g. phenology needs faPAR and snow cover fraction. Ensure here that
+        # snow cover is also read, even if only phenology option is set
+        if ('phenology_faPAR' in variables) and not ('snow' in variables):
+            res.update({'snow' : hlp['snow']})
+
+        return res
+
+
+
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 
