@@ -62,7 +62,7 @@ def get_temporary_directory():
     else:
         tempdir = './'
     if tempdir[-1] != '/':
-        tempdir = tempdir + '/'
+        tempdir += '/'
 
     return tempdir
 

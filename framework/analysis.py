@@ -26,6 +26,10 @@ from dateutil.rrule import *
 from cdo import *
 from matplotlib.font_manager import FontProperties
 
+import matplotlib.pylab as pl
+
+matplotlib.rcParams['backend'] = 'Agg'
+
 
 
 #///////////////////////////////////////////////////////////////////////
@@ -145,12 +149,12 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     #read monthly data (needed for global means and hovmoeller plots)
     obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
     
+    obs_monthly._pad_timeseries()
 
     if hasattr(obs_monthly,'time_cycle'):
         if obs_monthly.time_cycle != 12:
             obs_monthly._pad_timeseries()
-            print obs_monthly._get_months()[30:50]
-            print obs_monthly.time_cycle
+            # print obs_monthly.time_cycle
         
     if obs_monthly.time_cycle != 12:
             raise ValueError, 'Timecycle could still not be set!!!' + obs_mon_file
@@ -217,11 +221,6 @@ def late_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='late',regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
-
-def cfc_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cfc',regions=regions)
-
-#-----------------------------------------------------------------------------------------------------------------------
 def budg_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='budg',regions=regions)
 
@@ -231,9 +230,34 @@ def gpp_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basema
 #    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='gpp',regions=regions)
     beer_analysis(model_list,interval="season",GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options)
 
+#-----------------------------------------------------------------------------------------------------------------------
 
+def cfc_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cfc',regions=regions)
 
+#-----------------------------------------------------------------------------------------------------------------------
 
+def nsJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='nsJch',regions=regions)
+
+def acJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='acJch',regions=regions)
+
+def cuJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cuJch',regions=regions)
+
+def cbJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cbJch',regions=regions)
+def stJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='stJch',regions=regions)
+def ciJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='ciJch',regions=regions)
+def asJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='asJch',regions=regions)
+def csJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='csJch',regions=regions)
+def scJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='scJch',regions=regions)
 
 #=======================================================================
 # GENERIC - start
@@ -277,7 +301,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     #//////////////////////////////////////////////////////////////////
     #--- plot options which are SPECIFIC to observational data sets
     for_report = local_plot_options[obs_name]['add_to_report'] #add a certain observational dataset to report
-    if for_report == False:
+    if not for_report:
         print '   The following data will not be included in the report as option for reporting is not set: ' + obs_name + ' ' +  obs_type
         return
 
@@ -329,20 +353,20 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
 
     #//////////////////////////////////////////////////////////////////
     #--- plot options which are the same for all datasets
-    cticks = local_plot_options['OPTIONS']['cticks']
-    f_mapdifference = local_plot_options['OPTIONS']['map_difference']
-    f_mapseasons    = local_plot_options['OPTIONS']['map_seasons']
+    cticks               = local_plot_options['OPTIONS']['cticks']
+    f_mapdifference           = local_plot_options['OPTIONS']['map_difference']
+    f_mapseasons              = local_plot_options['OPTIONS']['map_seasons']
     f_mapseason_difference    = local_plot_options['OPTIONS']['map_season_difference']
-    f_preprocess    = local_plot_options['OPTIONS']['preprocess']
-    f_reichler    = local_plot_options['OPTIONS']['reichler_plot']
-    f_gleckler    = local_plot_options['OPTIONS']['gleckler_plot']
-    f_hovmoeller    = local_plot_options['OPTIONS']['hovmoeller_plot']
-    f_regional_analysis = local_plot_options['OPTIONS']['regional_analysis']
-    f_globalmeanplot = local_plot_options['OPTIONS']['global_mean']
-    interpolation_method = local_plot_options['OPTIONS']['interpolation']
-    targetgrid = local_plot_options['OPTIONS']['targetgrid']
-    projection = local_plot_options['OPTIONS']['projection']
-    theunit = local_plot_options['OPTIONS']['units']
+    f_preprocess              = local_plot_options['OPTIONS']['preprocess']
+    f_reichler                = local_plot_options['OPTIONS']['reichler_plot']
+    f_gleckler                = local_plot_options['OPTIONS']['gleckler_plot']
+    f_hovmoeller              = local_plot_options['OPTIONS']['hovmoeller_plot']
+    f_regional_analysis       = local_plot_options['OPTIONS']['regional_analysis']
+    f_globalmeanplot          = local_plot_options['OPTIONS']['global_mean']
+    interpolation_method      = local_plot_options['OPTIONS']['interpolation']
+    targetgrid                = local_plot_options['OPTIONS']['targetgrid']
+    projection                = local_plot_options['OPTIONS']['projection']
+    theunit                   = local_plot_options['OPTIONS']['units']
 
     if regions == None:
         f_regional_analysis = False
@@ -356,11 +380,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         vmin = local_plot_options['OPTIONS']['vmin']
     else:
         vmin = None
+
     if 'vmax' in local_plot_options['OPTIONS'].keys():
         vmax = local_plot_options['OPTIONS']['vmax']
     else:
         vmax = None
-
 
     if 'dmin' in local_plot_options['OPTIONS'].keys():
         dmin = local_plot_options['OPTIONS']['dmin']
@@ -520,12 +544,12 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
         if f_mapdifference == True:
             sys.stdout.write('\n *** Map difference plotting. \n')
             #--- generate difference map
-            import ipdb; ipdb.set_trace()
             f_dif  = map_difference(model_data, obs_orig, nclasses=nclasses,use_basemap=use_basemap,
                                     show_zonal=True,zonal_timmean=False,
                                     dmin=dmin,dmax=dmax,vmin=vmin,vmax=vmax,cticks=cticks,
                                     proj=projection,stat_type=stat_type,show_stat=True)
             report.figure(f_dif,caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
+            pl.close(f_dif.number); del f_dif
 
         if f_mapseasons == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
@@ -539,6 +563,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                 report.figure(f_season,caption='Seasonal mean climatology for ' + model.name)
             else:
                 report.figure(f_season,caption='Monthly mean climatology for ' + model.name)
+            pl.close(f_season.number); del f_season
 
 
         if f_mapseason_difference:
@@ -552,7 +577,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
                 report.figure(f_season_dif,caption='Seasonal mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
             else:
                 report.figure(f_season_dif,caption='Monthly mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
-
+            pl.close(f_season_dif.number); del f_season_dif
 
 
 
@@ -605,7 +630,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
             del hov_obs, tmp
 
             report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')' )
-            del f_hov
+            pl.close(f_hov.number); del f_hov
 
         if f_regional_analysis:
             raise ValueError, 'Feature for regional analysis not implemented so far'
@@ -1140,15 +1165,18 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
     report.figure(fGa,caption='Global means for land surface albedo (summary)',bbox_inches=None)
     report.figure(fGb,caption='Global means for land surface albedo (climatological summary)',bbox_inches=None)
 
+    pl.close(fGa.number); del fGa
+    pl.close(fGb.number); del fGb
+    pl.close(fG.number); del fG
+
+
     print '************************************************************'
     print '* END ALBEDO analysis ...'
     print '************************************************************'
     print
 
     del GM
-    del fGa
-    del fGb
-    del fG
+
 
 
 def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None,regions=None):
@@ -1332,9 +1360,12 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
 
     report.figure(fGa,caption='Global means for ' + thelabel + ' (summary); areas indicate $\pm 1 \sigma$ as derived from the ensemble of models or observations',bbox_inches=None)
     report.figure(fGb,caption='Global means for ' + thelabel + ' (summary climatology)',bbox_inches=None)
+
+    pl.close(fG.number); del fG
+    pl.close(fGa.number); del fGa
+    pl.close(fGb.number); del fGb
+
     del GM
-    del fG
-    del fGa,fGb
 
     print
     print '************************************************************'
@@ -1467,22 +1498,22 @@ def beer_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=Non
         f_beer = figure()
         ax_Beer = f_beer.add_subplot(111)
         ls_mask = get_T63_landseamask(shift_lon)
-        
+
         obs_raw = local_plot_options['BEER']['obs_file']
         obs_var = local_plot_options['BEER']['obs_var']
         GPP_BEER   = Data(obs_raw,obs_var,read=True,lat_name='lat',lon_name='lon',label='GPP Beer_etal_2010',mask=ls_mask.data.data,unit='gC m-2 a-1')
         Beer_zonal = GPP_BEER.get_zonal_mean(return_object=True)
-        ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')       
+        ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')
         map_plot(GPP_BEER,title='Beer etal T63',vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_Beer)
-        
+
         report.subsection('Beer')
         report.figure(f_beer,caption='Beer etal 2010',bbox_inches=None)
 
-        
+
       if k == 'OPTIONS':
         for model in model_list:
 	  if model.name != 'mean-model':
-	      
+
             f_model = figure()
             ax_model = f_model.add_subplot(111)
             obs_mon_file     = get_temporary_directory()

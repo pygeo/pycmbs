@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -36,31 +35,20 @@ __email__ = "alexander.loew@zmaw.de"
 
 
 
-# - regional analysis based on an input mask
-#@todo: correlation and RMSE analysis and Taylor plotting
-#
-# other colorbar for vegetation fraction analysis
-# implement grass cover fraction analysis
-
-#
-# todo: interpolation method for fractional coverage !!!
-
-
-
 
 __author__ = "Alexander Loew"
 __version__ = "0.1"
 __date__ = "0000/00/00"
 
 #============ IMPORTS ==================================================
+import matplotlib as mpl
+mpl.use('Agg')
 
 from pyCMBS import *
-
+#import pdb; pdb.set_trace()
 #--- always use plot backend which is not interactive for benchmarking framework
 import matplotlib as mpl
-mpl.use('agg')
-
-#import mpl.pylab as pl
+mpl.rcParams['backend'] = 'Agg'
 pl = mpl.pylab
 
 import sys
@@ -106,6 +94,15 @@ def get_analysis_scripts():
     d.update({'seaice_concentration':'seaice_concentration_analysis'})
     d.update({'gpp':'gpp_analysis'})
     d.update({'cfc':'cfc_analysis'})
+    d.update({'nsJch':'nsJch_analysis'})
+    d.update({'acJch':'acJch_analysis'})
+    d.update({'cuJch':'cuJch_analysis'})
+    d.update({'cbJch':'cbJch_analysis'})
+    d.update({'stJch':'stJch_analysis'})
+    d.update({'ciJch':'ciJch_analysis'})
+    d.update({'scJch':'scJch_analysis'})
+    d.update({'asJch':'asJch_analysis'})
+    d.update({'csJch':'csJch_analysis'})
 
 
     return d
@@ -122,6 +119,15 @@ def get_methods4variables(variables, model_dict):
 
     hlp={}
     #hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
+    hlp.update({'nsJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['nsJch']})
+    hlp.update({'acJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['acJch']})
+    hlp.update({'cuJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['cuJch']})
+    hlp.update({'cbJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['cbJch']})
+    hlp.update({'stJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['stJch']})
+    hlp.update({'ciJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['ciJch']})
+    hlp.update({'asJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['asJch']})
+    hlp.update({'csJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['csJch']})
+    hlp.update({'scJch': 'get_model_data_generic(interval=interval, **%s)' % model_dict['scJch']})
     hlp.update({'rain': 'get_model_data_generic(interval=interval, **%s)' % model_dict['rain']})
     hlp.update({'cfc': 'get_model_data_generic(interval=interval, **%s)' % model_dict['cfc']})
     hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
@@ -199,6 +205,12 @@ else: #default
 
 
 ######################################################################
+# REMOVE previous Data warnings
+########################################################################################################################
+if os.path.exists('data_warnings.log'):
+    os.remove('data_warnings.log')
+
+########################################################################################################################
 # CONFIGURATION and OPTIONS
 ######################################################################
 
@@ -269,6 +281,142 @@ model_dict = {'rain':  {'CMIP5':
                             }
                         },
 
+               'nsJch': {'CMIP5':
+                            {
+                                'variable': 'nsJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+
+               'acJch': {'CMIP5':
+                            {
+                                'variable': 'acJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+               'cuJch': {'CMIP5':
+                            {
+                                'variable': 'cuJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+               'cbJch': {'CMIP5':
+                            {
+                                'variable': 'cbJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+               'stJch': {'CMIP5':
+                            {
+                                'variable': 'stJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+               'ciJch': {'CMIP5':
+                            {
+                                'variable': 'ciJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+               'asJch': {'CMIP5':
+                            {
+                                'variable': 'asJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+               'csJch': {'CMIP5':
+                            {
+                                'variable': 'csJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
+               'scJch': {'CMIP5':
+                            {
+                                'variable': 'scJch',
+                                'unit': 'per',
+                                'lat_name': 'lat',
+                                'lon_name': 'lon',
+                                'model_suffix': 'ensmean',
+                                'model_prefix': 'cfMon',
+                                'file_format' : 'nc',
+                                'scale_factor': 1,
+                                'valid_mask': 'global',
+                                'custom_path':'/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/cl-Jch/t63'
+                            },
+                            },
+
                'cfc':  {'CMIP5':
                             {
                                 'variable': 'clt',
@@ -280,7 +428,7 @@ model_dict = {'rain':  {'CMIP5':
                                 'file_format' : 'nc',
                                 'scale_factor': 1,
                                 'valid_mask': 'global',
-                                'custom_path': '/data/workspace/projects/evaclimod/data/CMIP5/clt/merged'
+                                'custom_path': '/data/share/mpiles/TRS/m300036/projects/evaclimod/data/CMIP5/clt/merged'
                             },
                         },
 
@@ -655,6 +803,12 @@ oname = outdir + 'gleckler.pkl'
 if os.path.exists(oname):
     os.remove(oname)
 #pickle.dump(global_gleckler,open(oname,'w')) #store gleckler plot as separate file for further finetuning if necessary
+pickle.dump(global_gleckler.models,open(outdir + 'gleckler_models.pkl','w'))
+pickle.dump(global_gleckler.variables,open(outdir + 'gleckler_variables.pkl','w'))
+pickle.dump(global_gleckler.data,open(outdir + 'gleckler_data.pkl','w'))
+pickle.dump(global_gleckler._raw_data,open(outdir + 'gleckler_rawdata.pkl','w'))
+
+
 
 rep.section('Summary error statistics')
 rep.figure(global_gleckler.fig,caption='Gleckler et al. (2008) model preformance index')
@@ -669,14 +823,22 @@ for variable in variables:
         if k == 'OPTIONS':
             continue
         else:
-            thelabels.update({int(varoptions[k]['gleckler_position']) : k}) #generate dictionary for GlecklerPLot legend
+            if varoptions[k]['add_to_report']: #only add observation to legend, if option in INI file is set
+                thelabels.update({int(varoptions[k]['gleckler_position']) : k}) #generate dictionary for GlecklerPLot legend
     fl = global_gleckler._draw_legend(thelabels,title=variable.upper())
     rep.figure(fl,width='8cm',bbox_inches=None)
     del fl, thelabels
 
 #---
 
-
+########################################################################################################################
+# COPY logfiles of Data (e..g warnings related to unvalid area weighting!)
+########################################################################################################################
+if os.path.exists('data_warnings.log'):
+    os.system('mv data_warnings.log ' + outdir)
+    print("**********************************+")
+    print("THERE WERE DATA WARNINGS !!!!")
+    print("**********************************+")
 
 ########################################################################################################################
 # CLEAN up and finish
