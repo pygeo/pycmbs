@@ -464,11 +464,22 @@ class CMIP5Data(Model):
         mdata_all = Data(file_monthly,varname,read=True,label=self.model,unit=units,lat_name=lat_name,lon_name=lon_name,shift_lon=False,time_cycle=12,scale_factor=scf,level=thelevel)
         mdata_all.adjust_time(day=15)
 
-        if target_grid == 't63grid':
-            mdata._apply_mask(get_T63_landseamask(False, area = valid_mask))
-            mdata_all._apply_mask(get_T63_landseamask(False, area = valid_mask))
+
+        #mask_antarctica masks everything below 60°S.
+        #here we only mask Antarctica, if only LAND points shall be used
+        if valid_mask == 'land':
+            mask_antarctica=True
+        elif valid_mask == 'ocean':
+            mask_antarctica=False
         else:
-            tmpmsk = get_generic_landseamask(False,area=valid_mask,target_grid=target_grid)
+            mask_antarctica=False
+
+
+        if target_grid == 't63grid':
+            mdata._apply_mask(get_T63_landseamask(False, area = valid_mask,mask_antarctica=mask_antarctica))
+            mdata_all._apply_mask(get_T63_landseamask(False, area = valid_mask,mask_antarctica=mask_antarctica))
+        else:
+            tmpmsk = get_generic_landseamask(False,area=valid_mask,target_grid=target_grid,mask_antarctica=mask_antarctica)
             mdata._apply_mask(tmpmsk)
             mdata_all._apply_mask(tmpmsk)
             del tmpmsk

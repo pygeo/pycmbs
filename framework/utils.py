@@ -151,7 +151,7 @@ def get_T63_landseamask(shift_lon,mask_antarctica=True,area='land'):
                  in any other case, you get a valid field everywhere (globally)
     @type area: str
 
-    @param mask_antarctica: mask antarctica; if True, then the mask is FALSE over Antarctice (<60S)
+    @param mask_antarctica: mask antarctica; if True, then the mask is FALSE over Antarctica (<60S)
     @type mask_antarctica: bool
     """
     ls_file = get_data_pool_directory() + 'variables/land/land_sea_mask/jsbach_T63_GR15_4tiles_1992.nc'

@@ -5,19 +5,19 @@ __version__ = "0.1"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@mpimet.mpg.de"
 
-'''
-# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-'''
+"""
+Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
+See COPYING file for copying and redistribution conditions.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+"""
 
 from utils import *
 from external_analysis import *
@@ -370,12 +370,20 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     m_data_org = obs_type + '_org' #name of original data field
 
 
-
     #/// land sea mask (options: land,ocean, global for parameter area)
-    if targetgrid == 't63grid':
-        ls_mask = get_T63_landseamask(shift_lon, area = valid_mask)
+    #mask_antarctica masks everything below 60°S.
+    #here we only mask Antarctica, if only LAND points shall be used
+    if valid_mask == 'land':
+        mask_antarctica=True
+    elif valid_mask == 'ocean':
+        mask_antarctica=False
     else:
-        ls_mask = get_generic_landseamask(shift_lon,area=valid_mask,target_grid=targetgrid)
+        mask_antarctica=False
+
+    if targetgrid == 't63grid':
+        ls_mask = get_T63_landseamask(shift_lon, area = valid_mask,mask_antarctica=mask_antarctica)
+    else:
+        ls_mask = get_generic_landseamask(shift_lon,area=valid_mask,target_grid=targetgrid,mask_antarctica=mask_antarctica)
 
     #####################################################################
     # OBSERVATION DATA PREPROCESSING

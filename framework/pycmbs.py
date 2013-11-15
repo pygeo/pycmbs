@@ -37,8 +37,8 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 
 
 __author__ = "Alexander Loew"
-__version__ = "0.1"
-__date__ = "0000/00/00"
+__version__ = "0.1.4"
+__date__ = "2013/11/12"
 
 #============ IMPORTS ==================================================
 
@@ -66,35 +66,6 @@ import pickle
 
 #=======================================================================
 
-def get_analysis_scripts():
-    """
-    returns names of analysis scripts for all variables as a dictionary
-    in general, these names can be also read from an ASCII file
-    """
-    d={}
-    d.update({'rain':'rainfall_analysis'})
-    d.update({'albedo':'albedo_analysis'})
-    d.update({'albedo_vis':'albedo_analysis_vis'})
-    d.update({'albedo_nir':'albedo_analysis_nir'})
-    d.update({'sis':'sis_analysis'})
-    d.update({'surface_upward_flux':'surface_upward_flux_analysis'})
-    d.update({'tree':'tree_fraction_analysis'})
-    d.update({'grass':'grass_fraction_analysis'})
-    d.update({'phenology_faPAR':'phenology_faPAR_analysis'})
-    d.update({'temperature':'temperature_analysis'})
-    d.update({'evap':'evaporation_analysis'})
-    d.update({'wind':'wind_analysis'})
-    d.update({'twpa':'twpa_analysis'})
-    d.update({'wvpa':'wvpa_analysis'})
-    d.update({'hair':'hair_analysis'})
-    d.update({'late':'late_analysis'})
-    d.update({'budg':'budg_analysis'})
-    d.update({'seaice_extent':'seaice_extent_analysis'})
-    d.update({'seaice_concentration':'seaice_concentration_analysis'})
-    d.update({'gpp':'gpp_analysis'})
-
-
-    return d
 
 
 
@@ -110,54 +81,6 @@ pl.close('all')
 
 #-----------------------------------------------------------------------
 
-def get_methods4variables(variables, model_dict):
-    """
-    for a given list of variables, return a dictionary
-    with information on methods how to read the data
-
-    IMPORTANT: all options provided to the routines need to be
-    specified here and arguments must be set in calling routine get_data()
-    """
-
-    hlp={}
-    #hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
-    hlp.update({'rain': 'get_model_data_generic(interval=interval, **%s)' % model_dict['rain']})
-    hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
-    hlp.update({'albedo_vis' : 'get_albedo_data_vis(interval=interval)'})
-    hlp.update({'albedo_nir' : 'get_albedo_data_nir(interval=interval)'})
-    #hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
-    hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
-    hlp.update({'surface_upward_flux' : 'get_surface_shortwave_radiation_up(interval=interval)'})
-    hlp.update({'tree' : 'get_tree_fraction(interval=interval)'})
-    hlp.update({'grass' : 'get_grass_fraction(interval=interval)'})
-    hlp.update({'phenology_faPAR' : 'get_faPAR(interval=interval)'})
-    hlp.update({'temperature' : 'get_temperature_2m(interval=interval)'})
-    hlp.update({'snow' : 'get_snow_fraction(interval=interval)'})
-    hlp.update({'evap': 'get_model_data_generic(interval=interval, **%s)' % model_dict['evap']})
-    hlp.update({'wind': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wind']})
-    hlp.update({'twpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['twpa']})
-    hlp.update({'wvpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wvpa']})
-    hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
-    hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
-    hlp.update({'hair': 'get_model_data_generic(interval=interval, **%s)' % model_dict['hair']})
-    hlp.update({'seaice_concentration': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_concentration']})
-    hlp.update({'seaice_extent': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_extent']})
-    hlp.update({'gpp': 'get_gpp_data(interval=interval)'})
-
-
-    res={}
-    for k in hlp.keys(): #only use the variables that should be analyzed!
-        if k in variables:
-            res.update({k:hlp[k]})
-
-    #--- implement here also dependencies between variables for anylssi
-    #e.g. phenology needs faPAR and snow cover fraction. Ensure here that
-    # snow cover is also read, even if only phenology option is set
-    if ('phenology_faPAR' in variables) and not ('snow' in variables):
-        res.update({'snow' : 'get_snow_fraction()'})
-
-    return res
-
 
 
 
@@ -168,10 +91,10 @@ def get_methods4variables(variables, model_dict):
 HOWTO
 
 Add a new variable:
-1) register variable in get_methods4variables()
-2) implement for each data object a routine how to read the data
+1) register variable in ./configuration/model_data_routines.json
+2) implement for each Data object a routine how to read the data
 3) implement an analysis script that performs the actual analysis
-4) register this analysis script in get_analysis_scripts()
+4) register this analysis script in the file ./configuration/analysis_scripts.json
 """
 
 
@@ -246,7 +169,7 @@ stop_time    = pl.num2date(pl.datestr2num(s_stop_time ))
 
 
 
-# get observations? #todo: this needs to be done for each model !!!
+
 model_dict = {'rain':  {'CMIP5':
                             {
                                 'variable': 'pr',
@@ -500,32 +423,29 @@ model_dict = {'rain':  {'CMIP5':
 ########################################################################################################################
 # INIT METHODS
 ########################################################################################################################
+
 #--- names of analysis scripts for all variables ---
-scripts = get_analysis_scripts()
+scripts = CF.get_analysis_scripts()
 
 #/// get dictionary with methods how to read data for variables to be analyzed ///
-variables = CF.variables
-varmethods = get_methods4variables(variables, model_dict)
+variables  = CF.variables
+varmethods = CF.get_methods4variables(variables, model_dict)
 
 
 
 
-#=======================================================================
-#global_settings_dict = {'landsea_mask': {'filename': ''}}
-#default_analysis = {}
 
 
 
 #/// READ DATA ///
-'''
+"""
 create a Model instance for each model specified
 in the configuration file
 
 read the data for all variables and return a list
 of Data objects for further processing
-'''
+"""
 
-#mean_model = Data(None,None)
 model_cnt   = 1; proc_models = []
 
 for i in range(len(CF.models)):
@@ -548,7 +468,6 @@ for i in range(len(CF.models)):
     elif CF.dtypes[i].upper() == 'CMIP3':
         themodel = CMIP3Data(data_dir,model,experiment,varmethods,intervals=CF.intervals,lat_name='lat',lon_name='lon',label=model,start_time=start_time,stop_time=stop_time,shift_lon=shift_lon)
     else:
-        #logger.error('Invalid model type!')
         print CF.dtypes[i]
         raise ValueError, 'Invalid model type!'
 
