@@ -96,11 +96,6 @@ class Report():
         self.file = open(self.filename,'w')
         self._write_header()
 
-
-
-
-
-
 #-----------------------------------------------------------------------
 
     def close(self):

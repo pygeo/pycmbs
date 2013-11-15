@@ -400,7 +400,7 @@ class Data(object):
 
         #/// either store full field or just spatial mean field ///
         if mean:
-            print 'Saving MEAN FIIELD of object in file ' + filename
+            print 'Saving MEAN FIELD of object in file ' + filename
             tmp = self.fldmean(return_data=True)
         else:
             print 'Saving object in file ' + filename
@@ -489,29 +489,37 @@ class Data(object):
         F = Nio.open_file(filename,mode='w')
 
         #/// create dimensions
-        if self.data.ndim == 3:
-            if self.time == None:
-                raise ValueError, 'No time variable existing! Can not write 3D data!'
-            nt,ny,nx = self.shape
-            F.create_dimension('time',nt)
-        elif self.data.ndim == 2:
-            ny,nx = self.shape
+        if hasattr(self,'data'):
+            if self.data.ndim == 3:
+                if self.time == None:
+                    raise ValueError, 'No time variable existing! Can not write 3D data!'
+                nt,ny,nx = self.shape
+                F.create_dimension('time',nt)
+            elif self.data.ndim == 2:
+                ny,nx = self.shape
+            else:
+                print self.shape
+                raise ValueError, 'Current shape not supported here'
         else:
-            print self.shape
-            raise ValueError, 'Current shape not supported here'
+            ny,nx = np.shape(self.lat)
+
 
         F.create_dimension('ny',ny)
         F.create_dimension('nx',nx)
 
-        #/// create variable
-        if self.time is not None:
-            F.create_variable('time','d',('time',))
-            F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
+        print 'Dimensions created: ', ny,nx
 
-        if self.data.ndim == 3:
-            F.create_variable(varname,'d',('time','ny','nx'))
-        elif self.data.ndim == 2:
-            F.create_variable(varname,'d',('ny','nx'))
+        #/// create variable
+        if hasattr(self,'time'):
+            if self.time is not None:
+                F.create_variable('time','d',('time',))
+                F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
+
+        if hasattr(self,'data'):
+            if self.data.ndim == 3:
+                F.create_variable(varname,'d',('time','ny','nx'))
+            elif self.data.ndim == 2:
+                F.create_variable(varname,'d',('ny','nx'))
 
         if self.lat is not None:
             F.create_variable('lat','d',('ny','nx'))
@@ -525,34 +533,47 @@ class Data(object):
             F.variables['lon'].axis  = "X"
             F.variables['lon'].long_name  = "longitude"
 
-        if hasattr(self,'cell_area'):
-            F.create_variable('cell_area','d',('ny','nx'))
+        if hasattr(self,'data'):
+            if hasattr(self,'cell_area'):
+                F.create_variable('cell_area','d',('ny','nx'))
 
 
         #/// write data
-        if self.time != None:
-            #F.variables['time'] .assign_value(self.time-1)
-            F.variables['time'] .assign_value(self.time)
-            F.variables['time'].calendar = self.calendar
+        if hasattr(self,'time'):
+            if self.time != None:
+                #F.variables['time'] .assign_value(self.time-1)
+                F.variables['time'] .assign_value(self.time)
+                F.variables['time'].calendar = self.calendar
 
-        F.variables[varname].assign_value(self.data)
+        if hasattr(self,'data'):
+            F.variables[varname].assign_value(self.data)
+
+
+        print 'Assigning lat/lon'
         if self.lat is not None:
             F.variables['lat'].assign_value(self.lat)
+        print 'Lat completed ...'
         if self.lon is not None:
             F.variables['lon'].assign_value(self.lon)
-        if hasattr(self,'cell_area'):
-            F.variables['cell_area'].assign_value(self.cell_area)
+        print 'Lon completed ...'
 
-        F.variables[varname].long_name    = self.long_name
-        F.variables[varname].units        = self.unit
-        F.variables[varname].scale_factor = 1.
-        F.variables[varname].add_offset   = 0.
-        F.variables[varname].coordinates  = "lon lat"
+        if hasattr(self,'data'):
+            if hasattr(self,'cell_area'):
+                F.variables['cell_area'].assign_value(self.cell_area)
+
+        if hasattr(self,'data'):
+            F.variables[varname].long_name    = self.long_name
+            F.variables[varname].units        = self.unit
+            F.variables[varname].scale_factor = 1.
+            F.variables[varname].add_offset   = 0.
+            F.variables[varname].coordinates  = "lon lat"
 
         #/// global attributes
-        F.source = self.filename #store original filename
+        #if hasattr(self,'filename'):
+        #    F.sourcefile = self.filename #store original filename
 
         #/// close file
+        print 'Saving completed ... closing file'
         F.close()
 
 #-----------------------------------------------------------------------
