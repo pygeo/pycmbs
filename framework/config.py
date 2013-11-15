@@ -462,6 +462,9 @@ class PlotOptions():
         # a value of [bilinear,conservative,nearest]
         for var in cfg.variables:
             lopt = self.options[var]
+            print lopt['OPTIONS']['interpolation']
+
+
             if lopt['OPTIONS']['interpolation'] == 'bilinear':
                 lopt['OPTIONS'].update({'interpolation':'remapbil'})
             elif lopt['OPTIONS']['interpolation'] == 'conservative':
@@ -469,7 +472,8 @@ class PlotOptions():
             elif lopt['OPTIONS']['interpolation'] == 'nearest':
                 lopt['OPTIONS'].update({'interpolation':'remapnn'})
             else:
-                raise ValueError, 'ERROR: invalid interpolation method!'
+                
+                raise ValueError, 'ERROR: invalid interpolation method: %s' % lopt['OPTIONS']['interpolation']
 
 
 

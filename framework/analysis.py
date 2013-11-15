@@ -149,9 +149,16 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
 
     #read monthly data (needed for global means and hovmoeller plots)
     obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
-    if obs_monthly.time_cycle != 12:
-        raise ValueError, 'A time_cycle different from 12 is not allowed here! ' + obs_mon_file
+    
+    obs_monthly._pad_timeseries()
 
+    if hasattr(obs_monthly,'time_cycle'):
+        if obs_monthly.time_cycle != 12:
+            obs_monthly._pad_timeseries()
+            # print obs_monthly.time_cycle
+        
+    if obs_monthly.time_cycle != 12:
+            raise ValueError, 'Timecycle could still not be set!!!' + obs_mon_file
 
     #/// center dates of months
     obs_monthly.adjust_time(day=15)
@@ -225,12 +232,34 @@ def gpp_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basema
 #    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='gpp',regions=regions)
     beer_analysis(model_list,interval="season",GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options)
 
+#-----------------------------------------------------------------------------------------------------------------------
 
+def cfc_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cfc',regions=regions)
 
+#-----------------------------------------------------------------------------------------------------------------------
 
+def nsJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='nsJch',regions=regions)
 
-#global_settings_dict = {'landsea_mask':
-#                            {'filename': ''}}
+def acJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='acJch',regions=regions)
+
+def cuJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cuJch',regions=regions)
+
+def cbJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cbJch',regions=regions)
+def stJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='stJch',regions=regions)
+def ciJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='ciJch',regions=regions)
+def asJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='asJch',regions=regions)
+def csJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='csJch',regions=regions)
+def scJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='scJch',regions=regions)
 
 #=======================================================================
 # GENERIC - start

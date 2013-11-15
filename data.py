@@ -3989,6 +3989,56 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
+    def _pad_timeseries(self,fill_value=-99.):
+        
+        import numpy as np
+        from matplotlib import dates
+        from dateutil.rrule import rrule, MONTHLY
+
+        print "TRYING TO PAD SERIES"
+
+        data   = self.data
+        time   = self.time
+        
+        dummy_data = np.ma.array(np.ones(data[0,:,:].shape)*data.fill_value,\
+                                        fill_value=data.fill_value,\
+                                        mask=np.ones(data[0,:,:].shape)*True)
+
+        months = self._get_months()
+        mondif = np.diff(months)
+        
+        gaps = np.where(mondif>1)
+        new_time = self.num2date(time)
+        new_data = data.copy()
+
+        #print "GAPS", gaps
+
+        idx_shift = 0
+
+        for i in gaps[0]:
+            start_time = new_time[i+idx_shift]
+            stop_time  = new_time[i+1+idx_shift]
+            gap_months = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True)[1:-1]
+
+            # gap_months = np.ceil(\
+            #                 np.linspace(new_time[i+idx_shift],new_time[i+1+idx_shift],mondif[i]+1)\
+            #                 )[1:-1] # skip first and last members
+
+            new_time = np.insert(new_time,i+1+idx_shift,gap_months)
+            new_data = np.insert(new_data,i+1+idx_shift,dummy_data,axis=0)
+
+            idx_shift = idx_shift + len(gap_months)
+
+        data_masked = np.ma.array(new_data.data,mask = new_data == fill_value,fill_value=fill_value)
+
+        self.time = self.date2num(new_time)
+        self.data = data_masked.copy()
+
+        self._set_timecycle()
+
+        #mondif = np.diff(self._get_months())
+#-----------------------------------------------------------------------
+
     def _set_timecycle(self):
         """
         determine automatically the timecycle of the data and set the appropriate variable if possible
