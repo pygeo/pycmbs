@@ -51,6 +51,7 @@ def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192),varname='clis
     #oclisccp._FillValue = float(cli._FillValue)
     oclisccp.long_name = "%s cloud fraction" % ( varname.split("_")[0].title())
     oclisccp.units = "%"
+    oclisccp.valid_range = 0.,100.
     
     otime[:] = time[:]
     oclisccp[:] = clisccp
@@ -71,11 +72,11 @@ def burst_9_types(filename,ldict,outputdir="."):
         clouds = cli[:,tb[0]:tb[1],pb[0]:pb[1],:,:].copy()
         clsum  = sum2d(clouds,axis=1)
 
-        basename = os.path.basename(filename)
+        basename = os.path.basename(filename).lstrip('clisccp')
         dirname  = outputdir
-        ofilename = dirname + "/" + "%s-%s" % (name,basename)
+        ofilename = dirname + "/" + "%sJch%s" % (name,basename)
 
-        create_ofile(ofilename,time,lat,lon,cli,clsum,shape=(lat.shape[0],lon.shape[0]),varname="%s_jch"%name)
+        create_ofile(ofilename,time,lat,lon,cli,clsum,shape=(lat.shape[0],lon.shape[0]),varname="%sJch"%name)
         print "*** Created new file: %s" % ofilename
 
 

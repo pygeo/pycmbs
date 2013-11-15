@@ -53,7 +53,7 @@ def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192)):
     otime = ofile.createVariable('time','f8', ('time',))
     olat  = ofile.createVariable('lat','f8',('lat',))
     olon  = ofile.createVariable('lon','f8',('lon',))
-    oclisccp = ofile.createVariable('clisccp','f8',('time','lat','lon'))
+    oclisccp = ofile.createVariable('jch','f8',('time','lat','lon'))
 
     set_attrs(otime,time)
     set_attrs(olat,lat)
