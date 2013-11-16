@@ -628,7 +628,7 @@ class CMIP5Data(Model):
 
 
 
-    def get_surface_shortwave_radiation_down(self,interval = 'season'):
+    def get_surface_shortwave_radiation_down(self,interval = 'season',**kwargs):
 
         """
         return data object of
@@ -638,6 +638,10 @@ class CMIP5Data(Model):
 
         #original data
         #filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+        locdict = kwargs[self.type]
+        valid_mask    = locdict.pop('valid_mask')
+
         filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
         force_calc = False
@@ -706,8 +710,16 @@ class CMIP5Data(Model):
             raise ValueError, 'Timecycle of 12 expected here!'
         sisall.adjust_time(day=15)
 
-        sis._apply_mask(get_T63_landseamask(False))
-        sisall._apply_mask(get_T63_landseamask(False))
+        #/// land/sea masking ...
+        if valid_mask == 'land':
+            mask_antarctica=True
+        elif valid_mask == 'ocean':
+            mask_antarctica=False
+        else:
+            mask_antarctica=False
+
+        sis._apply_mask(get_T63_landseamask(False,mask_antarctica=mask_antarctica,area=valid_mask))
+        sisall._apply_mask(get_T63_landseamask(False,mask_antarctica=mask_antarctica,area=valid_mask))
 
         sismean = sisall.fldmean()
 
