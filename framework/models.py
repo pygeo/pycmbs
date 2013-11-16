@@ -7,17 +7,17 @@ __date__ = "2012/10/29"
 __email__ = "alexander.loew@mpimet.mpg.de"
 
 """
-# Copyright (C) 2012-2013 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+Copyright (C) 2012-2013 Alexander Loew, alexander.loew@mpimet.mpg.de
+See COPYING file for copying and redistribution conditions.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
 """
 
 
@@ -305,8 +305,6 @@ class CMIP5Data(Model):
         @param kwargs: other keyword arguments
         @return:
         """
-        #Model.__init__(self,None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
-
         super(CMIP5Data,self).__init__(data_dir,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
 
         self.model      = model
@@ -897,7 +895,9 @@ class JSBACH_BOT(Model):
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
 
-        Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+        #Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+        super(JSBACH_BOT,self).__init__(filename,dic_variables,name=name,**kwargs)
+
         self.experiment = experiment
         self.shift_lon = shift_lon
         self.type = 'JSBACH_BOT'
@@ -1079,7 +1079,8 @@ class JSBACH_RAW2(Model):
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,model_dict=None,**kwargs):
 
-        Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+        #Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+        super(JSBACH_RAW2,self).__init__(filename,dic_variables,name=name,**kwargs)
 
         self.experiment = experiment
         self.shift_lon = shift_lon
@@ -1450,7 +1451,7 @@ class JSBACH_RAW(Model):
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
 
-        Model.__init__(self,filename,dic_variables,name=name,**kwargs)
+        super(JSBACH_RAW,self).__init__(self,filename,dic_variables,name=name,**kwargs)
 
         self.experiment = experiment
         self.shift_lon = shift_lon
@@ -1726,7 +1727,8 @@ class CMIP3Data(CMIP5Data):
         @param kwargs: other keyword arguments
         @return:
         """
-        Model.__init__(self,None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+        super(CMIP3Data,self).__init__(None,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+
 
         self.model      = model; self.experiment = experiment
         self.data_dir   = data_dir; self.shift_lon  = shift_lon
