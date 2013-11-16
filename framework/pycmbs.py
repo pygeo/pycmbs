@@ -90,15 +90,54 @@ Add a new variable:
 # read command line options ...
 ########################################################################################################################
 
+def create_dummy_configuration():
+    """
+    creates a dummy configuration
+
+    1) copy template configuration file
+    2) copy template directory with INI files
+    """
+
+    import shutil
+    import glob
+    d = os.environ['PYCMBSPATH'] #directory of pyCMBS installation
+    cwd = os.getcwd() #current directory
+
+    odir = cwd + '/configuration'
+
+
+
+
+    if os.path.exists(odir):
+        os.system('rm -rf ' + odir)
+    shutil.copytree(d + '/framework/configuration',odir)
+    shutil.copy(d + '/framework/pyCMBS_template.cfg',cwd)
+    os.system('rm -rf ' + odir + '/.svn')
+
+    print('Init')
+
+
+
 if len(sys.argv) > 1:
     if len(sys.argv) == 2:
-        file = sys.argv[1] #name of config file
-        if not os.path.exists(file):
-            raise ValueError, 'Configuration file can not be found: ' + file
+        # a single argument was provides as option
+        if sys.argv[1] == 'init':
+            #--- initialization desired ---
+            #copy INI files and a template configuration file to current directory
+            create_dummy_configuration()
+            sys.exit()
+        else:
+            file = sys.argv[1] #name of config file
+            if not os.path.exists(file):
+                raise ValueError, 'Configuration file can not be found: ' + file
     else:
         raise ValueError, 'Currently not more than one command line parameter supported!'
 else: #default
     file='pyCMBS.cfg'
+    print('*******************************************')
+    print('* WELCOME to pycmbs.py                    *')
+    print('* Happy benchmarking ...                  *')
+    print('*******************************************')
 
 
 
