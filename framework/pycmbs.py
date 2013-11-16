@@ -1,11 +1,6 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
-__author__ = "Alexander Loew"
-__version__ = "0.1"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
-'''
+"""
 # Copyright (C) 2011-2013 Alexander Loew, alexander.loew@mpimet.mpg.de
 # See COPYING file for copying and redistribution conditions.
 #
@@ -17,7 +12,7 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-'''
+"""
 
 
 #--- Analysis compliance matrix (which was already checked)
@@ -39,6 +34,7 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 __author__ = "Alexander Loew"
 __version__ = "0.1.4"
 __date__ = "2013/11/12"
+__email__ = "alexander.loew@mpimet.mpg.de"
 
 #============ IMPORTS ==================================================
 
@@ -52,21 +48,12 @@ pl = mpl.pylab
 import sys
 import os
 
-#http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
 
 #--- framework specific modules ---
 from models   import *
 from config   import *
 from analysis import *
 import pickle
-
-#=======================================================================
-
-
-
-#=======================================================================
-
-
 
 
 #=======================================================================
