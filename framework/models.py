@@ -637,6 +637,7 @@ class CMIP5Data(Model):
         #original data
         #filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
+
         locdict = kwargs[self.type]
         valid_mask    = locdict.pop('valid_mask')
 
@@ -839,7 +840,7 @@ class CMIP5Data(Model):
         else:
             Fu_i = Fu[0]
         lab = Fu_i.label
-        Fd = self.get_surface_shortwave_radiation_down(interval=interval)
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}}) #todo: take routine name from the configuration setup in JSON file !!!!
         if Fd == None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None

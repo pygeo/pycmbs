@@ -392,7 +392,12 @@ model_dict = {'rain':  {'CMIP5':
                                 'file_format' : 'nc',
                                 'scale_factor' : 1.,
                                 'valid_mask' : 'land'
-                             }
+                             },
+                        'CMIP5':
+                            {
+                                'valid_mask':'land'
+                            }
+
                         },
 
               'surface_upward_flux':   {'JSBACH_RAW2':
