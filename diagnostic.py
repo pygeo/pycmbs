@@ -5,28 +5,22 @@ __version__ = "0.1.4"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@mpimet.mpg.de"
 
-'''
-# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-'''
+"""
+Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
+See COPYING file for copying and redistribution conditions.
 
-'''
-main module for diagnostic routines
-@todo: check routine performances e.g. Reichler based on reference data solutions
-'''
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+"""
 
 import numpy as np
 import os
-
 import scipy as sci
 
 from matplotlib import pylab as plt
@@ -924,7 +918,7 @@ class EOF(object):
 
 #-----------------------------------------------------------------------
 
-class ANOVA():
+class ANOVA(object):
     """
     main class to perform an ANOVA analysis
     using C{Data} objects
@@ -1146,7 +1140,7 @@ class ANOVA():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class SVD():
+class SVD(object):
     """
     class to perform singular value decomposition analysis
     also known as Maximum covariance analysis (MCA)
@@ -1713,7 +1707,7 @@ class SVD():
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-class Diagnostic():
+class Diagnostic(object):
     def __init__(self,x,y=None):
         """
         constructor for diagnostic class
@@ -2366,7 +2360,7 @@ class Diagnostic():
 #
 #
 #===========================================================================================
-class koeppen():
+class koeppen(object):
     """
     KOEPPEN CLASS
     class to generate koeppen plot

@@ -9,8 +9,8 @@ from matplotlib import pylab as pl
 pl.close('all')
 
 
-D = Data('air.mon.mean.nc', 'air',read=True)
-P = Data('pr_wtr.eatm.mon.mean.nc','pr_wtr',read=True)
+D = Data('../example_data/air.mon.mean.nc', 'air',read=True)
+P = Data('../example_data/pr_wtr.eatm.mon.mean.nc','pr_wtr',read=True)
 
 
 print 'Calculate differences ...'
