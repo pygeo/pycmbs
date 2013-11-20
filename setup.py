@@ -2,7 +2,7 @@ from distutils.core import setup
 import os
 
 setup(name='pyCMBS',
-      version='0.1.4',
+      version='0.1.4-rev',
       py_modules=[],author='Alexander Loew',
       author_email='alexander.loew@mpimet.mpg.de',
       maintainer='Alexander Loew',
@@ -11,6 +11,14 @@ setup(name='pyCMBS',
       description='pyCMBS - python Climate Model Benchmarking Suite',
       long_description='The pyCMBS project is a suite of tools to process, analyze, visualize and benchmark scientific model output against each other or against observational data. It is in particular useful for analyzing in an efficient way output from climate model simulations.'
       )
+
+print('Compressing sample data ...')
+ofile='./dist/example_data.tgz'
+cmd='tar -cvzf ' + ofile + ' example_data'
+if os.path.exists(ofile):
+    os.remove(ofile)
+os.system(cmd)
+
 
 print ''
 print 'Your original PYTHONPATH is:'
