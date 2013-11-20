@@ -499,7 +499,7 @@ class TestData(TestCase):
             r,p = x.correlate(y)
 
             #1) test if scipy functions return similar results
-            self.assertAlmostEqual(r_value1,r_value2,places=15)
+            self.assertAlmostEqual(r_value1,r_value2,places=10)
             #self.assertAlmostEqual(p_value1,p_value2,places=15) #not used, as BUG in stats.mstats.linregress!
 
             #2) test data.correlate() results
@@ -533,7 +533,7 @@ class TestData(TestCase):
         y.data = y.data * 1.2 + 3.
 
         r,p = x.correlate(y)
-        self.assertEquals(r.data[0,0],1.)
+        self.assertAlmostEqual(r.data[0,0],1.,10)
 
         #--- detrending ---
         r,p = x.correlate(y,detrend=True)
