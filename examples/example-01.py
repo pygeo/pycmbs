@@ -5,8 +5,8 @@ from matplotlib import pylab as pl
 
 pl.close('all')
 
-file ='air.mon.mean.nc'
-file2='pr_wtr.eatm.mon.mean.nc'
+file ='../example_data/air.mon.mean.nc'
+file2='../example_data/pr_wtr.eatm.mon.mean.nc'
 if not os.path.exists(file):
     try:
         print 'Downloading sample data ... this might take a few minutes (only needed at first run)'
@@ -30,7 +30,7 @@ if not os.path.exists(file2):
 
 
 #--- read data ---
-D = Data('./air.mon.mean.nc', 'air', lat_name='lat',lon_name='lon',read=True)
+D = Data('../example_data/air.mon.mean.nc', 'air', lat_name='lat',lon_name='lon',read=True)
 
 #--- generic plotting examples ---
 print '**********************************'
@@ -55,6 +55,7 @@ map_plot(D,use_basemap=True,title='vmin=-30.,vmax=30.,cmap_data=RdBu_r',vmin=-30
 map_plot(D,contours=True,use_basemap=True,levels=np.arange(-50.,50.,10.),title='contours=True',ax=ax2)
 map_plot(D,show_stat=True,use_basemap=True,title='show_stat=True',ax=ax3)
 map_plot(D,show_stat=True,stat_type='median',use_basemap=True,title='show_stat=True,stat_type="median"',ax=ax4)
+
 
 pl.show()
 
