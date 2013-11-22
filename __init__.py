@@ -55,7 +55,7 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 import matplotlib
 matplotlib.use('Agg')   #this is the first level import of Matplotlib. activate or deactivate here if you want to change the backend used
 from matplotlib import pylab as pl
-
+from netcdf import *
 
 from scipy import stats
 

@@ -41,3 +41,24 @@ print 'The latter is only for users at ZMAW'
 #2) rename directory with version number to 'pyCMBS'
 #3) put pyCMBS directory in your path
 
+
+
+#PIP
+#~ py_modules --> remote identifier ???
+#~
+#~
+#~ python setup.py register
+#~ python setup.py sdist
+#~ python setup.py upload
+
+
+
+
+#python GMT !!!
+
+
+
+#ARcLinux ???
+
+
+

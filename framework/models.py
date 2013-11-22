@@ -643,6 +643,10 @@ class CMIP5Data(Model):
 
         filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
+        print 'File downward!: ', filename1
+
+
+
         force_calc = False
 
         if self.start_time == None:
@@ -655,9 +659,15 @@ class CMIP5Data(Model):
         s_start_time = str(self.start_time)[0:10]
         s_stop_time  = str(self.stop_time)[0:10]
 
+
+
+
         #1) select timeperiod and generatget_she monthly mean file
         file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
+
+
+        print file_monthly
 
         sys.stdout.write('\n *** Model file monthly: %s\n' % file_monthly)
         cdo.monmean(options='-f nc',output=file_monthly,input = '-remapcon,t63grid -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
@@ -737,7 +747,10 @@ class CMIP5Data(Model):
         #original data
         filename1 = self.data_dir + 'rsus/' +  self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
 
+
+
         print 'READING SURFACE UPWARD file: ', filename1
+
 
         force_calc = False
 
@@ -749,12 +762,13 @@ class CMIP5Data(Model):
         #/// PREPROCESSING ///
         cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
-        s_stop_time = str(self.stop_time)[0:10]
+        s_stop_time  = str(self.stop_time)[0:10]
 
         #1) select timeperiod and generate monthly mean file
         file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
         cdo.monmean(options='-f nc',output=file_monthly,input = '-remapcon,t63grid -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1,force=force_calc)
+
 
         #2) calculate monthly or seasonal climatology
         if interval == 'monthly':
@@ -833,7 +847,7 @@ class CMIP5Data(Model):
 
 
         #--- get fluxes
-        Fu = self.get_surface_shortwave_radiation_up  (interval=interval)
+        Fu = self.get_surface_shortwave_radiation_up(interval=interval)
         if Fu == None:
             print 'File not existing for UPWARD flux!: ', self.name
             return None
@@ -855,9 +869,6 @@ class CMIP5Data(Model):
         Fu_m = Fu[1][2]; del Fu
         Fd_m = Fd[1][2]; del Fd
 
-        #print Fu_m.data.shape
-        #print Fd_m.data.shape
-        #stop
         Fu_m.div(Fd_m,copy=False); del Fd_m
         Fu_m._apply_mask(ls_mask.data)
         Fu_m._set_valid_range(0.,1.)

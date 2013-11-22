@@ -20,7 +20,7 @@ GNU General Public License for more details.
 
 from pyCMBS.data import Data
 import os
-import Nio
+from netcdf import *
 import numpy as np
 
 
@@ -74,14 +74,16 @@ class Icon(Data):
         self.data = self.data * self.scale_factor
 
         #--- read lat/lon
-        F=Nio.open_file(self.gridfile,'r')
-        self.lon = F.variables['clon'].get_value()*180./np.pi #grid cell center coordinates
-        self.lat = F.variables['clat'].get_value()*180./np.pi
+        File=NetCDFHandler()
+        File.open_file(self.gridfile,'r')
+        self.lon = File.get_variable('clon')*180./np.pi #grid cell center coordinates
+        self.lat = File.get_variable('clat')*180./np.pi
         self.ncell = len(self.lon)
 
-        self.vlon = F.variables['clon_vertices'].get_value()*180./np.pi #vertex coordinates [ncell,3]
-        self.vlat = F.variables['clat_vertices'].get_value()*180./np.pi
-        F.close()
+        self.vlon = File.get_variable('clon_vertices')*180./np.pi
+        self.vlat = File.get_variable('clat_vertices')*180./np.pi
+
+        File.close()
 
         #--- read time variable
         if self.time_var != None:

@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
@@ -20,11 +19,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
+
+
 import os
 
 import sys
+from netcdf import *
 
-import Nio
 import numpy as np
 from matplotlib import pylab as plt
 from statistic import get_significance, ttest_ind
@@ -486,7 +487,8 @@ class Data(object):
                 varname = self.varname
 
         #/// create new file
-        F = Nio.open_file(filename,mode='w')
+        File = NetCDFHandler()
+        File.open_file(filename,'w')
 
         #/// create dimensions
         if hasattr(self,'data'):
@@ -494,7 +496,7 @@ class Data(object):
                 if self.time == None:
                     raise ValueError, 'No time variable existing! Can not write 3D data!'
                 nt,ny,nx = self.shape
-                F.create_dimension('time',nt)
+                File.F.create_dimension('time',nt)
             elif self.data.ndim == 2:
                 ny,nx = self.shape
             else:
@@ -504,77 +506,76 @@ class Data(object):
             ny,nx = np.shape(self.lat)
 
 
-        F.create_dimension('ny',ny)
-        F.create_dimension('nx',nx)
+        File.F.create_dimension('ny',ny)
+        File.F.create_dimension('nx',nx)
 
-        print 'Dimensions created: ', ny,nx
 
         #/// create variable
         if hasattr(self,'time'):
             if self.time is not None:
-                F.create_variable('time','d',('time',))
-                F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
+                File.F.create_variable('time','d',('time',))
+                File.F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
 
         if hasattr(self,'data'):
             if self.data.ndim == 3:
-                F.create_variable(varname,'d',('time','ny','nx'))
+                File.F.create_variable(varname,'d',('time','ny','nx'))
             elif self.data.ndim == 2:
-                F.create_variable(varname,'d',('ny','nx'))
+                File.F.create_variable(varname,'d',('ny','nx'))
 
         if self.lat is not None:
-            F.create_variable('lat','d',('ny','nx'))
-            F.variables['lat'].units = 'degrees_north'
-            F.variables['lat'].axis  = "Y"
-            F.variables['lat'].long_name  = "latitude"
+            File.F.create_variable('lat','d',('ny','nx'))
+            File.F.variables['lat'].units = 'degrees_north'
+            File.F.variables['lat'].axis  = "Y"
+            File.F.variables['lat'].long_name  = "latitude"
 
         if self.lon is not None:
-            F.create_variable('lon','d',('ny','nx'))
-            F.variables['lon'].units = 'degrees_east'
-            F.variables['lon'].axis  = "X"
-            F.variables['lon'].long_name  = "longitude"
+            File.F.create_variable('lon','d',('ny','nx'))
+            File.F.variables['lon'].units = 'degrees_east'
+            File.F.variables['lon'].axis  = "X"
+            File.F.variables['lon'].long_name  = "longitude"
 
         if hasattr(self,'data'):
             if hasattr(self,'cell_area'):
-                F.create_variable('cell_area','d',('ny','nx'))
+                File.F.create_variable('cell_area','d',('ny','nx'))
 
 
         #/// write data
         if hasattr(self,'time'):
             if self.time != None:
                 #F.variables['time'] .assign_value(self.time-1)
-                F.variables['time'] .assign_value(self.time)
-                F.variables['time'].calendar = self.calendar
+                File.F.variables['time'] .assign_value(self.time)
+                File.F.variables['time'].calendar = self.calendar
 
         if hasattr(self,'data'):
-            F.variables[varname].assign_value(self.data)
+            File.F.variables[varname].assign_value(self.data)
 
 
-        print 'Assigning lat/lon'
+        #print 'Assigning lat/lon'
         if self.lat is not None:
-            F.variables['lat'].assign_value(self.lat)
-        print 'Lat completed ...'
+            File.F.variables['lat'].assign_value(self.lat)
+        #print 'Lat completed ...'
         if self.lon is not None:
-            F.variables['lon'].assign_value(self.lon)
-        print 'Lon completed ...'
+            File.F.variables['lon'].assign_value(self.lon)
+        #print 'Lon completed ...'
 
         if hasattr(self,'data'):
             if hasattr(self,'cell_area'):
-                F.variables['cell_area'].assign_value(self.cell_area)
+                File.F.variables['cell_area'].assign_value(self.cell_area)
 
         if hasattr(self,'data'):
-            F.variables[varname].long_name    = self.long_name
-            F.variables[varname].units        = self.unit
-            F.variables[varname].scale_factor = 1.
-            F.variables[varname].add_offset   = 0.
-            F.variables[varname].coordinates  = "lon lat"
+            File.F.variables[varname].long_name    = self.long_name
+            File.F.variables[varname].units        = self.unit
+            File.F.variables[varname].scale_factor = 1.
+            File.F.variables[varname].add_offset   = 0.
+            File.F.variables[varname].coordinates  = "lon lat"
 
         #/// global attributes
         #if hasattr(self,'filename'):
         #    F.sourcefile = self.filename #store original filename
 
         #/// close file
-        print 'Saving completed ... closing file'
-        F.close()
+        #print 'Saving completed ... closing file'
+        File.close()
 
 #-----------------------------------------------------------------------
 
@@ -752,8 +753,11 @@ class Data(object):
         #--- read cell_area file ---
         if os.path.exists(cell_file):
             #--- read cell area from file
-            F=Nio.open_file(cell_file,'r')
-            self.cell_area = F.variables['cell_area'].get_value().astype('float').copy()
+            File = NetCDFHandler()
+            File.open_file(cell_file,'r')
+            self.cell_area = File.get_variable('cell_area')
+            File.close()
+
         else:
             #--- no cell are calculation possible!!!
             #logger.warning('Can not estimate cell area! (setting all equal) ' + cell_file)
@@ -965,9 +969,6 @@ class Data(object):
             print 'FILE: ', self.filename
 
         self.time_var = time_var
-
-        #self._log_warning('Reading ...')
-
 
         #read data
         self.data = self.read_netcdf(self.varname) #o.k.
@@ -1498,8 +1499,14 @@ class Data(object):
             r.label += ' - climatology'
             r.data = clim
             r.time = []
+            #~ print self.shape
+            #~ print self._get_label()
+#~
+            #~ print 'Time: ', self.time
+            #~ print len(self.time)
+            #~ print self.time_cycle
             for i in xrange(self.time_cycle):
-                #print i, len(self.time)
+                print i
                 r.time.append(self.time[i])
             r.time = np.asarray(r.time)
 
@@ -2071,17 +2078,23 @@ class Data(object):
         @param varname: name of variable to be read
         @type varname: str
         """
-        F=Nio.open_file(self.filename,'r')
+        File = NetCDFHandler()
+        File.open_file(self.filename,'r')
+
         if self.verbose:
             print 'Reading file ', self.filename
-        if not varname in F.variables.keys():
+        if not varname in File.F.variables.keys():
             if self.verbose:
                 self._log_warning('WARNING: data can not be read. Variable not existing! ', varname)
-            F.close()
+            File.close()
             return None
 
-        var = F.variables[varname]
-        data = var.get_value().astype('float').copy()
+        data = File.get_variable(varname)
+        var  = File.get_variable_handler(varname)
+        #~ if netcdf_backend == 'Nio':
+            #~ data = var.get_value().astype('float').copy()
+        #~ else:
+            #~ data = var[:].astype('float').copy()
 
         if data.ndim > 3:
             if self.level == None:
@@ -2104,6 +2117,7 @@ class Data(object):
             data = np.ma.array(data,mask=np.isnan(data))
         else:
             data = np.ma.array(data,mask=np.zeros(data.shape).astype('bool'))
+            self.fill_value = -99999.
 
         #scale factor
         if hasattr(var,'scale_factor'):
@@ -2131,16 +2145,17 @@ class Data(object):
 
 
         #check if file has cell_area attribute and only use it if it has not been set by the user
-        if 'cell_area' in F.variables.keys() and self.cell_area == None:
-            self.cell_area = F.variables['cell_area'].get_value().astype('float').copy() #unit should be in m**2
+        if 'cell_area' in File.F.variables.keys() and self.cell_area == None:
+            #~ self.cell_area = F.variables['cell_area'].get_value().astype('float').copy() #unit should be in m**2
+            self.cell_area = File.get_variable('cell_area')
 
     #set units if possible; if given by user, this is taken
         #otherwise unit information from file is used if available
         if self.unit == None and hasattr(var, 'units'):
             self.unit = var.units
 
-        if self.time_var in F.variables.keys():
-            tvar = F.variables[self.time_var]
+        if self.time_var in File.F.variables.keys():
+            tvar = File.get_variable_handler(self.time_var)
             if hasattr(tvar,'units'):
                 self.time_str = tvar.units
             else:
@@ -2155,7 +2170,7 @@ class Data(object):
         else:
             self.time = None
             self.time_str = None
-        F.close()
+        File.close()
 
         return data
 
@@ -3990,7 +4005,7 @@ class Data(object):
 #-----------------------------------------------------------------------
 
     def _pad_timeseries(self,fill_value=-99.):
-        
+
         import numpy as np
         from matplotlib import dates
         from dateutil.rrule import rrule, MONTHLY
@@ -3999,14 +4014,14 @@ class Data(object):
 
         data   = self.data
         time   = self.time
-        
+
         dummy_data = np.ma.array(np.ones(data[0,:,:].shape)*data.fill_value,\
                                         fill_value=data.fill_value,\
                                         mask=np.ones(data[0,:,:].shape)*True)
 
         months = self._get_months()
         mondif = np.diff(months)
-        
+
         gaps = np.where(mondif>1)
         new_time = self.num2date(time)
         new_data = data.copy()
@@ -4020,14 +4035,12 @@ class Data(object):
 
             new_time = np.insert(new_time,i+1+idx_shift,gap_months)
             new_data = np.insert(new_data,i+1+idx_shift,dummy_data,axis=0)
-
             idx_shift = idx_shift + len(gap_months)
 
         data_masked = np.ma.array(new_data.data,mask = new_data == fill_value,fill_value=fill_value)
 
         self.time = self.date2num(new_time)
         self.data = data_masked.copy()
-
         self._set_timecycle()
 
 #-----------------------------------------------------------------------
