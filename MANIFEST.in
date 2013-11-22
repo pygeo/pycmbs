@@ -5,6 +5,8 @@ global-include *.ini
 global-include pyCMBS_template.cfg
 graft tests
 prune test_eof
+prune dirk
+prune example
 exclude test_hov.py
 exclude anova_test.py
 exclude ansamp.py

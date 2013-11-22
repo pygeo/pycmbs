@@ -11,7 +11,7 @@ import scipy as sc
 import pylab as pl
 import numpy as np
 from scipy import stats
-import Nio
+from netcdf import *
 from dateutil.rrule import *
 
 class TestData(TestCase):
