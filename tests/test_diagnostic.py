@@ -3,13 +3,13 @@ from unittest import TestCase
 __author__ = 'm300028'
 
 
-from data import *
-from diagnostic import *
-from plots import *
+from pyCMBS.data import *
+from pyCMBS.diagnostic import *
+from pyCMBS.plots import *
 import scipy as sc
 import pylab as pl
 import numpy as np
-from region import *
+from pyCMBS.region import *
 ####from pyCMBS import *
 
 class TestData(TestCase):
