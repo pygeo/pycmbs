@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Alexander Loew"
-__version__ = "0.1"
+__version__ = "0.1.4"
 __date__ = "2012/10/29"
 __email__ = "alexander.loew@mpimet.mpg.de"
 
@@ -101,11 +101,6 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
         obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
 
     cdo.monmean(options='-f nc',output=obs_mon_file,input='-' + interpolation_method + ',' + target_grid +  seldate_str + ' ' + raw_file,force=force)
-    #cdo.monstd(options='-f nc',output=obs_monstd_file,input='-remapcon,t63grid ' + raw_file,force=force)
-
-    #print 'input: ' + '-' + interpolation_method + ',' + target_grid +  seldate_str + ' ' + raw_file
-    #print 'output: ', obs_mon_file
-
 
     #2) generate monthly mean or seasonal mean climatology as well as standard deviation
     if interval == 'monthly':
@@ -147,16 +142,13 @@ def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,o
     obs.adjust_time(year=1700,day=15) #set arbitrary time for climatology
     obs.timsort()
 
-    #read monthly data (needed for global means and hovmoeller plots)
+    #/// read monthly data (needed for global means and hovmoeller plots) ///
     obs_monthly = Data(obs_mon_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon) #,mask=ls_mask.data.data)
-    
-    obs_monthly._pad_timeseries()
 
+    #try to ensure really monthly increasing time series
     if hasattr(obs_monthly,'time_cycle'):
         if obs_monthly.time_cycle != 12:
-            obs_monthly._pad_timeseries()
-            # print obs_monthly.time_cycle
-        
+            obs_monthly._pad_timeseries(fill_value = obs_monthly.fill_value)
     if obs_monthly.time_cycle != 12:
             raise ValueError, 'Timecycle could still not be set!!!' + obs_mon_file
 
@@ -418,6 +410,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     # OBSERVATION DATA PREPROCESSING
     #####################################################################
     #if f_preprocess == True: #always do preprocessing
+    #obs_orig corresponds to the climatological mean field
+    #obs_monthly is the monthly mean timeseries of the whole record (or seasonal mean)
     obs_orig, obs_monthly = preprocess_seasonal_data(obs_raw, interval = interval,  themask = ls_mask,
                                                      force = False, obs_var = obs_var, label = obs_name,
                                                      shift_lon = shift_lon,start_date=obs_start,stop_date=obs_stop,
@@ -438,18 +432,21 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM =
     obs_monthly._apply_mask(valid_obs)
 
 
+    #obs_orig.save(filename='testfile.nc',delete=True)
+
+
+
+
     def mask_seaice_extent(x,msk):
         tmpmsk = x.data > 15.
         x.data.mask[:,:,:] = False #set all to false to be able to put entire ocean to zero
         x.data[:,:,:] = 0.
         x.data[tmpmsk] = 1.
         x._apply_mask(msk)
-
         return x
 
 
     if obs_type == 'seaice_extent':
-
         stat_type = 'sum' #show area weighted sum as statistic
         obs_orig    = mask_seaice_extent(obs_orig,ls_mask)
         obs_monthly = mask_seaice_extent(obs_monthly,ls_mask)
@@ -858,6 +855,7 @@ def grass_fraction_analysis(model_list):
 def tree_fraction_analysis(model_list,pft='tree'):
 
     def fraction2netcdf(pft):
+        raise ValueError, 'try to avoid using Nio!'
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/' + pft + '_05.dat'
         #save 0.5 degree data to netCDF file
         t=pl.loadtxt(filename)
@@ -1526,43 +1524,44 @@ def beer_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=Non
          xticks = [90, 60, 30, 0, -30, -60, -90])
 
 
+
     for k in plot_options.options['gpp'].keys():
-      if k == 'BEER':
-        f_beer = figure()
-        ax_Beer = f_beer.add_subplot(111)
-        ls_mask = get_T63_landseamask(shift_lon)
+        if k == 'BEER':
+            f_beer  = figure()
+            ax_Beer = f_beer.add_subplot(111)
+            ls_mask = get_T63_landseamask(shift_lon)
 
-        obs_raw = local_plot_options['BEER']['obs_file']
-        obs_var = local_plot_options['BEER']['obs_var']
-        GPP_BEER   = Data(obs_raw,obs_var,read=True,lat_name='lat',lon_name='lon',label='GPP Beer_etal_2010',mask=ls_mask.data.data,unit='gC m-2 a-1')
-        Beer_zonal = GPP_BEER.get_zonal_mean(return_object=True)
-        ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')
-        map_plot(GPP_BEER,title='Beer etal T63',vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_Beer)
+            obs_raw = local_plot_options['BEER']['obs_file']
+            obs_var = local_plot_options['BEER']['obs_var']
+            GPP_BEER   = Data(obs_raw,obs_var,read=True,lat_name='lat',lon_name='lon',label='GPP Beer_etal_2010',mask=ls_mask.data.data,unit='gC m-2 a-1')
+            Beer_zonal = GPP_BEER.get_zonal_mean(return_object=True)
+            ax.plot (Beer_zonal.lat,Beer_zonal.data.data,'k',label='Beer etal T63')
+            map_plot(GPP_BEER,title='Beer etal T63',vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_Beer)
 
-        report.subsection('Beer')
-        report.figure(f_beer,caption='Beer etal 2010',bbox_inches=None)
+            report.subsection('Beer')
+            report.figure(f_beer,caption='Beer etal 2010',bbox_inches=None)
 
 
-      if k == 'OPTIONS':
-        for model in model_list:
-	  if model.name != 'mean-model':
+        if k == 'OPTIONS':
+            for model in model_list:
+                if model.name != 'mean-model':
 
-            f_model = figure()
-            ax_model = f_model.add_subplot(111)
-            obs_mon_file     = get_temporary_directory()
-	    f=obs_mon_file + model.experiment + '_' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4] + '_ymonmean.nc'
-            GPP_Model   = Data4D(f,'var167',read=True,lat_name='lat',lon_name='lon',
-                          label=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',
-                          unit='gC m-2 a-1',
-            scale_factor = 3600.*24.*30./0.083).sum_data4D()
+                    f_model = figure()
+                    ax_model = f_model.add_subplot(111)
+                    obs_mon_file     = get_temporary_directory()
+                    f=obs_mon_file + model.experiment + '_' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4] + '_ymonmean.nc'
+                    GPP_Model   = Data4D(f,'var167',read=True,lat_name='lat',lon_name='lon',
+                              label=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',
+                              unit='gC m-2 a-1',
+                                scale_factor = 3600.*24.*30./0.083).sum_data4D()
 
-            GPP_Model2 = GPP_Model.timmean(return_object=True)
-            GPP_Model2.data.mask[less(GPP_Model2.data,0.1)]=True
-            map_plot(GPP_Model2,title=model.name,vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_model)
-	    JSBACH_zonal = GPP_Model2.get_zonal_mean(return_object=True)
-            ax.plot(JSBACH_zonal.lat,JSBACH_zonal.data.data,label=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')')
-            report.subsection('Model ('+model.name+')')
-            report.figure(f_model,caption=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',bbox_inches=None)
+                    GPP_Model2 = GPP_Model.timmean(return_object=True)
+                    GPP_Model2.data.mask[less(GPP_Model2.data,0.1)]=True
+                    map_plot(GPP_Model2,title=model.name,vmin=0.0,vmax=3000.0,use_basemap=use_basemap,cticks=cticks,show_zonal=True,ax=ax_model)
+                    JSBACH_zonal = GPP_Model2.get_zonal_mean(return_object=True)
+                    ax.plot(JSBACH_zonal.lat,JSBACH_zonal.data.data,label=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')')
+                    report.subsection('Model ('+model.name+')')
+                    report.figure(f_model,caption=model.name+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',bbox_inches=None)
 
     fontP = FontProperties()
     fontP.set_size('xx-small')
@@ -1571,7 +1570,6 @@ def beer_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=Non
 
     report.subsection('Zonal')
     report.figure(fG,caption='Zonal mean GPP for model and Beer from '+'('+str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4]+')',bbox_inches=None)
-
 
 
     print '************************************************************'

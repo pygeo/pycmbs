@@ -700,10 +700,17 @@ class CFGWriter(object):
             os.makedirs(self.output_dir)
 
 
-    def save(self,temp_dir=None,vars=None,start_date=None,stop_date=None,models=None):
+    def save(self,temp_dir=None,vars=None,start_date=None,stop_date=None,models=None,interval='monthly'):
         """
         save configuration file
         """
+
+        supported_vars=['albedo','sis','precipitation'] #todo: complete!
+
+        if interval not in ['monthly','season']:
+            raise ValueError, 'Invalid interval option specified!'
+
+
         if temp_dir is None:
             raise ValueError, 'No temporary output directory specified!'
 
@@ -752,8 +759,11 @@ class CFGWriter(object):
         self._write('#')
         self._write('################################')
 
-        for v in vars:
-            self._write(v+',1,monthly')
+        for v in supported_vars:
+            if v in vars:
+                self._write(v+',1,' + interval)
+            else:
+                self._write(v+',0,' + interval)
         self._write('')
 
         self._write('################################')
