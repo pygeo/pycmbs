@@ -1,5 +1,6 @@
 version 0.1.5
 ============================
+o implemented flexible netCDF I/O handler (currently works only with Nio, but should work with netCDF module in the future)
 o improvement of report layout and automatic compilation enabled
 o name of analysis scripts is now specified in external file in the configuration directory
 o benchmarking now independent from core pyCMBS installation. When pycmbs.py is executable and proper PATH variables are set, then the framework can be executed from everywhere!

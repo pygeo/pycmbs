@@ -2,7 +2,7 @@
 This module allows a flexible choice of the netCDF backend
 """
 
-netcdf_backend='Nio'
+netcdf_backend='netCDF4'
 
 class NetCDFHandler(object):
     def __init__(self):
@@ -26,8 +26,12 @@ class NetCDFHandler(object):
             raise ValueError, 'Invalid mode!'
         if self.type.lower() == 'nio':
             self.F = self.handler.open_file(filename,mode=mode)
+            self.create_dimension = self.F.create_dimension
+            self.create_variable  = self.F.create_variable
         else:
             self.F = self.handler.Dataset(filename,mode=mode)
+            self.create_dimension = self.F.createDimension
+            self.create_variable  = self.F.createVariable
 
 
     def get_variable(self,varname):
@@ -42,8 +46,7 @@ class NetCDFHandler(object):
         if self.type.lower() == 'nio':
             return self.F.variables[varname].get_value().astype('float').copy()
         else:
-            raise ValueError, 'TODO still needs to be implemented!'
-            data = var[:].copy()
+            return self.F.variables[varname][:].astype('float').copy()
 
     def get_variable_handler(self,varname):
         """
@@ -56,7 +59,16 @@ class NetCDFHandler(object):
         if self.type.lower() == 'nio':
             return self.F.variables[varname]
         else:
-            raise ValueError, 'TODO still needs to be implemented!'
+            return self.F.variables[varname]
+
+    def assign_value(self,varname,value):
+        """
+        assign a value to a variable to be written to a netCDF file
+        """
+        if self.type.lower() == 'nio':
+            self.F.variables[varname].assign_value(value)
+        else:
+            self.F.variables[varname][:] = value[:]
 
 
     def close(self):
