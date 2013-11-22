@@ -5,13 +5,13 @@ __author__ = 'm300028'
 
 #identify pyCMBS path and add it to pythonpath, as otherwise the modules are not found properly!
 
-from data import *
+from pyCMBS.data import *
 #from diagnostic import *
 import scipy as sc
 import pylab as pl
 import numpy as np
 from scipy import stats
-from netcdf import *
+from pyCMBS.netcdf import *
 from dateutil.rrule import *
 
 class TestData(TestCase):

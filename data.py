@@ -496,7 +496,7 @@ class Data(object):
                 if self.time == None:
                     raise ValueError, 'No time variable existing! Can not write 3D data!'
                 nt,ny,nx = self.shape
-                File.F.create_dimension('time',nt)
+                File.create_dimension('time',nt)
             elif self.data.ndim == 2:
                 ny,nx = self.shape
             else:
@@ -506,61 +506,61 @@ class Data(object):
             ny,nx = np.shape(self.lat)
 
 
-        File.F.create_dimension('ny',ny)
-        File.F.create_dimension('nx',nx)
+        File.create_dimension('ny',ny)
+        File.create_dimension('nx',nx)
 
 
         #/// create variable
         if hasattr(self,'time'):
             if self.time is not None:
-                File.F.create_variable('time','d',('time',))
+                File.create_variable('time','d',('time',))
                 File.F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
 
         if hasattr(self,'data'):
             if self.data.ndim == 3:
-                File.F.create_variable(varname,'d',('time','ny','nx'))
+                File.create_variable(varname,'d',('time','ny','nx'))
             elif self.data.ndim == 2:
-                File.F.create_variable(varname,'d',('ny','nx'))
+                File.create_variable(varname,'d',('ny','nx'))
 
         if self.lat is not None:
-            File.F.create_variable('lat','d',('ny','nx'))
+            File.create_variable('lat','d',('ny','nx'))
             File.F.variables['lat'].units = 'degrees_north'
             File.F.variables['lat'].axis  = "Y"
             File.F.variables['lat'].long_name  = "latitude"
 
         if self.lon is not None:
-            File.F.create_variable('lon','d',('ny','nx'))
+            File.create_variable('lon','d',('ny','nx'))
             File.F.variables['lon'].units = 'degrees_east'
             File.F.variables['lon'].axis  = "X"
             File.F.variables['lon'].long_name  = "longitude"
 
         if hasattr(self,'data'):
             if hasattr(self,'cell_area'):
-                File.F.create_variable('cell_area','d',('ny','nx'))
+                File.create_variable('cell_area','d',('ny','nx'))
 
 
         #/// write data
         if hasattr(self,'time'):
             if self.time != None:
                 #F.variables['time'] .assign_value(self.time-1)
-                File.F.variables['time'] .assign_value(self.time)
+                File.assign_value('time',self.time)
                 File.F.variables['time'].calendar = self.calendar
 
         if hasattr(self,'data'):
-            File.F.variables[varname].assign_value(self.data)
+            File.assign_value(varname,self.data)
 
 
         #print 'Assigning lat/lon'
         if self.lat is not None:
-            File.F.variables['lat'].assign_value(self.lat)
+            File.assign_value('lat',self.lat)
         #print 'Lat completed ...'
         if self.lon is not None:
-            File.F.variables['lon'].assign_value(self.lon)
+            File.assign_value('lon',self.lon)
         #print 'Lon completed ...'
 
         if hasattr(self,'data'):
             if hasattr(self,'cell_area'):
-                File.F.variables['cell_area'].assign_value(self.cell_area)
+                File.assign_value('cell_area',self.cell_area)
 
         if hasattr(self,'data'):
             File.F.variables[varname].long_name    = self.long_name
