@@ -1,30 +1,71 @@
+================================================
 pyCMBS - python Climate Model Benchmarking Suite
+================================================
 
-Version: 0.1
+Version: 0.1.4
 
 Author: Alexander Loew
 
-Contact: Max-Planck-Institute for Meteorology
+contact: Max-Planck-Institute for Meteorology
          eMail: alexander.loew@mpimet.mpg.de
 
-# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+
+.. contents::
+
+What is pyCMBS?
+---------------
+
+pyCMBS provides a suite of tools to process, analyze, visualize geoscientific data and climate model output.
+
+It has been explicitly designed to facilitate the becnhmarking of scientific model output against each other or against observational reference data. It is in particular useful for analyzing in an efficient way output from climate model simulations.
 
 
-DOCUMENTATION
-* The major pyCMBS documentation is found in the code. A HTML version of the documentation, generated with epydoc is found in the 'doc' subdirectory
-* Examples and detailed documentation can be found on the project website (https://code.zmaw.de/projects/pycmbs); ask the author for access
-* Currently pyCMBS is still in an very early phase. It is therefore not yet accessible via an open code repository. It is however planned to make it full accessible to the community in the future
+Installation
+------------
+
+pyCMBS can be obtained from various sources:
+
+1. source code from the project website as tarball
+2. source code from development repository
+3. in future: installation using pip
+
+The installation is easy, but not yet automatized. Details on the installation procedure is provided in the project Wiki
+    https://code.zmaw.de/projects/pycmbs
 
 
-HISTORY:
-v0.1 - 2012/11/02: initial release, based on revision #65
+Documentation
+-------------
+
+pyCMBS documentation is available on the web:
+    https://code.zmaw.de/projects/pycmbs
+
+
+Ressources
+----------
+
+The project website is:
+       https://code.zmaw.de/projects/pycmbs
+
+
+Latest source code
+------------------
+
+Latest source code is available from the development repository.
+        https://code.zmaw.de/projects/pycmbs
+
+
+Issues
+-----------
+
+Bug reports, ideas, wishes are very welcome. Please report any issues using the project website
+        https://code.zmaw.de/projects/pycmbs
+
+
+History
+-------
+
+For a detailed history of development and versions, please look at CHANGES
+
+License information
+-------------------
+see the file LICENSE for information of the software terms & conditions of usage and a DISCLAIMER OF ALL WARRANTIES
