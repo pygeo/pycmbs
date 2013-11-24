@@ -5,12 +5,18 @@ from matplotlib import pylab as pl
 
 pl.close('all')
 
-file ='../example_data/air.mon.mean.nc'
-file2='../example_data/pr_wtr.eatm.mon.mean.nc'
+example_dir='./example_data'
+if not os.path.exists(example_dir):
+    os.makedirs(example_dir)
+file =example_dir+'/air.mon.mean.nc'
+file2=example_dir+'/pr_wtr.eatm.mon.mean.nc'
+curdir=os.getcwd()
 if not os.path.exists(file):
     try:
         print 'Downloading sample data ... this might take a few minutes (only needed at first run)'
+        os.chdir(example_dir)
         os.system('wget ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/air.mon.mean.nc')
+        os.chdir(curdir)
     except:
         raise ValueError, 'Can not download sampled data file from NCEP server. Please try manually'
 
@@ -20,7 +26,9 @@ if not os.path.exists(file):
 if not os.path.exists(file2):
     try:
         print 'Downloading sample data ... this might take a few minutes (only needed at first run)'
+        os.chdir(example_dir)
         os.system('wget ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/pr_wtr.eatm.mon.mean.nc')
+        os.chdir(curdir)
     except:
         raise ValueError, 'Can not download sampled data file from NCEP server. Please try manually'
 
@@ -30,7 +38,7 @@ if not os.path.exists(file2):
 
 
 #--- read data ---
-D = Data('../example_data/air.mon.mean.nc', 'air', lat_name='lat',lon_name='lon',read=True)
+D = Data(file, 'air', lat_name='lat',lon_name='lon',read=True)
 
 #--- generic plotting examples ---
 print '**********************************'
