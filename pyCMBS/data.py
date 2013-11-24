@@ -22,10 +22,8 @@ GNU General Public License for more details.
 
 
 import os
-
 import sys
 from netcdf import *
-
 import numpy as np
 from matplotlib import pylab as plt
 from statistic import get_significance, ttest_ind
@@ -52,114 +50,112 @@ class Data(object):
         """
         Constructor for Data class
 
-        @param filename: name of the file that contains the data  (specify None if not data from file)
-        @type filename: str
+        Parameters
+        ----------
+        filename : str
+            name of the file that contains the data  (specify None if not data from file)
 
-        @param varname: name of the variable that contains the data (specify None if not data from file)
-        @type varname: str
+        varname : str
+            name of the variable that contains the data (specify None if not data from file)
 
-        @param lat_name: name of latitude field
-        @type lat_name: str
+        lat_name : str
+            name of latitude field
 
-        @param lon_name: name of longitude field
-        @type lon_name: str
+        lon_name : str
+            name of longitude field
 
-        @param read: specifies if the data should be read directly when creating the Data object
-        @type read: bool
+        read : bool
+            specifies if the data should be read directly when creating the Data object
 
-        @param scale_factor: scale factor to rescale the data after reading. Be aware, that this IS NOT the scale
-                             factor that is used for data compression in e.g. netCDF variables (variable attribute scale_factor)
-                             but this variable has the purpose to perform a rescaling (e.g. change of units) of the data
-                             immediately after it was read (e.g. convert rainfall intensity [mm/h] to [mm/day], the scale_factor would be 1./24.
-        @type scale_factor: float
+        scale_factor : float
+            scale factor to rescale the data after reading. Be aware, that this IS NOT the scale
+            factor that is used for data compression in e.g. netCDF variables (variable attribute scale_factor)
+            but this variable has the purpose to perform a rescaling (e.g. change of units) of the data
+            immediately after it was read (e.g. convert rainfall intensity [mm/h] to [mm/day], the scale_factor would be 1./24.
 
-        @param label: the label of the data. This is automatically used e.g. in plotting routines
-        @type label: str
+        label : str
+            the label of the data. This is automatically used e.g. in plotting routines
 
-        @param unit: specify the unit of the data. Will be used for plotting
-        @type unit: str
+        unit : str
+            specify the unit of the data. Will be used for plotting.
 
-        @param shift_lon: if this flag is True, then the longitudes are shifted to [-180 ... 180] if they are given
-                          in [0 ... 360]
-        @type shift_lon: bool
+        shift_lon : bool
+            if this flag is True, then the longitudes are shifted to [-180 ... 180] if they are given
+            in [0 ... 360]
 
-        @param start_time: specifies the start time of the data to be read from file (if None, then beginning of file is used)
-        @type start_time: datetime object
+        start_time : datetime object
+            specifies the start time of the data to be read from file (if None=default, then beginning of file is used)
 
-        @param stop_time: specifies the stop time of the data to be read from file (if None, then end of file is used)
-        @type stop_time: datetime object
+        stop_time : datetime object
+            specifies the stop time of the data to be read from file (if None, then end of file is used)
 
-        @param mask: mask that is applied to the data when it is read. Needs to have
-                     same geometry of data.
-        @type mask: array(ny,nx)
+        mask : array(ny,nx)
+            mask that is applied to the data when it is read. Needs to have same geometry of data.
 
-        @param time_cycle: specifies size of the periodic cycle of the data. This is needed if
-                           deseasonalized anomalies should be calculated. If one works for instance with monthly
-                           data, time_cycle needs to be 12. Assumption is that the temporal sampling of
-                           the data is regular.
-        @type time_cycle: int
+        time_cycle : int
+            specifies size of the periodic cycle of the data. This is needed if
+            deseasonalized anomalies should be calculated. If one works for instance with monthly
+            data, time_cycle needs to be 12. Assumption is that the temporal sampling of
+            the data is regular. When reading from netCDF file, the regularity is checked.
 
-        @param squeeze: remove singletone dimensions in the data when it is read
-        @type squeeze: bool
+        squeeze : bool
+            remove singletone dimensions in the data when it is read.
 
-        @param level: specify level to work with (needed for 4D data)
-        @type level: int
+        level : int
+            specify level to work with (needed for 4D data)
 
-        @param verbose: verbose mode for printing
-        @type verbose: bool
+        verbose : bool
+            verbose mode for printing
 
-        @param cell_area: area size [m**2] of each grid cell. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
-        @type cell_area: numpy array
+        cell_area : numpy array (ny,nx)
+            area size [m**2] of each grid cell. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
 
-        @param warnings: log warnings in a separate logfile
-        @type warnings: bool
+        warnings : bool
+            log warnings in a separate logfile
 
+        weighting_type : str
+           specifies how normalization shall be done ['valid','all']
+           'valid': the weights are calculated based on all VALID values, thus the sum of all these weights is one
+           'all': contrary, weights are calculated based on ALL (valid and invalid) data.
+           The latter option can be useful, if one is interested e.g. in a global area weighted mean, whereas the
+           values in 'self' are only valid for e.g. land areas. If one wants to calculate e.e. the change in
+           global mean surface fluxes, given only land fluxes, one can normalize using normtype='all' and then gets
+           the impact on the global mean fluxes. In the other case (normtype='valid'), one would get the change in the
+           global mean of the LAND fluxes only!
 
-        @param weighting_type: specifies how normalization shall be done ['valid','all']
-                        'valid': the weights are calculated based on all VALID values, thus the sum of all these weights is one
-                        'all': contrary, weights are calculated based on ALL (valid and invalid) data.
-                        The latter option can be useful, if one is interested e.g. in a global area weighted mean, whereas the
-                        values in 'self' are only valid for e.g. land areas. If one wants to calculate e.e. the change in
-                        global mean surface fluxes, given only land fluxes, one can normalize using normtype='all' and then gets
-                        the impact on the global mean fluxes. In the other case (normtype='valid'), one would get the change in the
-                        global mean of the LAND fluxes only!
-        @type weighting_type: str
+        oldtime : bool
+            if True, then the old definition for time is used, which is compliant with the pylab time definition, as
+            *x* is a float value which gives the number of days
+            (fraction part represents hours, minutes, seconds) since 0001-01-01 00:00:00 UTC *plus* *one*.
 
-        @param oldtime: if True, then the old definition for time is used, which is compliant with the pylab time definition, as
-                        *x* is a float value which gives the number of days
-                        (fraction part represents hours, minutes, seconds) since
-                        0001-01-01 00:00:00 UTC *plus* *one*.
-
-                        NOTE that there is a *PLUS ONE*. The actual data object supports different calendars, while
-                        this is not possible using the pylab num2date/date2num functions. (Un)fortunately, the new
-                        routine, which is implemented in self.num2date(), self.date2num() *performs correctly* the
-                        calculations. Thus there is *NO* *PLUS ONE* needed.
-                        As a consequence, all files that have been written with older versions of pyCMBS have a wrong
-                        time variable included in the file. To allow for backwards compliance, the option oldtime=True
-                        can be used which will then mimic a similar behaviour as the pylab date functions.
-
-
+            NOTE that there is a *PLUS ONE*. The actual data object supports different calendars, while
+            this is not possible using the pylab num2date/date2num functions. (Un)fortunately, the new
+            routine, which is implemented in self.num2date(), self.date2num() *performs correctly* the
+            calculations. Thus there is *NO* *PLUS ONE* needed.
+            As a consequence, all files that have been written with older versions of pyCMBS have a wrong
+            time variable included in the file. To allow for backwards compliance, the option oldtime=True
+            can be used which will then mimic a similar behaviour as the pylab date functions.
 
         """
 
         self.weighting_type = weighting_type
-
-        self.filename     = filename; self.varname      = varname
-        self.scale_factor = scale_factor; self.lat_name     = lat_name
-        self.lon_name     = lon_name; self.squeeze      = squeeze
-        self.squeezed     = False; self.detrended    = False
-
+        self.filename = filename
+        self.varname = varname
+        self.scale_factor = scale_factor
+        self.lat_name = lat_name
+        self.lon_name = lon_name
+        self.squeeze = squeeze
+        self.squeezed = False
+        self.detrended = False
         self.verbose = verbose
         self._lon360 = True #assume that coordinates are always in 0 < lon < 360
 
-        self.inmask = mask; self.level = level
-
+        self.inmask = mask
+        self.level = level
         self.gridtype = None
         self._oldtime = oldtime
         self._latitudecheckok = False #specifies if latitudes have been checked for increasing order (required for zonal plot)
-
         self.warnings = warnings
-
 
         if label is None:
             if self.filename is None:
@@ -182,10 +178,11 @@ class Data(object):
         self.lat = None
         self.lon = None
 
+        #/// read data from file ///
         if read:
             self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var,checklat=checklat)
 
-        #--- check if longitudes are from 0 ... 360
+        #/// check if longitudes are from 0 ... 360 ///
         if self.lon is not None:
             if self._lon360:
                 if self.lon.min() < 0.:
@@ -231,13 +228,18 @@ class Data(object):
 
     def _get_mindate(self,base=None):
         """
+        Brief
+        -----
         get minimum date
 
-        @param base: ['day','month']; if given, then e.g. the first of the month or the first time of the day is returned instead of the actual minimum value
-                                    this allows to easily round the mindate
-        @type base: str
-        """
+        Parameters
+        ----------
+        base : str
+            ['day','month']; if given, then e.g. the first of the month
+            or the first time of the day is returned instead of the
+            actual minimum value. This allows to easily round the mindate.
 
+        """
         dmin = self.date.min()
 
         if base == None:
@@ -248,7 +250,6 @@ class Data(object):
             rval = datetime.datetime(dmin.year,dmin.month,dmin.day,0,0,0,0,dmin.tzinfo)
         elif base == 'year':
             rval = datetime.datetime(dmin.year,1,1,0,0,0,0,dmin.tzinfo)
-
         return rval
 
 
