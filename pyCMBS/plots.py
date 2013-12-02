@@ -2306,19 +2306,78 @@ def map_season(x,**kwargs):
 
 #-----------------------------------------------------------------------
 
+class MapPlotGeneric(object):
+    """
+    Generic class to produce map plots
+    """
+
+    def __init__(self,backend=None, format='png', savefile=None,
+                    show_statistic = True):
+        self.backend = backend
+        self.format = format
+        self.savefile = savefile
+        self.show_statistic = show_statistic
+
+
+
+class SingleMap(MapPlotGeneric):
+    """
+    A class to generate a plot with a single figure
+    """
+    def __init__(self,x,**kwargs):
+        """
+        Parameters
+        ----------
+        X : Data
+            Data object with data to plot
+        """
+        assert(isinstance(x,Data))
+        super(SingleMap,self).__init__(**kwargs)
+        self.x = x
+
+    def plot(self):
+        self.fig = map_plot(self.x, savefile=self.savefile,
+                show_stat=self.show_statistic)
+
+
+
+class MultipleMap(MapPlotGeneric):
+    def __init__(self,geometry=None,**kwargs):
+        """
+        Parameters
+        ----------
+        geometry : tuple
+            specifies number of subplots (nrows,mcols); e.g. geometry=(2,3)
+            give a plot with 2 rows and 3 cols.
+        """
+        assert(isinstance(geometry,tuple))
+        self.n = geometry[0]
+        self.m = geometry[1]
+        super(MultipleMap,self).__init__(**kwargs)
+        self.fig = plt.figure()
+
+        #todo: define axes here !
 
 
 
 
-
-
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cmap_data='jet',
-             title=None,regions_to_plot = None,logplot=False,logoffset=None,show_stat=False,
-             f_kdtree=False,show_colorbar=True,latvalues=None,lonvalues=None,show_zonal=False,
-             zonal_timmean=True,show_timeseries=False,scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
-             bluemarble = False, contours=False, overlay=None,titlefontsize=14,drawparallels=True,drawcountries=True,show_histogram=False,
-             contourf = False, land_color=(0.8,0.8,0.8), regionlinewidth=1, bins=10, colorbar_orientation='vertical',stat_type='mean',
-             cax_rotation=0.,cticklabels=None, proj='robin',plot_method='colormesh', boundinglat=60.,savefile=None, **kwargs):
+def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
+             nclasses=10,cmap_data='jet',
+             title=None,regions_to_plot = None,logplot=False,
+             logoffset=None,show_stat=False,
+             f_kdtree=False,show_colorbar=True,latvalues=None,
+             lonvalues=None,show_zonal=False,
+             zonal_timmean=True,show_timeseries=False,
+             scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
+             bluemarble = False, contours=False, overlay=None,
+             titlefontsize=14,drawparallels=True,drawcountries=True,
+             show_histogram=False,
+             contourf = False, land_color=(0.8,0.8,0.8),
+             regionlinewidth=1, bins=10,
+             colorbar_orientation='vertical',stat_type='mean',
+             cax_rotation=0.,cticklabels=None, proj='robin',
+             plot_method='colormesh', boundinglat=60.,
+             savefile=None, **kwargs):
     """
     produce a nice looking map plot
 
@@ -2451,7 +2510,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
             if np.any(vlon[i,:]) > 180.: #todo fix this properly !!!
                 vmsk[i] = False
                 continue
-            if basemap_object == None:
+            if basemap_object is None:
                 xv=vlon[i,:]; yv=vlat[i,:]
             else:
                 xv,yv = basemap_object(vlon[i,:],vlat[i,:])    #todo: how to properly deal with boundary problem ????
@@ -2472,9 +2531,9 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
         pdata = np.asarray(pdata)
 
-        if vmin==None:
+        if vmin is None:
             vmin=pdata.min()
-        if vmax==None:
+        if vmax is None:
             vmax=pdata.max()
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -2559,7 +2618,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
 
     #--- logscale plot ?
     if logplot:
-        if logoffset == None:
+        if logoffset is None:
             if xm.min() < 0.: logoffset = abs(xm.min())*1.01
             else: logoffset = 0.
         else: logoffset = logoffset
@@ -2567,7 +2626,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,nclasses=10,cma
         xm = np.log10( xm + logoffset )
 
     #--- save field that is plotted as file
-    if savefile != None:
+    if savefile is not None:
         if savefile[:-3] != '.nc':
             savefile += '.nc'
         tmp = x.copy()
@@ -3139,10 +3198,9 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     """
 
-    if savefile != None:
+    if savefile is not None:
         if '.nc' in savefile:
             savefile = savefile[:-3]
-
 
     if 'cticks_diff' in kwargs:
         cticks_diff = kwargs.pop('cticks_diff')
@@ -3159,20 +3217,18 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     else:
         drawparallels=False
 
-
-
-
-
     fig = plt.figure()
-
-    ax1 = fig.add_subplot(221); ax2 = fig.add_subplot(222)
-    ax3 = fig.add_subplot(223); ax4 = fig.add_subplot(224)
+    ax1 = fig.add_subplot(221)
+    ax2 = fig.add_subplot(222)
+    ax3 = fig.add_subplot(223)
+    ax4 = fig.add_subplot(224)
 
     #--- get colormap
     cmap = plt.cm.get_cmap(cmap_data, nclasses)
 
     #- temporal mean fields
-    xm = x.timmean(); ym = y.timmean()
+    xm = x.timmean()
+    ym = y.timmean()
 
     #proj='robin'; lon_0=0.; lat_0=0.
 
@@ -3188,7 +3244,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     #- plot second dataset
     if savefile is None:
-        tmpoutname=None
+        tmpoutname = None
     else:
         tmpoutname = savefile + '_yvar'
 
@@ -3201,7 +3257,7 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     if savefile is None:
-        tmpoutname=None
+        tmpoutname = None
     else:
         tmpoutname = savefile + '_absdif'
 
@@ -3212,12 +3268,12 @@ def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data
-    if absthres != None:
+    if absthres is not None:
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
 
     if savefile is None:
-        tmpoutname=None
+        tmpoutname = None
     else:
         tmpoutname = savefile + '_reldif'
 
