@@ -12,6 +12,7 @@ This module allows a flexible choice of the netCDF backend
 netcdf_backend = 'netCDF4'
 #~ netcdf_backend = 'Nio'
 
+import os
 
 class NetCDFHandler(object):
     def __init__(self):
@@ -42,6 +43,9 @@ class NetCDFHandler(object):
         """
         if mode not in ['w', 'r']:
             raise ValueError('Invalid mode! [w,r], %s' % mode)
+        if mode == 'w':
+            if not os.path.exists(filename):
+                raise ValueError('File not existing: %s' % filename)
         if self.type.lower() == 'nio':
             self.F = self.handler.open_file(filename, mode=mode)
             self.create_dimension = self.F.create_dimension
