@@ -19,6 +19,8 @@ pep8 :
 	#$(PEP) ./pyCMBS/report.py
 	#$(PEP) ./pyCMBS/statistic.py
 	$(PEP) ./pyCMBS/region.py
-
+	$(PEP) ./pyCMBS/framework/__init__.py
+	$(PEP) ./pyCMBS/framework/utils.py
+	#diagnstic.py, data.py
 
 
