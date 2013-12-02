@@ -24,7 +24,9 @@ class Grid(object):
     general class for spatial grids
     """
 
-    def __init__(self, lat_rad, lon_rad, sphere_radius = None, gridtype = 'regular'):
+    def __init__(self, lat_rad, lon_rad, sphere_radius=None,
+                 gridtype='regular'):
+
         """
         Parameters
         ----------
@@ -45,20 +47,22 @@ class Grid(object):
         self.gridtype = gridtype
 
         if sphere_radius is None:
-            raise ValueError('Grid needs to be initialized with sphere radius!')
+            raise ValueError('Grid needs to be initialized \
+                               with sphere radius!')
         self.radius = sphere_radius
         self._interpolated = False
 
     def orthodrome(self, lon1, lat1, lon2, lat2):
         """
-        calculate the orthodrome between two points with coordinates given in radians
+        calculate the orthodrome between two points with coordinates
+        given in radians
         http://en.wikipedia.org/wiki/Great-circle_distance
         see also CDO code in file Gridcell.c
 
         @todo: how to deal with latitudes across the dateline ?
         """
         return np.arccos(np.sin(lat1)*np.sin(lat2)+np.cos(lat1)
-                *np.cos(lat2)*np.cos(np.abs(lon2-lon1)))*self.radius
+                         * np.cos(lat2)*np.cos(np.abs(lon2-lon1)))*self.radius
 
     def calc_cell_area(self):
         """
@@ -77,7 +81,7 @@ class Grid(object):
             ax = fig.add_subplot(111)
         ax.plot(self.lon, self.lat, 'x')
 
-    def draw_edges(self,ax=None):
+    def draw_edges(self, ax=None):
         if not self._interpolated:
             self._delaunay_triangulation()
         if ax is None:
@@ -105,15 +109,15 @@ class Grid(object):
 
                 #upper left
                 lons.append(self._lon0[i-1, j-1]+0.5
-                    * (self._lon0[i, j]-self._lon0[i-1, j-1]))
+                            * (self._lon0[i, j]-self._lon0[i-1, j-1]))
                 lats.append(self._lat0[i-1, j-1]+0.5
-                    * (self._lat0[i, j]-self._lat0[i-1, j-1]))
+                            * (self._lat0[i, j]-self._lat0[i-1, j-1]))
 
                 #lower right
                 lons.append(self._lon0[i, j]+0.5
-                    * (self._lon0[i+1, j+1]-self._lon0[i, j]))
+                            * (self._lon0[i+1, j+1]-self._lon0[i, j]))
                 lats.append(self._lat0[i, j]+0.5
-                    * (self._lat0[i+1, j+1]-self._lat0[i, j]))
+                            * (self._lat0[i+1, j+1]-self._lat0[i, j]))
 
                 #lower left
                 #lons.append(self._lon0[i-1,j]+0.5
@@ -190,7 +194,7 @@ class Grid(object):
         norm = mpl.colors.Normalize(vmin=None, vmax=None)  # colorbar mapping
         # construct library of all objects
         self._collection = PatchCollection(patches, cmap=cmap, norm=norm,
-                                                alpha=1., match_original=False)
+                                           alpha=1., match_original=False)
         colors = 100*np.random.rand(len(patches))
         # assign data values here
         self._collection.set_array(np.array(colors))
