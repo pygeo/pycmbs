@@ -560,35 +560,34 @@ class Data(object):
 
 
         #/// write data
-        if hasattr(self,'time'):
+        if hasattr(self, 'time'):
             if self.time != None:
                 #F.variables['time'] .assign_value(self.time-1)
                 File.assign_value('time',self.time)
                 File.F.variables['time'].calendar = self.calendar
 
-        if hasattr(self,'data'):
+        if hasattr(self, 'data'):
             File.assign_value(varname,self.data)
-
 
         #print 'Assigning lat/lon'
         if self.lat is not None:
-            File.assign_value('lat',self.lat)
+            File.assign_value('lat', self.lat)
         #print 'Lat completed ...'
         if self.lon is not None:
-            File.assign_value('lon',self.lon)
+            File.assign_value('lon', self.lon)
         #print 'Lon completed ...'
 
         if hasattr(self,'data'):
             if hasattr(self,'cell_area'):
                 if self.cell_area is not None:
-                    File.assign_value('cell_area',self.cell_area)
+                    File.assign_value('cell_area', self.cell_area)
 
-        if hasattr(self,'data'):
-            File.F.variables[varname].long_name    = self.long_name
-            File.F.variables[varname].units        = self.unit
+        if hasattr(self, 'data'):
+            File.F.variables[varname].long_name = self.long_name
+            File.F.variables[varname].units = self.unit
             File.F.variables[varname].scale_factor = 1.
-            File.F.variables[varname].add_offset   = 0.
-            File.F.variables[varname].coordinates  = "lon lat"
+            File.F.variables[varname].add_offset = 0.
+            File.F.variables[varname].coordinates = "lon lat"
 
         #/// global attributes
         #if hasattr(self,'filename'):
@@ -609,11 +608,12 @@ class Data(object):
 
         @rtype: bool
         """
-        if self.lon.ndim == 1: #vector
+        if self.lon.ndim == 1:
             return True
         elif self.lon.ndim == 2:
             lu = self.lon.mean(axis=0)
-            if any( np.abs(lu - self.lon[0,:]) > 1.E-5): #this corresponds to an accuracy of 1m
+            #this corresponds to an accuracy of 1m
+            if any( np.abs(lu - self.lon[0,:]) > 1.E-5):
                 return False
             else:
                 return True
@@ -986,8 +986,9 @@ class Data(object):
         if not os.path.exists(self.filename):
             sys.exit('Error: file not existing: '+ self.filename)
         else:
-            print ''
-            print 'FILE: ', self.filename
+            #print ''
+            #print 'FILE: ', self.filename
+            pass
 
         self.time_var = time_var
 
@@ -2140,24 +2141,42 @@ class Data(object):
             data = np.ma.array(data,mask=np.zeros(data.shape).astype('bool'))
             self.fill_value = -99999.
 
-        #scale factor
-        if hasattr(var,'scale_factor'):
-            if plt.is_string_like(var.scale_factor):
-                scal = float(var.scale_factor.replace('.f','.'))
-            else:
-                scal = var.scale_factor
-        else:
-            scal = 1.
+        #--- scale factor
+        scal = File._get_scale_factor(varname)
+        self._scale_factor_netcdf=scal*1.
 
-        if hasattr(var,'add_offset'):
-            offset = float(var.add_offset)
-        else:
-            offset = 0.
+        #~ if hasattr(var,'scale_factor'):
+            #~ if plt.is_string_like(var.scale_factor):
+                #~ scal = float(var.scale_factor.replace('.f','.'))
+            #~ else:
+                #~ scal = var.scale_factor
+        #~ else:
+            #~ print('This variable has no scaling factor !!!!')
+            #~ print
+            #~ scal = 1.
+
+
+        offset = File._get_add_offset(varname)
+        #~ if hasattr(var,'add_offset'):
+            #~ offset = float(var.add_offset)
+        #~ else:
+            #~ print('This variable has no offset !!!!')
+            #~ offset = 0.
+        self._add_offset_netcdf=offset*1.
+
+
+
+
+
 
         #data = data * scal + offset
+        print 'Scaling: ', scal, offset
+        print type(scal), type(offset)
+        print data.min(), data.max()
         data *= scal
         data += offset
 
+        print data.min(), data.max()
 
         if hasattr(var,'long_name'):
             self.long_name = var.long_name
