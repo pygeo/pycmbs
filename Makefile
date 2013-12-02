@@ -17,7 +17,8 @@ pep8 :
 	$(PEP) ./pyCMBS/icon.py
 	#$(PEP) ./pyCMBS/grid.py
 	#$(PEP) ./pyCMBS/report.py
-	$(PEP) ./pyCMBS/statistic.py
+	#$(PEP) ./pyCMBS/statistic.py
+	$(PEP) ./pyCMBS/region.py
 
 
 
