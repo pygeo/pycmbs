@@ -2165,18 +2165,14 @@ class Data(object):
         self._add_offset_netcdf=offset*1.
 
 
-
-
-
-
         #data = data * scal + offset
-        print 'Scaling: ', scal, offset
-        print type(scal), type(offset)
-        print data.min(), data.max()
+        #~ print 'Scaling: ', scal, offset
+        #~ print type(scal), type(offset)
+        #~ print data.min(), data.max()
         data *= scal
         data += offset
 
-        print data.min(), data.max()
+        #~ print data.min(), data.max()
 
         if hasattr(var,'long_name'):
             self.long_name = var.long_name
@@ -4058,7 +4054,7 @@ class Data(object):
         time   = self.time
 
         dummy_data = np.ma.array(np.ones(data[0,:,:].shape)*data.fill_value,\
-                                        fill_value=data.fill_value,\
+                                        fill_value=data.fill_value,
                                         mask=np.ones(data[0,:,:].shape)*True)
 
         months = self._get_months()
@@ -4075,11 +4071,13 @@ class Data(object):
             stop_time  = new_time[i+1+idx_shift]
             gap_months = rrule(MONTHLY, dtstart = start_time).between(start_time, stop_time, inc=True)[1:-1]
 
-            new_time = np.insert(new_time,i+1+idx_shift,gap_months)
-            new_data = np.insert(new_data,i+1+idx_shift,dummy_data,axis=0)
+            new_time = np.insert(new_time, i+1+idx_shift, gap_months)
+            new_data = np.insert(new_data, i+1+idx_shift, dummy_data, axis=0)
             idx_shift = idx_shift + len(gap_months)
 
-        data_masked = np.ma.array(new_data.data,mask = new_data == fill_value,fill_value=fill_value)
+        data_masked = np.ma.array(new_data.data,
+                      mask=new_data == fill_value,
+                      fill_value=fill_value)
 
         self.time = self.date2num(new_time)
         self.data = data_masked.copy()
@@ -4089,14 +4087,15 @@ class Data(object):
 
     def _set_timecycle(self):
         """
-        determine automatically the timecycle of the data and set the appropriate variable if possible
+        determine automatically the timecycle of the data and
+        set the appropriate variable if possible
 
         (unittest)
 
         @return:
         """
         if self._is_monthly():
-            self.time_cycle=12
+            self.time_cycle = 12
         else:
             self._log_warning('WARNING: timecycle can not be set automatically!')
 
@@ -4108,14 +4107,13 @@ class Data(object):
         """
 
         if self.data.ndim == 3:
-            self.data = self.data[:,::-1,:]
+            self.data = self.data[:, ::-1, :]
         elif self.data.ndim == 2:
-            self.data = self.data[::-1,:]
+            self.data = self.data[::-1, :]
         else:
-            raise ValueError, 'Unsupported geometry for _flipud()'
+            raise ValueError('Unsupported geometry for _flipud()')
 
-        if hasattr(self,'cell_area'):
-            self.cell_area = self.cell_area[::-1,:]
-        if hasattr(self,'lat'):
-            self.lat = self.lat[::-1,:]
-
+        if hasattr(self, 'cell_area'):
+            self.cell_area = self.cell_area[::-1, :]
+        if hasattr(self, 'lat'):
+            self.lat = self.lat[::-1, i:]
