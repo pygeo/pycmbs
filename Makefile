@@ -15,7 +15,8 @@ dist : clean
 pep8 :
 	$(PEP) ./pyCMBS/netcdf.py
 	$(PEP) ./pyCMBS/icon.py
-	$(PEP) ./pyCMBS/grid.py
+	#$(PEP) ./pyCMBS/grid.py
+	$(PEP) ./pyCMBS/report.py
 
 
 
