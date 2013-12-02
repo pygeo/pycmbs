@@ -3,6 +3,7 @@ This module allows a flexible choice of the netCDF backend
 """
 
 netcdf_backend='netCDF4'
+#~ netcdf_backend='Nio'
 
 class NetCDFHandler(object):
     def __init__(self):
@@ -60,6 +61,29 @@ class NetCDFHandler(object):
             return self.F.variables[varname]
         else:
             return self.F.variables[varname]
+
+    def _get_scale_factor(self,varname):
+        if self.type.lower() == 'nio':
+            try:
+                return float(self.F.variables[varname].scale_factor)
+            except:
+                print('No scale factor for variable! % s' % varname)
+                return 1.
+        else:
+            #netCDF4 library already applies the scaling factor!
+            return 1.
+
+    def _get_add_offset(self,varname):
+        if self.type.lower() == 'nio':
+            try:
+                return float(self.F.variables[varname].add_offset)
+            except:
+                print('No offset for variable! % s' % varname)
+                return 0.
+        else:
+            #netCDF4 library already applies the add_offset!
+            return 0.
+
 
     def assign_value(self,varname,value):
         """
