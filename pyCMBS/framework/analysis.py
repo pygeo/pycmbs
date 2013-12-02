@@ -1,22 +1,8 @@
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
 """
-Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-See COPYING file for copying and redistribution conditions.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
 """
 
 from utils import *
@@ -37,7 +23,7 @@ matplotlib.rcParams['backend'] = 'Agg'
 #///////////////////////////////////////////////////////////////////////
 
 
-def preprocess_seasonal_data(raw_file,interval=None,themask = None,force=False,obs_var=None,label='',shift_lon=None,start_date=None,stop_date=None,target_grid='t63grid',interpolation_method='remapcon'):
+def preprocess_seasonal_data(raw_file, interval=None, themask = None, force=False,obs_var=None,label='',shift_lon=None,start_date=None,stop_date=None,target_grid='t63grid',interpolation_method='remapcon'):
     """
     This subroutine performs pre-processing of some raw data file. It does
 
@@ -242,14 +228,19 @@ def cuJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_base
 
 def cbJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='cbJch',regions=regions)
+
 def stJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='stJch',regions=regions)
+
 def ciJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='ciJch',regions=regions)
+
 def asJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='asJch',regions=regions)
+
 def csJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='csJch',regions=regions)
+
 def scJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
     main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='scJch',regions=regions)
 
@@ -257,16 +248,24 @@ def scJch_analysis(model_list,interval='season',GP=None,shift_lon=False,use_base
 # GENERIC - start
 #=======================================================================
 
-def generic_analysis(plot_options, model_list, obs_type, obs_name, GP=None, GM = None, shift_lon=False, use_basemap=False, report=None,interval=None,regions=None):
+def generic_analysis(plot_options, model_list, obs_type, obs_name,
+                     GP=None, GM=None, shift_lon=False,
+                     use_basemap=False, report=None, interval=None,
+                     regions=None):
     """
     function for performing common analysis actions
     it is not a parameter specific function
     use it as a template for specific analysis
 
-    @param      plot_options: class of PlotOptions which specifies the options how plots shall look like!
+    @param      plot_options: class of PlotOptions which specifies the
+    options how plots shall look like!
 
-    @param obs_type: type of observation (variable to be analyzed); needs to be consistent with the variables specified in main.py and the config file (e.g. 'sis','rain')
-    @param obs_name: name of observational record as specified in the INI file e.g. HOAPS, CMSAF ...
+    @param obs_type: type of observation (variable to be analyzed);
+    needs to be consistent with the variables specified in main.py and
+    the config file (e.g. 'sis','rain')
+
+    @param obs_name: name of observational record as specified in the
+    INI file e.g. HOAPS, CMSAF ...
     """
 
     #---- GENERAL CHECKS -----------------------------------------------------------------------
@@ -1151,12 +1150,12 @@ def albedo_analysis_nir(model_list,interval='season',GP=None,shift_lon=False,use
 
 def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
 
-    if shift_lon == None:
-        raise ValueError, 'You need to specify shift_lon option!'
-    if use_basemap == None:
-        raise ValueError, 'You need to specify use_basemap option!'
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
+    if shift_lon is None:
+        raise ValueError('You need to specify shift_lon option!')
+    if use_basemap is None:
+        raise ValueError('You need to specify use_basemap option!')
+    if report is None:
+        raise ValueError('You need to specify report option!')
 
     print
     print '************************************************************'
@@ -1165,65 +1164,90 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
 
     report.section('Surface albedo')
 
-    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
+    # Figures
+    fG = plt.figure()
+    axg = fG.add_subplot(211)
+    axg1 = fG.add_subplot(212)
 
+    # GlobalMean plot
+    GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True)
 
-    #- MODIS white sky albedo
+    # MODIS white sky albedo
     report.subsection('MODIS WSA')
-    report.write('MODIS albedo is based on the MODIS white-sky albedo product. Snow covered areas remain in the data product, but all pixels flagged as invalid was discarded.')
-    generic_analysis(plot_options, model_list, 'albedo', 'MODIS', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval,regions=regions)
+    report.write('MODIS albedo is based on the MODIS white-sky \
+                    albedo product. Snow covered areas remain in the \
+                    data product, but all pixels flagged as invalid \
+                    was discarded.')
+    generic_analysis(plot_options, model_list, 'albedo', 'MODIS',
+                    GP = GP, GM = GM, report=report,
+                    use_basemap=use_basemap, shift_lon = shift_lon,
+                    interval=interval,regions=regions)
 
     #- AVHRR GAC SAL black sky albedo
     report.subsection('AVHRR CLARASAL')
-    report.write('AVHRR SAL is a black-sky albedo product generated in the frame of the CM-SAF')
-    generic_analysis(plot_options, model_list, 'albedo', 'CLARASAL', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval,regions=regions)
+    report.write('AVHRR SAL is a black-sky albedo product generated in \
+                    the frame of the CM-SAF')
+    generic_analysis(plot_options, model_list, 'albedo', 'CLARASAL',
+                    GP = GP, GM = GM, report = report,
+                    use_basemap = use_basemap, shift_lon = shift_lon,
+                    interval=interval,regions=regions)
 
     #- CERES surface albedo from all sky fluxes
     report.subsection('CERES albedo')
     #CERES is not easily possible without pre-processing!!!!
     report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
-    albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM,regions=regions)
+    albedo_analysis_plots(model_list, GP=GP, shift_lon=shift_lon,
+                          use_basemap=use_basemap, report=report,
+                          interval=interval, obs_type='CERES', GM=GM,
+                          regions=regions)
 
 
     #climatological means
-    fGa = GM.plot_mean_result(dt=5.,colors={'observations':'blue','models':'red'})
-    fGb = GM.plot_mean_result(dt=0.1,colors={'observations':'blue','models':'red'},plot_clim=True)
+    fGa = GM.plot_mean_result(dt=5.,
+                    colors={'observations':'blue','models':'red'})
+    fGb = GM.plot_mean_result(dt=0.1,
+                    colors={'observations':'blue','models':'red'},
+                    plot_clim=True)
 
-    report.figure(fG,caption ='Global means for land surface albedo',bbox_inches=None)
-    report.figure(fGa,caption='Global means for land surface albedo (summary)',bbox_inches=None)
-    report.figure(fGb,caption='Global means for land surface albedo (climatological summary)',bbox_inches=None)
+    report.figure(fG,caption ='Global means for land surface albedo', bbox_inches=None)
+    report.figure(fGa,caption='Global means for land surface albedo (summary)', bbox_inches=None)
+    report.figure(fGb,caption='Global means for land surface albedo (climatological summary)', bbox_inches=None)
 
-    pl.close(fGa.number); del fGa
-    pl.close(fGb.number); del fGb
-    pl.close(fG.number); del fG
+    pl.close(fGa.number)
+    pl.close(fGb.number)
+    pl.close(fG.number)
+    del fG, fGa, fGb
 
 
-    print '************************************************************'
-    print '* END ALBEDO analysis ...'
-    print '************************************************************'
-    print
+    print('************************************************************')
+    print('* END ALBEDO analysis ...')
+    print('************************************************************')
+    print('')
 
     del GM
 
 
 
-def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None,regions=None):
+def albedo_analysis_plots(model_list, GP=None, shift_lon=None,
+                           use_basemap=False, report=None,
+                           interval=None, obs_type=None,
+                           GM=None, regions=None):
     """
     model_list = list which contains objects of data type MODEL
     """
 
-    vmin = 0.; vmax = 0.6
+    vmin = 0.
+    vmax = 0.6
 
-    if interval == None:
+    if interval is None:
         raise ValueError, 'Interval period in albedo analyis not specified!'
-    if obs_type == None:
+    if obs_type is None:
         raise ValueError, 'Observation type for albedo was not specified!'
 
-    print 'Doing ALBEDO analysis ...'
+    print('Doing ALBEDO analysis ...')
 
     #--- GlecklerPlot
-    if GP == None:
+    if GP is None:
         GP = GlecklerPlot()
 
     #--- get land sea mask
@@ -1249,9 +1273,8 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
     #/// do data preprocessing ///
     obs_alb,obs_monthly = preprocess_seasonal_data(obs_raw_file,interval=interval,themask=ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
 
-
-    if GM != None:
-        GM.plot(obs_monthly,linestyle='--',group='observations')
+    if GM is not None:
+        GM.plot(obs_monthly, linestyle='--', group='observations')
 
     #--- initailize Reichler plot
     Rplot = ReichlerPlot() #needed here, as it might include multiple model results
@@ -1262,9 +1285,9 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
 
         GP.add_model(model._unique_name) #register model for Gleckler Plot
 
-        if GM != None:
+        if GM is not None:
             if 'albedo_org' in model.variables.keys():
-                if model.variables['albedo_org'][2] != None:
+                if model.variables['albedo_org'][2] is not None:
                     GM.plot(model.variables['albedo_org'][2],label=model._unique_name,group='models') #(time,meandata)
 
         #--- get model data
@@ -1273,7 +1296,7 @@ def albedo_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,re
         #--- use only valid albedo data (invalid values might be due to polar night effects)
         #model_data.data = np.ma.array(model_data.data,mask = ((model_data.data<0.) | (model_data.data > 1.)) )
 
-        if model_data == None: #data file was not existing
+        if model_data is None: #data file was not existing
             print 'Data not existing for model: ', model.name; continue
 
         if model_data.data.shape != obs_alb.data.shape:
@@ -1326,28 +1349,40 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
 #=======================================================================
 
 
+#=======================================================================
+# MAIN analysis
+#=======================================================================
 
-
-
-def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,actvar=None,regions=None,sectionheader=''):
+def main_analysis(model_list,interval='season',GP=None,shift_lon=False,
+                  use_basemap=False, report = None, plot_options=None,
+                  actvar=None, regions=None, sectionheader=''):
     """
+    model_list : xxxxxxxxxxxx
+        xxxxxxxxxxxxxxxxxxxxxx
+    interval : str
+        specifies the main analysis interval ['monthly','season']
+    GP : GlecklerPlot
+        instance of GlecklerPlot class; default=None, then new instance
+        is generated
+
     actvar: variable to analyze
     """
 
-    #this script is the very very generic and could be also used for other variables!!!
 
-    if shift_lon == None:
-        raise ValueError, 'You need to specify shift_lon option!'
-    if use_basemap == None:
-        raise ValueError, 'You need to specify use_basemap option!'
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    if plot_options == None:
-        raise ValueError, 'No plot options are specified. No further processing possible!'
-    if actvar == None:
-        raise ValueError, 'No name for actual variable specified! Please correct!'
-    if GP == None:
-        raise ValueError, 'Gleckler plot not specified!'
+    if interval not in ['monthly','season']:
+        raise ValueError('Invalid interval option! %s' % interval)
+    if shift_lon is None:
+        raise ValueError('You need to specify shift_lon option!')
+    if use_basemap is None:
+        raise ValueError('You need to specify use_basemap option!')
+    if report is None:
+        raise ValueError('You need to specify report option!')
+    if plot_options is None:
+        raise ValueError('No plot options are specified. No further processing possible!')
+    if actvar is None:
+        raise ValueError('No name for actual variable specified! Please correct!')
+    if GP is None:
+        raise ValueError('Gleckler plot not specified!')
 
 
     thevar = actvar
@@ -1357,20 +1392,25 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     thelabel = thelabel.upper()
 
 
-    print
-    print '************************************************************'
-    print '* BEGIN ' + thelabel + ' analysis ...'
-    print '************************************************************'
+    print('')
+    print('************************************************************')
+    print('* BEGIN ' + thelabel + ' analysis ...')
+    print('************************************************************')
 
-    report.section(thelabel) #section header for current variable
+    # section header for current variable
+    report.section(thelabel)
     if sectionheader != '':
-        report.write(sectionheader) #write header text for the section if needed
-    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-    GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
+        report.write(sectionheader)
+
+    # figure
+    fG = plt.figure()
+    axg = fG.add_subplot(211)
+    axg1 = fG.add_subplot(212)
+    GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True)
 
     if thevar in plot_options.options.keys():
-        for k in plot_options.options[thevar].keys(): #do analysis for all observational datasets specified in INI file
-
+        #do analysis for all observational datasets specified in INI file
+        for k in plot_options.options[thevar].keys():
             if k == 'OPTIONS':
                 continue
             else:
@@ -1388,37 +1428,16 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basem
     report.figure(fGa,caption='Global means for ' + thelabel + ' (summary); areas indicate $\pm 1 \sigma$ as derived from the ensemble of models or observations',bbox_inches=None)
     report.figure(fGb,caption='Global means for ' + thelabel + ' (summary climatology)',bbox_inches=None)
 
-    pl.close(fG.number); del fG
-    pl.close(fGa.number); del fGa
-    pl.close(fGb.number); del fGb
+    pl.close(fG.number)
+    pl.close(fGa.number)
+    pl.close(fGb.number)
 
-    del GM
+    del GM, fG, fGa, fGb
 
-    print
-    print '************************************************************'
-    print '* END ' + thelabel + ' analysis ...'
-    print '************************************************************'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    print('')
+    print('************************************************************')
+    print('* END ' + thelabel + ' analysis ...')
+    print('************************************************************')
 
 
 #=======================================================================
