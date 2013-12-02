@@ -1,5 +1,7 @@
 version 0.1.5
 ============================
+o file structure was revised to be more compliant with python standards
+o installation using distutils is now possible, using simply 'python setup.py install'
 o implemented flexible netCDF I/O handler (currently works only with Nio, but should work with netCDF module in the future)
 o improvement of report layout and automatic compilation enabled
 o name of analysis scripts is now specified in external file in the configuration directory
