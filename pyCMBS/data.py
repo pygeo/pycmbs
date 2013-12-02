@@ -1,28 +1,13 @@
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
 """
-Copyright (C) 2012-2013 Alexander Loew, alexander.loew@mpimet.mpg.de
-See COPYING file for copying and redistribution conditions.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
 """
-
-
 
 import os
 import sys
+
 from netcdf import *
 import numpy as np
 from matplotlib import pylab as plt
@@ -43,20 +28,25 @@ class Data(object):
     """
     Data class: main class
     """
-    def __init__(self,filename,varname,lat_name=None,lon_name=None,read=False,scale_factor = 1.,
-                 label=None,unit=None,shift_lon=False,start_time=None,stop_time=None,mask=None,
-                 time_cycle=None,squeeze=False,level=None,verbose=False,cell_area=None,
-                 time_var='time',checklat=True,weighting_type='valid',oldtime=False,warnings=True):
+    def __init__(self, filename, varname, lat_name=None, lon_name=None,
+                 read=False, scale_factor=1., label=None, unit=None,
+                 shift_lon=False, start_time=None, stop_time=None,
+                 mask=None, time_cycle=None, squeeze=False, level=None,
+                 verbose=False, cell_area=None, time_var='time',
+                 checklat=True, weighting_type='valid', oldtime=False,
+                 warnings=True):
         """
         Constructor for Data class
 
         Parameters
         ----------
         filename : str
-            name of the file that contains the data  (specify None if not data from file)
+            name of the file that contains the data
+            (specify None if not data from file)
 
         varname : str
-            name of the variable that contains the data (specify None if not data from file)
+            name of the variable that contains the data
+            (specify None if not data from file)
 
         lat_name : str
             name of latitude field
@@ -65,38 +55,49 @@ class Data(object):
             name of longitude field
 
         read : bool
-            specifies if the data should be read directly when creating the Data object
+            specifies if the data should be read directly when
+            creating the Data object
 
         scale_factor : float
-            scale factor to rescale the data after reading. Be aware, that this IS NOT the scale
-            factor that is used for data compression in e.g. netCDF variables (variable attribute scale_factor)
-            but this variable has the purpose to perform a rescaling (e.g. change of units) of the data
-            immediately after it was read (e.g. convert rainfall intensity [mm/h] to [mm/day], the scale_factor would be 1./24.
+            scale factor to rescale the data after reading. Be aware,
+            that this IS NOT the scale factor that is used for data
+            compression in e.g. netCDF variables
+            (variable attribute scale_factor) but this variable has
+            the purpose to perform a rescaling (e.g. change of units)
+            of the data immediately after it was read (e.g. convert
+            rainfall intensity [mm/h] to [mm/day], the scale_factor
+            would be 1./24.
 
         label : str
-            the label of the data. This is automatically used e.g. in plotting routines
+            the label of the data. This is automatically used
+            e.g. in plotting routines
 
         unit : str
             specify the unit of the data. Will be used for plotting.
 
         shift_lon : bool
-            if this flag is True, then the longitudes are shifted to [-180 ... 180] if they are given
-            in [0 ... 360]
+            if this flag is True, then the longitudes are shifted to
+            [-180 ... 180] if they are given in [0 ... 360]
 
         start_time : datetime object
-            specifies the start time of the data to be read from file (if None=default, then beginning of file is used)
+            specifies the start time of the data to be read from
+            file (if None=default, then beginning of file is used)
 
         stop_time : datetime object
-            specifies the stop time of the data to be read from file (if None, then end of file is used)
+            specifies the stop time of the data to be read from
+            file (if None, then end of file is used)
 
         mask : array(ny,nx)
-            mask that is applied to the data when it is read. Needs to have same geometry of data.
+            mask that is applied to the data when it is read.
+            Needs to have same geometry of data.
 
         time_cycle : int
-            specifies size of the periodic cycle of the data. This is needed if
-            deseasonalized anomalies should be calculated. If one works for instance with monthly
-            data, time_cycle needs to be 12. Assumption is that the temporal sampling of
-            the data is regular. When reading from netCDF file, the regularity is checked.
+            specifies size of the periodic cycle of the data.
+            This is needed if deseasonalized anomalies should be
+            calculated. If one works for instance with monthly
+            data, time_cycle needs to be 12. Assumption is that the
+            temporal sampling of the data is regular. When reading
+            from netCDF file, the regularity is checked.
 
         squeeze : bool
             remove singletone dimensions in the data when it is read.
@@ -108,34 +109,46 @@ class Data(object):
             verbose mode for printing
 
         cell_area : numpy array (ny,nx)
-            area size [m**2] of each grid cell. These weights are uses as an INITIAL weight and are renormalized in accordance to the valid data only.
+            area size [m**2] of each grid cell. These weights are uses
+            as an INITIAL weight and are renormalized in accordance to
+            the valid data only.
 
         warnings : bool
             log warnings in a separate logfile
 
         weighting_type : str
            specifies how normalization shall be done ['valid','all']
-           'valid': the weights are calculated based on all VALID values, thus the sum of all these weights is one
-           'all': contrary, weights are calculated based on ALL (valid and invalid) data.
-           The latter option can be useful, if one is interested e.g. in a global area weighted mean, whereas the
-           values in 'self' are only valid for e.g. land areas. If one wants to calculate e.e. the change in
-           global mean surface fluxes, given only land fluxes, one can normalize using normtype='all' and then gets
-           the impact on the global mean fluxes. In the other case (normtype='valid'), one would get the change in the
-           global mean of the LAND fluxes only!
+           'valid': the weights are calculated based on all VALID
+           values, thus the sum of all these weights is one
+           'all': contrary, weights are calculated based on ALL
+           (valid and invalid) data. The latter option can be useful,
+           if one is interested e.g. in a global area weighted mean,
+           whereas the values in 'self' are only valid for e.g.
+           land areas. If one wants to calculate e.e. the change in
+           global mean surface fluxes, given only land fluxes, one can
+           normalize using normtype='all' and then gets the impact on
+           the global mean fluxes. In the other case (normtype='valid'),
+           one would get the change in the global mean of the LAND
+           fluxes only!
 
         oldtime : bool
-            if True, then the old definition for time is used, which is compliant with the pylab time definition, as
-            *x* is a float value which gives the number of days
-            (fraction part represents hours, minutes, seconds) since 0001-01-01 00:00:00 UTC *plus* *one*.
+            if True, then the old definition for time is used, which is
+            compliant with the pylab time definition, as *x* is a float
+            value which gives the number of days (fraction part
+            represents hours, minutes, seconds) since
+            0001-01-01 00:00:00 UTC *plus* *one*.
 
-            NOTE that there is a *PLUS ONE*. The actual data object supports different calendars, while
-            this is not possible using the pylab num2date/date2num functions. (Un)fortunately, the new
-            routine, which is implemented in self.num2date(), self.date2num() *performs correctly* the
-            calculations. Thus there is *NO* *PLUS ONE* needed.
-            As a consequence, all files that have been written with older versions of pyCMBS have a wrong
-            time variable included in the file. To allow for backwards compliance, the option oldtime=True
-            can be used which will then mimic a similar behaviour as the pylab date functions.
-
+            NOTE that there is a *PLUS ONE*. The actual data object
+            supports different calendars, while this is not possible
+            using the pylab num2date/date2num functions. (Un)fortunately,
+            the new routine, which is implemented in self.num2date(),
+            self.date2num() *performs correctly* the calculations. Thus
+            there is *NO* *PLUS ONE* needed. As a consequence, all files
+            that have been written with older versions of pyCMBS have a
+            wrong time variable included in the file. To allow for
+            backwards compliance, the option oldtime=True can be used
+            which will then mimic a similar behaviour as the pylab
+            date functions.
         """
 
         self.weighting_type = weighting_type
@@ -148,13 +161,16 @@ class Data(object):
         self.squeezed = False
         self.detrended = False
         self.verbose = verbose
-        self._lon360 = True #assume that coordinates are always in 0 < lon < 360
+        #assume that coordinates are always in 0 < lon < 360
+        self._lon360 = True
 
         self.inmask = mask
         self.level = level
         self.gridtype = None
         self._oldtime = oldtime
-        self._latitudecheckok = False #specifies if latitudes have been checked for increasing order (required for zonal plot)
+        #specifies if latitudes have been checked for increasing order
+        #(required for zonal plot)
+        self._latitudecheckok = False
         self.warnings = warnings
 
         if label is None:
@@ -173,14 +189,15 @@ class Data(object):
         if time_cycle is not None:
             self.time_cycle = time_cycle
 
-        self.cell_area = cell_area #[m**2]
+        self.cell_area = cell_area  # [m**2]
 
         self.lat = None
         self.lon = None
 
         #/// read data from file ///
         if read:
-            self.read(shift_lon,start_time=start_time,stop_time=stop_time,time_var=time_var,checklat=checklat)
+            self.read(shift_lon, start_time=start_time, stop_time=stop_time,
+                      time_var=time_var, checklat=checklat)
 
         #/// check if longitudes are from 0 ... 360 ///
         if self.lon is not None:
@@ -451,9 +468,11 @@ class Data(object):
 
         F = open(filename,'w')
 
-        F.write(str(len(self.time)) + '\n'   ) #number of timesteps
+        F.write(str(len(self.time)) + '\n')  #number of timesteps
         for i in xrange(len(self.time)):
-            F.write(str(self.num2date(self.time[i])) + ' , ' + str(self.data[i,:].flatten()).replace('[','').replace(']','') + '\n' )
+            F.write(str(self.num2date(self.time[i])) + ' , '
+                  + str(self.data[i,:].flatten())
+                  .replace('[','').replace(']','') + '\n' )
 
         F.close()
 
@@ -561,7 +580,8 @@ class Data(object):
 
         if hasattr(self,'data'):
             if hasattr(self,'cell_area'):
-                File.assign_value('cell_area',self.cell_area)
+                if self.cell_area is not None:
+                    File.assign_value('cell_area',self.cell_area)
 
         if hasattr(self,'data'):
             File.F.variables[varname].long_name    = self.long_name
@@ -3059,11 +3079,13 @@ class Data(object):
                 bdate0 = datetime(bdate.year,bdate.month,bdate.day)
                 print bdate0
                 for t in self.time:
-                    x.append(bdate0 + relativedelta( months = int(t) ))
+                    x.append(bdate0 + relativedelta( months = int(t)))
                 self.time = plt.date2num(x)
             else:
                 #--- monthly timeseries for equidistant data
-                x=[d for d in rrule(MONTHLY,dtstart=datetime(sdate.year,sdate.month,sdate.day),count=len(self.time),interval=interval[0] )] #calculate series of data
+                x = [d for d in rrule(MONTHLY,
+                    dtstart=datetime(sdate.year,sdate.month,sdate.day),
+                    count=len(self.time),interval=interval[0] )]
                 self.time = plt.date2num(x)
         else:
             raise ValueError, 'Unsupported unit value'
