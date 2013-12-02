@@ -1,33 +1,17 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
-'''
-# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-'''
-
-
+"""
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
+"""
 
 from scipy import stats
 import numpy as np
 import scipy.special as special
 from scipy import stats as Sstats
 
-def get_significance(correlation,n,pthres=1.01):
+
+def get_significance(correlation, n, pthres=1.01):
     """
     calculate significance of correlation
 
@@ -46,21 +30,24 @@ def get_significance(correlation,n,pthres=1.01):
 
     """
 
-    nf = n - 2. #degree of freedom
-    t_value = np.abs(correlation) * np.sqrt( nf / (1.-correlation**2)) # abs() is important
+    nf = n - 2.  # degree of freedom
+    # abs() is important
+    t_value = np.abs(correlation) * np.sqrt(nf / (1.-correlation**2))
 
     # calculate two-sided p-value
-    p =   2. * stats.t.sf(t_value,nf)
+    p = 2. * stats.t.sf(t_value, nf)
 
-    return np.ma.array(p,mask=p>pthres)
+    return np.ma.array(p, mask=p > pthres)
 
 #-------------------------------------------------------------------------
 # The following routines are derived from scipy.mstats.mstats_basic.py
 #
 # the reason to include them here is that there was a bug in the code
-# which I reported to scipy developers. Once this is fixed, we can remove it again here
+# which I reported to scipy developers. Once this is fixed,
+# we can remove it again here
 #
 # http://projects.scipy.org/scipy/ticket/1777
+
 
 def _chk2_asarray(a, b, axis):
     if axis is None:
@@ -73,10 +60,12 @@ def _chk2_asarray(a, b, axis):
         outaxis = axis
     return a, b, outaxis
 
+
 def betai(a, b, x):
     x = np.asanyarray(x)
     x = np.ma.where(x < 1.0, x, 1.0)  # if x > 1 then return 1.0
     return special.betainc(a, b, x)
+
 
 def ttest_ind(a, b, axis=0):
     a, b, axis = _chk2_asarray(a, b, axis)
@@ -84,18 +73,20 @@ def ttest_ind(a, b, axis=0):
     (v1, v2) = (a.var(axis=axis, ddof=1), b.var(axis=axis, ddof=1))
     (n1, n2) = (a.count(axis), b.count(axis))
     df = n1+n2-2
-    svar = ((n1-1)*v1+(n2-1)*v2) / (df*1.)  #AL <<<<<<<<<<<<<< fix, as float() functions from mstats_basic.py does not work for multidimensional arrays!
+    #AL <<<<<<<<<<<<<< fix, as float() functions from mstats_basic.py
+    #does not work for multidimensional arrays!
+    svar = ((n1-1)*v1+(n2-1)*v2) / (df*1.)
     #svar == 0
-    t = (x1-x2)/np.ma.sqrt(svar*(1.0/n1 + 1.0/n2))  # N-D COMPUTATION HERE!!!!!!
+    # N-D COMPUTATION HERE!!!!!!
+    t = (x1-x2)/np.ma.sqrt(svar*(1.0/n1 + 1.0/n2))
     t = np.ma.filled(t, 1)           # replace NaN t-values with 1.0
-    probs = betai(0.5*df,0.5,(df*1.)/(df+t*t)).reshape(t.shape)   #AL <<<<<<<<<<<<<<
-    return t, probs #.squeeze() #<<< AL removed the squeeze, so I get back an array!
+    #AL <<<<<<<<<<<<<<
+    probs = betai(0.5*df, 0.5, (df*1.)/(df+t*t)).reshape(t.shape)
+    # .squeeze() #<<< AL removed the squeeze, so I get back an array!
+    return t, probs
 
 
 #----------------------- END OF SCIPY IMPORT
-
-
-
 
 def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
     """
