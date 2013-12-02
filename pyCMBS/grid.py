@@ -49,7 +49,7 @@ class Grid(object):
         self.radius = sphere_radius
         self._interpolated = False
 
-    def orthodrome(self,lon1,lat1,lon2,lat2):
+    def orthodrome(self, lon1, lat1, lon2, lat2):
         """
         calculate the orthodrome between two points with coordinates given in radians
         http://en.wikipedia.org/wiki/Great-circle_distance
