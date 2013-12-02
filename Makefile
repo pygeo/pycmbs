@@ -21,6 +21,7 @@ pep8 :
 	$(PEP) ./pyCMBS/region.py
 	$(PEP) ./pyCMBS/framework/__init__.py
 	$(PEP) ./pyCMBS/framework/utils.py
-	#diagnstic.py, data.py
+	$(PEP) ./pyCMBS/diagnostic.py
+	#diagnstic.py, data.py models.py analysis.py pycmbs.py
 
 

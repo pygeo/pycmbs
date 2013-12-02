@@ -1,22 +1,8 @@
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
 """
-Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-See COPYING file for copying and redistribution conditions.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
 """
 
 import numpy as np
@@ -29,19 +15,13 @@ from mpl_toolkits.axes_grid import make_axes_locatable
 import matplotlib.axes as maxes
 import matplotlib.cm as cm
 import matplotlib.colors as col
-import matplotlib as  mpl
-
-
+import matplotlib as mpl
 from plots import map_plot, pm_bar, add_nice_legend
 from data import Data
-
 from scipy import linalg, dot
-
 import matplotlib.gridspec as gridspec
-
 from anova import *
 from taylor import Taylor
-
 from pylab import *
 import pickle
 
@@ -52,19 +32,22 @@ class RegionalAnalysis(object):
     """
     a class to perform comparisons between two datasets on a regional basis
     """
-    def __init__(self,x,y,region,f_standard=True, f_correlation=True):
+    def __init__(self, x, y, region, f_standard=True, f_correlation=True):
         """
         @param x : first dataset (is assumed to be the reference dataset!)
         @type x: Data
         @param y : second dataset
         @type y: Data
-        @param region: region to analyze in both datasets; needs to be a Data object which contains IDs for each region
+        @param region: region to analyze in both datasets; needs to
+        be a Data object which contains IDs for each region
         @type region: Data
 
-        @param f_standard: calculate standard first and second moment statistics
+        @param f_standard: calculate standard first and second
+        moment statistics
         @type f_standard: bool
 
-        @param f_correlation: calculate correlation statistics between datasets
+        @param f_correlation: calculate correlation statistics
+        between datasets
         @type f_correlation: bool
         """
 
@@ -72,35 +55,32 @@ class RegionalAnalysis(object):
         self._preprocessed = False
         self.f_standard = f_standard
         self.f_correlation = f_correlation
-        self.statistics={}
+        self.statistics = {}
 
-        if (x == None) or (y==None):
+        if (x is None) or (y is None):
             #in case of dummy data, do not perform data check
-            if x == None:
+            if x is None:
                 self.x = None
             else:
                 self.x = x.copy()
-            if y == None:
+            if y is None:
                 self.y = None
             else:
                 self.y = y.copy()
-
         else:
             self.x = x.copy()
             self.y = y.copy()
-            self._check() #check input data
+            self._check()  # check input data
 
 #---
-    def save(self,fname='regional_statistics.pkl'):
+    def save(self, fname='regional_statistics.pkl'):
         """
         save statistics to a file using pickle
         @return:
         """
         if os.path.exists(fname):
             os.remove(fname)
-        pickle.dump(self.statistics,open(fname,'w'))
-
-
+        pickle.dump(self.statistics, open(fname, 'w'))
 
 #---
 
@@ -108,49 +88,52 @@ class RegionalAnalysis(object):
         """
         check consistency of data
         """
-
-
-        if not isinstance(self.region,Data):
-            raise ValueError, 'Region needs to be of instance C{Data}!'
-        if self.x != None:
+        if not isinstance(self.region, Data):
+            raise ValueError('Region needs to be of instance C{Data}!')
+        if self.x is not None:
             if self.x.ndim == 2:
                 if self.x.shape != self.region.shape:
                     print self.x.shape, self.region.shape
-                    raise ValueError, 'Inconsistent shape of X-data with Region'
+                    raise ValueError('Inconsistent shape of \
+                                       X-data with Region')
             elif self.x.ndim == 3:
-                if self.x.data[0,:,:].shape != self.region.shape:
-                    print self.x.data[0,:,:].shape, self.region.shape
-                    raise ValueError, 'Inconsistent shape of X-data with Region'
+                if self.x.data[0, :, :].shape != self.region.shape:
+                    print self.x.data[0, :, :].shape, self.region.shape
+                    raise ValueError('Inconsistent shape of \
+                                       X-data with Region')
             else:
-                raise ValueError, 'Unknown geometry!'
+                raise ValueError('Unknown geometry!')
 
-        if self.y != None:
+        if self.y is not None:
             if self.y.ndim == 2:
                 if self.y.shape != self.region.shape:
                     print self.y.shape, self.region.shape
-                    raise ValueError, 'Inconsistent shape of Y-data with Region'
+                    raise ValueError('Inconsistent shape of \
+                                       Y-data with Region')
             elif self.y.ndim == 3:
-                if self.y.data[0,:,:].shape != self.region.shape:
-                    print self.y.data[0,:,:].shape, self.region.shape
-                    raise ValueError, 'Inconsistent shape of Y-data with Region'
+                if self.y.data[0, :, :].shape != self.region.shape:
+                    print self.y.data[0, :, :].shape, self.region.shape
+                    raise ValueError('Inconsistent shape of \
+                                      Y-data with Region')
             else:
-                raise ValueError, 'Unknown geometry!'
-
-
-
+                raise ValueError('Unknown geometry!')
 
         #--- check datatypes
-        if not isinstance(self.x,Data):
-            raise ValueError, 'Error: RegionalAnalysis - X is not of type Data!'
-        if not isinstance(self.y,Data):
-            raise ValueError, 'Error: RegionalAnalysis - Y is not of type Data!'
+        if not isinstance(self.x, Data):
+            raise ValueError('Error: RegionalAnalysis - X \
+                               is not of type Data!')
+        if not isinstance(self.y, Data):
+            raise ValueError('Error: RegionalAnalysis - Y \
+                               is not of type Data!')
         #if not isinstance(self.region,Region):
-        #    raise ValueError, 'Error: RegionalAnalysis - region is not of type Region!'
+        #    raise ValueError, 'Error: RegionalAnalysis
+        #- region is not of type Region!'
 
         #--- check geometries
         if self.x.shape != self.y.shape:
-            print self.x.shape,self.y.shape
-            raise ValueError, 'ERROR: RegionalAnalyis - inconsistent geometries!'
+            print self.x.shape, self.y.shape
+            raise ValueError('ERROR: RegionalAnalyis - \
+                               inconsistent geometries!')
 
 #---
 
@@ -161,10 +144,10 @@ class RegionalAnalysis(object):
             self.x.get_aoi_lat_lon(self.region)
             self.y.get_aoi_lat_lon(self.region)
         else:
-            raise ValueError, 'RegionalAnalysis does not work with regions that are not specified by lat/lon!'
+            raise ValueError('RegionalAnalysis does not work with \
+                              regions that are not specified by lat/lon!')
             self.x = self.x.get_aoi(self.region)
             self.y = self.y.get_aoi(self.region)
-
 
         #--- reduce data volume by cutting unnecessary data
         self.x = self.x.cut_bounding_box(return_object=True)
@@ -178,7 +161,7 @@ class RegionalAnalysis(object):
 
 #---
 
-    def _get_correlation(self,pthres = 1.01):
+    def _get_correlation(self, pthres=1.01):
         """
         calculate correlation between two fields
 
@@ -190,49 +173,61 @@ class RegionalAnalysis(object):
         """
 
         if (self.x == None) or (self.y == None):
-            return {'corrstat1':None,'corrstat2':None}
+            return {'corrstat1': None, 'corrstat2': None}
 
         # A) calculate once correlation and then calculate regional statistics
-        RO,PO = self.x.correlate(self.y,pthres=pthres,spearman=False,detrend=False)
+        RO, PO = self.x.correlate(self.y, pthres=pthres,
+                        spearman=False, detrend=False)
         corrstat1 = RO.condstat(self.region) #gives a dictionary already
 
         # B) calculate regional statistics based on entire dataset
-        correlations = []; slopes = []; pvalues=[]; intercepts=[]; ids=[]; stdx=[]; stdy=[]
+        correlations = []
+        slopes = []
+        pvalues = []
+        intercepts = []
+        ids = []
+        stdx = []
+        stdy = []
         vals = np.unique(self.region.data.flatten())
         for v in vals:
             print 'Regional analysis - correlation for ID: ' + str(v).zfill(3)
-            msk = self.region.data == v #generate mask
+            msk = self.region.data == v  # generate mask
             x = self.x.copy()
             y = self.y.copy()
             x._apply_mask(msk)
             y._apply_mask(msk)
             del msk
             xvec = x.data.flatten(); yvec = y.data.flatten()
-            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xvec,yvec)
-            ids.append(v); slopes.append(slope);correlations.append(r_value); pvalues.append(p_value);intercepts.append(intercept)
-            stdx.append(xvec.std()); stdy.append(yvec.std())
-            del xvec,yvec,x,y
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xvec, yvec)
+            ids.append(v)
+            slopes.append(slope)
+            correlations.append(r_value)
+            pvalues.append(p_value)
+            intercepts.append(intercept)
+            stdx.append(xvec.std())
+            stdy.append(yvec.std())
+            del xvec, yvec, x, y
         ids = np.asarray(ids)
         slopes = np.asarray(slopes)
         correlations = np.asarray(correlations)
         pvalues = np.asarray(pvalues)
         intercepts = np.asarray(intercepts)
-        stdx=np.asarray(stdx); stdy=np.asarray(stdy)
+        stdx = np.asarray(stdx)
+        stdy = np.asarray(stdy)
 
-        corrstat2 = {'id':vals,'slope':slopes,'correlation':correlations,'pvalue':pvalues,'intercept':intercepts,'stdx':stdx,'stdy':stdy}
+        corrstat2 = {'id': vals, 'slope': slopes,
+            'correlation': correlations,
+            'pvalue': pvalues,
+            'intercept': intercepts,
+            'stdx': stdx,
+            'stdy': stdy}
 
         #--- return result ---
-        return {'corrstat1':corrstat1,'corrstat2':corrstat2}
-
-
-    def xxxxget_mean(self):
-        if not self._preprocessed:
-            self._prepare()
-        return self.x.timmean(return_object=True).fldmean(),self.y.timmean(return_object=True).fldmean()
+        return {'corrstat1': corrstat1, 'corrstat2': corrstat2}
 
 
 
-    def calculate(self,pthres=1.01):
+    def calculate(self, pthres=1.01):
         """
         perform calculation of regional statistics
         @return: returns a dictionary with details on regional statistics
@@ -240,20 +235,21 @@ class RegionalAnalysis(object):
         """
 
         #--- 1) standard statistic for X and Y datasets ---
-        xstat = None; ystat = None
+        xstat = None
+        ystat = None
         if self.f_standard:
-            if self.x != None:
+            if self.x is not None:
                 xstat = self.x.condstat(self.region) #returns a dictionary with statistics for each region (could be for all timesteps!)
-            if self.y != None:
+            if self.y is not None:
                 ystat = self.y.condstat(self.region)
 
-        self.statistics.update({'xstat':xstat})
-        self.statistics.update({'ystat':ystat})
+        self.statistics.update({'xstat': xstat})
+        self.statistics.update({'ystat': ystat})
 
         #--- 2) correlation statistics ---
         corrstat = None
         if self.f_correlation:
-            self.statistics.update({'corrstat':self._get_correlation(pthres=pthres)})
+            self.statistics.update({'corrstat': self._get_correlation(pthres=pthres)})
 
 
 
@@ -279,7 +275,7 @@ class RegionalAnalysis(object):
 
 #---
 
-    def print_table(self,format='txt',filename=None):
+    def print_table(self, format='txt', filename=None):
         """
         print table of regional statistics
         """
@@ -287,7 +283,7 @@ class RegionalAnalysis(object):
         if format not in ['txt']:
             raise ValueError, 'ERROR: invalid output format in print_table()'
 
-        def _get_string(d,id):
+        def _get_string(d, id):
             #d: dictionary (self.statistics)
             #id region id
 
@@ -2270,15 +2266,15 @@ class Diagnostic(object):
                 oticks.append(years[int(t)])
         #- set ticks of axis
         if   axis == 'x':
-            ax.set_xticklabels(oticks,size=size,rotation=rotation)
+            ax.set_xticklabels(oticks, size=size, rotation=rotation)
         elif axis == 'y':
-            ax.set_yticklabels(oticks,size=size,rotation=rotation)
+            ax.set_yticklabels(oticks, size=size, rotation=rotation)
         else:
             raise ValueError, 'Invalid axis (set_year_ticks)'
 
 #-----------------------------------------------------------------------
 
-    def plot_slice_correlation(self,pthres = 1.01):
+    def plot_slice_correlation(self, pthres = 1.01):
         """
         plot slice correlation results
 
@@ -2290,67 +2286,71 @@ class Diagnostic(object):
         cmap1 = plt.cm.get_cmap('RdBu_r', 10)
         cmap2 = plt.cm.get_cmap('jet', 10)
 
-        if not hasattr(self,'slice_r'):
-            raise ValueError, 'perform slice_corr() before plotting!'
+        if not hasattr(self, 'slice_r'):
+            raise ValueError('Perform slice_corr() before plotting!')
 
         #- get years of data for ticks
         years = self.x._get_years()
 
         #- generate plots
-        fig=plt.figure(figsize=(12,6))
+        fig = plt.figure(figsize=(12,6))
         fig.subplots_adjust(hspace=0.5)
         self.slice_fig = fig
-        ax1=fig.add_subplot(221); ax2=fig.add_subplot(222)
-        ax3=fig.add_subplot(223); ax4=fig.add_subplot(224)
+        ax1 = fig.add_subplot(221)
+        ax2 = fig.add_subplot(222)
+        ax3 = fig.add_subplot(223)
+        ax4 = fig.add_subplot(224)
 
-        r_data      = self.slice_r.copy()
-        p_data      = self.slice_p.copy()
+        r_data = self.slice_r.copy()
+        p_data = self.slice_p.copy()
         length_data = self.slice_length.copy()
-        slope_data  = self.slice_slope.copy()
+        slope_data = self.slice_slope.copy()
 
         msk = p_data > pthres
-        r_data[msk]      = np.nan; p_data[msk]      = np.nan
-        length_data[msk] = np.nan; slope_data[msk]  = np.nan
+        r_data[msk] = np.nan
+        p_data[msk] = np.nan
+        length_data[msk] = np.nan
+        slope_data[msk] = np.nan
 
         #- correlation
-        imr=ax1.imshow(r_data,interpolation='nearest',cmap=cmap1)
+        imr=ax1.imshow(r_data, interpolation='nearest', cmap=cmap1)
         ax1.set_title('correlation')
-        plt.colorbar(imr,ax=ax1,shrink=0.8)
+        plt.colorbar(imr, ax=ax1, shrink=0.8)
         ax1.set_xlabel('start year')
         ax1.set_ylabel('correlation period [years]')
 
         #- significance
-        imp=ax2.imshow(p_data,interpolation='nearest',cmap=cmap2)
+        imp=ax2.imshow(p_data, interpolation='nearest', cmap=cmap2)
         ax2.set_title('p-value')
-        plt.colorbar(imp,ax=ax2,shrink=0.8)
+        plt.colorbar(imp, ax=ax2, shrink=0.8)
         ax2.set_xlabel('start year')
         ax2.set_ylabel('correlation period [years]')
 
         #- length of period
-        iml=ax3.imshow(length_data,interpolation='nearest',cmap='RdBu_r')
+        iml=ax3.imshow(length_data, interpolation='nearest', cmap='RdBu_r')
         ax3.set_title('length')
-        plt.colorbar(iml,ax=ax3,shrink=0.8)
+        plt.colorbar(iml, ax=ax3, shrink=0.8)
         ax3.set_xlabel('start year')
         ax3.set_ylabel('correlation period [years]')
 
         #- slope
-        ims=ax4.imshow(slope_data,interpolation='nearest',cmap=cmap2)
+        ims=ax4.imshow(slope_data, interpolation='nearest', cmap=cmap2)
         ax4.set_title('slope')
-        plt.colorbar(ims,ax=ax4,shrink=0.8)
+        plt.colorbar(ims, ax=ax4, shrink=0.8)
         ax4.set_xlabel('start year')
         ax4.set_ylabel('correlation period [years]')
 
         #/// set tick labels ///
-        self._set_year_ticks(years,ax1,axis='x')
-        self._set_year_ticks(years,ax2,axis='x')
-        self._set_year_ticks(years,ax3,axis='x')
-        self._set_year_ticks(years,ax4,axis='x')
+        self._set_year_ticks(years, ax1, axis='x')
+        self._set_year_ticks(years, ax2, axis='x')
+        self._set_year_ticks(years, ax3, axis='x')
+        self._set_year_ticks(years, ax4, axis='x')
 
         #- contour plots
-        CP1 = ax1.contour(p_data,[0.01,0.05,0.1],linewidths=2)
-        CP2 = ax2.contour(p_data,[0.01,0.05,0.1],linewidths=2)
-        CP3 = ax3.contour(p_data,[0.01,0.05,0.1],linewidths=2)
-        CP4 = ax4.contour(p_data,[0.01,0.05,0.1],linewidths=2)
+        CP1 = ax1.contour(p_data,[0.01,0.05,0.1], linewidths=2)
+        CP2 = ax2.contour(p_data,[0.01,0.05,0.1], linewidths=2)
+        CP3 = ax3.contour(p_data,[0.01,0.05,0.1], linewidths=2)
+        CP4 = ax4.contour(p_data,[0.01,0.05,0.1], linewidths=2)
 
         ax1.clabel(CP1, inline=1, fontsize=10)
         ax2.clabel(CP2, inline=1, fontsize=10)
@@ -2386,82 +2386,82 @@ class koeppen(object):
         clim = -999
 
         if tmin > 18:
-          if pmin > 60:					# A(B)
-            clim = 1					# Af
+          if pmin > 60:                 # A(B)
+            clim = 1                    # Af
           else:
-            if  pmin > (0.04 * (2500 - psum)):		# A(B)-msw
-              clim = 2					# Am
+            if  pmin > (0.04 * (2500 - psum)):      # A(B)-msw
+              clim = 2                  # Am
             else:
-              if (pminhs < 40) and (pminhs < (pmaxhw/3)):	# A(B)-sw
-                if (psum/10) < (2 * tavg):			# A(B)-s
-                  if (psum/10) < (tavg):			# B
-                    clim = 6       				# BW
+              if (pminhs < 40) and (pminhs < (pmaxhw/3)):   # A(B)-sw
+                if (psum/10) < (2 * tavg):          # A(B)-s
+                  if (psum/10) < (tavg):            # B
+                    clim = 6                    # BW
                   else:
-                    clim = 5       				# BS
+                    clim = 5                    # BS
                 else:
-                  clim = 3         				# As
+                  clim = 3                      # As
               else:
-                if (psum/10) < (2 * (tavg + 14)): 		# A(B)-w
-                  if (psum/10) < (tavg + 14):		# B
-                    clim = 6        			# BW
+                if (psum/10) < (2 * (tavg + 14)):       # A(B)-w
+                  if (psum/10) < (tavg + 14):       # B
+                    clim = 6                    # BW
                   else:
-                    clim = 5        			# BS
+                    clim = 5                    # BS
                 else:
-                  clim = 4           			# Aw
+                  clim = 4                      # Aw
         else:
-          if (pminhs < 40) and (pminhs < (pmaxhw/3)):	# CDE(B)
-            if (psum/10) < (2 * tavg):			# CDE(B)-s
-              if (psum/10) < (tavg):			# B
-                clim = 6 					# BW
+          if (pminhs < 40) and (pminhs < (pmaxhw/3)):   # CDE(B)
+            if (psum/10) < (2 * tavg):          # CDE(B)-s
+              if (psum/10) < (tavg):            # B
+                clim = 6                    # BW
               else:
-                clim = 5 					# BS
+                clim = 5                    # BS
             else:
-              if  tmax < 10:				# CDE-s
-                if tmax < 0:				# E
-                  clim = 14  				# EF
+              if  tmax < 10:                # CDE-s
+                if tmax < 0:                # E
+                  clim = 14                 # EF
                 else:
-                  clim = 13  				# ET
+                  clim = 13                 # ET
               else:
-                if (tmin > -3):				# CD-s
-                  clim = 8 					# Cs
+                if (tmin > -3):             # CD-s
+                  clim = 8                  # Cs
                 else:
-                  clim = 11 				# Ds
+                  clim = 11                 # Ds
           else:
-            if pminhw < (pmaxhs/10):			# CDE(B)-fw
-              if (psum/10) < (2 * (tavg + 14)):		# CDE(B)-w
-                if (psum/10) < (tavg + 14):			# B
-                  clim = 6					# BW
+            if pminhw < (pmaxhs/10):            # CDE(B)-fw
+              if (psum/10) < (2 * (tavg + 14)):     # CDE(B)-w
+                if (psum/10) < (tavg + 14):         # B
+                  clim = 6                  # BW
                 else:
-                  clim = 5					# BS
+                  clim = 5                  # BS
               else:
-                if tmax < 10:				# CDE-w
+                if tmax < 10:               # CDE-w
 
-                  if (tmax < 0):				# E
-                    clim = 14				# EF
+                  if (tmax < 0):                # E
+                    clim = 14               # EF
                   else:
-                     clim = 13				# ET
+                     clim = 13              # ET
                 else:
-                  if (tmin > -3):				# CD-w
-                    clim = 9				# Cw
+                  if (tmin > -3):               # CD-w
+                    clim = 9                # Cw
                   else:
-                    clim = 12				# Dw
+                    clim = 12               # Dw
             else:
-              if (psum/10) < (2 * (tavg + 7)):		# CDE(B)-f
-                if (psum/10) < (tavg + 7):			# B
-                  clim = 6					# BW
+              if (psum/10) < (2 * (tavg + 7)):      # CDE(B)-f
+                if (psum/10) < (tavg + 7):          # B
+                  clim = 6                  # BW
                 else:
-                  clim = 5					# BS
+                  clim = 5                  # BS
               else:
-                if (tmax < 10):				# CDE-f
-                  if (tmax < 0):				# E
-                    clim = 14				# EF
+                if (tmax < 10):             # CDE-f
+                  if (tmax < 0):                # E
+                    clim = 14               # EF
                   else:
-                     clim = 13				# ET
+                     clim = 13              # ET
                 else:
-                  if (tmin > -3):				# CD-f
-                    clim = 7				# Cf
+                  if (tmin > -3):               # CD-f
+                    clim = 7                # Cf
                   else:
-                     clim = 10				# Df
+                     clim = 10              # Df
         return clim
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -2554,7 +2554,7 @@ class koeppen(object):
         self.precip = precip.mulc(60. * 60. * 24. * 365. / 12.,copy=True) # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
         self.temp = temp.subc(273.15,copy=True) # ??? Unklar warum nicht 'temp.subc(273.15)'
 
-        Psum = self.precip.timsum(return_object=True)		     # Berechnet die Summe der Jahresniederschlag
+        Psum = self.precip.timsum(return_object=True)            # Berechnet die Summe der Jahresniederschlag
 
         nt, ny,nx = self.temp.data.data.shape
         nlat = ny
@@ -2694,7 +2694,8 @@ class koeppen(object):
           ToDo:
             At the moment the label of the geiger-köppen types are missing at the color-bar
       """
-      map_plot(self.Clim,cmap_data=self.cmap,colorbar_orientation='horizontal',vmin=0.5,vmax=14.5,
-         cticks=[1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.],
-         cticklabels = ["Af","Am","As","Aw","BS","BW","Cf","Cs","Cw","Df","Ds","Dw","ET","EF"],
-         nclasses=15, **kwargs)
+      map_plot(self.Clim, cmap_data=self.cmap, colorbar_orientation='horizontal', vmin=0.5, vmax=14.5,
+         cticks=[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.],
+         cticklabels = ["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
+                        "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
+                        nclasses=15, **kwargs)
