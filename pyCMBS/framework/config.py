@@ -472,7 +472,7 @@ class PlotOptions(object):
             elif lopt['OPTIONS']['interpolation'] == 'nearest':
                 lopt['OPTIONS'].update({'interpolation':'remapnn'})
             else:
-                
+
                 raise ValueError, 'ERROR: invalid interpolation method: %s' % lopt['OPTIONS']['interpolation']
 
 
@@ -700,25 +700,29 @@ class CFGWriter(object):
             os.makedirs(self.output_dir)
 
 
-    def save(self,temp_dir=None,vars=None,start_date=None,stop_date=None,models=None,interval='monthly'):
+    def save(self,temp_dir=None,vars=None,start_date=None,stop_date=None,
+            models=None,interval='monthly',format='png',basemap=False,
+            clean_temp=False,summary_only=False):
         """
         save configuration file
         """
 
         supported_vars=['albedo','sis','precipitation'] #todo: complete!
 
-        if interval not in ['monthly','season']:
-            raise ValueError, 'Invalid interval option specified!'
+        if format.lower() not in ['pdf','png']:
+            raise ValueError('Invalid output format for report: %s' % format)
 
+        if interval not in ['monthly','season']:
+            raise ValueError('Invalid interval option specified!')
 
         if temp_dir is None:
-            raise ValueError, 'No temporary output directory specified!'
+            raise ValueError('No temporary output directory specified!')
 
         if vars is None:
-            raise ValueError, 'No VARIABLES specified!'
+            raise ValueError('No VARIABLES specified!')
 
         if start_date is None:
-            raise ValueError, 'No start_date specified'
+            raise ValueError('No start_date specified')
 
         if stop_date is None:
             raise ValueError, 'No stop_date specified'
@@ -736,13 +740,13 @@ class CFGWriter(object):
         self._write('# generated at: ' + time.asctime())
         self._write('######################################################')
 
-        self._write('basemap,0')
+        self._write('basemap,' + str(basemap.real))
         self._write('report=reportname_here')
-        self._write('report_format=PNG')
+        self._write('report_format=' + format.upper())
         self._write('author=TheAuthorName')
         self._write('temp_dir=' + temp_dir)
-        self._write('clean_tempdir,0')
-        self._write('summary_only,0')
+        self._write('clean_tempdir,' + str(clean_temp.real))
+        self._write('summary_only,' + str(summary_only.real))
         self._write('config_dir=' + self.output_dir + '/configuration/')
 
         self._write('################################')
