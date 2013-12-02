@@ -63,9 +63,9 @@ def preprocess_seasonal_data(raw_file, interval=None, themask = None, force=Fals
 
     sys.stdout.write(' *** Preprocessing ' + raw_file + '\n')
 
-    if obs_var == None:
+    if obs_var is None:
         raise ValueError, 'Name of variable to be processed needs to be specified!'
-    if shift_lon == None:
+    if shift_lon is None:
         raise ValueError, 'Lon shift parameter needs to be specified!'
 
     #--- PREPROCESSING of observational data  ---
@@ -78,7 +78,7 @@ def preprocess_seasonal_data(raw_file, interval=None, themask = None, force=Fals
 
     #construct string for seldate; it is assumed that it was already chacked before that start_date,stop_date are valid datetime objects!
 
-    if (start_date != None) and (stop_date != None):
+    if (start_date is not None) and (stop_date is not None):
         print 'Temporal subsetting for ' + raw_file + ' will be performed! ', start_date,stop_date
         seldate_str = ' -seldate,'+str(start_date)[0:10]+','+str(stop_date)[0:10]
         obs_mon_file = obs_mon_file[:-3] + '_' + str(start_date)[0:10] + '_' + str(stop_date)[0:10] + '_monmean.nc'
@@ -120,9 +120,11 @@ def preprocess_seasonal_data(raw_file, interval=None, themask = None, force=Fals
     #--- READ DATA ---
     obs     = Data(obs_ymonmean_file,obs_var,read=True,label=label,lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle)
     obs_std = Data(obs_ymonstd_file,obs_var,read=True,label=label + ' std',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
-    obs.std = obs_std.data.copy(); del obs_std
+    obs.std = obs_std.data.copy()
+    del obs_std
     obs_N = Data(obs_ymonN_file,obs_var,read=True,label=label + ' N',unit = '-',lat_name='lat',lon_name='lon',shift_lon=shift_lon,time_cycle=time_cycle) #,mask=ls_mask.data.data)
-    obs.n = obs_N.data.copy(); del obs_N
+    obs.n = obs_N.data.copy()
+    del obs_N
 
     #sort climatology to be sure that it starts always with January
     obs.adjust_time(year=1700,day=15) #set arbitrary time for climatology
@@ -142,7 +144,7 @@ def preprocess_seasonal_data(raw_file, interval=None, themask = None, force=Fals
     obs_monthly.adjust_time(day=15)
     obs.adjust_time(day=15)
 
-    if themask != None:
+    if themask is not None:
         obs._apply_mask(themask)
         obs_monthly._apply_mask(themask)
 
@@ -275,7 +277,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     if obs_type not in plot_options.options.keys():
         raise ValueError, 'No plot options available for the following data: ' + obs_type
 
-    if report == None:
+    if report is None:
         raise ReportError("Report option was not enabled")
 
     #---- PLOT OPTIONS -----------------------------------------------------------------------
@@ -300,9 +302,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     obs_var = local_plot_options[obs_name]['obs_var']
     gleckler_pos = local_plot_options[obs_name]['gleckler_position']
 
-
     if 'start' in local_plot_options['OPTIONS'].keys():
-        obs_start   = local_plot_options['OPTIONS']['start']
+        obs_start = local_plot_options['OPTIONS']['start']
         if isinstance(obs_start,datetime):
             pass
         else:
@@ -326,7 +327,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 obs_stop = None
     else:
         obs_stop = None
-
 
     if 'scale_data' in local_plot_options[obs_name].keys():
         obs_scale_data   = local_plot_options[obs_name]['scale_data']
@@ -359,11 +359,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     projection                = local_plot_options['OPTIONS']['projection']
     theunit                   = local_plot_options['OPTIONS']['units']
 
-    if regions == None:
+    if regions is None:
         f_regional_analysis = False
 
     if 'nclasses' in local_plot_options['OPTIONS'].keys():
-        nclasses            = local_plot_options['OPTIONS']['nclasses']
+        nclasses = local_plot_options['OPTIONS']['nclasses']
     else:
         nclasses = 6
 
@@ -386,9 +386,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     else:
         dmax = None
 
-
     m_data_org = obs_type + '_org' #name of original data field
-
 
     #/// land sea mask (options: land,ocean, global for parameter area)
     #mask_antarctica masks everything below 60°S.
@@ -418,11 +416,13 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                                      target_grid=targetgrid)
 
     # rescale data following CF conventions
-    obs_orig.mulc(obs_scale_data,copy=False); obs_monthly.mulc(obs_scale_data,copy=False)
-    obs_orig.addc(obs_add_offset,copy=False); obs_monthly.addc(obs_add_offset,copy=False)
+    obs_orig.mulc(obs_scale_data,copy=False)
+    obs_monthly.mulc(obs_scale_data,copy=False)
+    obs_orig.addc(obs_add_offset,copy=False)
+    obs_monthly.addc(obs_add_offset,copy=False)
 
     # set unit
-    obs_orig.unit    = theunit
+    obs_orig.unit = theunit
     obs_monthly.unit = theunit
 
     #### IDENTIFY AREAS WHERE THERE IS AT LEAST SOME VALID DATA ####
@@ -465,7 +465,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         Rplot = ReichlerPlot() #needed here, as it might include multiple model results
 
     if f_globalmeanplot:
-        if GM == None:
+        if GM is None:
             fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
             GM = GlobalMeanPlot(ax=axg,ax1=axg1,climatology=True) #global mean plot
         else:
@@ -477,7 +477,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         GM = None
 
 
-    if GM != None:
+    if GM is not None:
         GM.plot(obs_monthly, linestyle = '--',show_std=False,group='observations',stat_type=stat_type)
 
     if f_mapseasons == True:  #seasonal mean plot
@@ -494,7 +494,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         sys.stdout.write('\n *** %s analysis of model: ' % (obs_type.upper()) + model.name + "\n")
 
-        if model.variables[obs_type] == None:
+        if model.variables[obs_type] is None:
             sys.stdout.write('\n *** WARNING: No processing for %s possible for model (likely missing data!): ' % (obs_type) + model.name + "\n")
             continue
         else:
@@ -506,7 +506,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         if obs_type == 'seaice_extent':
             model_data = mask_seaice_extent(model_data,ls_mask)
 
-        if ls_mask != None:
+        if ls_mask is not None:
             actmask = ls_mask.data & valid_obs
         else:
             actmask = valid_obs
@@ -519,12 +519,12 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             sys.stdout.write('\n *** Making report figures. \n')
             report.subsubsection(model._unique_name)
 
-        if GM != None:
+        if GM is not None:
             if model.name == 'mean-model':
                 pass
             else:
                 if m_data_org in model.variables.keys():
-                    if model.variables[m_data_org][2] == None: #invalid data for mean_model --> skip
+                    if model.variables[m_data_org][2] is None: #invalid data for mean_model --> skip
                         pass
                     else:
                         #print model.variables[m_data_org][2].label
@@ -534,8 +534,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                         GM.plot(tmp,label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
                         del tmp
 
-        if model_data == None:
-            sys.stdout.write('Data not existing for model %s' % model.name); continue
+        if model_data is None:
+            sys.stdout.write('Data not existing for model %s' % model.name)
+            continue
 
         if model_data.data.shape != obs_orig.data.shape:
             print 'Inconsistent geometries' # add here parameter name
@@ -570,7 +571,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             #1) lat-band 1
             tmp = (model_data.lat > 30.) #extratropic 1
-            themask[tmp] = 2.; del tmp
+            themask[tmp] = 2.
+            del tmp
 
             tmp = (model_data.lat < -30.) #extratropic 2
             themask[tmp] = 3.; del tmp
@@ -608,10 +610,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 report.figure(f_season_dif,caption='Monthly mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
             pl.close(f_season_dif.number); del f_season_dif
 
-
-
-
-
         if f_hovmoeller == True:
             print '    Doing Hovmoeller plot ...'
             #raise ValueError, 'Hovmoeller Not validated yet!!!!'
@@ -633,10 +631,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             #--- perform temporal subsetting and interpolation for hovmoeller plot
             tmp = model.variables[obs_type+'_org'][2]
-            if tmp != None:
+            if tmp is not None:
                 tmp = tmp.interp_time(pl.date2num(tref))
 
-                if ls_mask != None:
+                if ls_mask is not None:
                     tmp._apply_mask(ls_mask)
 
                 hov_model = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
@@ -650,10 +648,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             # HOVMOELLER PLOT FOR OBSERVATIONS
             ####################################################
             tmp = obs_monthly.copy()
-            if tmp != None:
+            if tmp is not None:
                 tmp = tmp.interp_time(pl.date2num(tref))
 
-                if ls_mask != None:
+                if ls_mask is not None:
                     tmp._apply_mask(ls_mask)
 
                 hov_obs = hovmoeller(tmp.date,None,rescaley=20,rescalex=20)
@@ -664,7 +662,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 del hov_obs, tmp
 
             report.figure(f_hov,caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')' )
-            pl.close(f_hov.number); del f_hov
+            pl.close(f_hov.number)
+            del f_hov
 
         if f_regional_analysis:
             raise ValueError, 'Feature for regional analysis not implemented so far'
@@ -713,28 +712,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 #=======================================================================
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #=======================================================================
 # VEGETATION COVER FRACTION -- begin
 #=======================================================================
@@ -763,7 +740,7 @@ def phenology_faPAR_analysis(model_list,GP=None,shift_lon=None,use_basemap=False
     template3 = './external/phenology_benchmarking/Greening_Phase_Analysis_III.m'
     template4 = './external/phenology_benchmarking/Greening_Phase_Analysis_IV.m'
 
-    if GP == None:
+    if GP is None:
         GP = GlecklerPlot()
 
     for model in model_list:
@@ -951,184 +928,13 @@ def tree_fraction_analysis(model_list,pft='tree'):
 #=======================================================================
 # SURFACE UPWARD FLUX -- begin
 #=======================================================================
-
-def surface_upward_flux_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='surface_upward_flux',regions=regions)
-
-
-
-def xxxxxxxxxxxsurface_upward_flux_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval='season',plot_options=None,regions=None):
-
-    if shift_lon == None:
-        raise ValueError, 'You need to specify shift_lon option!'
-    if use_basemap == None:
-        raise ValueError, 'You need to specify use_basemap option!'
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-
-    print
-    print '************************************************************'
-    print '* BEGIN SURFACE UPWARD FLUX analysis ...'
-    print '************************************************************'
-
-    report.section('Surface upward flux')
-
-    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
-
-    #- MODIS white sky albedo
-    report.subsection('xxxxxxxxxxxxxx')
-    report.write('The upward flux observations are calculated using the downward shortwave radiation flux from CERES and the surface albedo from MODIS white sky albedo (WSA).')
-    surface_upward_flux_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='MODIS_ceres',GM=GM)
-
-
-    #DIRECT COMPARISON WITH CERES UPWARD FLUX
-    report.subsection('CERES upward flux')
-    surface_upward_flux_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
-
-
-
-    #CERES ALBEDO scaled with MODEL downward
-
-
-    #- CERES surface albedo from all sky fluxes
-    #report.subsection('CERES albedo')
-    #report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
-    #albedo_analysis_plots(model_list,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report=report,interval=interval,obs_type='CERES',GM=GM)
-
-    report.figure(fG,caption='Global means for land surface upward flux',bbox_inches=None)
-
-    print '************************************************************'
-    print '* END SURFACE UPWARD FLUX analysis ...'
-    print '************************************************************'
-    print
-
-
-
-def xxxxxxxxxxxsurface_upward_flux_analysis_plots(model_list,GP=None,shift_lon=None,use_basemap=False,report=None,interval=None,obs_type=None,GM=None):
-    """
-    model_list = list which contains objects of data type MODEL
-    """
-
-    vmin = 0.; vmax = 150.
-
-    if interval == None:
-        raise ValueError, 'Interval period in surface_upward_flux_analyis not specified!'
-    if obs_type == None:
-        raise ValueError, 'Observation type for surface_upward_flux_analyis was not specified!'
-
-    print 'Doing surface_upward_flux_analyis analysis ...'
-
-    #--- GlecklerPlot
-    if GP == None:
-        GP = GlecklerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-    #--- loading observation data
-    if obs_type == 'CERES':
-        #CERES EBAF ...
-        up_file   = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_up_all_mon__1x1__200003-201002.nc'
-        obs_raw_file = up_file
-        obs_var = 'sfc_sw_up_all_mon'
-        gleckler_pos = 1
-
-    elif obs_type == 'MODIS_ceres':
-        cdo = Cdo()
-
-        down_file = get_data_pool_directory() + 'variables/land/surface_radiation_flux_in_air/ceres_ebaf2.6/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
-
-        #remap CERES data first
-        obs_down, obs_down_monthly = preprocess_seasonal_data(down_file,interval=interval,themask = ls_mask,force=False,obs_var='sfc_sw_down_all_mon',label='CERES down flux',shift_lon=shift_lon)
-
-        #--- Albedo data
-        alb_file_raw  = get_data_pool_directory() + 'variables/land/surface_albedo/modis/with_snow/T63_MCD43C3-QC_merged.nc'
-        alb_data, alb_monthly = preprocess_seasonal_data(alb_file_raw,interval=interval,themask = ls_mask,force=False,obs_var='surface_albedo_WSA',label='MODIS WSA',shift_lon=shift_lon)
-
-        #--- get climatological mean upward flux (not for monthly data, as it is not ensured that same timeperiod is covered)
-        # climatologies are already sorted with timsort()
-        up_flux = alb_data.mul(obs_down)
-        obs_raw_file = get_temporary_directory() + 'MODIS_CERES_surface_upward_flux.nc'
-        obs_var = 'surface_shortwave_upward_flux'
-        up_flux.unit = 'W/m**2'
-        up_flux.save(obs_raw_file,varname=obs_var,delete=True)
-
-        del obs_down, obs_down_monthly, alb_data, alb_monthly, up_flux
-
-    else:
-        raise ValueError, 'Invalid option for observation type in surface_upward_flux_analyis: ' + obs_type
-
-    #/// do data preprocessing ///
-    obs_up,obs_monthly = preprocess_seasonal_data(obs_raw_file,interval=interval,themask=ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
-
-    if GM != None:
-        GM.plot(obs_monthly,linestyle='--')
-
-    #--- initialize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        print '    SURFACE UPWARD FLUX analysis of model: ', model.name
-
-        GP.add_model(model.name) #register model for Gleckler Plot
-
-        if GM != None:
-
-
-            if 'surface_upward_flux_org' in model.variables.keys():
-                GM.plot(model.variables['surface_upward_flux_org'][2],label=model.name,mask=ls_mask) #(time,meandata)
-
-        #--- get model data
-        model_data = model.variables['surface_upward_flux']
-        model_data._apply_mask(ls_mask)
-
-        #--- use only valid albedo data (invalid values might be due to polar night effects)
-        #model_data.data = np.ma.array(model_data.data,mask = ((model_data.data<0.) | (model_data.data > 1.)) )
-
-        if model_data == None: #data file was not existing
-            print 'Data not existing for model: ', model.name; continue
-
-        if model_data.data.shape != obs_up.data.shape:
-            print 'Inconsistent geometries for surface_upward_flux'
-            print model_data.data.shape; print obs_up.data.shape
-            raise ValueError, "Invalid geometries"
-
-        #--- generate difference map
-        dmin = -20.; dmax = 20.
-        f_dif  = map_difference(model_data ,obs_up,nclasses=7,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,50.,100.,150.],cticks_diff=[-20.,-10.,0.,10.,20.])
-
-        #seasonal map
-        f_season = map_season(model_data.sub(obs_up),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-20.,-10.,0.,10.,20.],nclasses=6)
-
-
-        #todo hovmoeller plots !!!!
-
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(obs_up,model_data)
-        e2   = Diag.calc_reichler_index()
-        if e2 != None:
-            Rplot.add(e2,model_data.label,color='red')
-
-        #/// Gleckler plot ///
-        e2a = GP.calc_index(obs_up,model_data,model,'surface_upward_flux')
-        GP.add_data('surface_upward_flux',model.name,e2a,pos=1)
-
-        #/// report results
-        report.subsubsection(model.name)
-        report.figure(f_season,caption='Seasonal differences')
-        report.figure(f_dif,caption='Mean and relative differences')
-
-
-    del obs_monthly
-
-    f_reich = Rplot.bar(title='relative model error: surface_upward_flux')
-    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
-    report.newpage()
-
-
+def surface_upward_flux_analysis(model_list,interval='season',GP=None,
+                            shift_lon=False,use_basemap=False,
+                            report=None,plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,
+                    use_basemap=use_basemap,report=report,
+                    plot_options=plot_options,
+                    actvar='surface_upward_flux',regions=regions)
 
 #=======================================================================
 # SURFACE UPWARD FLUX -- end
@@ -1183,7 +989,7 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
                     use_basemap=use_basemap, shift_lon = shift_lon,
                     interval=interval,regions=regions)
 
-    #- AVHRR GAC SAL black sky albedo
+    # AVHRR GAC SAL black sky albedo
     report.subsection('AVHRR CLARASAL')
     report.write('AVHRR SAL is a black-sky albedo product generated in \
                     the frame of the CM-SAF')
@@ -1193,13 +999,17 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
                     interval=interval,regions=regions)
 
     #- CERES surface albedo from all sky fluxes
-    report.subsection('CERES albedo')
-    #CERES is not easily possible without pre-processing!!!!
-    report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
-    albedo_analysis_plots(model_list, GP=GP, shift_lon=shift_lon,
-                          use_basemap=use_basemap, report=report,
-                          interval=interval, obs_type='CERES', GM=GM,
-                          regions=regions)
+    #~ report.subsection('CERES albedo')
+    #~ report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
+    #~ generic_analysis(plot_options, model_list, 'albedo', 'CERES',
+                    #~ GP = GP, GM = GM, report = report,
+                    #~ use_basemap=use_basemap, shift_lon = shift_lon,
+                    #~ interval=interval, regions=regions)
+
+    #~ albedo_analysis_plots(model_list, GP=GP, shift_lon=shift_lon,
+                          #~ use_basemap=use_basemap, report=report,
+                          #~ interval=interval, obs_type='CERES', GM=GM,
+                          #~ regions=regions)
 
 
     #climatological means
@@ -1226,113 +1036,6 @@ def albedo_analysis(model_list,GP=None,shift_lon=None,use_basemap=False,report=N
 
     del GM
 
-
-
-def albedo_analysis_plots(model_list, GP=None, shift_lon=None,
-                           use_basemap=False, report=None,
-                           interval=None, obs_type=None,
-                           GM=None, regions=None):
-    """
-    model_list = list which contains objects of data type MODEL
-    """
-
-    vmin = 0.
-    vmax = 0.6
-
-    if interval is None:
-        raise ValueError, 'Interval period in albedo analyis not specified!'
-    if obs_type is None:
-        raise ValueError, 'Observation type for albedo was not specified!'
-
-    print('Doing ALBEDO analysis ...')
-
-    #--- GlecklerPlot
-    if GP is None:
-        GP = GlecklerPlot()
-
-    #--- get land sea mask
-    ls_mask = get_T63_landseamask(shift_lon)
-
-    #--- loading observation data
-    if obs_type == 'CERES':
-        #CERES EBAF ... calculate albedo from raw files
-        up_file   = get_data_pool_directory() + 'data_sources/CERES/EBAF/ED_26r_SFC/DATA/CERES_EBAF-Surface__Ed2.6r__sfc_sw_up_all_mon__1x1__200003-201002.nc'
-        down_file = get_data_pool_directory() + 'data_sources/CERES/EBAF/ED_26r_SFC/DATA/CERES_EBAF-Surface__Ed2.6r__sfc_sw_down_all_mon__1x1__200003-201002.nc'
-
-        #- calculate albedo using cdos
-        cdo = Cdo()
-        obs_raw_file = get_temporary_directory() + os.path.basename(up_file)[:-3]+'_albedo.nc'
-        cdo.div(options='-f nc', output=obs_raw_file,force=False,input=up_file + ' ' + down_file)
-
-        obs_var = 'sfc_sw_up_all_mon'
-        gleckler_pos = 3
-
-    else:
-        raise ValueError, 'Invalid option for observation type in albedo analysis: ' + obs_type
-
-    #/// do data preprocessing ///
-    obs_alb,obs_monthly = preprocess_seasonal_data(obs_raw_file,interval=interval,themask=ls_mask,force=False,obs_var=obs_var,label=obs_type,shift_lon=shift_lon)
-
-    if GM is not None:
-        GM.plot(obs_monthly, linestyle='--', group='observations')
-
-    #--- initailize Reichler plot
-    Rplot = ReichlerPlot() #needed here, as it might include multiple model results
-
-    for model in model_list:
-
-        print '    ALBEDO analysis of model: ', model.name
-
-        GP.add_model(model._unique_name) #register model for Gleckler Plot
-
-        if GM is not None:
-            if 'albedo_org' in model.variables.keys():
-                if model.variables['albedo_org'][2] is not None:
-                    GM.plot(model.variables['albedo_org'][2],label=model._unique_name,group='models') #(time,meandata)
-
-        #--- get model data
-        model_data = model.variables['albedo']
-
-        #--- use only valid albedo data (invalid values might be due to polar night effects)
-        #model_data.data = np.ma.array(model_data.data,mask = ((model_data.data<0.) | (model_data.data > 1.)) )
-
-        if model_data is None: #data file was not existing
-            print 'Data not existing for model: ', model.name; continue
-
-        if model_data.data.shape != obs_alb.data.shape:
-            print 'Inconsistent geometries for ALBEDO'
-            print model_data.data.shape; print obs_alb.data.shape
-            raise ValueError, "Invalid geometries"
-
-        #--- generate difference map
-        dmin = -0.09; dmax = 0.09
-        f_dif  = map_difference(model_data ,obs_alb,nclasses=6,vmin=vmin,vmax=vmax,dmin=dmin,dmax=dmax,use_basemap=use_basemap,show_zonal=True,zonal_timmean=False,vmin_zonal=0.,vmax_zonal=0.7,cticks=[0.,0.1,0.2,0.3,0.4,0.5,0.6],cticks_diff=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09])
-
-        #seasonal map
-        f_season = map_season(model_data.sub(obs_alb),vmin=dmin,vmax=dmax,use_basemap=use_basemap,cmap_data='RdBu_r',show_zonal=True,zonal_timmean=True,cticks=[-0.09,-0.06,-0.03,0.,0.03,0.06,0.09],nclasses=6)
-
-
-        #/// Reichler statistics ///
-        Diag = Diagnostic(obs_alb,model_data)
-        e2   = Diag.calc_reichler_index()
-        Rplot.add(e2,model_data.label,color='red')
-
-        #/// Gleckler plot ///
-        e2a = GP.calc_index(obs_alb,model_data,model,'albedo')
-        GP.add_data('albedo',model._unique_name,e2a,pos=gleckler_pos)
-
-        #/// report results
-        report.subsubsection(model._unique_name)
-        report.figure(f_season,caption='Seasonal differences')
-        report.figure(f_dif,caption='Mean and relative differences')
-
-
-    del obs_monthly
-
-    f_reich = Rplot.bar(title='relative model error: ALBEDO')
-    report.figure(f_reich,caption='Relative model performance after Reichler and Kim, 2008')
-    report.newpage()
-
 #=======================================================================
 # ALBEDO -- end
 #=======================================================================
@@ -1341,8 +1044,13 @@ def albedo_analysis_plots(model_list, GP=None, shift_lon=None,
 # TEMPERATURE -- begin
 #=======================================================================
 
-def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,use_basemap=False,report = None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='temperature',regions=regions)
+def temperature_analysis(model_list,interval='season',GP=None,
+                        shift_lon=False,use_basemap=False,report=None,
+                        plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,
+                    use_basemap=use_basemap,report=report,
+                    plot_options=plot_options,actvar='temperature',
+                    regions=regions)
 
 #=======================================================================
 # TEMPERATURE -- end
@@ -1354,7 +1062,7 @@ def temperature_analysis(model_list,interval='season',GP=None,shift_lon=False,us
 #=======================================================================
 
 def main_analysis(model_list,interval='season',GP=None,shift_lon=False,
-                  use_basemap=False, report = None, plot_options=None,
+                  use_basemap=False, report=None, plot_options=None,
                   actvar=None, regions=None, sectionheader=''):
     """
     model_list : xxxxxxxxxxxx
@@ -1443,74 +1151,16 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,
 #=======================================================================
 # SIS -- begin
 #=======================================================================
+def sis_analysis(model_list,interval = 'season', GP=None,
+                shift_lon=None, use_basemap=None, report=None,
+                plot_options=None,regions=None):
+    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,
+                use_basemap=use_basemap,report=report,
+                plot_options=plot_options,actvar='sis',regions=regions)
+#=======================================================================
+# SIS -- end
+#=======================================================================
 
-def sis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None,regions=None):
-    main_analysis(model_list,interval=interval,GP=GP,shift_lon=shift_lon,use_basemap=use_basemap,report = report,plot_options=plot_options,actvar='sis',regions=regions)
-
-
-
-def xxxxxxsis_analysis(model_list,interval = 'season', GP=None,shift_lon=None,use_basemap=None,report=None,plot_options=None,regions=None):
-    """
-    main routine for SIS analysis
-
-    calls currently 4 different analyses with different observational datasets
-    """
-    if shift_lon == None:
-        raise ValueError, 'You need to specify shift_lon option!'
-    if use_basemap == None:
-        raise ValueError, 'You need to specify use_basemap option!'
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
-    if plot_options == None:
-        raise ValueError, 'No plot options are specified. No further processing possible!'
-
-
-    print
-    print '************************************************************'
-    print '* BEGIN SIS analysis ...'
-    print '************************************************************'
-
-    report.section('Shortwave downwelling radiation (SIS)')
-    fG = plt.figure(); axg = fG.add_subplot(211); axg1 = fG.add_subplot(212)
-    GM = GlobalMeanPlot(ax=axg,ax1=axg1) #global mean plot
-
-    #ISCCP
-    report.subsection('ISCCP')
-    generic_analysis(plot_options, model_list, 'sis', 'ISCCP', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    #SRB
-    report.subsection('SRB')
-    generic_analysis(plot_options, model_list, 'sis', 'SRB', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    #ceres
-    report.subsection('CERES')
-    generic_analysis(plot_options, model_list, 'sis', 'CERES', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    #cm-saf
-    report.subsection('CMSAF')
-    report.write('Please note that the CMSAF analysis is limited to the Meteosat spatial domain!')
-    generic_analysis(plot_options, model_list, 'sis', 'CMSAF', GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval)
-
-    fGa = GM.plot_mean_result(dt=5.,colors={'observations':'blue','models':'red'})
-    fGb = GM.plot_mean_result(dt=0.1,colors={'observations':'blue','models':'red'},plot_clim=True)
-
-    report.figure(fG,caption='Global means for SIS ',bbox_inches=None)
-    report.figure(fGa,caption='Global means for SIS (summary)',bbox_inches=None)
-    report.figure(fGb,caption='Global means for SIS (climatological summary)',bbox_inches=None)
-
-    print '************************************************************'
-    print '* END SIS analysis ...'
-    print '************************************************************'
-    print
-
-
-    del GM
-    del fG
-    del fGa
-    del fGb
-
-
-#-----------------------------------------------------------------------
 
 #=======================================================================
 # Beer -- begin
