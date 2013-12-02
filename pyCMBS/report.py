@@ -209,6 +209,7 @@ class Report():
         self.write('\\end{figure}')
         self._write_separator()
 
+        print('Saving figure %s' % self.outdir + figname)
         f.savefig(self.outdir + figname, bbox_inches=bbox_inches, dpi=self.dpi)
 
 #-----------------------------------------------------------------------
