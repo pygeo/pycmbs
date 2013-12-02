@@ -1,22 +1,8 @@
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
 """
-# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
 """
 
 
@@ -123,7 +109,7 @@ class CorrelationAnalysis(object):
             self.x = X; self.y = Y
             self.mask = mask
 
-            if ax == None:
+            if ax is None:
                 f = plt.figure()
                 self.ax = f.add_subplot(111)
             else:
@@ -163,7 +149,7 @@ class HovmoellerPlot(object):
         In this case the value is expected to be a 3D variables as
         value(time,ny,nx)
         """
-        if ax == None:
+        if ax is None:
             self.figure = pl.figure()
             self.ax = self.figure.add_subplot(111)
         else:
@@ -191,7 +177,7 @@ class ReichlerPlot(object):
     @todo: add example how to use Reichler plotting
     @todo: provide references Glecher and Reichler + Kim
     """
-    def __init__(self,ax=None):
+    def __init__(self, ax=None):
         """
         constructor for Reichler plot
 
@@ -199,7 +185,7 @@ class ReichlerPlot(object):
         @type ax: matplotlib axis
         """
 
-        if ax == None:
+        if ax is None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
         else:
@@ -252,7 +238,7 @@ class ReichlerPlot(object):
         if len(self.e2) == 0: #no valid data
             return self.ax.figure
 
-        if self.e2[0] == None:
+        if self.e2[0] is None:
             return self.ax.figure
 
 
@@ -389,7 +375,7 @@ class ScatterPlot(object):
 
         self.show_xlabel = show_xlabel
 
-        if ax == None:
+        if ax is None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
         else:
@@ -571,7 +557,7 @@ class LinePlot(object):
 
         """
 
-        if ax == None:
+        if ax is None:
             f = plt.figure(figsize=(8,7))
             self.ax = f.add_subplot(111)
         else:
@@ -604,7 +590,7 @@ class LinePlot(object):
 #-----------------------------------------------------------------------
 
     def _change_ticklabels(self,ax=None):
-        if ax == None:
+        if ax is None:
             ax = self.ax
 
         #yaxis
@@ -647,7 +633,7 @@ class LinePlot(object):
 
         if len(x.time) > 0:
 
-            if ax == None:
+            if ax is None:
                 ax = self.ax
                 set_axiscolor=False
             else:
@@ -662,7 +648,7 @@ class LinePlot(object):
             if norm_std:
                 y /= y.std()
 
-            if label == None:
+            if label is None:
                 label = x.label
 
             if self.regress: #calculate linear regression
@@ -733,19 +719,19 @@ class GlobalMeanPlot(object):
         self.climatology = climatology
         self.nplots=nplots
 
-        if ax == None:
+        if ax is None:
             #--- create new figure if needed
             f = plt.figure()
             self.ax = f.add_subplot(nplots,1,1)
             if self.climatology:
-                if ax1 == None:
+                if ax1 is None:
                     self.ax1 = self.ax.figure.add_subplot(nplots,1,2)
                 else:
                     self.ax1 = ax1
         else: #figure already existing
             self.ax = ax
             if self.climatology:
-                if ax1 == None:
+                if ax1 is None:
                     raise ValueError, 'If option climatology is chosen for GlobalMeanPlot and axis is provided, then axis1 needs also be provided!'
                 else:
                     self.ax1 = ax1
@@ -874,10 +860,11 @@ class GlobalMeanPlot(object):
 
         return f
 
-
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def plot(self,D1,color=None,linewidth=1,show_std=False,label=None,linestyle='-',mask=None,group='A',stat_type='mean'):
+    def plot(self, D1, color=None, linewidth=1, show_std=False,
+                label=None, linestyle='-', mask=None, group='A',
+                stat_type='mean'):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -915,10 +902,10 @@ class GlobalMeanPlot(object):
         if stat_type not in ['mean','sum']:
             raise ValueError, 'Invalid stat_type in GlobalMean plot'
 
-        if (label==None) and (D1.label in self.labels):
+        if (label is None) and (D1.label in self.labels):
             #print 'Label already existing: ', D.label, ' skipping analysis'
             return
-        elif ((label != None) and (label in self.labels)):
+        elif ((label is not None) and (label in self.labels)):
             #print 'Label already existing: ', label, ' skipping analysis'
             return
 
@@ -931,7 +918,7 @@ class GlobalMeanPlot(object):
         if D.data.ndim != 3:
             raise ValueError, 'Global plot only supported for 3D data'
 
-        if mask != None:
+        if mask is not None:
             D._apply_mask(mask)
 
         if stat_type == 'mean':
@@ -950,7 +937,7 @@ class GlobalMeanPlot(object):
         #del thlp
 
         #--- plot generation ---
-        if color == None:
+        if color is None:
             #print m.time
             #print t
             p = self.ax.plot(t,mdata,linewidth=linewidth,linestyle=linestyle)
@@ -984,8 +971,6 @@ class GlobalMeanPlot(object):
                 self.ax1.plot(np.arange(1,13),m,linestyle=linestyle)
                 self.ax1.set_xlim(0.,13.)
                 self.ax1.set_ylabel(tmp._get_unit())
-
-
                 self.ax1.set_xlabel('months')
 
                 self.ax1.grid()
@@ -995,7 +980,7 @@ class GlobalMeanPlot(object):
                 if group in self.pdata_clim.keys():
                     vdata = self.pdata_clim[group]
                 else:
-                    vdata=[]
+                    vdata = []
                 vdata.append({'time':np.arange(1,13),'data':m,'unit':tmp._get_unit()})
                 self.pdata_clim.update({group:vdata}) #store results for current group
                 del vdata, tmp
@@ -1005,7 +990,7 @@ class GlobalMeanPlot(object):
 
         #- store information for legend
         self.plots.append(p[0])
-        if label==None:
+        if label is None:
             self.labels.append(D.label)
         else:
             self.labels.append(label)
@@ -1014,11 +999,11 @@ class GlobalMeanPlot(object):
         self.ax.set_ylabel(D._get_unit())
 
        #--- LEGEND always below the figure
-        if self.nplots==1:
-            lax=self.ax
-            loff=0.2
+        if self.nplots == 1:
+            lax = self.ax
+            loff = 0.2
         else:
-            lax=self.ax1
+            lax = self.ax1
             loff = 0.4
         box = lax.get_position()
 
@@ -1034,7 +1019,7 @@ class HistogrammPlot(object):
     """
     class to plot histograms based on C{Data} objects
     """
-    def __init__(self,ax=None,bins=10,normalize=False,percent=True):
+    def __init__(self, ax=None, bins=10, normalize=False, percent=True):
         """
         @param ax: axis to plot data to. If not specified, then a new figure is created
         @type: ax: axis
@@ -1050,16 +1035,16 @@ class HistogrammPlot(object):
         """
 
         #- Figure init
-        if ax == None:
+        if ax is None:
             self.figure = pl.figure()
             self.ax = self.figure.add_subplot(111)
         else:
             self.ax = ax
             self.figure = self.ax.figure
 
-        self.bins      = bins
+        self.bins = bins
         self.normalize = normalize
-        self.percent   = percent
+        self.percent = percent
 
     def plot(self,X,color='black',linestyle='-',linewidth=1.,label='',shown=False,show_legend=False,**kwargs):
         """
@@ -1113,7 +1098,8 @@ class HistogrammPlot(object):
             if self.percent:
                 f *= 100.
 
-        self.ax.plot(b[0:-1],f,color=color,linestyle=linestyle,linewidth=linewidth,label=label)
+        self.ax.plot(b[0:-1], f, color=color, linestyle=linestyle,
+                    linewidth=linewidth, label=label)
 
         if show_legend:
             self.ax.legend()
@@ -1123,7 +1109,7 @@ class HistogrammPlot(object):
 #-----------------------------------------------------------------------
 
 
-class ZonalPlot():
+class ZonalPlot(object):
     def __init__(self,ax=None,dir='y'):
         """
         @todo: still needs to take into account appropriately area weighting
@@ -1145,7 +1131,7 @@ class ZonalPlot():
             raise ValueError, 'Invalid value for agregation direction (ZonalPlot): ', dir
 
         #--- set axis
-        if ax == None:
+        if ax is None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
 
@@ -1251,33 +1237,32 @@ class GlecklerPlot(object):
     G.plot() #do plot
     """
 
-    def __init__(self,fig=None,figsize=(8,6)):
+    def __init__(self, fig=None, figsize=(8,6)):
         """
         constructor of C{GlecklerPlot}
 
         @param fig: figure to which to plot to. If None, then a new figure will be generated
         @type fig: matplotlib figure
         """
-        if fig == None:
-            color='grey'
+        if fig is None:
+            color = 'grey'
             fig = plt.figure(facecolor=color,edgecolor=color,figsize=figsize)
         self.fig = fig
 
         self.models = []
-        self.variables   = []
-        self.data = {} #store data for plot
-        self.pos = {} #store position of plot
-        self.ndigits = 2 #number of digits for number plotting
+        self.variables = []
+        self.data = {}  # store data for plot
+        self.pos = {}  # store position of plot
+        self.ndigits = 2  # number of digits for number plotting
 
 
-    def add_model(self,label):
+    def add_model(self, label):
         """
         register a model in the class
         @param label: string of the model
         @type label: str
         """
         s = label.replace(' ','_')
-
         if s not in self.models:
             self.models.append(s)
 
@@ -1295,7 +1280,6 @@ class GlecklerPlot(object):
         """
         return str(self._get_model_sequence()[m])
 
-
     def add_variable(self,label):
         """
         register a variable in the class
@@ -1310,7 +1294,8 @@ class GlecklerPlot(object):
         @param ax: subplot axis
         @type ax: matplotlib axis
         """
-        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_xticks([])
+        ax.set_yticks([])
 
     def __value2color(self,v):
         """
@@ -1343,7 +1328,7 @@ class GlecklerPlot(object):
                     top = plot an upper triangle, else = plot a lower triangle
         @type pos: str
         """
-        if value == None:
+        if value is None:
             return
 
         color = self.__value2color(value)
@@ -1394,7 +1379,7 @@ class GlecklerPlot(object):
 
         #--- add value as text if required
         if self.show_value:
-            if self.labelthreshold == None:
+            if self.labelthreshold is None:
                 labelcolor=self.labelcolor
             else:
                 if np.abs(value) >= self.labelthreshold:
@@ -1406,7 +1391,7 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def _normalize_data(self,method='median'):
+    def _normalize_data(self, method='median'):
         """
         calculate for each observational data set
         the relative deviation from the average
@@ -1418,16 +1403,16 @@ class GlecklerPlot(object):
         """
         pos = np.unique(self.pos.values())
         if hasattr(self,'_raw_data'):
-            #data has been already normalized; take original data
+            # data has been already normalized; take original data
             self.data = copy.deepcopy(self._raw_data)
         else:
-            self._raw_data = copy.deepcopy(self.data) #preserve original calculated data
+            # preserve original calculated data
+            self._raw_data = copy.deepcopy(self.data)
 
         for var in self.variables:
             for p in pos:
-                xm = self._get_mean_value(p,var,method=method) #calculate multimodel mean/median
-                #~ if p == 2:
-                    #~ print 'Mean: ', p, var, xm, method
+                # calculate multimodel mean/median
+                xm = self._get_mean_value(p,var,method=method)
                 for k in self.data:
                     if (self.pos[k] == p) & ('_' + var + '_' in k):
                         self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
@@ -1457,10 +1442,7 @@ class GlecklerPlot(object):
         if len(r2) == 0:
             return None
 
-
-
-
-        #generate two array where each specifies the rank of a particular model
+        # generate two array where each specifies the rank of a particular model
         x = np.arange(len(r1))+1    #pos1
         y = np.ones_like(x)*np.nan  #pos 2
         for i in xrange(len(r1)):
@@ -1482,11 +1464,8 @@ class GlecklerPlot(object):
         if show_text:
             for i in xrange(len(x)):
                 xy = (x[i],y[i])
-                #label = r1[i]
                 label = self._model2short_label(r1[i])
                 ax.annotate(label,xy,color=color)
-                #ax.text(x[i],y[i],'Hallo',color=color)
-
 
         return ax
 
@@ -1519,7 +1498,8 @@ class GlecklerPlot(object):
         if len(d2) == 0:
             return None
 
-        x = []; y=[]
+        x = []
+        y=[]
         labels=[]
         for k in d1.keys():
             labels.append(k)
@@ -1532,20 +1512,13 @@ class GlecklerPlot(object):
         y = np.asarray(y)
 
         if len(x) != len(y):
-            print d1
-            print d2
-            raise ValueError, 'The length of the arrays are not the same !'
+            print(d1)
+            print(d2)
+            raise ValueError('The length of the arrays are not the same !')
 
         slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x,y)
-
         ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value,2)) + ')' ,linestyle='None')
-
-
         return ax
-
-
-
-
 
     def plot_model_error(self,var):
         """
@@ -1592,11 +1565,7 @@ class GlecklerPlot(object):
             ax.grid()
             ax.set_title('Comparison of model errors: ' + var.upper())
             ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
-
-
         return fig
-
-
 
     def plot_model_ranking(self,var,show_text=False):
         """
@@ -1819,12 +1788,12 @@ class GlecklerPlot(object):
 
 
         #- colormap
-        if cmap == None:
+        if cmap is None:
             self.cmap = plt.cm.get_cmap(cmap_name, nclasses)
             self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         else: #use provided colormap
             self.cmap = cmap
-            if norm == None:
+            if norm is None:
                 raise ValueError, 'If a colormap is provided, the NORM function shall also be provided!'
             else:
                 self.norm = norm
@@ -1928,9 +1897,9 @@ class GlecklerPlot(object):
         @param p: position
         @type p: int
         """
-        if m == None:
+        if m is None:
             return None
-        if v == None:
+        if v is None:
             return None
         return m.replace(' ','_')+'_'+v.replace(' ','_')+'_'+str(int(p))
 
@@ -1975,7 +1944,7 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def calc_index(self,x,y,model,variable,weights=None):
+    def calc_index(self, x, y, model, variable, weights=None):
         """
         calculate model performance index
         the model and the variable need to have been registered
@@ -1993,38 +1962,40 @@ class GlecklerPlot(object):
         @param variable: variable name
         @type variable: str
 
-        @param weights: weights to be applied to the data before index calculation; dedicated for spatial area weights
+        @param weights: weights to be applied to the data before index
+        calculation; dedicated for spatial area weights
         @type weights: numpy array
 
-        @return: returns performance index aggregated over time (NOTE: this is still E**2 !!!)
+        @return: returns performance index aggregated over time
+        (NOTE: this is still E**2 !!!)
         @rtype float
 
         """
 
-        if weights == None:
+        if weights is None:
             #set weights according to cell area
-            if x.cell_area != None:
+            if x.cell_area is not None:
                 weights = x._get_weighting_matrix()
             else:
-                print 'WARNING: no weights when calculating performance index'
+                print('WARNING: no weights when calculating performance index')
                 weights = np.ones(x.data.shape)
         else: #weights are given
-            if x.cell_area != None:
-                print 'WARNING: cell weights are given, while cell_area available from data!!'
+            if x.cell_area is not None:
+                print('WARNING: cell weights are given, while cell_area available from data!!')
 
         from diagnostic import Diagnostic
-        D = Diagnostic(x,y=y)
+        D = Diagnostic(x, y=y)
         e2 = D.calc_reichler_index(weights) #reichler performance index (might return a list if multiple times analyzed)
         #Note that the returned value is E**2 for each timestep! When doing the normalization, one needs to take the sqrt(E++2) to obtain the actual RMSE
 
-        if e2 == None:
+        if e2 is None:
             return None
         else:
             return np.sqrt(np.nansum(e2)) #temporal aggregation and return E instead of E**2; this corresponds to the usage of the RMSE instead of teh error variance!
 
 #-----------------------------------------------------------------------
 
-    def _draw_colorbar(self,left,width,logscale=False):
+    def _draw_colorbar(self, left, width, logscale=False):
         """
         draw legend for Glecker plot. Requires information on
         the positioning of the colormap axis which can be obtained from
@@ -2046,8 +2017,9 @@ class GlecklerPlot(object):
         else:
             l_f = None
 
-        cax = self.fig.add_axes([left,0.05,width,0.05]) #left, bottom, width, height
-        if self.bounds !=None:
+        # left, bottom, width, height
+        cax = self.fig.add_axes([left, 0.05, width, 0.05])
+        if self.bounds is not None:
             extend = 'both'
         else:
             extend = 'neither'
@@ -2305,14 +2277,15 @@ def map_season(x,**kwargs):
         else:
             ax = f.add_subplot(2,2,i+1)
             if 'show_colorbar' in kwargs:
-                show_colorbar  = kwargs.pop('show_colorbar')
+                show_colorbar = kwargs.pop('show_colorbar')
             else:
                 show_colorbar = True
 
-        d = x.copy(); d.data = x.data[i,:,:]
+        d = x.copy()
+        d.data = x.data[i,:,:]
         d.label = labels[i]
 
-        if overlays == None:
+        if overlays is None:
             overlay = None
         else:
             overlay = overlays[i,:,:]
@@ -2321,7 +2294,6 @@ def map_season(x,**kwargs):
             tmpoutname=savefile + '_' + labels[i]
         else:
             tmpoutname = None
-
 
         map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal',drawparallels=drawparallels, **kwargs); del d
 

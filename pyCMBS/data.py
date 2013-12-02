@@ -1528,7 +1528,7 @@ class Data(object):
             #~ print len(self.time)
             #~ print self.time_cycle
             for i in xrange(self.time_cycle):
-                print i
+                #~ print i, self.time
                 r.time.append(self.time[i])
             r.time = np.asarray(r.time)
 
@@ -1541,12 +1541,9 @@ class Data(object):
         else:
             return clim
 
-
-
-
 #-----------------------------------------------------------------------
 
-    def get_deseasonalized_anomaly(self,base=None):
+    def get_deseasonalized_anomaly(self, base=None):
         """
         calculate deseasonalized anomalies
 
@@ -1604,7 +1601,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def condstat(self,M):
+    def condstat(self, M):
         """
         Conditional statistics of data
 
@@ -1628,7 +1625,7 @@ class Data(object):
         @rtype: dict
         """
 
-        if isinstance(M,Data):
+        if isinstance(M, Data):
             m = M.data
         else:
             m = M
@@ -1652,13 +1649,17 @@ class Data(object):
 
 
         #===
-        def _get_stat(a,msk,v):
+        def _get_stat(a, msk, v):
             #get statistics of a single 2D field and a specific value v
             # a: masked array
             # msk: mask to use for analysis
             # v: float
             x = a[msk==v].flatten()
-            m = np.nan; s=np.nan; mi=np.nan; ma=np.nan; su=np.nan
+            m = np.nan
+            s = np.nan
+            mi = np.nan
+            ma = np.nan
+            su = np.nan
 
             if len(x) > 0:
                 m = x.mean()
