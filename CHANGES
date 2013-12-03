@@ -7,7 +7,7 @@ o improvement of report layout and automatic compilation enabled
 o name of analysis scripts is now specified in external file in the configuration directory
 o benchmarking now independent from core pyCMBS installation. When pycmbs.py is executable and proper PATH variables are set, then the framework can be executed from everywhere!
 o pycmbs.py init --> generates now a template environment for benchmarking; documentation has adapted accordingly
-
+o implementation of new dataset(s) for evaluation of land surface evaporation from the GEWEX LandFluxEVAL project
 
 version 0.1.4 (=rev 405)
 ============================

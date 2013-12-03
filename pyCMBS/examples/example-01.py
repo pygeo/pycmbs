@@ -15,7 +15,7 @@ if not os.path.exists(file):
     try:
         print 'Downloading sample data ... this might take a few minutes (only needed at first run)'
         os.chdir(example_dir)
-        os.system('wget ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/air.mon.mean.nc')
+        os.system('wget --ftp-user=anonymous --ftp-password=nix ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/air.mon.mean.nc')
         os.chdir(curdir)
     except:
         raise ValueError, 'Can not download sampled data file from NCEP server. Please try manually'
@@ -27,7 +27,7 @@ if not os.path.exists(file2):
     try:
         print 'Downloading sample data ... this might take a few minutes (only needed at first run)'
         os.chdir(example_dir)
-        os.system('wget ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/pr_wtr.eatm.mon.mean.nc')
+        os.system('wget --ftp-user=anonymous --ftp-password=nix ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/pr_wtr.eatm.mon.mean.nc')
         os.chdir(curdir)
     except:
         raise ValueError, 'Can not download sampled data file from NCEP server. Please try manually'
