@@ -1,26 +1,9 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.1"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
 """
-Copyright (C) 2012-2013 Alexander Loew, alexander.loew@mpimet.mpg.de
-See COPYING file for copying and redistribution conditions.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
 """
-
-
 
 from pyCMBS import *
 from utils import *
@@ -28,8 +11,6 @@ from cdo import *
 import tempfile as tempfile
 import copy
 import pickle
-
-
 
 class Model(Data):
     """
@@ -53,7 +34,7 @@ class Model(Data):
         """
 
         #--- check
-        if intervals == None:
+        if intervals is None:
             raise ValueError, 'Invalid intervals for Model data: needs specification!'
         #--- set a list with different datasets for different models
         self.dic_vars  = dic_variables
@@ -126,9 +107,7 @@ class MeanModel(Model):
         if not (M,Model): #check if Model class or subclass of Model at least!
             if not issubclass(M,Model):
                 raise ValueError, 'Model instance or derived class expected here!'
-
-
-        print('Adding model %s to MeanModel' % M._unique_name)
+        # print('Adding model %s to MeanModel' % M._unique_name)
 
         if self.n == 0:
             #self.model_mean = M.copy()
@@ -160,8 +139,6 @@ class MeanModel(Model):
                     #print '         Ensemble member can not be added! Do debugging using pickled file!'
                     #pickle.dump(M,open('model.pkl','w'))
                     continue
-                    #stop
-
 
                 if isinstance(hlp1,tuple):
                     self.variables.update( { k : (None,None,None) } )
@@ -351,21 +328,21 @@ class CMIP5Data(Model):
         units    = locdict.pop('unit', 'Crazy Unit')
         #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
 
-        lat_name     = locdict.pop('lat_name', 'lat')
-        lon_name     = locdict.pop('lon_name', 'lon')
+        lat_name = locdict.pop('lat_name', 'lat')
+        lon_name = locdict.pop('lon_name', 'lon')
         model_suffix = locdict.pop('model_suffix')
         model_prefix = locdict.pop('model_prefix')
-        file_format  = locdict.pop('file_format')
+        file_format = locdict.pop('file_format')
         scf = locdict.pop('scale_factor')
-        valid_mask    = locdict.pop('valid_mask')
-        custom_path  = locdict.pop('custom_path', None)
-        thelevel  = locdict.pop('level', None)
+        valid_mask = locdict.pop('valid_mask')
+        custom_path = locdict.pop('custom_path', None)
+        thelevel = locdict.pop('level', None)
 
-        target_grid   = self._actplot_options['targetgrid']
+        target_grid = self._actplot_options['targetgrid']
         interpolation = self._actplot_options['interpolation']
 
 
-        if custom_path == None:
+        if custom_path is None:
             filename1 = ("%s%s/merged/%s_%s_%s_%s_%s.%s" %
                         (self.data_dir, varname, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
         else:
@@ -379,13 +356,16 @@ class CMIP5Data(Model):
                 print self.type
                 raise ValueError, 'Can not generate filename: invalid model type!'
 
+        #~ print("Raw filename: %s" % filename1)
+        #~ stop
+
 
 
         force_calc = False
 
-        if self.start_time == None:
+        if self.start_time is None:
             raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
+        if self.stop_time is None:
             raise ValueError, 'Stop time needs to be specified'
 
         #/// PREPROCESSING ///
@@ -523,56 +503,6 @@ class CMIP5Data(Model):
         #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
 
         return Data(data_file,'fapar')
-
-#-----------------------------------------------------------------------
-
-
-
-
-    def xxxget_rainfall_data(self,interval=None):
-
-        """
-        return data object of
-        a) seasonal means for precipitation
-        b) global mean timeseries for PR at original temporal resolution
-        """
-
-        if interval != 'season':
-            raise ValueError, 'Other data than seasonal not supported at the moment for CMIP5 data and rainfall!'
-
-
-    #original data
-        #filename1 = self.data_dir + 'pr/' +  self.model + '/' + 'pr_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-        filename1 = self.data_dir + 'pr/merged/'  + 'pr_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-        force_calc = False
-
-        if self.start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
-
-        s_start_time = str(self.start_time)[0:10]
-        s_stop_time = str(self.stop_time)[0:10]
-
-        tmp  = pyCDO(filename1,s_start_time,s_stop_time,force=force_calc).seldate()
-        tmp1 = pyCDO(tmp,s_start_time,s_stop_time).seasmean()
-        filename = pyCDO(tmp1,s_start_time,s_stop_time).yseasmean()
-
-        if not os.path.exists(filename):
-            return None
-
-        pr = Data(filename,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.)
-
-        prall  = Data(filename1,'pr',read=True,label=self.model,unit='mm/day',lat_name='lat',lon_name='lon',shift_lon=False,scale_factor=86400.,time_cycle=12)
-        prmean = prall.fldmean()
-
-        retval = (prall.time,prmean,prall); del prall
-
-        pr.data = np.ma.array(pr.data,mask=pr.data < 0.)
-
-
-        return pr,retval
 
 #-----------------------------------------------------------------------
 
@@ -1691,16 +1621,16 @@ class JSBACH_RAW(Model):
         times_in_file = int(''.join(cdo.ntime(input = rawfilename)))
 
         if interval == 'season':
-	  if times_in_file != 4:
-	    tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
-	    cdo.yseasmean(options='-f nc -b 32 -r ',input = '-selvar,'+v+' '+rawfilename,output=tmp_file[:-3] + '_yseasmean.nc')
-	    rawfilename = tmp_file[:-3] + '_yseasmean.nc'
+            if times_in_file != 4:
+                tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
+                cdo.yseasmean(options='-f nc -b 32 -r ',input = '-selvar,'+v+' '+rawfilename,output=tmp_file[:-3] + '_yseasmean.nc')
+                rawfilename = tmp_file[:-3] + '_yseasmean.nc'
 
         if interval == 'monthly':
-	  if times_in_file != 12:
-	    tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
-	    cdo.ymonmean(options='-f nc -b 32 -r ',input = '-selvar,'+v+' '+rawfilename,output=tmp_file[:-3] + '_ymonmean.nc')
-	    rawfilename = tmp_file[:-3] + '_ymonmean.nc'
+            if times_in_file != 12:
+                tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
+                cdo.ymonmean(options='-f nc -b 32 -r ',input = '-selvar,'+v+' '+rawfilename,output=tmp_file[:-3] + '_ymonmean.nc')
+                rawfilename = tmp_file[:-3] + '_ymonmean.nc'
 
         if not os.path.exists(rawfilename):
             return None
