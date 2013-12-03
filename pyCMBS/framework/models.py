@@ -341,7 +341,6 @@ class CMIP5Data(Model):
         target_grid = self._actplot_options['targetgrid']
         interpolation = self._actplot_options['interpolation']
 
-
         if custom_path is None:
             filename1 = ("%s%s/merged/%s_%s_%s_%s_%s.%s" %
                         (self.data_dir, varname, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
@@ -355,10 +354,6 @@ class CMIP5Data(Model):
             else:
                 print self.type
                 raise ValueError, 'Can not generate filename: invalid model type!'
-
-        #~ print("Raw filename: %s" % filename1)
-        #~ stop
-
 
 
         force_calc = False
