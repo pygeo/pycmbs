@@ -43,10 +43,17 @@ class NetCDFHandler(object):
             returns a file handler
         """
         if mode not in ['w', 'r']:
-            raise ValueError('Invalid mode! [w,r], %s' % mode)
-        if mode == 'w':
+            raise ValueError('ERROR: Invalid mode! [w,r], %s' % mode)
+        if mode == 'r':
             if not os.path.exists(filename):
-                raise ValueError('File not existing: %s' % filename)
+                raise ValueError('ERROR: File not existing: %s' % filename)
+        elif mode == 'w':
+            if len(os.path.dirname(filename)) > 0:
+                if not os.path.exists(os.path.dirname(filename)):
+                    os.makedirs(os.path.dirname(filename))
+                if not os.path.exists(os.path.dirname(filename)):
+                    raise ValueError('ERROR: Directory for output file %s was not existing and could also not be generated!' % filename)
+
         if self.type.lower() == 'nio':
             self.F = self.handler.open_file(filename, mode=mode)
             self.create_dimension = self.F.create_dimension

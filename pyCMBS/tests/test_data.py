@@ -332,7 +332,7 @@ class TestData(TestCase):
         """
         test netCDF save routine
         """
-        testfile='mytestfile.nc'
+        testfile='./mytestfile.nc'
         self.D.save(testfile,varname='testvar',format='nc',delete=True)
 
         #read data again
@@ -387,32 +387,23 @@ class TestData(TestCase):
         self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) ) #boundary effects at end of period, therefore last value not used
 
     def test_div(self):
-        #unittest for division
-
         D = self.D.copy()
         R = D.div(D)
-
         self.assertTrue(np.all(R.data == 1.))
 
     def test_divc(self):
-
         D = self.D.copy()
         R = D.divc(2.)
-
         d = D.data[:,0,0] *0.5
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
     def test_mulc(self):
-
         D = self.D.copy()
         R = D.mulc(2.)
-
         d = D.data[:,0,0] *2.
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
     def test_partial_correlation(self):
-        """Test of partial correlation """
-
         x = self.D
         nt,ny,nx = x.data.shape
         y = x.copy(); y.data = y.data + pl.rand(nt,ny,nx)*1000.
