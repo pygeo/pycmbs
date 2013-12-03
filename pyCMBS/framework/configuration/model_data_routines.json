@@ -3,7 +3,7 @@
     "albedo_nir": "get_albedo_data_nir(interval=interval)",
     "albedo_vis": "get_albedo_data_vis(interval=interval)",
     "budg": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'budg', 'valid_mask': 'ocean', 'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data', 'model_suffix': 'ensmean', 'unit': 'mm/d', 'lon_name': 'lon'}})",
-    "evap": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'evspsbl', 'valid_mask': 'ocean', 'model_suffix': 'ensmean', 'unit': 'mm/day', 'lon_name': 'lon'}})",
+    "evap": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'evspsbl', 'valid_mask': 'land', 'model_suffix': 'ensmean', 'unit': 'mm/day', 'lon_name': 'lon'}})",
     "gpp": "get_gpp_data(interval=interval)",
     "grass": "get_grass_fraction(interval=interval)",
     "hair": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'huss', 'valid_mask': 'ocean', 'model_suffix': 'ensmean', 'unit': '$kg/kg^2$', 'lon_name': 'lon'}})",
