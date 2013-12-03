@@ -1123,8 +1123,9 @@ def main_analysis(model_list,interval='season',GP=None,shift_lon=False,
                 continue
             else:
                 print 'IN MAIN ANALYSIS: ', thevar, k
-                report.subsection(k)
-                generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval,regions=regions)
+                if plot_options.options[thevar][k]['add_to_report']:
+                    report.subsection(k)
+                    generic_analysis(plot_options, model_list, thevar, k, GP = GP, GM = GM, report = report, use_basemap = use_basemap, shift_lon = shift_lon,interval=interval,regions=regions)
     else:
         raise ValueError, 'Can not do analysis for ' + thelabel + ' for some reason! Check config and plot option files!'
 

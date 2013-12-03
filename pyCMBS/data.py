@@ -365,11 +365,12 @@ class Data(object):
         else:
             offset = 0.
         if not hasattr(self,'time_str'):
-            raise ValueError, 'num2date can not work without timestr!'
+            raise ValueError('num2date can not work without timestr!')
         if self.time_str is None:
-            raise ValueError, 'num2date can not work without timestr!'
+            raise ValueError('num2date can not work without timestr!')
         else:
-            return netcdftime.num2date(t+offset,self.time_str,calendar=self.calendar)
+            return netcdftime.num2date(t+offset, self.time_str,
+                                        calendar=self.calendar)
 
 #-----------------------------------------------------------------------
 
@@ -389,12 +390,12 @@ class Data(object):
         else:
             offset = 0.
         if not hasattr(self,'time_str'):
-            raise ValueError, 'date2num can not work without timestr!'
+            raise ValueError('date2num can not work without timestr!')
         if self.time_str is None:
-            raise ValueError, 'date2num can not work without timestr!'
+            raise ValueError('date2num can not work without timestr!')
         else:
-            return netcdftime.date2num(t,self.time_str,calendar=self.calendar)-offset
-
+            return netcdftime.date2num(t,self.time_str,
+                                        calendar=self.calendar)-offset
 
 #-----------------------------------------------------------------------
 
@@ -406,7 +407,8 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def save(self,filename,varname=None,format='nc',delete=False,mean=False):
+    def save(self, filename, varname=None, format='nc',
+                delete=False, mean=False):
         """
         saves the data object to a file
 
@@ -1022,7 +1024,7 @@ class Data(object):
         if self.lat_name is not None:
             self.lat = self.read_netcdf(self.lat_name)
             #ensure that lat has NOT dimension (1,nlat)
-            if self.lat != None:
+            if self.lat is not None:
                 if self.lat.ndim == 2:
                     if self.lat.shape[0] == 1:
                         self.lat = self.lat[0,:]
@@ -1050,11 +1052,9 @@ class Data(object):
                 self.time = self.time.data
             else:
                 self.time = None
-
             if self.time is not None:
                 if self.time.ndim != 1:
                     self.time = self.time.flatten() #remove singletone dimensions
-
         else:
             self.time = None
 
@@ -1717,6 +1717,8 @@ class Data(object):
         if self.time_str == 'day as %Y%m%d.%f':
             #in case of YYYYMMDD, convert to other time with basedate 0001-01-01 00:00:00
             self._convert_time()
+        elif self.time_str == 'month as %Y%m.%f':
+            self._convert_timeYYYYMM()
         elif 'months since' in self.time_str:
         #months since is not supported by netCDF4 library at the moment. Therefore implementation here.
             self._convert_monthly_timeseries()
@@ -1725,10 +1727,6 @@ class Data(object):
         # actually nothing needs to be done, as everything shall
         # be handled by self.num2date() in all subsequent subroutines
         # to properly handle difference in different calendars.
-
-
-
-
 
 #-----------------------------------------------------------------------
 
@@ -1770,48 +1768,13 @@ class Data(object):
         """
         if self.calendar not in ['standard','gregorian',None]:
             print self.calendar
-            raise ValueError, 'Not sure if monthly timeseries conversion works with this calendar!'
+            raise ValueError('Not sure if monthly timeseries conversion \
+                                works with this calendar!')
 
         newtime = [self._get_date_from_month(t) for t in self.time] #... estimate new time
         self.calendar = 'standard'
         self.time_str = 'days since 0001-01-01 00:00:00'
         self.time = pl.date2num(newtime)+1. #plus one because of the num2date() basedate definition
-
-
-#-----------------------------------------------------------------------
-
-
-    def xxxset_time(self):
-        """
-        This routines sets the timestamp of the data
-        to a python type timestamp. Different formats of
-        input time are supported
-
-        sets self.time
-        """
-        if self.time_str is None:
-            print '        WARNING: time type can not be determined!'
-            print self.time_str
-        elif self.time_str == 'day as %Y%m%d.%f':
-            self._convert_time()
-        elif 'hours since' in self.time_str:
-            basedate = self.time_str.split('since')[1].lstrip()
-            self._set_date(basedate,unit='hour')
-        elif 'days since' in self.time_str:
-            basedate = self.time_str.split('since')[1].lstrip()
-            if self.verbose:
-                print 'BASEDATE: ', basedate
-            self._set_date(basedate,unit='day')
-        elif 'months since' in self.time_str:
-            basedate = self.time_str.split('since')[1].lstrip()
-            print 'BASEDATA: ', basedate
-            if self.verbose:
-                print 'BASEDATE: ', basedate
-            self._set_date(basedate,unit='month')
-        else:
-            print self.filename
-            print self.time_str
-            sys.exit("ERROR: time type could not be determined!")
 
 #-----------------------------------------------------------------------
 
@@ -2949,7 +2912,30 @@ class Data(object):
         T=np.asarray(T)
         self.calendar = 'gregorian'
         self.time_str = 'days since 0001-01-01 00:00:00'
-        self.time = self.date2num(plt.num2date(plt.datestr2num(T))) #convert first to datetime object and then use own function !!!
+        #convert first to datetime object and then use own function !!!
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
+
+#-----------------------------------------------------------------------
+
+    def _convert_timeYYYYMM(self):
+        """
+        convert time that was given as YYYYMM.f
+        and set time variable of Data object
+        """
+        s = map(str,self.time)
+        T=[]
+        for t in s:
+            y = t[0:4]
+            m=t[4:6]
+            d='01'  # always the first day is used as default
+            h='00'
+            tn = y + '-' + m + '-' + d + ' ' +  h + ':00'
+            T.append(tn)
+        T=np.asarray(T)
+        self.calendar = 'gregorian'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        #convert first to datetime object and then use own function !!!
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
 #-----------------------------------------------------------------------
     def adjust_time(self,day=None,month=None,year=None):
@@ -4117,4 +4103,4 @@ class Data(object):
         if hasattr(self, 'cell_area'):
             self.cell_area = self.cell_area[::-1, :]
         if hasattr(self, 'lat'):
-            self.lat = self.lat[::-1, i:]
+            self.lat = self.lat[::-1, :]
