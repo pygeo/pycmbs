@@ -1,35 +1,10 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 """
-# Copyright (C) 2011-2013 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
 """
-
-
-#--- Analysis compliance matrix (which was already checked)
-# a P indicates that the preprocessing to seasonal data is performed automatically
-# and works
-
-#                    | CMIP5 | JSBACH_BOT | JSBACH RAW | report | Remark
-#albedo analysis     |   P   |            |      X     |    x   | preprocessing includes calculation of albedo from SW up and downward fluxes as well as regridding to T63 grid if needed
-#SIS analysis        |   P   |            |      X     |    x   |
-#rainfall analysis   |   P   |      P     |      X     |    x   |
-#temperature         |   P   |            |            |    x   |
-#veg. fraction       |       |            |            |        |
-#phenology           |       |            |            |        |  external framework
-#snow fraction       |       |            |            |        |
-
-
-
 
 __author__ = "Alexander Loew"
 __version__ = "0.1.4"
@@ -50,13 +25,12 @@ import os
 
 
 #--- framework specific modules ---
-from models   import *
-from config   import *
+from models import *
+from config import *
 from analysis import *
 import pickle
 
 
-#=======================================================================
 
 
 
@@ -66,7 +40,7 @@ import pickle
 
 pl.close('all')
 
-#-----------------------------------------------------------------------
+
 
 
 
@@ -105,9 +79,6 @@ def create_dummy_configuration():
 
     odir = cwd + '/configuration'
 
-
-
-
     if os.path.exists(odir):
         os.system('rm -rf ' + odir)
     shutil.copytree(d + '/framework/configuration',odir)
@@ -142,9 +113,9 @@ else: #default
 
 
 
-########################################################################################################################
+########################################################################
 # CONFIGURATION and OPTIONS
-########################################################################################################################
+########################################################################
 
 #/// read configuration file ///
 CF = ConfigFile(file)
@@ -152,12 +123,11 @@ CF = ConfigFile(file)
 #/// read plotting options ///
 PCFG = PlotOptions(); PCFG.read(CF); plot_options=PCFG
 
-########################################################################################################################
+########################################################################
 # REMOVE previous Data warnings
-########################################################################################################################
+########################################################################
 outdir='.' + os.sep + 'report_' + CF.options['report'] + os.sep
 os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' + CF.options['report'] + '.log'
-
 if os.path.exists(os.environ['DATA_WARNING_FILE']):
     os.remove(os.environ['DATA_WARNING_FILE'])
 
@@ -179,7 +149,7 @@ for thevar in plot_options.options.keys():
 if CF.options['basemap']:
     f_fast = False
 else:
-    f_fast=True
+    f_fast = True
 shift_lon = use_basemap = not f_fast
 
 print 'Using Basemap: ', use_basemap
@@ -554,12 +524,11 @@ if f_mean_model:
 global_gleckler = GlecklerPlot()
 
 # Report
-
 rep = Report(CF.options['report'],'pyCMBS report - ' + CF.options['report'],CF.options['author'],
              outdir=outdir,
              dpi=300,format=CF.options['report_format'])
-cmd = 'cp ../logo/Phytonlogo5.pdf ' + rep.outdir
-os.system(cmd )
+cmd = 'cp ' + os.environ['PYCMBSPATH'] + '/logo/Phytonlogo5.pdf ' + rep.outdir
+os.system(cmd)
 
 
 ########################################################################################################################
@@ -583,7 +552,7 @@ for variable in variables:
             print '   ... ', scripts[variable]
             model_list = str(proc_models).replace("'","")  #... model list is reformatted so it can be evaluated properly
             cmd = scripts[variable]+'(' + model_list + ',GP=global_gleckler,shift_lon=shift_lon,use_basemap=use_basemap,report=rep,interval=CF.intervals[variable],plot_options=PCFG,regions=REGIONS.regions)'
-            eval(cmd) #run analysis
+            eval(cmd)
 
 
 ########################################################################################################################
@@ -631,26 +600,16 @@ for v in global_gleckler.variables:
     rep.figure(tmpfig,width='8cm',bbox_inches=None,caption='Model RANKING for different observational datasets: ' + v.upper())
     del tmpfig
 
-    #/// plot absolut model error
-
+    # plot absolut model error
     tmpfig = global_gleckler.plot_model_error(v)
     rep.figure(tmpfig,width='8cm',bbox_inches=None,caption='Model ERROR for different observational datasets: ' + v.upper())
     del tmpfig
-
-
-
-
-#---
-
 
 ########################################################################################################################
 # CLEAN up and finish
 ########################################################################################################################
 pl.close('all')
 rep.close()
-
-
-
 
 print '##########################################'
 print '# BENCHMARKING FINIHSED!                 #'
