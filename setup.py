@@ -5,11 +5,11 @@ import pyCMBS
 
 install_requires=["numpy>0.1","cdo>1.2",]
 
-
 setup(name='pyCMBS',
       version=pyCMBS.__version__,
-      py_modules=['pyCMBS',],
-      packages=['pyCMBS','pyCMBS/framework','pyCMBS/tests','pyCMBS/logo','pyCMBS/misc','pyCMBS/examples','pyCMBS/tools'],
+      packages=['pyCMBS','pyCMBS/framework','pyCMBS/tests','pyCMBS/logo','pyCMBS/examples','pyCMBS/tools'],
+      package_dir={'pyCMBS':'pyCMBS'},
+      package_data={'pyCMBS':['framework/configuration/*','logo/*','LICENSE']},
       author = "Alexander Loew",
       author_email='alexander.loew@mpimet.mpg.de',
       maintainer='Alexander Loew',
@@ -22,21 +22,22 @@ setup(name='pyCMBS',
       scripts = ["pyCMBS/framework/pycmbs.py"],
       license = "XXXX"      )
 
-#print('Compressing sample data ...')
-#ofile='./dist/example_data.tgz'
-#cmd='tar -cvzf ' + ofile + ' example_data'
-#if os.path.exists(ofile):
-#    os.remove(ofile)
-#os.system(cmd)
-
-
-
-
+########################################################################
+# Some useful information on shipping packages
+########################################################################
 
 #PIP
 #~ python setup.py register
 #~ python setup.py sdist
 #~ python setup.py upload
+
+#http://docs.python.org/2/distutils/setupscript.html#installing-package-data
+#http://docs.python.org/2/distutils/setupscript.html#installing-additional-files
+
+
+
+
+
 
 
 
