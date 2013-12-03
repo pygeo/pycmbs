@@ -484,7 +484,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def _save_netcdf(self,filename,varname=None,delete=False):
+    def _save_netcdf(self, filename, varname=None, delete=False):
         """
         saves the data object to a netCDF file
         (unittest)
@@ -499,7 +499,7 @@ class Data(object):
             if delete:
                 os.remove(filename)
             else:
-                raise ValueError, 'File already existing. Please delete manually or use DELETE option: ' + filename
+                raise ValueError('File already existing. Please delete manually or use DELETE option: %s' % filename)
 
         #/// variable name
         if varname is None:
@@ -515,7 +515,7 @@ class Data(object):
         #/// create dimensions
         if hasattr(self,'data'):
             if self.data.ndim == 3:
-                if self.time == None:
+                if self.time is None:
                     raise ValueError, 'No time variable existing! Can not write 3D data!'
                 nt,ny,nx = self.shape
                 File.create_dimension('time',nt)
@@ -523,16 +523,15 @@ class Data(object):
                 ny,nx = self.shape
             else:
                 print self.shape
-                raise ValueError, 'Current shape not supported here'
+                raise ValueError('Current shape not supported here')
         else:
             ny,nx = np.shape(self.lat)
 
-
+        # Create Dimensions
         File.create_dimension('ny',ny)
         File.create_dimension('nx',nx)
 
-
-        #/// create variable
+        # Create variables
         if hasattr(self,'time'):
             if self.time is not None:
                 File.create_variable('time','d',('time',))
