@@ -412,28 +412,35 @@ class Data(object):
         """
         saves the data object to a file
 
-        @param filename: filename of output file
-        @param varname: name of output variable
-        @param delete: delete file if existing without asking
-        @param format: output format ['nc','txt']
-        @param mean: save spatial mean field only
+        filename : str
+            filename the file should be saved too
+        varname : str
+            variable name in output file. If *None*, then
+            the variables are just named like var001 ...
+        format : str
+            output format ['nc','txt']
+        delete : bool
+            delete file if existing without asking. If *False*, and the
+            file is existing already, then an error is raised
+        mean : bool
+            save spatial mean field only instead of the full field
         """
 
         #/// either store full field or just spatial mean field ///
         if mean:
-            print 'Saving MEAN FIELD of object in file ' + filename
+            print('Saving MEAN FIELD of object in file %s' % filename)
             tmp = self.fldmean(return_data=True)
         else:
-            print 'Saving object in file ' + filename
+            print('Saving object in file %s' % filename)
             tmp = self
 
         #/// store data now ... ///
         if format == 'nc':
-            tmp._save_netcdf(filename,varname=varname,delete=delete)
+            tmp._save_netcdf(filename, varname=varname, delete=delete)
         elif format == 'ascii':
-            tmp._save_ascii(filename,varname=varname,delete=delete)
+            tmp._save_ascii(filename, varname=varname, delete=delete)
         else:
-            raise ValueError, 'This output format is not defined yet!'
+            raise ValueError('This output format is not defined yet!')
 
 
 #-----------------------------------------------------------------------
@@ -487,43 +494,47 @@ class Data(object):
     def _save_netcdf(self, filename, varname=None, delete=False):
         """
         saves the data object to a netCDF file
-        (unittest)
 
-        @param filename: filename of output file
-        @param varname: name of output variable; this explicitely overwrites self.varname, which is tried to be used as a first order
-        @param delete: delete file if existing without asking
+        filename : str
+            filename of output file
+        varname : str
+            name of output variable; this explicitely overwrites
+            self.varname, which is tried to be used as a first order
+        delete : bool
+            delete file if existing without asking
         """
 
-        #/// check if output file already there
+        # check if output file already there
         if os.path.exists(filename):
             if delete:
                 os.remove(filename)
             else:
-                raise ValueError('File already existing. Please delete manually or use DELETE option: %s' % filename)
-
-        #/// variable name
+                raise ValueError('File already existing. Please delete \
+                                  manually or use DELETE option: \
+                                  %s' % filename)
+        # variable name
         if varname is None:
             if self.varname is None:
                 varname = 'var1'
             else:
                 varname = self.varname
 
-        #/// create new file
+        # create new file
         File = NetCDFHandler()
-        File.open_file(filename,'w')
+        File.open_file(filename, 'w')
 
-        #/// create dimensions
-        if hasattr(self,'data'):
+        # create dimensions
+        if hasattr(self, 'data'):
             if self.data.ndim == 3:
                 if self.time is None:
-                    raise ValueError, 'No time variable existing! Can not write 3D data!'
-                nt,ny,nx = self.shape
-                File.create_dimension('time',nt)
+                    raise ValueError('No time variable existing! \
+                                      Can not write 3D data!')
+                nt, ny, nx = self.shape
+                File.create_dimension('time', nt)
             elif self.data.ndim == 2:
-                ny,nx = self.shape
+                ny, nx = self.shape
             else:
-                print self.shape
-                raise ValueError('Current shape not supported here')
+                raise ValueError('Current shape not supported here %s' % self.shape)
         else:
             ny,nx = np.shape(self.lat)
 
@@ -848,16 +859,14 @@ class Data(object):
             res = self.copy()
             res.label = self.label + ' zonal mean'
             res.data  =  r.T #[lat,time]
-            res.lat   = self.lat[:,0] #latitudes as a vector
+            res.lat = self.lat[:, 0] #latitudes as a vector
         else:
             res = r
-
-
         return res
 
 #-----------------------------------------------------------------------
 
-    def get_percentile(self,p,return_object = True):
+    def get_percentile(self, p, return_object = True):
 
         """
         calculate percentile
@@ -2056,15 +2065,15 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def read_netcdf(self,varname):
+    def read_netcdf(self, varname):
         """
         read data from netCDF file
 
-        @param varname: name of variable to be read
-        @type varname: str
+        varname : str
+            name of variable to be read
         """
         File = NetCDFHandler()
-        File.open_file(self.filename,'r')
+        File.open_file(self.filename, 'r')
 
         if self.verbose:
             print 'Reading file ', self.filename
