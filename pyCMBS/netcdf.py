@@ -105,7 +105,7 @@ class NetCDFHandler(object):
                 print('No scale factor for variable! % s' % varname)
                 return 1.
         else:
-            #netCDF4 library already applies the scaling factor!
+            # netCDF4 library already applies the scaling factor!
             return 1.
 
     def _get_add_offset(self, varname):
@@ -116,7 +116,7 @@ class NetCDFHandler(object):
                 print('No offset for variable! % s' % varname)
                 return 0.
         else:
-            #netCDF4 library already applies the add_offset!
+            # netCDF4 library already applies the add_offset!
             return 0.
 
     def assign_value(self, varname, value):
@@ -143,8 +143,24 @@ class NetCDFHandler(object):
         if self.type.lower() == 'nio':
             self.F.create_dimension(dimname, size)
         else:
-            self.F.createDimension(dimname,size=size)
+            self.F.createDimension(dimname, size=size)
 
+    def create_variable(self, varname, dtype, dim):
+        """
+        create a new variable in a netCDF file
+
+        varname : str
+            name of variable
+        dtype : str
+            datatype of variable
+        dim : tuple
+            tuple specifying the dimensions of the variables
+        """
+
+        if self.type.lower() == 'nio':
+            self.F.create_variable(varname, dtype, dim)
+        else:
+            self.F.createVariable(varname, dtype, dimensions=dim)
 
     def close(self):
         self.F.close()
