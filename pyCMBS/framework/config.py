@@ -19,7 +19,7 @@ class ConfigFile():
     """
     class to read pyCMBS configuration file
     """
-    def __init__(self,file):
+    def __init__(self, file):
         """
         @param file: name of parameter file to parse
         @type file: str
@@ -29,7 +29,7 @@ class ConfigFile():
             raise ValueError('Configuration file not \
                               existing: % ' % self.file)
         else:
-            self.f=open(file, 'r')
+            self.f = open(file, 'r')
         self.read()
 
     def __read_header(self):
@@ -40,29 +40,29 @@ class ConfigFile():
         while x[0] == '#':
             a = self.f.readline().replace('\n', '')
             x = a.lstrip()
-            if len(x) == 0: #only whitespaces
-                x='#'
+            if len(x) == 0:  # only whitespaces
+                x = '#'
         return x
 
     def __check_bool(self, x):
-        s=x.split(',')
+        s = x.split(',')
         if int(s[1]) == 1:
             return True
         else:
             return False
 
     def __check_var(self, x):
-        s=x.split(',')
+        s = x.split(',')
         if int(s[1]) == 1:
-            return s[0],s[2] #name,interval
+            return s[0], s[2]  # name,interval
         else:
-            return None,None
+            return None, None
 
     def __read_options(self):
-        #read header of variable plot
-        self.options={}
-        l=self.__read_header()
-        l=l.lstrip()
+        # read header of variable plot
+        self.options = {}
+        l = self.__read_header()
+        l = l.lstrip()
 
         if 'BASEMAP' in l.upper():
             self.options.update({'basemap': self.__check_bool(l)})
@@ -70,7 +70,7 @@ class ConfigFile():
         l = self.f.readline().replace('\n', '')
         if 'REPORT=' in l.upper():
             s = l[7:]
-            self.options.update({'report': s.replace(' ','') })
+            self.options.update({'report': s.replace(' ', '')})
         else:
             sys.exit('report missing in configuration file!')
 
@@ -79,55 +79,50 @@ class ConfigFile():
             s = l[14:].strip()
             s = s.lower()
             if s not in ['png', 'pdf']:
-                print s
-                raise ValueError, 'Invlid option for report format [png,pdf]'
+                raise ValueError('Invlid option for report format [png,pdf]: %s' % s)
             else:
-                self.options.update({'report_format' : s })
+                self.options.update({'report_format': s})
         else:
             sys.exit('report format missing in configuration file!')
 
-
-        l = self.f.readline().replace('\n','')
+        l = self.f.readline().replace('\n', '')
         if 'AUTHOR=' in l.upper():
             s = l[7:]
-            self.options.update({'author' : s })
+            self.options.update({'author': s})
         else:
             sys.exit('author missing in configuration file!')
 
-        l = self.f.readline().replace('\n','')
+        l = self.f.readline().replace('\n', '')
         if 'TEMP_DIR=' in l.upper():
             s = l[9:]
             if s[-1] != os.sep:
                 s = s+os.sep
-            self.options.update({'tempdir': s.replace(' ','') })
+            self.options.update({'tempdir': s.replace(' ', '')})
         else:
-            raise ValueError, 'Temporary directory not specified!'
+            raise ValueError('Temporary directory not specified!')
 
-        l = self.f.readline().replace('\n','')
+        l = self.f.readline().replace('\n', '')
         if 'CLEAN_TEMPDIR' in l.upper():
-            self.options.update({'cleandir':self.__check_bool(l)})
+            self.options.update({'cleandir': self.__check_bool(l)})
         else:
-            raise ValueError, 'Invalid option for clean_tempdir!'
+            raise ValueError('Invalid option for clean_tempdir!')
 
-        l = self.f.readline().replace('\n','')
+        l = self.f.readline().replace('\n', '')
         if 'SUMMARY_ONLY' in l.upper():
-            self.options.update({'summary':self.__check_bool(l)})
+            self.options.update({'summary': self.__check_bool(l)})
         else:
-            raise ValueError, 'Invalid option for SUMMARY_ONLY!'
+            raise ValueError('Invalid option for SUMMARY_ONLY!')
 
-        l = self.f.readline().replace('\n','')
+        l = self.f.readline().replace('\n', '')
         if 'CONFIG_DIR=' in l.upper():
             s = l[11:]
             if s[-1] != os.sep:
                 s = s+os.sep
             if not os.path.exists(s):
-                print s
-                raise ValueError, 'Configuration path is invalid!'
-            self.options.update({'configdir': s.replace(' ','') })
+                raise ValueError('Configuration path is invalid: %s' % s)
+            self.options.update({'configdir': s.replace(' ', '')})
         else:
-            raise ValueError, 'CONFIG directory not specified!'
-
-
+            raise ValueError('CONFIG directory not specified!')
 
         #//// create / remove directories
         if not os.path.exists(self.options['tempdir']):
@@ -146,83 +141,90 @@ class ConfigFile():
         #update global variable for CDO temporary directory (needed for CDO processing)
         os.environ.update({'CDOTEMPDIR': self.options['tempdir']})
 
-
     def __read_var_block(self):
         #read header of variable plot
-        vars=[]; vars_interval={}
-        l=self.__read_header()
-        r,interval=self.__check_var(l)
-        if r != None:
-            vars.append(r); vars_interval.update({r:interval})
+        vars = []
+        vars_interval = {}
+        l = self.__read_header()
+        r, interval = self.__check_var(l)
+        if r is not None:
+            vars.append(r)
+            vars_interval.update({r: interval})
         while l[0] != '#':
-            l = self.f.readline().replace('\n','')
+            l = self.f.readline().replace('\n', '')
             l = l.lstrip()
             if len(l) > 0:
                 if l[0] == '#':
                     pass
                 else:
-                    r,interval=self.__check_var(l)
-                    if r != None:
-                        vars.append(r); vars_interval.update({r:interval})
+                    r, interval = self.__check_var(l)
+                    if r is not None:
+                        vars.append(r)
+                        vars_interval.update({r: interval})
             else:
-                l=' '
-        return vars,vars_interval
+                l = ' '
+        return vars, vars_interval
 
-    def __get_model_details(self,s):
+    def __get_model_details(self, s):
         return s.split(',')
 
     def __read_date_block(self):
         date1 = self.__read_header()
-        date2 = self.f.readline().replace('\n','')
-        tmp = self.f.readline().replace('\n','') #same time for observations
+        date2 = self.f.readline().replace('\n', '')
+        tmp = self.f.readline().replace('\n', '')  # same time for observations
         same_for_obs = self.__check_bool(tmp)
-        return date1,date2,same_for_obs
+        return date1, date2, same_for_obs
 
     def __read_model_block(self):
-        models=[];types=[]; experiments=[]; ddirs=[]
-        l=self.__read_header()
-        model,ty,experiment,ddir = self.__get_model_details(l)
+        models = []
+        types = []
+        experiments = []
+        ddirs = []
+        l = self.__read_header()
+        model, ty, experiment, ddir = self.__get_model_details(l)
         ddir = ddir.rstrip()
         if ddir[-1] != os.sep:
             ddir = ddir + os.sep
-        models.append(model); types.append(ty)
-        experiments.append(experiment); ddirs.append(ddir.replace('\n',''))
+        models.append(model)
+        types.append(ty)
+        experiments.append(experiment)
+        ddirs.append(ddir.replace('\n', ''))
 
         has_eof = False
         while not has_eof:
             try:
-                l=self.f.next(); l=l.lstrip()
+                l = self.f.next()
+                l = l.lstrip()
                 if (len(l) > 0) & (l[0] != '#'):
-                    model,ty,experiment,ddir = self.__get_model_details(l)
+                    model, ty, experiment, ddir = self.__get_model_details(l)
                     ddir = ddir.rstrip()
                     if ddir[-1] != os.sep:
                         ddir = ddir + os.sep
-                    models.append(model); types.append(ty)
-                    experiments.append(experiment); ddirs.append(ddir.replace('\n',''))
+                    models.append(model)
+                    types.append(ty)
+                    experiments.append(experiment)
+                    ddirs.append(ddir.replace('\n', ''))
             except:
-                has_eof=True
+                has_eof = True
 
-        return models,experiments,types,ddirs
+        return models, experiments, types, ddirs
 
     def read(self):
         """
         read configuration files in 3 blocks
         """
-
         sys.stdout.write("\n *** Reading config file... \n")
 
         self.__read_options()
-        self.variables,self.intervals  = self.__read_var_block()
-        self.start_date,self.stop_date,self.same_time4obs  = self.__read_date_block()
-        self.models,self.experiments,self.dtypes,self.dirs = self.__read_model_block()
+        self.variables, self.intervals = self.__read_var_block()
+        self.start_date, self.stop_date, self.same_time4obs = self.__read_date_block()
+        self.models, self.experiments, self.dtypes, self.dirs = self.__read_model_block()
 
         for k in self.dtypes:
-            if k.upper() not in ['CMIP5','JSBACH_BOT','JSBACH_RAW','CMIP3','JSBACH_RAW2']:
-                print k
-                raise ValueError, 'Unknown model type'
-
+            if k.upper() not in ['CMIP5', 'JSBACH_BOT', 'JSBACH_RAW',
+                                 'CMIP3', 'JSBACH_RAW2']:
+                raise ValueError('Unknown model type: %s' % k)
         sys.stdout.write(" *** Done reading config file. \n")
-
 
     def get_analysis_scripts(self):
         """
@@ -236,133 +238,69 @@ class ConfigFile():
 
         VARIABLE,NAME OF ANALYSIS ROUTINE
         """
-        #d={}
-        #d.update({'rain':'rainfall_analysis'})
-        #d.update({'albedo':'albedo_analysis'})
-        #d.update({'albedo_vis':'albedo_analysis_vis'})
-        #d.update({'albedo_nir':'albedo_analysis_nir'})
-        #d.update({'sis':'sis_analysis'})
-        #d.update({'surface_upward_flux':'surface_upward_flux_analysis'})
-        #d.update({'tree':'tree_fraction_analysis'})
-        #d.update({'grass':'grass_fraction_analysis'})
-        #d.update({'phenology_faPAR':'phenology_faPAR_analysis'})
-        #d.update({'temperature':'temperature_analysis'})
-        #d.update({'evap':'evaporation_analysis'})
-        #d.update({'wind':'wind_analysis'})
-        #d.update({'twpa':'twpa_analysis'})
-        #d.update({'wvpa':'wvpa_analysis'})
-        #d.update({'hair':'hair_analysis'})
-        #d.update({'late':'late_analysis'})
-        #d.update({'budg':'budg_analysis'})
-        #d.update({'seaice_extent':'seaice_extent_analysis'})
-        #d.update({'seaice_concentration':'seaice_concentration_analysis'})
-        #d.update({'gpp':'gpp_analysis'})
-
-        #if os.path.exists(jsonfile):
-        #    os.remove(jsonfile)
-        #json.dump(d,open(jsonfile,'w'),sort_keys=True,indent=4)
-
         import json
         jsonfile = self.options['configdir'] + 'analysis_routines.json'
         if not os.path.exists(jsonfile):
-            raise ValueError, 'REQUIRED file analysis_routines.json not existing!'
-        d = json.load(open(jsonfile,'r'))
+            raise ValueError('REQUIRED file analysis_routines.json not existing!')
+        d = json.load(open(jsonfile, 'r'))
         return d
 
-
-
-    def get_methods4variables(self,variables, model_dict):
+    def get_methods4variables(self, variables, model_dict):
         """
         for a given list of variables, return a dictionary
         with information on methods how to read the data
 
+        The actual information is coming from a json file
+
         IMPORTANT: all options provided to the routines need to be
-        specified here and arguments must be set in calling routine get_data()
+        specified here and arguments must be set in calling
+        routine get_data()
         """
 
-        #hlp={}
-        ####hlp.update({'rain' : 'get_rainfall_data(interval=interval)'})
-        #hlp.update({'rain': 'get_model_data_generic(interval=interval, **%s)' % model_dict['rain']})
-        #hlp.update({'albedo' : 'get_albedo_data(interval=interval)'})
-        #hlp.update({'albedo_vis' : 'get_albedo_data_vis(interval=interval)'})
-        #hlp.update({'albedo_nir' : 'get_albedo_data_nir(interval=interval)'})
-        ##hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
-        #hlp.update({'sis' : 'get_surface_shortwave_radiation_down(interval=interval)'})
-        #hlp.update({'surface_upward_flux' : 'get_surface_shortwave_radiation_up(interval=interval)'})
-        #hlp.update({'tree' : 'get_tree_fraction(interval=interval)'})
-        #hlp.update({'grass' : 'get_grass_fraction(interval=interval)'})
-        #hlp.update({'phenology_faPAR' : 'get_faPAR(interval=interval)'})
-        #hlp.update({'temperature' : 'get_temperature_2m(interval=interval)'})
-        #hlp.update({'snow' : 'get_snow_fraction(interval=interval)'})
-        #hlp.update({'evap': 'get_model_data_generic(interval=interval, **%s)' % model_dict['evap']})
-        #hlp.update({'wind': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wind']})
-        #hlp.update({'twpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['twpa']})
-        #hlp.update({'wvpa': 'get_model_data_generic(interval=interval, **%s)' % model_dict['wvpa']})
-        #hlp.update({'late': 'get_model_data_generic(interval=interval, **%s)' % model_dict['late']})
-        #hlp.update({'budg': 'get_model_data_generic(interval=interval, **%s)' % model_dict['budg']})
-        #hlp.update({'hair': 'get_model_data_generic(interval=interval, **%s)' % model_dict['hair']})
-        #hlp.update({'seaice_concentration': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_concentration']})
-        #hlp.update({'seaice_extent': 'get_model_data_generic(interval=interval, **%s)' % model_dict['seaice_extent']})
-        #hlp.update({'gpp': 'get_gpp_data(interval=interval)'})
-        #hlp.update({'snow': 'get_snow_fraction()'})
-
-
         jsonfile = self.options['configdir'] + 'model_data_routines.json'
-        #if os.path.exists(jsonfile):
-        #    os.remove(jsonfile)
-        #json.dump(hlp,open(jsonfile,'w'),sort_keys=True,indent=4)
 
         import json
         if not os.path.exists(jsonfile):
-            raise ValueError, 'File model_data_analysis.json MISSING!'
-        hlp = json.load(open(jsonfile,'r'))
+            raise ValueError('File model_data_analysis.json MISSING!')
+        hlp = json.load(open(jsonfile, 'r'))
 
-        res={}
-        for k in hlp.keys(): #only use the variables that should be analyzed!
+        res = {}
+        for k in hlp.keys():
+            # only use the variables that should be analyzed!
             if k in variables:
-                res.update({k:hlp[k]})
+                res.update({k: hlp[k]})
 
         #--- implement here also dependencies between variables for anylssi
         #e.g. phenology needs faPAR and snow cover fraction. Ensure here that
         # snow cover is also read, even if only phenology option is set
         if ('phenology_faPAR' in variables) and not ('snow' in variables):
-            res.update({'snow' : hlp['snow']})
+            res.update({'snow': hlp['snow']})
 
         return res
-
-
-
-
 
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 class PlotOptions(object):
     """
-    class for plot options
-
-    @todo: consistency check for Gleckler positions and certain mandatory fields! --> avoid problems in the plotting, but find errors in INI files already when reading!
+    Class for plot options
     """
 
     def __init__(self):
         self.options = {}
 
-
-    def read(self,cfg):
+    def read(self, cfg):
         """
         read plot option files and store results in a dictionary
 
-        @param cfg Instance of ConfigFile class which has been already initialized (config file has been read already)
-        @type cfg ConfigFile
-
-        @return:
+        cfg : ConfigFile instance
+            cfg Instance of ConfigFile class which has been already
+            initialized (config file has been read already)
         """
 
         from ConfigParser import SafeConfigParser
 
-
         for var in cfg.variables:
-
             parser = SafeConfigParser()
 
             """ The plot options are assumed to be in a file that has the same name as the variable to look be analyzed """
@@ -371,9 +309,7 @@ class PlotOptions(object):
                 parser.read(file)
                 sys.stdout.write('\n *** Reading configuration for %s: ' % var + "\n")
             else:
-                raise ValueError, 'Plot option file not existing: ' + file
-
-            print 'INI file: ', file
+                raise ValueError('Plot option file not existing: %s' % file)
 
             """
             generate now a dictionary for each variable
@@ -428,8 +364,9 @@ class PlotOptions(object):
                         print 'Setting variable ', vv, ' to FALSE because of global option for ', var
                         lopt['OPTIONS'].update({vv: False})
 
-        #if the option is set that the observation time shall be the same as the models
-        #then overwrite options that were set in the INI files
+        # if the option is set that the observation time shall be
+        # the same as the models
+        # then overwrite options that were set in the INI files
         if cfg.same_time4obs:
             for var in cfg.variables:
                 lopt = self.options[var]
