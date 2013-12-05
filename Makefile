@@ -8,6 +8,7 @@ VERSION = 0.1.4
 
 clean :
 	find . -name "*.pyc" -exec rm -rf {} \;
+	find . -name "data_warnings.log" -exec rm -rf {} \;
 	rm -rf build
 	rm -rf MANIFEST
 
