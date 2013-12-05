@@ -332,11 +332,11 @@ class TestData(TestCase):
         """
         test netCDF save routine
         """
-        testfile='./mytestfile.nc'
-        self.D.save(testfile,varname='testvar',format='nc',delete=True)
+        testfile = './mytestfile.nc'
+        self.D.save(testfile, varname='testvar', format='nc', delete=True)
 
-        #read data again
-        F = Data(testfile,'testvar',read=True,verbose=False)
+        # read data again
+        F = Data(testfile, 'testvar', read=True, verbose=False)
 
         self.assertEqual(len(F.time),len(self.D.time))
         self.assertFalse(np.any(self.D.data-F.data) != 0. )
@@ -345,10 +345,10 @@ class TestData(TestCase):
         del F
 
         #read data from default, this should then have the same variable name as self.D
-        self.D.save(testfile,format='nc',delete=True)
-        F = Data(testfile,'testvarname',read=True,verbose=False)
+        self.D.save(testfile, format='nc', delete=True)
+        F = Data(testfile, 'testvarname', read=True, verbose=False)
 
-        self.assertEqual(len(F.time),len(self.D.time))
+        self.assertEqual(len(F.time), len(self.D.time))
         self.assertFalse(np.any(self.D.data-F.data) != 0. )
 
         os.remove(testfile)
@@ -871,19 +871,8 @@ class TestData(TestCase):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    unittest.main()
+#~ if __name__ == '__main__':
+    #~ unittest.main()
 
 
 
