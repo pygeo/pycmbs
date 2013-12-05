@@ -530,17 +530,17 @@ class Data(object):
                     raise ValueError('No time variable existing! \
                                       Can not write 3D data!')
                 nt, ny, nx = self.shape
-                File.create_dimension('time', nt)
+                File.create_dimension('time', size=nt)
             elif self.data.ndim == 2:
                 ny, nx = self.shape
             else:
                 raise ValueError('Current shape not supported here %s' % self.shape)
         else:
-            ny,nx = np.shape(self.lat)
+            ny, nx = np.shape(self.lat)
 
         # Create Dimensions
-        File.create_dimension('ny',ny)
-        File.create_dimension('nx',nx)
+        File.create_dimension('ny', size=ny)
+        File.create_dimension('nx', size=nx)
 
         # Create variables
         if hasattr(self,'time'):
