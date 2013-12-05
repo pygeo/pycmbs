@@ -15,6 +15,7 @@ netcdf_backend = 'netCDF4'
 
 import os
 
+
 class NetCDFHandler(object):
     def __init__(self):
         self.type = netcdf_backend
@@ -52,7 +53,9 @@ class NetCDFHandler(object):
                 if not os.path.exists(os.path.dirname(filename)):
                     os.makedirs(os.path.dirname(filename))
                 if not os.path.exists(os.path.dirname(filename)):
-                    raise ValueError('ERROR: Directory for output file %s was not existing and could also not be generated!' % filename)
+                    raise ValueError('ERROR: Directory for output \
+                    file %s was not existing and could also \
+                    not be generated!' % filename)
 
         if self.type.lower() == 'nio':
             self.F = self.handler.open_file(filename, mode=mode)
