@@ -12,7 +12,6 @@ This module allows a flexible choice of the netCDF backend
 netcdf_backend = 'netCDF4'
 #~ netcdf_backend = 'Nio'
 
-
 import os
 
 
@@ -128,6 +127,24 @@ class NetCDFHandler(object):
             self.F.variables[varname].assign_value(value)
         else:
             self.F.variables[varname][:] = value[:]
+
+    def create_dimension(self, dimname, size=None):
+        """
+        creates a new dimension in netCDF file
+
+        dimname : str
+            name of dimension
+        size : int
+            size of dimension; if None, then it is unlimited
+        """
+        if size is not None:
+            assert(isinstance(size,int))
+
+        if self.type.lower() == 'nio':
+            self.F.create_dimension(dimname, size)
+        else:
+            self.F.createDimension(dimname,size=size)
+
 
     def close(self):
         self.F.close()
