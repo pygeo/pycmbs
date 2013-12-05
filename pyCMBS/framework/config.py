@@ -1,23 +1,9 @@
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
-'''
-# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-'''
+"""
+This file is part of pyCMBS.
+For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+the pyCMBS licensing details.
+"""
 
 import os
 import sys
@@ -40,9 +26,10 @@ class ConfigFile():
         """
         self.file = file
         if not os.path.exists(self.file):
-            raise ValueError, 'Configuration file not existing: ', self.file
+            raise ValueError('Configuration file not \
+                              existing: % ' % self.file)
         else:
-            self.f=open(file,'r')
+            self.f=open(file, 'r')
         self.read()
 
     def __read_header(self):
@@ -51,20 +38,20 @@ class ConfigFile():
         """
         x = '####'
         while x[0] == '#':
-            a = self.f.readline().replace('\n','')
+            a = self.f.readline().replace('\n', '')
             x = a.lstrip()
             if len(x) == 0: #only whitespaces
                 x='#'
         return x
 
-    def __check_bool(self,x):
+    def __check_bool(self, x):
         s=x.split(',')
         if int(s[1]) == 1:
             return True
         else:
             return False
 
-    def __check_var(self,x):
+    def __check_var(self, x):
         s=x.split(',')
         if int(s[1]) == 1:
             return s[0],s[2] #name,interval
@@ -78,20 +65,20 @@ class ConfigFile():
         l=l.lstrip()
 
         if 'BASEMAP' in l.upper():
-            self.options.update({'basemap':self.__check_bool(l)})
+            self.options.update({'basemap': self.__check_bool(l)})
 
-        l = self.f.readline().replace('\n','')
+        l = self.f.readline().replace('\n', '')
         if 'REPORT=' in l.upper():
             s = l[7:]
-            self.options.update({'report' : s.replace(' ','') })
+            self.options.update({'report': s.replace(' ','') })
         else:
             sys.exit('report missing in configuration file!')
 
-        l = self.f.readline().replace('\n','')
+        l = self.f.readline().replace('\n', '')
         if 'REPORT_FORMAT=' in l.upper():
             s = l[14:].strip()
             s = s.lower()
-            if s not in ['png','pdf']:
+            if s not in ['png', 'pdf']:
                 print s
                 raise ValueError, 'Invlid option for report format [png,pdf]'
             else:
@@ -112,7 +99,7 @@ class ConfigFile():
             s = l[9:]
             if s[-1] != os.sep:
                 s = s+os.sep
-            self.options.update({'tempdir' : s.replace(' ','') })
+            self.options.update({'tempdir': s.replace(' ','') })
         else:
             raise ValueError, 'Temporary directory not specified!'
 
@@ -136,7 +123,7 @@ class ConfigFile():
             if not os.path.exists(s):
                 print s
                 raise ValueError, 'Configuration path is invalid!'
-            self.options.update({'configdir' : s.replace(' ','') })
+            self.options.update({'configdir': s.replace(' ','') })
         else:
             raise ValueError, 'CONFIG directory not specified!'
 
@@ -157,7 +144,7 @@ class ConfigFile():
                 sys.stdout.write('     Temporary output directory already existing: ' + self.options['tempdir'] + '\n')
 
         #update global variable for CDO temporary directory (needed for CDO processing)
-        os.environ.update({'CDOTEMPDIR' : self.options['tempdir'] } )
+        os.environ.update({'CDOTEMPDIR': self.options['tempdir']})
 
 
     def __read_var_block(self):
@@ -396,8 +383,8 @@ class PlotOptions(object):
 
             The other sections specify the details for each observational dataset
             """
-            print ''
-            print '*** VARIABLE: ', var , ' ***'
+
+            print('\n*** VARIABLE: %s ***' % var)
             dl = {}
             print parser.sections()
             for section_name in parser.sections():
@@ -405,25 +392,21 @@ class PlotOptions(object):
                 if section_name.upper() == 'OPTIONS':
                     o = {}
                     for name, value in parser.items(section_name):
-                        o.update({name:value})
-                    dl.update({'OPTIONS':o})
+                        o.update({name: value})
+                    dl.update({'OPTIONS': o})
                     #/// observation specific dictionary
                 else:
                     o = {}
                     for name, value in parser.items(section_name):
-                        o.update({name:value})
-                    dl.update({section_name:o})
+                        o.update({name: value})
+                    dl.update({section_name: o})
 
             #/// update options dictionary for this variable
             print '    OBSERVATIONS for this variable: ', dl.keys()
-            self.options.update({var:dl})
+            self.options.update({var: dl})
 
             #/// destroy parser (important, as otherwise problems)
             del parser
-
-
-
-
 
         #convert options to bool/numerical values
         self._convert_options()
@@ -432,30 +415,26 @@ class PlotOptions(object):
         self._check()
 
         #reset plotting options if the report should only produce a summary
-
         if cfg.options['summary']:
-            false_vars = ['map_difference','map_seasons','reichler_plot','hovmoeller_plot','regional_analysis'] #set the plot options to FALSE which are *not* relevant for summary report
+            # set the plot options to FALSE which are *not* relevant
+            # for summary report
+            false_vars = ['map_difference', 'map_seasons',
+                          'reichler_plot', 'hovmoeller_plot',
+                          'regional_analysis']
             for var in cfg.variables:
                 lopt = self.options[var]
                 for vv in false_vars:
                     if vv in lopt['OPTIONS'].keys():
                         print 'Setting variable ', vv, ' to FALSE because of global option for ', var
-                        lopt['OPTIONS'].update({vv:False})
+                        lopt['OPTIONS'].update({vv: False})
 
         #if the option is set that the observation time shall be the same as the models
         #then overwrite options that were set in the INI files
         if cfg.same_time4obs:
             for var in cfg.variables:
                 lopt = self.options[var]
-                lopt['OPTIONS']['start']=cfg.start_date
-                lopt['OPTIONS']['stop'] =cfg.stop_date
-
-        #print lopt
-        #print lopt['OPTIONS']['start']
-        #print lopt['OPTIONS']['stop']
-        #stop
-
-
+                lopt['OPTIONS']['start'] = cfg.start_date
+                lopt['OPTIONS']['stop'] = cfg.stop_date
 
         #--- map interpolation methods ---
         # the interpolation method is used by the CDOs. It needs to be
@@ -464,54 +443,47 @@ class PlotOptions(object):
             lopt = self.options[var]
             print lopt['OPTIONS']['interpolation']
 
-
             if lopt['OPTIONS']['interpolation'] == 'bilinear':
-                lopt['OPTIONS'].update({'interpolation':'remapbil'})
+                lopt['OPTIONS'].update({'interpolation': 'remapbil'})
             elif lopt['OPTIONS']['interpolation'] == 'conservative':
-                lopt['OPTIONS'].update({'interpolation':'remapcon'})
+                lopt['OPTIONS'].update({'interpolation': 'remapcon'})
             elif lopt['OPTIONS']['interpolation'] == 'nearest':
-                lopt['OPTIONS'].update({'interpolation':'remapnn'})
+                lopt['OPTIONS'].update({'interpolation': 'remapnn'})
             else:
-
-                raise ValueError, 'ERROR: invalid interpolation method: %s' % lopt['OPTIONS']['interpolation']
-
-
-
-
+                raise ValueError('ERROR: invalid interpolation method: \
+                                  %s' % lopt['OPTIONS']['interpolation'])
 
     def _convert_options(self):
         """
-        Convert options, which are only strings in the beginning to numerical values or execute functions to set directory
+        Convert options, which are only strings in the beginning
+        to numerical values or execute functions to set directory
         names appropriately
-        @return:
         """
 
         for v in self.options.keys():
             var = self.options[v]
-            for s in var.keys(): #each section
+            for s in var.keys():  # each section
                 sec = var[s]
                 for k in sec.keys():
                     if k == 'start':
-                        sec.update({k:pl.num2date(pl.datestr2num(sec[k]))})
+                        sec.update({k: pl.num2date(pl.datestr2num(sec[k]))})
                     elif k == 'stop':
-                        sec.update({k:pl.num2date(pl.datestr2num(sec[k]))})
+                        sec.update({k: pl.num2date(pl.datestr2num(sec[k]))})
                     else:
-                        sec.update({k:self.__convert(sec[k])}) #update current variable with valid value
+                        # update current variable with valid value
+                        sec.update({k: self.__convert(sec[k])})
 
-
-
-    def __convert(self,s):
+    def __convert(self, s):
         """
-        convert a single string into a valid value. The routine recognizes if the string is numerical, or boolean
+        convert a single string into a valid value. The routine
+        recognizes if the string is numerical, or boolean
         or if a command needs to be executed to generate a valid value
 
         @param s: string with value of option
         @type s: str
         @return: value of the option
         """
-
-        s.replace('\n','')
-
+        s.replace('\n', '')
         if len(s) == 0:
             return None
 
@@ -537,24 +509,24 @@ class PlotOptions(object):
             return res
 
         #4) check if a list is provided
-        if (h[0] == '[') and (h[-1] == ']'): #is list
+        if (h[0] == '[') and (h[-1] == ']'):  # is list
             return self.__get_list(s)
 
         #5) in any other case return s
         return s
 
-    def __get_list(self,s):
-        #return a list made out from a string '[1,2,3,4,5]'
-        l = s.replace('[','')
-        l = l.replace(']','')
-        l=l.split(',')
+    def __get_list(self, s):
+        # return a list made out from a string '[1,2,3,4,5]'
+        l = s.replace('[', '')
+        l = l.replace(']', '')
+        l = l.split(',')
 
         o = []
         for i in l:
             try:
-                o.append(float(i)) #try numerical conversion
+                o.append(float(i))  # try numerical conversion
             except:
-                #else: return the string itself
+                # else: return the string itself
                 o.append(i)
         return o
 
@@ -566,51 +538,58 @@ class PlotOptions(object):
         cerr = 0
         o = self.options
 
-        #specify here the options that need to be given!
-        locopt = ['obs_file','obs_var','gleckler_position','scale_data'] #variables that need to be specified (MUST!) for each observational dataset
-        globopt = ['cticks','map_difference','map_seasons','preprocess','reichler_plot','gleckler_plot','hovmoeller_plot','regional_analysis','interpolation','targetgrid','projection','global_mean'] #options for each variable type
+        # specify here the options that need to be given!
+        # variables that need to be specified (MUST!) for each
+        # observational dataset
+        locopt = ['obs_file', 'obs_var', 'gleckler_position',
+                  'scale_data']
+        globopt = ['cticks', 'map_difference', 'map_seasons',
+                   'preprocess', 'reichler_plot', 'gleckler_plot',
+                   'hovmoeller_plot', 'regional_analysis',
+                   'interpolation', 'targetgrid', 'projection',
+                   'global_mean']  # options for each variable type
 
-        for v in o.keys(): #all variables
-            d = o[v] #dictionary for a specific variable
+        # all variables
+        for v in o.keys():
+            d = o[v]  # dictionary for a specific variable
             if not 'OPTIONS' in d.keys():
                 sys.stdout.write('Error: missing OPTIONS %s' % v)
                 cerr += 1
 
-            #check global options
+            # check global options
             for k in globopt:
                 if not k in d['OPTIONS'].keys():
-                    sys.stdout.write('Error: missing global option: %s (%s)' % (k,v)  )
+                    sys.stdout.write('Error: missing global option: %s (%s)' % (k, v))
                     cerr += 1
                 if k == 'cticks':
-                    if isinstance(d['OPTIONS'][k],list):
+                    if isinstance(d['OPTIONS'][k], list):
                         if np.any(np.diff(d['OPTIONS'][k]) < 0):
-                            raise ValueError, 'CTICKS are not in increasing order!'
+                            raise ValueError('CTICKS are not in \
+                                               increasing order!')
                     else:
-                        raise ValueError, 'CTICKS option needs to be a list'
+                        raise ValueError('CTICKS option needs to \
+                                           be a list')
 
-
-            #check local options
-            for odat in d.keys(): #odat is key for a specific observational dataset
+            # check local options
+            # odat is key for a specific observational dataset
+            for odat in d.keys():
                 if odat.upper() == 'OPTIONS':
                     continue
-                for k in locopt: #k is not the index for a specific obs. record
+                # k is not the index for a specific obs. record
+                for k in locopt:
                     if not k in d[odat].keys():
-                        sys.stdout.write('Error: missing local option: %s (%s,%s)' % (k,odat,v)  )
-                        cerr +=1
-                    if k=='obs_file':
-                        d[odat]['obs_file']=d[odat]['obs_file'].rstrip() #remove whitespaces at the end
-                        if ((d[odat]['obs_file'][-1] == os.sep) or (d[odat]['obs_file'][-3:] == '.nc') or (d[odat]['obs_file'][-4:] == '.nc4')  ):
+                        sys.stdout.write('Error: missing local option: %s (%s,%s)' % (k, odat, v))
+                        cerr += 1
+                    if k == 'obs_file':
+                        d[odat]['obs_file'] = d[odat]['obs_file'].rstrip()
+                        if ((d[odat]['obs_file'][-1] == os.sep) or (d[odat]['obs_file'][-3:] == '.nc') or (d[odat]['obs_file'][-4:] == '.nc4')):
                             pass
                         else:
-                            d[odat]['obs_file'] = d[odat]['obs_file'] + os.sep #directory
-
-
-
-
+                            d[odat]['obs_file'] = d[odat]['obs_file'] + os.sep
 
         if cerr > 0:
-            raise ValueError, 'There were errors in the initialization of plotting options!'
-
+            raise ValueError('There were errors in the initialization \
+                              of plotting options!')
 
 
 class AnalysisRegions():
@@ -618,14 +597,12 @@ class AnalysisRegions():
     Class to handle information about regions to analyze in the framework
     """
 
-    def __init__(self,dir='.' + os.sep + 'regions' + os.sep):
+    def __init__(self, dir='.' + os.sep + 'regions' + os.sep):
         """
-        init AnalysisRegions
+        read regions
 
-        @param dir: directory where to search for region specification
-        @type dir: str
-
-        @return:
+        dir : str
+            directory where to search for region specification
         """
         self.dir = dir
         self.regions = []
@@ -636,14 +613,13 @@ class AnalysisRegions():
         for f in files:
             self._read_region_file(f)
 
-
-        print ''
+        print '--------'
         print 'Regions:'
         print '--------'
         for r in self.regions:
             print r.label
 
-    def _read_region_file(self,file):
+    def _read_region_file(self, file):
         """
         read a single file specifying regions. A file can contain
         more than one region. Results will be stored in self.regions
@@ -653,7 +629,7 @@ class AnalysisRegions():
         if not os.path.exists(file):
             return
 
-        f = open(file,'r')
+        f = open(file, 'r')
         for line in f.readlines():
             l = line.lstrip()
             if l[0] == '#':
@@ -661,19 +637,18 @@ class AnalysisRegions():
             else:
                 tmp = l.split(',')
                 if len(tmp) != 5:
-                    print tmp
-                    raise ValueError, "Error in REGION file: " + file
+                    raise ValueError("Error in REGION file: %s" % file)
                 else:
-                    #--- interpret data
-                    label  = tmp[0]
-                    lon1 = tmp[1]; lon2=tmp[2]
-                    lat1 = tmp[3]; lat2=tmp[4]
-
-                    self.regions.append(Region(lon1,lon2,lat1,lat2,label,type='latlon')) #set region
-
-
-
-
+                    # interpret data
+                    label = tmp[0]
+                    lon1 = tmp[1]
+                    lon2 = tmp[2]
+                    lat1 = tmp[3]
+                    lat2 = tmp[4]
+                    # set region
+                    self.regions.append(Region(lon1, lon2, lat1,
+                                               lat2, label,
+                                               type='latlon'))
 
 
 class CFGWriter(object):
@@ -682,7 +657,7 @@ class CFGWriter(object):
     a pyCMBS configuration file
     """
 
-    def __init__(self,filename,generator='pyCMBS CONFIGURATION WRITER'):
+    def __init__(self, filename, generator='pyCMBS CONFIGURATION WRITER'):
         """
         Arguments
         ---------
@@ -699,37 +674,31 @@ class CFGWriter(object):
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-
-    def save(self,temp_dir=None,vars=None,start_date=None,stop_date=None,
-            models=None,interval='monthly',format='png',basemap=False,
-            clean_temp=False,summary_only=False):
+    def save(self, temp_dir=None, vars=None, start_date=None,
+             stop_date=None, models=None, interval='monthly',
+             format='png', basemap=False, clean_temp=False,
+             summary_only=False):
         """
         save configuration file
         """
+        # list which specifies which default variables should be written
+        # to the standard configuration file
+        supported_vars = ['albedo', 'sis', 'precipitation']
 
-        supported_vars=['albedo','sis','precipitation'] #todo: complete!
-
-        if format.lower() not in ['pdf','png']:
+        if format.lower() not in ['pdf', 'png']:
             raise ValueError('Invalid output format for report: %s' % format)
-
-        if interval not in ['monthly','season']:
+        if interval not in ['monthly', 'season']:
             raise ValueError('Invalid interval option specified!')
-
         if temp_dir is None:
             raise ValueError('No temporary output directory specified!')
-
         if vars is None:
             raise ValueError('No VARIABLES specified!')
-
         if start_date is None:
             raise ValueError('No start_date specified')
-
         if stop_date is None:
-            raise ValueError, 'No stop_date specified'
-
+            raise ValueError('No stop_date specified')
         if models is None:
-            raise ValueError, 'No models specified!'
-
+            raise ValueError('No models specified!')
 
         import time
         self._write('######################################################')
@@ -790,37 +759,19 @@ class CFGWriter(object):
         self._write('#')
         self._write('# The modes MUST NOT be separated with whitepsaces at the moment!')
         self._write('################################')
-
         self._write('')
         self._write('#--- MODELS TO ANALYZE ---')
 
         for i in xrange(len(models)):
-            self._write(models[i]['id'] + ',' + models[i]['type'] + ',' + models[i]['experiment'] + ',' + models[i]['path'])
+            self._write(models[i]['id'] + ',' + models[i]['type']
+                        + ',' + models[i]['experiment'] + ','
+                        + models[i]['path'])
 
-    def _write(self,s):
+    def _write(self, s):
         if os.path.exists(self.filename):
             mode = 'a'
         else:
             mode = 'w'
-
-        f = open(self.filename,mode)
+        f = open(self.filename, mode)
         f.write(s + '\n')
         f.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
