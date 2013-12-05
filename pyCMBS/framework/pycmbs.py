@@ -23,14 +23,11 @@ pl = mpl.pylab
 import sys
 import os
 
-
-#--- framework specific modules ---
 from models import *
 from config import *
 from analysis import *
 import pickle
 
-#####################################################################
 #####################################################################
 
 pl.close('all')
