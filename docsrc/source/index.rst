@@ -12,8 +12,14 @@ Contents:
    :maxdepth: 2
 
    intro
+   installation
    getting_started
+   faq
+   gallery
+   diagnostics
+   external
    benchmarking_custom
+   references
 
 
 Indices and tables
