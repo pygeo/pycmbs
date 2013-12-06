@@ -112,29 +112,29 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None, force=False,
         cdo.yseassum(options='-f nc -b 32', output=obs_ymonsum_file, input=obs_mon_file, force=force)
         cdo.yseasstd(options='-f nc -b 32', output=obs_ymonstd_file, input=obs_mon_file, force=force)
         cdo.div(options='-f nc -b 32', output=obs_ymonN_file, input=obs_ymonsum_file + ' ' + obs_ymonmean_file,
-                force=force) #number of samples
+                force=force)  # number of samples
 
         time_cycle = 4
 
     else:
         print interval
-        raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+        raise ValueError('Unknown temporal interval. Can not perform preprocessing! ')
 
 
     #--- READ DATA ---
     obs = Data(obs_ymonmean_file, obs_var, read=True, label=label, lat_name='lat', lon_name='lon', shift_lon=shift_lon,
                time_cycle=time_cycle)
     obs_std = Data(obs_ymonstd_file, obs_var, read=True, label=label + ' std', lat_name='lat', lon_name='lon',
-                   shift_lon=shift_lon, time_cycle=time_cycle) #,mask=ls_mask.data.data)
+                   shift_lon=shift_lon, time_cycle=time_cycle)
     obs.std = obs_std.data.copy()
     del obs_std
     obs_N = Data(obs_ymonN_file, obs_var, read=True, label=label + ' N', unit='-', lat_name='lat', lon_name='lon',
-                 shift_lon=shift_lon, time_cycle=time_cycle) #,mask=ls_mask.data.data)
+                 shift_lon=shift_lon, time_cycle=time_cycle)
     obs.n = obs_N.data.copy()
     del obs_N
 
     #sort climatology to be sure that it starts always with January
-    obs.adjust_time(year=1700, day=15) #set arbitrary time for climatology
+    obs.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
     obs.timsort()
 
     #/// read monthly data (needed for global means and hovmoeller plots) ///
@@ -352,8 +352,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     #... now everything should be fine and the plot options can be assigned locally
 
     #//////////////////////////////////////////////////////////////////
-    #--- plot options which are SPECIFIC to observational data sets
-    for_report = local_plot_options[obs_name]['add_to_report'] #add a certain observational dataset to report
+    # plot options which are SPECIFIC to observational data sets
+    for_report = local_plot_options[obs_name]['add_to_report']  # add a certain observational dataset to report
     if not for_report:
         print '   The following data will not be included in the report as option for reporting is not set: ' + obs_name + ' ' + obs_type
         return
@@ -446,7 +446,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     else:
         dmax = None
 
-    m_data_org = obs_type + '_org' #name of original data field
+    m_data_org = obs_type + '_org'  # name of original data field
 
     #/// land sea mask (options: land,ocean, global for parameter area)
     #mask_antarctica masks everything below 60°S.
@@ -494,25 +494,20 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
     #obs_orig.save(filename='testfile.nc',delete=True)
 
-
-
-
     def mask_seaice_extent(x, msk):
         tmpmsk = x.data > 15.
-        x.data.mask[:, :, :] = False #set all to false to be able to put entire ocean to zero
+        x.data.mask[:, :, :] = False  # set all to false to be able to put entire ocean to zero
         x.data[:, :, :] = 0.
         x.data[tmpmsk] = 1.
         x._apply_mask(msk)
         return x
 
-
     if obs_type == 'seaice_extent':
-        stat_type = 'sum' #show area weighted sum as statistic
+        stat_type = 'sum'  # show area weighted sum as statistic
         obs_orig = mask_seaice_extent(obs_orig, ls_mask)
         obs_monthly = mask_seaice_extent(obs_monthly, ls_mask)
         obs_orig._apply_mask(valid_obs)
         obs_monthly._apply_mask(valid_obs)
-
     else:
         stat_type = 'mean'
 
@@ -551,9 +546,13 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         else:
             report.figure(f_season, caption='Monthly mean ' + obs_name)
 
-    for model in model_list:
 
-        sys.stdout.write('\n *** %s analysis of model: ' % (obs_type.upper()) + model.name + "\n")
+
+    ####################################################################################################################
+    # MAIN LIST OVER MODELS
+    ####################################################################################################################
+    for model in model_list:
+        sys.stdout.write('\n *** %s Analysis of model: ' % (obs_type.upper()) + model.name + "\n")
 
         if model.variables[obs_type] is None:
             sys.stdout.write('\n *** WARNING: No processing for %s possible for model (likely missing data!): ' % (
@@ -568,13 +567,14 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         if obs_type == 'seaice_extent':
             model_data = mask_seaice_extent(model_data, ls_mask)
 
+        # land/sea mask
         if ls_mask is not None:
             actmask = ls_mask.data & valid_obs
         else:
             actmask = valid_obs
         model_data._apply_mask(actmask)
 
-        GP.add_model(model._unique_name) #register model name in GlecklerPlot
+        GP.add_model(model._unique_name)  # register model name in GlecklerPlot
 
         if for_report == True:
             #/// report results
@@ -605,7 +605,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             print 'Inconsistent geometries' # add here parameter name
             print 'Model: ', model_data.data.shape
             print 'Observation: ', obs_orig.data.shape
-            raise ValueError, "Invalid geometries"
+            raise ValueError("Invalid geometries")
 
         if f_mapdifference == True:
             sys.stdout.write('\n *** Map difference plotting. \n')
@@ -616,10 +616,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                    proj=projection, stat_type=stat_type, show_stat=True, drawparallels=False,
                                    colorbar_orientation='horizontal')
             report.figure(f_dif, caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
-            pl.close(f_dif.number);
+            pl.close(f_dif.number)
             del f_dif
 
-        f_compare_timeseries = False
+        f_compare_timeseries = False  # todo
         if f_compare_timeseries == True:
             """
             compare timeseries of two datasets
@@ -665,7 +665,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             del f_season
 
         if f_mapseason_difference:
-            #generate seasonal plot of difference
+            # generate seasonal plot of difference
             f_season_dif = map_season(model_data.sub(obs_orig), use_basemap=use_basemap, cmap_data='RdBu_r',
                                       show_zonal=True, zonal_timmean=True, nclasses=nclasses,
                                       vmin=dmin, vmax=dmax, proj=projection, stat_type=stat_type, show_stat=True,
@@ -673,20 +673,21 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             if len(model_data.data) == 4:
                 report.figure(f_season_dif,
-                              caption='Seasonal mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
+                              caption='Seasonal mean climatology of difference between '
+                                      + model.name.upper() + ' and ' + obs_orig.label.upper())
             else:
                 report.figure(f_season_dif,
-                              caption='Monthly mean climatology of difference between ' + model.name.upper() + ' and ' + obs_orig.label.upper())
+                              caption='Monthly mean climatology of difference between '
+                                      + model.name.upper() + ' and ' + obs_orig.label.upper())
             pl.close(f_season_dif.number);
             del f_season_dif
 
         if f_hovmoeller == True:
-            print '    Doing Hovmoeller plot ...'
-            #raise ValueError, 'Hovmoeller Not validated yet!!!!'
+            print('    Doing Hovmoeller plot ...')
             f_hov = plt.figure(figsize=(8, 12))
-            ax1 = f_hov.add_subplot(4, 1, 1);
+            ax1 = f_hov.add_subplot(4, 1, 1)
             ax2 = f_hov.add_subplot(4, 1, 2)
-            ax3 = f_hov.add_subplot(4, 1, 3);
+            ax3 = f_hov.add_subplot(4, 1, 3)
             ax4 = f_hov.add_subplot(4, 1, 4)
 
             s_start_time = '1979-01-01' #todo: use periods specified in options !!!!
@@ -696,7 +697,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             #generate a reference monthly timeseries (datetime)
             tref = np.asarray(
-                rrule(MONTHLY, dtstart=start_time).between(start_time, stop_time, inc=True)) #monthly timeseries
+                rrule(MONTHLY, dtstart=start_time).between(start_time, stop_time, inc=True))  # monthly timeseries
 
             ####################################################
             # HOVMOELLER PLOT FOR MODEL
@@ -706,10 +707,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             tmp = model.variables[obs_type + '_org'][2]
             if tmp is not None:
                 tmp = tmp.interp_time(pl.date2num(tref))
-
                 if ls_mask is not None:
                     tmp._apply_mask(ls_mask)
-
                 hov_model = hovmoeller(tmp.date, None, rescaley=20, rescalex=20)
                 hov_model.plot(climits=[vmin, vmax], input=tmp, xtickrotation=90, cmap='jet', ax=ax1, showcolorbar=True,
                                showxticks=False)
@@ -725,7 +724,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             tmp = obs_monthly.copy()
             if tmp is not None:
                 tmp = tmp.interp_time(pl.date2num(tref))
-
                 if ls_mask is not None:
                     tmp._apply_mask(ls_mask)
 
@@ -739,28 +737,25 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 del hov_obs, tmp
 
             report.figure(f_hov,
-                          caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name + ', bottom: ' + obs_name.upper() + ')')
+                          caption='Time-latitude diagram of SIS and SIS anomalies (top: ' + model.name
+                                  + ', bottom: ' + obs_name.upper() + ')')
             pl.close(f_hov.number)
             del f_hov
 
         # Perform regional analysis
         if f_regional_analysis:
-            raise ValueError, 'Feature for regional analysis not implemented so far'
             REGSTAT = RegionalAnalysis(obs_orig, model_data, r)
-            REGSTAT.calculate()
-
-            # tay_reg is a taylor plot which is used for all models !
-            tay = REGSTAT.plot_taylor()
-
-            #todo: print results ???
-            REGSTAT.print_table(
-                filename=report.outdir + 'regional_results_' + obs_type + '_' + obs_name + '_' + model._unique_name + '.txt')
+            REGSTAT.calculate()  # after that we have the regional statistics already calculated for the current model
+            #REGSTAT.print_table(
+            #    filename=report.outdir + 'regional_results_' + obs_type + '_' + obs_name
+            #             + '_' + model._unique_name + '.txt')
 
             #--- Taylor plot for regional analysis ---
-            report.figure(tay.figure,
-                          caption='Taylor plot for regional analysis (' + obs_name.upper() + ', ' + model._unique_name.upper() + ')')
+            #report.figure(tay.figure,
+            #              caption='Taylor plot for regional analysis (' + obs_name.upper()
+            #                      + ', ' + model._unique_name.upper() + ')')
             del tay, REGSTAT
-            stop #todo
+
 
         if f_reichler == True:
             #/// Reichler statistics ///
@@ -808,7 +803,9 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
     @param report: instance of Report
 
     Reference:
-    Dahlke, C., Loew, A. & Reick, C., 2012. Robust identification of global greening phase patterns from remote sensing vegetation products. Journal of Climate, p.120726140719003. Available at: http://journals.ametsoc.org/doi/abs/10.1175/JCLI-D-11-00319.1 [Accessed December 6, 2012].
+    Dahlke, C., Loew, A. & Reick, C., 2012. Robust identification of global greening phase patterns from remote
+           sensing vegetation products. Journal of Climate, p.120726140719003.
+           Available at: http://journals.ametsoc.org/doi/abs/10.1175/JCLI-D-11-00319.1 [Accessed December 6, 2012].
 
     """
 
@@ -827,8 +824,8 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
     for model in model_list:
         print '*** PHENOLOGY analysis for model: ' + model.name
 
-        fapar_data = model.variables['phenology_faPAR'] #data object for phenology variable
-        snow_data = model.variables['snow']            #data object for snow variable
+        fapar_data = model.variables['phenology_faPAR']  # data object for phenology variable
+        snow_data = model.variables['snow']             # data object for snow variable
 
         #/// output directory for analysis results of current model
         outdir = os.getcwd() + '/output/GPA-01-' + model.name.replace(' ', '')
@@ -1230,8 +1227,8 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
     fGb = GM.plot_mean_result(dt=0., colors={'observations': 'blue', 'models': 'red'}, plot_clim=True)
 
     report.figure(fGa,
-                  caption='Global means for ' + thelabel + ' (summary); areas indicate $\pm 1 \sigma$ as derived from the ensemble of models or observations',
-                  bbox_inches=None)
+                  caption='Global means for ' + thelabel + ' (summary); areas indicate $\pm 1 \sigma$ as derived from'
+                                                           ' the ensemble of models or observations', bbox_inches=None)
     report.figure(fGb, caption='Global means for ' + thelabel + ' (summary climatology)', bbox_inches=None)
 
     pl.close(fG.number)
@@ -1349,8 +1346,6 @@ def beer_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report
     print '************************************************************'
     print
 
-    #    del GM
-    #    del fGa
     del f_model
     del fG
 
@@ -1392,7 +1387,7 @@ def time_series_regional_analysis(x, y, msk):
         tmpy._apply_mask(m)
 
         #2) plot results
-        L.plot(tmpx, label='X region ' + str(int(v)).zfill(4)) #calculates automatically the fldmean()
+        L.plot(tmpx, label='X region ' + str(int(v)).zfill(4))  # calculates automatically the fldmean()
         L.plot(tmpy, label='X region ' + str(int(v)).zfill(4))
 
         del tmpx, tmpy
