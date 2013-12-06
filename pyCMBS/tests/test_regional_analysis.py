@@ -192,6 +192,24 @@ class TestData(TestCase):
         self.assertTrue(np.all(np.abs(1. - d[:,6] / REGSTAT.statistics['ystat'][3]['min']) < 0.000001))
         self.assertTrue(np.all(np.abs(1. - d[:,7] / REGSTAT.statistics['xstat'][3]['max']) < 0.000001))
         self.assertTrue(np.all(np.abs(1. - d[:,8] / REGSTAT.statistics['ystat'][3]['max']) < 0.000001))
+        del d
+
+        #2) correlation statistics: A
+        fname = './xxxtest2/testprefix_regional_statistics_correlation_A.txt'
+        d = np.loadtxt(fname, skiprows=1)  # | id | rmean | rstd | rsum | rmin | rmax |
+        ids = d[:,0]
+        m = ids == 2
+        rmean = d[:,1][m][0]
+        rstd = d[:,2][m][0]
+        rsum = d[:,3][m][0]
+        rmin = d[:,4][m][0]
+        rmax = d[:,5][m][0]
+
+        self.assertLess(np.abs(1. - rmean / REGSTAT.statistics['corrstat']['analysis_A'][2]['mean'][0]), 0.0000000001)
+        self.assertLess(np.abs(1. - rstd / REGSTAT.statistics['corrstat']['analysis_A'][2]['std'][0]), 0.0000000001)
+        self.assertLess(np.abs(1. - rsum / REGSTAT.statistics['corrstat']['analysis_A'][2]['sum'][0]), 0.0000000001)
+        self.assertLess(np.abs(1. - rmin / REGSTAT.statistics['corrstat']['analysis_A'][2]['min'][0]), 0.0000000001)
+        self.assertLess(np.abs(1. - rmax / REGSTAT.statistics['corrstat']['analysis_A'][2]['max'][0]), 0.0000000001)
 
         os.system('rm -r ./xxxtest1')
         os.system('rm -r ./xxxtest2')
