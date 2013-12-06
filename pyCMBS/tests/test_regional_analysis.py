@@ -173,3 +173,25 @@ class TestData(TestCase):
         # todo: note that it is currently not usefull to compare pvalues, due to the insufficient
         # see above !
 
+
+        ##############################
+        # SAVE
+        REGSTAT.save('testprefix', format='pkl', dir='./xxxtest1')  # save as PKL
+        REGSTAT.save('testprefix', format='txt', dir='./xxxtest2')  # save as ASCII
+
+        # ... now check if saved data is o.k
+        #1) standard statistics
+        fname = './xxxtest2/testprefix_regional_statistics_standard_' + str(3).zfill(16) + '.txt'
+        d = np.loadtxt(fname, skiprows=1)
+
+        self.assertTrue(np.all(np.abs(1. - d[:,1] / REGSTAT.statistics['xstat'][3]['mean']) < 0.000001))
+        self.assertTrue(np.all(np.abs(1. - d[:,2] / REGSTAT.statistics['ystat'][3]['mean']) < 0.000001))
+        self.assertTrue(np.all(np.abs(1. - d[:,3] / REGSTAT.statistics['xstat'][3]['std']) < 0.000001))
+        self.assertTrue(np.all(np.abs(1. - d[:,4] / REGSTAT.statistics['ystat'][3]['std']) < 0.000001))
+        self.assertTrue(np.all(np.abs(1. - d[:,5] / REGSTAT.statistics['xstat'][3]['min']) < 0.000001))
+        self.assertTrue(np.all(np.abs(1. - d[:,6] / REGSTAT.statistics['ystat'][3]['min']) < 0.000001))
+        self.assertTrue(np.all(np.abs(1. - d[:,7] / REGSTAT.statistics['xstat'][3]['max']) < 0.000001))
+        self.assertTrue(np.all(np.abs(1. - d[:,8] / REGSTAT.statistics['ystat'][3]['max']) < 0.000001))
+
+        os.system('rm -r ./xxxtest1')
+        os.system('rm -r ./xxxtest2')
