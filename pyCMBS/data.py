@@ -243,7 +243,7 @@ class Data(object):
     def _get_nt(self): return len(self.time)
     nt = property(_get_nt)
 
-    def _get_mindate(self,base=None):
+    def _get_mindate(self, base=None):
         """
         Brief
         -----
@@ -259,14 +259,14 @@ class Data(object):
         """
         dmin = self.date.min()
 
-        if base == None:
+        if base is None:
             rval = dmin
         elif base == 'month':
-            rval = datetime.datetime(dmin.year,dmin.month,1,0,0,0,0,dmin.tzinfo)
+            rval = datetime.datetime(dmin.year, dmin.month, 1, 0, 0, 0, 0, dmin.tzinfo)
         elif base == 'day':
-            rval = datetime.datetime(dmin.year,dmin.month,dmin.day,0,0,0,0,dmin.tzinfo)
+            rval = datetime.datetime(dmin.year, dmin.month, dmin.day, 0, 0, 0, 0, dmin.tzinfo)
         elif base == 'year':
-            rval = datetime.datetime(dmin.year,1,1,0,0,0,0,dmin.tzinfo)
+            rval = datetime.datetime(dmin.year, 1, 1, 0, 0, 0, 0, dmin.tzinfo)
         return rval
 
 
@@ -2454,7 +2454,7 @@ class Data(object):
 
         normtype = self.weighting_type
 
-        if normtype in ['valid','all']:
+        if normtype in ['valid', 'all']:
             pass
         else:
             raise ValueError, 'Invalid option for normtype: ' + normtype
@@ -2490,17 +2490,14 @@ class Data(object):
                 print 'len(s): ', len(s)
                 raise ValueError, 'Invalid geometry!'
 
-            w.shape = self.data.shape #geometry is the same now as data
-
-
-
+            w.shape = self.data.shape  # geometry is the same now as data
 
             if normtype == 'valid':
                 #2) mask areas that do not contain valid data
-                w = np.ma.array(w,mask=self.data.mask)
+                w = np.ma.array(w, mask=self.data.mask)
 
                 #3) calculate for each time the sum of all VALID grid cells --> normalization factor
-                no = w.reshape(nt,-1).sum(axis=1) #... has size nt
+                no = w.reshape(nt, -1).sum(axis=1)  # ... has size nt
                 self.totalarea = no*1.
 
                 #4) itterate over all timesteps and calculate weighting matrix
@@ -2508,14 +2505,14 @@ class Data(object):
                     w[i,:,:] /= no[i]
             else:
                 #2) mask areas that do not contain valid data
-                w = np.ma.array(w,mask= (w!=w) )
+                w = np.ma.array(w, mask= (w!=w) )
                 self.totalarea = self.cell_area.sum()
-                w /=  self.totalarea #normalization by total area. This does NOT result in sum(w) == 1 for each timestep!
+                w /= self.totalarea  # normalization by total area. This does NOT result in sum(w) == 1 for each timestep!
 
             return w
 
-        else: #dimension
-            raise ValueError, 'weighting matrix not supported for this data shape'
+        else:  # dimension
+            raise ValueError('weighting matrix not supported for this data shape')
 
 
 #-----------------------------------------------------------------------
@@ -2610,41 +2607,7 @@ class Data(object):
             return tmp
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def fldmean(self,return_data = False,apply_weights=True):
+    def fldmean(self, return_data=False, apply_weights=True):
         """
         calculate mean of the spatial field for each time using weighted averaging
         results are exactly the same as one would obtain with the similar
@@ -2668,51 +2631,48 @@ class Data(object):
             raise ValueError, 'fldmean currently only supported for 2D/3D data'
 
         if apply_weights:
-            #area weighting
-            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
-            w *= self.data #multiply the data with the weighting matrix in memory efficient way
+            # area weighting
+            w = self._get_weighting_matrix()  # get weighting matrix for each timestep (taking care of invalid data)
+            w *= self.data  # multiply the data with the weighting matrix in memory efficient way
             if self.data.ndim == 3:
-                w.shape = (len(self.data),-1)
-                tmp = w.sum(axis=1) #... gives weighted sum
+                w.shape = (len(self.data), -1)
+                tmp = w.sum(axis=1)  # ... gives weighted sum
             elif self.data.ndim == 2:
                 tmp = np.asarray([np.asarray(w.sum())])
             else:
-                raise ValueError, 'Undefined!'
+                raise ValueError('Undefined!')
         else:
-            #no area weighting
+            # no area weighting
             if self.data.ndim ==3:
-                tmp = np.reshape(self.data,(len(self.data),-1)).mean(axis=1)
+                tmp = np.reshape(self.data,(len(self.data), -1)).mean(axis=1)
             elif self.data.ndim == 2:
                 tmp = np.asarray([self.data.mean()])
             else:
-                raise ValueError, 'Undefined'
+                raise ValueError('Undefined')
 
-        #////
-        if return_data: #return data object
+        if return_data:  # return data object
             if self.data.ndim == 3:
-                x = np.zeros((len(tmp),1,1))
+                x = np.zeros((len(tmp), 1, 1))
                 x[:,0,0] = tmp
-            elif self.data.ndim ==2:
-                x = np.zeros((1,1))
-                x [:,:] = tmp[0]
+            elif self.data.ndim == 2:
+                x = np.zeros((1, 1))
+                x [:, :] = tmp[0]
             else:
-                raise ValueError, 'Undefined'
-
-            assert(isinstance(tmp,np.ma.masked_array))
+                raise ValueError('Undefined')
+            assert(isinstance(tmp, np.ma.masked_array))
             r = self.copy()
-            r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
+            r.data = np.ma.array(x.copy(), mask=tmp.mask)  # use mask of array tmp (important if all values are invalid!)
 
             #return cell area array with same size of data
             r.cell_area = np.array([1.])
-
             return r
-        else: #return numpy array
+        else:  # return numpy array
             return tmp
 
 
 #-----------------------------------------------------------------------
 
-    def fldstd(self,return_data = False,apply_weights=True):
+    def fldstd(self, return_data=False, apply_weights=True):
         """
         calculate stdv of the spatial field using area weighting
         returns exactly same results as the same CDO function
