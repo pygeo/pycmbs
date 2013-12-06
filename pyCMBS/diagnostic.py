@@ -344,10 +344,46 @@ class RegionalAnalysis(object):
         elif format == 'txt':
             self._save_standard_statistics(dir + prefix + '_regional_statistics_standard.txt')
             self._save_correlation_statistics_A(dir + prefix + '_regional_statistics_correlation_A.txt')
-            #self._save_correlation_statistics_B(dir + prefix + '_regional_statistics_correlation_B.txt')
-            #self._save_correlation_statistics_C(dir + prefix + '_regional_statistics_correlation_C.txt')
+            self._save_correlation_statistics_B(dir + prefix + '_regional_statistics_correlation_B.txt')
+            self._save_correlation_statistics_C(dir + prefix + '_regional_statistics_correlation_C.txt')
         else:
             raise ValueError('Unsupported output format!')
+
+    def _save_correlation_statistics_B(self, fname, tok='B'):
+        """
+        save correlation B results to ASCII file
+
+        | id | slope | intercept | correlation | pvalue |
+
+        """
+        sep = '\t'
+        if os.path.exists(fname):
+            os.remove(fname)
+        if os.path.splitext(fname)[1] != '.txt':
+            fname += '.txt'
+        o = open(fname, 'w')
+        # header
+        o.write('id' + sep + 'slope' + sep + 'intercept' + sep + 'correlation' + sep + 'pvalue' + '\n')
+        # data
+        corrstat = self.statistics['corrstat']['analysis_' + tok]
+        for k in corrstat.keys():
+            s = str(k) \
+                + sep + str(corrstat[k]['slope']) \
+                + sep + str(corrstat[k]['intercept']) \
+                + sep + str(corrstat[k]['correlation']) \
+                + sep + str(corrstat[k]['pvalue']) + '\n'
+            o.write(s)
+        o.close()
+
+    def _save_correlation_statistics_C(self, fname):
+        """
+        save correlation B results to ASCII file
+
+        | id | slope | intercept | correlation | pvalue |
+
+        This routine just acts as a wrapper
+        """
+        self._save_correlation_statistics_B(fname,tok='C')
 
     def _save_correlation_statistics_A(self, fname):
         """
