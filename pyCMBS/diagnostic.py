@@ -343,11 +343,40 @@ class RegionalAnalysis(object):
             pickle.dump(self.statistics, open(oname, 'w'))
         elif format == 'txt':
             self._save_standard_statistics(dir + prefix + '_regional_statistics_standard.txt')
-            #self._save_correlation_statistics_A(dir + prefix + '_regional_statistics_correlation_A.txt')
+            self._save_correlation_statistics_A(dir + prefix + '_regional_statistics_correlation_A.txt')
             #self._save_correlation_statistics_B(dir + prefix + '_regional_statistics_correlation_B.txt')
             #self._save_correlation_statistics_C(dir + prefix + '_regional_statistics_correlation_C.txt')
         else:
             raise ValueError('Unsupported output format!')
+
+    def _save_correlation_statistics_A(self, fname):
+        """
+        save correlation A results to ASCII file
+        The results correspond to e.g the *mean* correlation coefficient for a particular region
+
+        | id | rmean | rstd | rsum | rmin | rmax |
+
+        """
+        sep = '\t'
+        if os.path.exists(fname):
+            os.remove(fname)
+        if os.path.splitext(fname)[1] != '.txt':
+            fname += '.txt'
+        o = open(fname, 'w')
+        # header
+        o.write('id' + sep + 'r-mean' + sep + 'r-std' + sep + 'r-sum' + sep + 'r-min' + sep + 'r-max' + '\n')
+
+        # data
+        corrstat = self.statistics['corrstat']['analysis_A']
+        for k in corrstat.keys():
+            s = str(k) \
+                + sep + str(corrstat[k]['mean'][0]) \
+                + sep + str(corrstat[k]['std'][0]) \
+                + sep + str(corrstat[k]['sum'][0]) \
+                + sep + str(corrstat[k]['min'][0]) \
+                + sep + str(corrstat[k]['max'][0]) + '\n'
+            o.write(s)
+        o.close()
 
     def _save_standard_statistics(self, fname):
         """
