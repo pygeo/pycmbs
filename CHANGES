@@ -8,6 +8,7 @@ o name of analysis scripts is now specified in external file in the configuratio
 o benchmarking now independent from core pyCMBS installation. When pycmbs.py is executable and proper PATH variables are set, then the framework can be executed from everywhere!
 o pycmbs.py init --> generates now a template environment for benchmarking; documentation has adapted accordingly
 o implementation of new dataset(s) for evaluation of land surface evaporation from the GEWEX LandFluxEVAL project
+o implementation of diagnostics for RegionalAnalysis, which allows to calculated for each region standard statistics as well as relationship between two variables.
 
 version 0.1.4 (=rev 405)
 ============================
@@ -24,7 +25,6 @@ o implemented more robust calculation of cell_area (using temp. directories if n
 o automatic logging of errors in the Data class (uses environment variable)
 o implemented mindate/maxdate for Data object
 
-
 version 0.1.3
 ============================
 o albedo analysis for VIS and NIR separately for JSBACH raw output
@@ -33,7 +33,6 @@ o proper implementation of multimodel mean
 o implemented Data.date to allow for an easier access to date from a Data object using datetime.datetime
 o implemented standard analysis of variable: surface_upward_flux
 
-
 version 0.1.2 (=rev274)
 ============================
 o implemented new class JSBACH_RAW2, which automatically preprocessed JSBACH and ECHAM output from different (yearly) files
@@ -41,8 +40,6 @@ o removed dependencies from old pyCDO module which is supposed to be obsolete an
 o applied several bugfixes
 o changed name of main routine for benchmarking from main.py to pycmbs.py
 o handling of generation of temporary files in case that directory is write protected. Then temporary data is written to temp directory specified by the system
-
-
 
 version 0.1.1 (= rev258)
 ============================
