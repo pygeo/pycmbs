@@ -4,23 +4,20 @@ import unittest
 from pyCMBS.data import *
 from pyCMBS.diagnostic import RegionalAnalysis
 import scipy as sc
-#import pylab as pl
 import numpy as np
-#from scipy import stats
-#from pyCMBS.netcdf import *
-#from dateutil.rrule import *
+
 
 class TestData(TestCase):
 
     def setUp(self):
         # init Data object for testing
-        n=1000  # slows down significantly! constraint is percentile  test
+        n = 1000  # slows down significantly! constraint is percentile  test
         x = sc.randn(n)*100.  # generate dummy data
-        self.D = Data(None,None)
-        d=np.ones((n,1,1))
+        self.D = Data(None, None)
+        d = np.ones((n, 1, 1))
         self.D.data = d
-        self.D.data[:,0,0]=x
-        self.D.data = np.ma.array(self.D.data,mask=self.D.data != self.D.data)
+        self.D.data[:, 0, 0] = x
+        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
         self.D.verbose = True
         self.D.unit = 'myunit'
         self.D.label = 'testlabel'
@@ -31,7 +28,7 @@ class TestData(TestCase):
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
-        self.D.cell_area = np.ones((1,1))
+        self.D.cell_area = np.ones((1, 1))
 
     def test_regional_analysis(self):
 
