@@ -744,32 +744,27 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         # Perform regional analysis
         if f_regional_analysis:
+            raise ValueError('ERROR: Regional analysis not implemented so far completely!')
             REGSTAT = RegionalAnalysis(obs_orig, model_data, r)
             REGSTAT.calculate()  # after that we have the regional statistics already calculated for the current model
-            #REGSTAT.print_table(
-            #    filename=report.outdir + 'regional_results_' + obs_type + '_' + obs_name
-            #             + '_' + model._unique_name + '.txt')
 
-            #--- Taylor plot for regional analysis ---
-            #report.figure(tay.figure,
-            #              caption='Taylor plot for regional analysis (' + obs_name.upper()
-            #                      + ', ' + model._unique_name.upper() + ')')
-            del tay, REGSTAT
+            # save results
+            sprefix = obs_type.upper() + '_' + obs_name.upper() + '_' + model._unique_name
+            REGSTAT.save(prefix = sprefix, dir = report.outdir, format='pkl')
+            REGSTAT.save(prefix = sprefix, dir = report.outdir, format='txt')
+
+            del REGSTAT
 
 
         if f_reichler == True:
-            #/// Reichler statistics ///
             sys.stdout.write('\n *** Computing diagnostics (Reichler index). \n')
             Diag = Diagnostic(obs_orig, model_data)
             e2 = Diag.calc_reichler_index()
-            #print 'E2: ', e2
             Rplot.add(e2, model_data.label, color='red')
 
         if f_gleckler == True:
-            #/// Gleckler plot ///
             sys.stdout.write('\n *** Glecker plot. \n')
             e2a = GP.calc_index(obs_orig, model_data, model, obs_type)
-            #e2a = 0
             GP.add_data(obs_type, model._unique_name, e2a, pos=gleckler_pos)
 
     del obs_monthly
