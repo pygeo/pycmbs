@@ -173,7 +173,6 @@ class TestData(TestCase):
         # todo: note that it is currently not usefull to compare pvalues, due to the insufficient
         # see above !
 
-
         ##############################
         # SAVE
         REGSTAT.save('testprefix', format='pkl', dir='./xxxtest1')  # save as PKL
@@ -197,13 +196,13 @@ class TestData(TestCase):
         #2) correlation statistics: A
         fname = './xxxtest2/testprefix_regional_statistics_correlation_A.txt'
         d = np.loadtxt(fname, skiprows=1)  # | id | rmean | rstd | rsum | rmin | rmax |
-        ids = d[:,0]
+        ids = d[:, 0]
         m = ids == 2
-        rmean = d[:,1][m][0]
-        rstd = d[:,2][m][0]
-        rsum = d[:,3][m][0]
-        rmin = d[:,4][m][0]
-        rmax = d[:,5][m][0]
+        rmean = d[:, 1][m][0]
+        rstd = d[:, 2][m][0]
+        rsum = d[:, 3][m][0]
+        rmin = d[:, 4][m][0]
+        rmax = d[:, 5][m][0]
 
         self.assertLess(np.abs(1. - rmean / REGSTAT.statistics['corrstat']['analysis_A'][2]['mean'][0]), 0.0000000001)
         self.assertLess(np.abs(1. - rstd / REGSTAT.statistics['corrstat']['analysis_A'][2]['std'][0]), 0.0000000001)
@@ -211,5 +210,35 @@ class TestData(TestCase):
         self.assertLess(np.abs(1. - rmin / REGSTAT.statistics['corrstat']['analysis_A'][2]['min'][0]), 0.0000000001)
         self.assertLess(np.abs(1. - rmax / REGSTAT.statistics['corrstat']['analysis_A'][2]['max'][0]), 0.0000000001)
 
+        # correlation statistics: B
+        fname = './xxxtest2/testprefix_regional_statistics_correlation_B.txt'
+        d = np.loadtxt(fname, skiprows=1)  # | id | slope | intercept | correlation | pvalue |
+        ids = d[:, 0]
+        m = ids == 4
+        slope = d[:, 1][m][0]
+        intercept = d[:, 2][m][0]
+        correlation = d[:, 3][m][0]
+        # pvalue = d[:, 4][m][0] #todo
+
+        self.assertLess(np.abs(1. - slope / REGSTAT.statistics['corrstat']['analysis_B'][4]['slope']), 0.0000000001)
+        self.assertLess(np.abs(1. - intercept / REGSTAT.statistics['corrstat']['analysis_B'][4]['intercept']), 0.0000000001)
+        self.assertLess(np.abs(1. - correlation / REGSTAT.statistics['corrstat']['analysis_B'][4]['correlation']), 0.0000000001)
+        del d
+
+        # correlation statistics: C
+        fname = './xxxtest2/testprefix_regional_statistics_correlation_C.txt'
+        d = np.loadtxt(fname, skiprows=1)  # | id | slope | intercept | correlation | pvalue |
+        ids = d[:, 0]
+        m = ids == 3
+        slope = d[:, 1][m][0]
+        intercept = d[:, 2][m][0]
+        correlation = d[:, 3][m][0]
+        # pvalue = d[:, 4][m][0] #todo
+
+        self.assertLess(np.abs(1. - slope / REGSTAT.statistics['corrstat']['analysis_C'][3]['slope']), 0.0000000001)
+        self.assertLess(np.abs(1. - intercept / REGSTAT.statistics['corrstat']['analysis_C'][3]['intercept']), 0.0000000001)
+        self.assertLess(np.abs(1. - correlation / REGSTAT.statistics['corrstat']['analysis_C'][3]['correlation']), 0.0000000001)
+
+        # Clean up
         os.system('rm -r ./xxxtest1')
         os.system('rm -r ./xxxtest2')
