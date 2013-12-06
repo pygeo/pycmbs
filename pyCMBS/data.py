@@ -1152,11 +1152,11 @@ class Data(object):
         #/// calculate mean
         if self.data.ndim == 1:
             res = np.zeros(len(years))*np.nan
-            su  = np.zeros(len(years))*np.nan
+            su = np.zeros(len(years))*np.nan
         elif self.data.ndim == 3:
             nt,ny,nx = self.data.shape
-            res = np.zeros((len(years),ny,nx))
-            su  = np.zeros((len(years),ny,nx))
+            res = np.zeros((len(years), ny, nx))
+            su = np.zeros((len(years), ny, nx))
         else:
             raise ValueError, 'Unsupported dimension!'
 
@@ -1176,7 +1176,7 @@ class Data(object):
             #generate data object
             r = self.copy()
             r.data = res
-            r.time = self.date2num(np.asarray([datetime.datetime(year,1,1) for year in years]))
+            r.time = self.date2num(np.asarray([datetime.datetime(year, 1, 1) for year in years]))
             r.time_cycle = 1
             return r
         else:
@@ -1184,7 +1184,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_yearsum(self,mask=None,return_data=False):
+    def get_yearsum(self, mask=None, return_data=False):
         """
         This routine calculates the yearly sum of the data field
         A vector with a mask can be provided for further filtering
@@ -1219,7 +1219,7 @@ class Data(object):
             if self.data.ndim == 1:
                 res.append( dat[hlp].sum() )
             else:
-                res.append( dat[hlp,:].sum(axis=0) )
+                res.append( dat[hlp, :].sum(axis=0) )
 
         res = pl.asarray(res)
         msk = dat.count(0) == 0
@@ -1240,7 +1240,7 @@ class Data(object):
             #generate data object
             r = self.copy()
             r.data = res
-            r.time = self.date2num(np.asarray([datetime.datetime(year,1,1) for year in years]))
+            r.time = self.date2num(np.asarray([datetime.datetime(year, 1, 1) for year in years]))
             r.time_cycle = 1
             return r
         else:
@@ -1283,26 +1283,29 @@ class Data(object):
         @return: returns C{Data} objects with partial correlation parameters
         """
 
-        assert isinstance(Y,Data); assert isinstance(Z,Data)
+        assert isinstance(Y, Data)
+        assert isinstance(Z, Data)
 
         #if a second condition is given, use it ...
         if ZY is not None:
-            assert isinstance(ZY,Data)
+            assert isinstance(ZY, Data)
         else:
             ZY = Z
 
         #--- calculate correlations
-        rxy,pxy = self.correlate(Y,pthres=pthres)
-        rxz,pxz = self.correlate(Z,pthres=pthres)
-        rzy,pzy = ZY.correlate(Y,pthres=pthres)
+        rxy, pxy = self.correlate(Y, pthres=pthres)
+        rxz, pxz = self.correlate(Z, pthres=pthres)
+        rzy, pzy = ZY.correlate(Y, pthres=pthres)
 
         #--- calculate partial correlation coefficients
         res = (rxy.data - (rxz.data*rzy.data)) / (np.sqrt(1.-rxz.data*rxz.data) * np.sqrt(1.-rzy.data*rzy.data))
 
         if return_object:
-            r = self.copy(); r.time = None; r.unit=''
+            r = self.copy()
+            r.time = None
+            r.unit = ''
             r.data = res
-            r.label='partial correlation coefficient'
+            r.label = 'partial correlation coefficient'
             return r
         else:
             return res
@@ -1362,21 +1365,23 @@ class Data(object):
         #--- detrend data if required
         if detrend:
             xv = self.detrend(return_object=True).data.copy()
-            yv = Y   .detrend(return_object=True).data.copy()
+            yv = Y.detrend(return_object=True).data.copy()
 
 
         #- ... and reshape it
         nt = len(self.data)
-        xv.shape=(nt,-1); yv.shape=(nt,-1)
-        vmask.shape = (nt,-1)
+        xv.shape=(nt, -1)
+        yv.shape=(nt, -1)
+        vmask.shape = (nt, -1)
 
         #- generate new mask for data
         xv.data[xv.mask] = np.nan
         yv.data[yv.mask] = np.nan
-        xv[~vmask] = np.nan; yv[~vmask] = np.nan
+        xv[~vmask] = np.nan
+        yv[~vmask] = np.nan
 
-        xv = np.ma.array(xv,mask=np.isnan(xv))
-        yv = np.ma.array(yv,mask=np.isnan(yv))
+        xv = np.ma.array(xv, mask=np.isnan(xv))
+        yv = np.ma.array(yv, mask=np.isnan(yv))
 
         #- number of valid data sets where x and y are valid
         nvalid = vmask.sum(axis=0)
@@ -1386,31 +1391,32 @@ class Data(object):
         r = np.ones(sum(mskvalid)) * np.nan
         p = np.ones(sum(mskvalid)) * np.nan
 
-        xn = xv[:,mskvalid]; yn=yv[:,mskvalid] #copy data
+        xn = xv[:,mskvalid]; yn=yv[:, mskvalid] #copy data
         nv = nvalid[mskvalid]
 
         #do correlation calculation; currently using np.ma.corrcoef as this
         #supports masked arrays, while stats.linregress doesn't!
 
         if spearman:
-            res = [stats.mstats.spearmanr(xn[:,i],yn[:,i]) for i in xrange(sum(mskvalid))]
+            res = [stats.mstats.spearmanr(xn[:,i], yn[:,i]) for i in xrange(sum(mskvalid))]
             res = np.asarray(res)
-            r = res[:,0]; p = res[:,1]
+            r = res[:,0]; p = res[:, 1]
             r[p>pthres] = np.nan
 
         else: #Pearson product-moment correlation
-            res = [np.ma.corrcoef(xn[:,i],yn[:,i]) for i in xrange(sum(mskvalid))]  #<<<< as an alternative one could use stats.mstats.linregress ; results are however equal for R-VALUE, but NOT for P-value, here mstats.linregress seems to be buggy!, see unittests
+            res = [np.ma.corrcoef(xn[:,i], yn[:,i]) for i in xrange(sum(mskvalid))]  #<<<< as an alternative one could use stats.mstats.linregress ; results are however equal for R-VALUE, but NOT for P-value, here mstats.linregress seems to be buggy!, see unittests
             res = np.asarray(res)
-            r = res[:,0,1] #correlation coefficient
-            p = get_significance(r,nv)
+            r = res[:, 0, 1] #correlation coefficient
+            p = get_significance(r, nv)
             r[p>pthres] = np.nan
 
 
         #remap to original geometry
         R = np.ones(xv.shape[1]) * np.nan #matrix for results
         P = np.ones(xv.shape[1]) * np.nan #matrix for results
-        R[mskvalid] = r; P[mskvalid] = p
-        orgshape = (sdim[1],sdim[2])
+        R[mskvalid] = r
+        P[mskvalid] = p
+        orgshape = (sdim[1], sdim[2])
         R = R.reshape(orgshape) #generate a map again
         P = P.reshape(orgshape)
 
@@ -1437,7 +1443,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_temporal_mask(self,v,mtype='monthly'):
+    def get_temporal_mask(self, v, mtype='monthly'):
         """
         return a temporal mask
 
@@ -1458,7 +1464,7 @@ class Data(object):
         if mtype in valid_types:
             pass
         else:
-            raise ValueError, 'Invalid type for mask generation ' + mtype
+            raise ValueError('Invalid type for mask generation %s' % mtype)
 
         #--- get months
         if mtype == 'monthly':
@@ -1466,7 +1472,7 @@ class Data(object):
         elif mtype == 'yearly':
             vals = pl.asarray(self._get_years())
         else:
-            raise ValueError, 'Invalid type for mask generation ' + mtype
+            raise ValueError('Invalid type for mask generation %s ' % mtype)
 
         #--- generate mask with all months
         mask = pl.zeros(self.nt).astype('bool')
@@ -1512,38 +1518,31 @@ class Data(object):
                 slim[i::self.time_cycle] = self.data[i::self.time_cycle].sum(axis=0)
         elif clim.ndim == 2:
             for i in xrange(self.time_cycle):
-                clim[i::self.time_cycle,:] = self.data[i::self.time_cycle,:].mean(axis=0)
-                slim[i::self.time_cycle,:] = self.data[i::self.time_cycle,:].sum(axis=0)
+                clim[i::self.time_cycle, :] = self.data[i::self.time_cycle, :].mean(axis=0)
+                slim[i::self.time_cycle, :] = self.data[i::self.time_cycle, :].sum(axis=0)
         elif clim.ndim ==3:
             for i in xrange(self.time_cycle):
-                clim[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:].mean(axis=0)
-                slim[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:].sum(axis=0)
+                clim[i::self.time_cycle, :, :] = self.data[i::self.time_cycle, :, :].mean(axis=0)
+                slim[i::self.time_cycle, :, :] = self.data[i::self.time_cycle, :, :].sum(axis=0)
         else:
             raise ValueError, 'Invalid dimension when calculating climatology'
 
         n = slim / clim; del slim #number of data taken into account for climatology
-        clim = np.ma.array(clim,mask=( np.isnan(clim) | (n < nmin) | np.isnan(n)) ); del n
+        clim = np.ma.array(clim, mask=( np.isnan(clim) | (n < nmin) | np.isnan(n)) ); del n
 
         if return_object:
             r = self.copy()
             r.label += ' - climatology'
             r.data = clim
             r.time = []
-            #~ print self.shape
-            #~ print self._get_label()
-#~
-            #~ print 'Time: ', self.time
-            #~ print len(self.time)
-            #~ print self.time_cycle
             for i in xrange(self.time_cycle):
-                #~ print i, self.time
                 r.time.append(self.time[i])
             r.time = np.asarray(r.time)
 
             if len(r.time) != len(r.data):
                 print len(r.time)
                 print len(r.data)
-                raise ValueError, 'Data and time are inconsistent in get_climatology()'
+                raise ValueError('Data and time are inconsistent in get_climatology()')
 
             return r
         else:
@@ -1577,31 +1576,32 @@ class Data(object):
                 else:
                     raise ValueError, 'Climatology can not be calculated because of missing time_cycle!'
         else:
-            raise ValueError, 'Anomalies can not be calculated, invalid BASE'
+            raise ValueError('Anomalies can not be calculated, invalid BASE')
 
-        if hasattr(self,'time_cycle'):
+        if hasattr(self, 'time_cycle'):
             pass
         else:
-            raise ValueError, 'Anomalies can not be calculated without a valid time_cycle'
+            raise ValueError('Anomalies can not be calculated without a valid time_cycle')
 
         ret = np.ones(np.shape(self.data)) * np.nan
 
         if ret.ndim == 1:
             for i in xrange(self.time_cycle):
-                ret[i::self.time_cycle]   = self.data[i::self.time_cycle] - clim[i]
+                ret[i::self.time_cycle] = self.data[i::self.time_cycle] - clim[i]
         elif ret.ndim == 2:
             for i in xrange(self.time_cycle):
-                ret[i::self.time_cycle,:]   = self.data[i::self.time_cycle,:] - clim[i,:]
+                ret[i::self.time_cycle, :] = self.data[i::self.time_cycle, :] - clim[i, :]
         elif ret.ndim ==3:
             for i in xrange(self.time_cycle):
-                ret[i::self.time_cycle,:,:] = self.data[i::self.time_cycle,:,:] - clim[i,:,:]
+                ret[i::self.time_cycle, :, :] = self.data[i::self.time_cycle, :, :] - clim[i, :, :]
         else:
             raise ValueError, 'Invalid dimension when calculating anomalies'
 
-        ret = np.ma.array(ret,mask=(np.isnan(ret) | self.data.mask) )
+        ret = np.ma.array(ret, mask=(np.isnan(ret) | self.data.mask) )
 
         #--- return a data object
-        res = self.copy(); res.data = ret.copy()
+        res = self.copy()
+        res.data = ret.copy()
         res.label = self.label + ' anomaly'
 
         return res
@@ -1653,7 +1653,7 @@ class Data(object):
             raise ValueError('Unsupported Data geometry!')
 
         #--- calculate conditional statistics ---
-        vals = np.unique(m)
+        vals = np.unique(m).astype(int)
 
         def _get_stat(a, msk, v):
             # get statistics of a single 2D field and a specific value v
@@ -1698,12 +1698,20 @@ class Data(object):
             # calculate for each timestep and value the conditional statistic
             for t in xrange(nt):
                 for i in xrange(len(vals)):
-                    means[t, i], stds[t, i],sums[t, i],mins[t, i], maxs[t, i] = _get_stat(self.data[t, :, :], m, vals[i])
+                    means[t, i], stds[t, i],sums[t, i],mins[t, i], maxs[t, i] = _get_stat(self.data[t, :, :],
+                                                                                          m, vals[i])
         else:
             raise ValueError('Invalid geometry!')
 
         # output arrays are all of shape (nt,nvals)
-        res = {'id': vals, 'mean': means, 'sum': sums, 'min': mins, 'max': maxs, 'std': stds}
+        # now we reformat output as such that the ID is the key for the dictionary
+        res = {}
+        for i in xrange(len(vals)):
+            id = vals[i]
+            res.update({id: {'mean': means[:, i],'std': stds[:, i], 'sum': sums[:, i], 'min': mins[:, i],
+                             'max': maxs[:, i]}})
+
+        #res = {'id': vals, 'mean': means, 'sum': sums, 'min': mins, 'max': maxs, 'std': stds}
 
         return res
 
@@ -2348,7 +2356,7 @@ class Data(object):
         if self.data.ndim == 3:
             res = self.data.std(axis=0)
         elif self.data.ndim == 2:
-            #no temporal averaging
+            # no temporal averaging
             res = None
         else:
             sys.exit('Temporal standard deviation can not be calculated as dimensions do not match!')
@@ -2357,7 +2365,8 @@ class Data(object):
             if res is None:
                 return res
             else:
-                tmp = self.copy(); tmp.data = res
+                tmp = self.copy()
+                tmp.data = res
                 return tmp
         else:
             return res
@@ -2371,7 +2380,7 @@ class Data(object):
         if self.data.ndim == 3:
             res = self.data.var(axis=0)
         if self.data.ndim == 2:
-            #no temporal averaging
+            # no temporal averaging
             res = None
         else:
             sys.exit('Temporal variance can not be calculated as dimensions do not match!')
@@ -2380,7 +2389,8 @@ class Data(object):
             if res is None:
                 return res
             else:
-                tmp = self.copy(); tmp.data = res
+                tmp = self.copy()
+                tmp.data = res
                 return tmp
         else:
             return res
@@ -2391,7 +2401,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def timsum(self,return_object=False):
+    def timsum(self, return_object=False):
         """
         calculate temporal sum of data field
         """
@@ -2409,27 +2419,29 @@ class Data(object):
             if res is None:
                 return res
             else:
-                tmp = self.copy(); tmp.data = res
+                tmp = self.copy()
+                tmp.data = res
                 return tmp
         else:
             return res
 
 #-----------------------------------------------------------------------
 
-    def timn(self,return_object=False):
+    def timn(self, return_object=False):
         """
         calculate number of samples
         done via timmean and timsum to take
         into account the valid values only
         """
 
-        res =  self.timsum() / self.timmean()
+        res = self.timsum() / self.timmean()
 
         if return_object:
             if res is None:
                 return res
             else:
-                tmp = self.copy(); tmp.data = res
+                tmp = self.copy()
+                tmp.data = res
                 return tmp
         else:
             return res
@@ -2466,11 +2478,11 @@ class Data(object):
                 m = ~self.data.mask
                 self.totalarea = self.cell_area[m].sum()
                 w[m] = self.cell_area[m] / self.totalarea
-                w = np.ma.array(w,mask=~m)
+                w = np.ma.array(w, mask=~m)
             else:
                 self.totalarea = self.cell_area.sum()
                 w = self.cell_area / self.totalarea
-                w = np.ma.array(w,mask=w!=w)
+                w = np.ma.array(w, mask=w != w)
             return w
 
         elif self.data.ndim == 3:
@@ -2481,14 +2493,14 @@ class Data(object):
             s = np.shape(cell_area)
             cell_area.shape = (-1)
             if len(s) == 2:
-                w = cell_area.repeat(nt).reshape((s[0]*s[1],nt)).T
+                w = cell_area.repeat(nt).reshape((s[0]*s[1], nt)).T
             elif len(s) == 1:
-                w = cell_area.repeat(nt).reshape((1,nt)).T
+                w = cell_area.repeat(nt).reshape((1, nt)).T
             else:
                 print 'nt: ', nt
                 print 's: ', s
                 print 'len(s): ', len(s)
-                raise ValueError, 'Invalid geometry!'
+                raise ValueError('Invalid geometry!')
 
             w.shape = self.data.shape  # geometry is the same now as data
 
@@ -2502,40 +2514,20 @@ class Data(object):
 
                 #4) itterate over all timesteps and calculate weighting matrix
                 for i in xrange(nt):
-                    w[i,:,:] /= no[i]
+                    w[i, :, :] /= no[i]
             else:
                 #2) mask areas that do not contain valid data
                 w = np.ma.array(w, mask= (w!=w) )
                 self.totalarea = self.cell_area.sum()
                 w /= self.totalarea  # normalization by total area. This does NOT result in sum(w) == 1 for each timestep!
-
             return w
 
         else:  # dimension
             raise ValueError('weighting matrix not supported for this data shape')
 
-
 #-----------------------------------------------------------------------
 
-    def __xxxxxxmean(self,apply_weights=True): #needed ???
-        """
-        calculate mean of the spatial field using weighted averaging
-
-        @param apply_weights: apply weights when calculating area weights
-        @type apply_weights: bool
-        """
-        if apply_weights:
-            #area weighting
-            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
-            w *= self.data #multiply the data with the weighting matrix in memory efficient way
-            return w.sum() #... gives weighted sum = mean
-        else:
-            #no area weighting
-            return self.data.mean()
-
-#-----------------------------------------------------------------------
-
-    def areasum(self,return_data = False,apply_weights=True):
+    def areasum(self, return_data = False, apply_weights=True):
         """
         calculate area weighted sum of the spatial field for each time using area weights
         NOTE, that results must not be the same as from cdo fldsum(), as fldsum() DOES NOT
@@ -2565,12 +2557,12 @@ class Data(object):
             w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
             w *= self.data #multiply the data with the weighting matrix in memory efficient way
             if self.data.ndim == 3:
-                w.shape = (len(self.data),-1)
-                tmp = w.sum(axis=1) #... gives weighted sum
+                w.shape = (len(self.data), -1)
+                tmp = w.sum(axis=1)  # ... gives weighted sum
             elif self.data.ndim == 2:
                 tmp = np.asarray([np.asarray(w.sum())])
             else:
-                raise ValueError, 'Undefined!'
+                raise ValueError('Undefined!')
 
             # mean = sum { w * x } = sum { area * x / totalarea } ==> mean * totalarea = sum {area * x}
             tmp *= self.totalarea #this is the difference to fldmean() !; Here we rescale the result by the total area used for calculating the weights
@@ -2578,26 +2570,26 @@ class Data(object):
         else:
             #no area weighting
             if self.data.ndim ==3:
-                tmp = np.reshape(self.data,(len(self.data),-1)).sum(axis=1)
+                tmp = np.reshape(self.data, (len(self.data), -1)).sum(axis=1)
             elif self.data.ndim == 2:
                 tmp = np.asarray([self.data.sum()])
             else:
-                raise ValueError, 'Undefined'
+                raise ValueError('Undefined')
 
         #////
         if return_data: #return data object
             if self.data.ndim == 3:
-                x = np.zeros((len(tmp),1,1))
-                x[:,0,0] = tmp
-            elif self.data.ndim ==2:
-                x = np.zeros((1,1))
-                x [:,:] = tmp[0]
+                x = np.zeros((len(tmp), 1, 1))
+                x[:, 0, 0] = tmp
+            elif self.data.ndim == 2:
+                x = np.zeros((1, 1))
+                x [:, :] = tmp[0]
             else:
                 raise ValueError, 'Undefined'
 
-            assert(isinstance(tmp,np.ma.masked_array))
+            assert(isinstance(tmp, np.ma.masked_array))
             r = self.copy()
-            r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
+            r.data = np.ma.array(x.copy(), mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
 
             #return cell area array with same size of data
             r.cell_area = np.array([1.])
@@ -2690,7 +2682,7 @@ class Data(object):
         elif self.data.ndim == 2:
             pass
         else:
-            raise ValueError, 'fldstd currently only supported for 3D data'
+            raise ValueError('fldstd currently only supported for 3D data')
 
         if apply_weights:
             #calculate weighted standard deviation.
@@ -2701,11 +2693,6 @@ class Data(object):
             w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
 
             if self.data.ndim ==2:
-                #mu = (self.data*w).sum()
-                #v1 = w.sum()
-                #v2 = (w*w).sum()
-                #tmp = [(v1 / (v1*v1-v2)) * (w*(self.data - mu)**2).sum()]
-
                 h2 = self.data*w  #wx
                 h1 = self.data*h2 #w*x**2
                 ny,nx = self.data.shape
@@ -2714,8 +2701,6 @@ class Data(object):
                 s /= (w.sum()**2  - (w*w).sum() )
 
                 tmp = [np.sqrt(s)]
-
-
             elif self.data.ndim ==3:
                 h2 = self.data*w  #wx
                 h1 = self.data*h2 #w*x**2
@@ -2725,11 +2710,9 @@ class Data(object):
 
                 s = np.ones(nt)*np.nan #generate output array (unbiased variance estimator)
                 for i in xrange(nt):
-                    s[i] = h1[i,:,:].sum() * w[i,:,:].sum() - h2[i,:,:].sum()**2
-                    s[i] /= (w[i,:,:].sum()**2  - (w[i,:,:]*w[i,:,:]).sum()  )
+                    s[i] = h1[i, :, :].sum() * w[i, :, :].sum() - h2[i, :, :].sum()**2
+                    s[i] /= (w[i, :, :].sum()**2 - (w[i, :, :]*w[i, :, :]).sum()  )
                 tmp = np.sqrt(s)
-
-
             else:
                 raise ValueError, 'Undefined'
 
@@ -2744,17 +2727,17 @@ class Data(object):
 
 
         if return_data: #return data object
-            if self.data.ndim==3:
-                x = np.zeros((len(tmp),1,1))
-                x[:,0,0] = tmp
-            elif self.data.ndim ==2:
+            if self.data.ndim == 3:
+                x = np.zeros((len(tmp), 1, 1))
+                x[:, 0, 0] = tmp
+            elif self.data.ndim == 2:
                 x = np.zeros((1,1,1))
-                x[0,0,0] = tmp
+                x[0, 0, 0] = tmp
             else:
-                raise ValueError, 'Undefined'
-            assert(isinstance(tmp,np.ma.masked_array))
+                raise ValueError('Undefined')
+            assert(isinstance(tmp, np.ma.masked_array))
             r = self.copy()
-            r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
+            r.data = np.ma.array(x.copy(), mask=tmp.mask)  # use mask of array tmp (important if all values are invalid!)
 
             #return cell area array with same size of data
             r.cell_area = np.array([1.])
@@ -2762,87 +2745,6 @@ class Data(object):
             return r
         else: #return numpy array
             return tmp
-
-
-
-
-
-    def __xxxxxoldfldstd(self,return_data = False,apply_weights=True):
-        """
-        calculate stdv of the spatial field using area weighting
-
-        returns exactly same results as the same CDO function
-
-        (unittest)
-
-        @param return_data: if True, then a C{Data} object is returned
-        @type return_data: bool
-
-        @return: vector of spatial std array[time]
-        """
-
-        if self.data.ndim == 3:
-            pass
-        elif self.data.ndim == 2:
-            raise ValueError, 'fldstd currently only supported for 3D data and not for 2D'
-        else:
-            raise ValueError, 'fldstd currently only supported for 3D data'
-
-        if apply_weights:
-            #calculate weighted standard deviation.
-            #http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
-            #(adapted from http://stackoverflow.com/questions/2413522/weighted-standard-deviation-in-numpy)
-
-            #calculate weighting matrix
-            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
-
-            h2 = self.data*w  #wx
-            h1 = self.data*h2 #w*x**2
-
-            #do calculation
-            nt,ny,nx = self.data.shape
-
-            s = np.ones(nt)*np.nan #generate output array (unbiased variance estimator)
-            for i in xrange(nt):
-                s[i] = h1[i,:,:].sum() * w[i,:,:].sum() - h2[i,:,:].sum()**2
-                s[i] /= (w[i,:,:].sum()**2  - (w[i,:,:]*w[i,:,:]).sum()  )
-            tmp = np.sqrt(s)
-
-        else:
-            #no area weighting
-            tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
-
-
-        #--- return either a Data object or a numpy array
-        #if return_data: #return data object
-        #    tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
-        #    x = np.zeros((len(tmp),1,1))
-
-        #    x[:,0,0] = tmp
-        #    r = self.copy()
-        #    r.data = np.ma.array(x.copy(),mask=tmp.mask )
-        #    return r
-        #else: #return numpy array
-        #    return tmp
-
-
-
-        if return_data: #return data object
-            x = np.zeros((len(tmp),1,1))
-            x[:,0,0] = tmp
-            assert(isinstance(tmp,np.ma.masked_array))
-            r = self.copy()
-            r.data = np.ma.array(x.copy(),mask=tmp.mask ) #use mask of array tmp (important if all values are invalid!)
-
-            #return cell area array with same size of data
-            r.cell_area = np.array([1.])
-
-            return r
-        else: #return numpy array
-            return tmp
-
-
-
 
 #-----------------------------------------------------------------------
 
@@ -2858,7 +2760,6 @@ class Data(object):
             pass
         else:
             self.label = ''
-
         u = self._get_unit()
         return self.label + ' ' + u
 
@@ -2872,14 +2773,17 @@ class Data(object):
         s = map(str,self.time)
         T=[]
         for t in s:
-            y = t[0:4]; m=t[4:6]; d=t[6:8]; h=t[8:]
+            y = t[0:4]
+            m=t[4:6]
+            d=t[6:8]
+            h=t[8:]
             h=str(int(float(h) * 24.))
             tn = y + '-' + m + '-' + d + ' ' +  h + ':00'
             T.append(tn)
         T=np.asarray(T)
         self.calendar = 'gregorian'
         self.time_str = 'days since 0001-01-01 00:00:00'
-        #convert first to datetime object and then use own function !!!
+        # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
 #-----------------------------------------------------------------------
@@ -2905,7 +2809,8 @@ class Data(object):
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
 #-----------------------------------------------------------------------
-    def adjust_time(self,day=None,month=None,year=None):
+
+    def adjust_time(self, day=None, month=None, year=None):
         """
         correct all timestamps and assign
         same day and/or month
