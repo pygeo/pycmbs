@@ -1643,22 +1643,20 @@ class Data(object):
             if self.data.shape != m.shape:
                 print self.shape
                 print m.shape
-                raise ValueError, 'Invalid geometry!'
+                raise ValueError('Invalid geometry!')
         elif self.data.ndim == 3:
             if self.data[0,:,:].shape != m.shape:
                 print self.shape
                 print m.shape
-                raise ValueError, 'Invalid geometry!'
+                raise ValueError('Invalid geometry!')
         else:
-            raise ValueError, 'Unsupported Data geometry!'
+            raise ValueError('Unsupported Data geometry!')
 
         #--- calculate conditional statistics ---
         vals = np.unique(m)
 
-
-        #===
         def _get_stat(a, msk, v):
-            #get statistics of a single 2D field and a specific value v
+            # get statistics of a single 2D field and a specific value v
             # a: masked array
             # msk: mask to use for analysis
             # v: float
@@ -1677,35 +1675,35 @@ class Data(object):
             if len(x) > 2:
                 s = x.std()
 
-            return m,s,su,mi,ma
-        #===
-
-
+            return m, s, su, mi, ma
 
         if self.data.ndim == 2:
-            means = np.ones((1,len(vals)))*np.nan; sums = np.ones((1,len(vals)))*np.nan
-            stds = np.ones((1,len(vals)))*np.nan; mins = np.ones((1,len(vals)))*np.nan
-            maxs = np.ones((1,len(vals)))*np.nan
+            means = np.ones((1, len(vals)))*np.nan
+            sums = np.ones((1, len(vals)))*np.nan
+            stds = np.ones((1, len(vals)))*np.nan
+            mins = np.ones((1, len(vals)))*np.nan
+            maxs = np.ones((1, len(vals)))*np.nan
 
             for i in xrange(len(vals)):
-                means[0,i],stds[0,i],sums[0,i],mins[0,i],maxs[0,i] = _get_stat(self.data,m,vals[i])
+                means[0, i], stds[0, i], sums[0, i], mins[0, i], maxs[0, i] = _get_stat(self.data, m, vals[i])
 
         elif self.data.ndim == 3:
             nt = len(self.data)
-            means = np.ones((nt,len(vals)))*np.nan; sums = np.ones((nt,len(vals)))*np.nan
-            stds = np.ones((nt,len(vals)))*np.nan; mins = np.ones((nt,len(vals)))*np.nan
-            maxs = np.ones((nt,len(vals)))*np.nan
+            means = np.ones((nt, len(vals)))*np.nan
+            sums = np.ones((nt, len(vals)))*np.nan
+            stds = np.ones((nt, len(vals)))*np.nan
+            mins = np.ones((nt, len(vals)))*np.nan
+            maxs = np.ones((nt, len(vals)))*np.nan
 
-            #calculate for each timestep and value the conditional statistic
+            # calculate for each timestep and value the conditional statistic
             for t in xrange(nt):
                 for i in xrange(len(vals)):
-                    means[t,i],stds[t,i],sums[t,i],mins[t,i],maxs[t,i] = _get_stat(self.data[t,:,:],m,vals[i])
-
+                    means[t, i], stds[t, i],sums[t, i],mins[t, i], maxs[t, i] = _get_stat(self.data[t, :, :], m, vals[i])
         else:
-            raise ValueError, 'Invalid geometry!'
+            raise ValueError('Invalid geometry!')
 
-        #output arrays are all of shape (nt,nvals)
-        res = {'id':vals,'mean':means,'sum':sums,'min':mins,'max':maxs,'std':stds}
+        # output arrays are all of shape (nt,nvals)
+        res = {'id': vals, 'mean': means, 'sum': sums, 'min': mins, 'max': maxs, 'std': stds}
 
         return res
 
@@ -1728,7 +1726,8 @@ class Data(object):
         elif self.time_str == 'month as %Y%m.%f':
             self._convert_timeYYYYMM()
         elif 'months since' in self.time_str:
-        #months since is not supported by netCDF4 library at the moment. Therefore implementation here.
+
+        # months since is not supported by netCDF4 library at the moment. Therefore implementation here.
             self._convert_monthly_timeseries()
 
         #--- time conversion using netCDF4 library routine ---
