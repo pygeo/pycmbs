@@ -73,18 +73,6 @@ class RegionalAnalysis(object):
             self._check()  # check input data
 
 #---
-    def save(self, fname='regional_statistics.pkl'):
-        """
-        saves statistics to a file using pickle
-
-        fname : str
-            name of output file where statistics should be stored
-        """
-        if os.path.exists(fname):
-            os.remove(fname)
-        pickle.dump(self.statistics, open(fname, 'w'))
-
-#---
 
     def _check(self):
         """
@@ -230,7 +218,7 @@ class RegionalAnalysis(object):
             xm = x.fldmean(return_data=True)
             ym = y.fldmean(return_data=True)
             sh = xm.shape
-            if xm.ndim !=3:
+            if xm.ndim != 3:
                 raise ValueError('Invalid shape: %s' % sh)
             if sh[0] != xm.nt:
                 raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
@@ -323,13 +311,93 @@ class RegionalAnalysis(object):
 
 #---
 
-    def print_table(self, format='txt', filename=None):
+    def save(self, prefix='', format='txt', dir=None):
+        """
+        save statistic results to ASCII files
+
+        Parameters
+        ----------
+        prefix : str
+            prefix for output filenames
+        format : str
+            output format ['pkl','txt']
+        dir : str
+            directory where results shall be written to
+        """
+
+        if format not in ['txt', 'pkl']:
+            raise ValueError('Invalid format for output [txt,pkl]: %s' % format)
+        if dir is None:
+            raise ValueError('You need to specify an output directory!')
+        if not os.path.exists(dir):
+            os.makedirs(dir)  # try to generate directory
+        if not os.path.exists(dir):
+            raise ValueError('ERROR: output directory not existing and it also can not be created!')
+        if dir[-1] != os.sep:
+            dir += os.sep
+
+        if format == 'pkl':
+            oname = dir + prefix + '_regional_statistics.pkl'
+            if os.path.exists(oname):
+                os.remove(oname)
+            pickle.dump(self.statistics, open(oname, 'w'))
+        elif format == 'txt':
+            self._save_standard_statistics(dir + prefix + '_regional_statistics_standard.txt')
+            #self._save_correlation_statistics_A(dir + prefix + '_regional_statistics_correlation_A.txt')
+            #self._save_correlation_statistics_B(dir + prefix + '_regional_statistics_correlation_B.txt')
+            #self._save_correlation_statistics_C(dir + prefix + '_regional_statistics_correlation_C.txt')
+        else:
+            raise ValueError('Unsupported output format!')
+
+    def _save_standard_statistics(self, fname):
+        """
+        save standard (first and second order) statistics to ASCII files as follows
+
+        time | xmean | ymean | xstd | ystd | xmin | ymin | xmax | ymax
+
+        This information is stored separatley for each region ID in a separate file!
+
+        """
+        root = os.path.splitext(fname)[0]
+        sep = '\t'
+
+        ids = self.statistics['xstat'].keys()
+        for id in ids:
+            fname = root + '_' + str(id).zfill(16) + '.txt'
+            if os.path.exists(fname):
+                os.remove(fname)
+            o = open(fname, 'w')
+
+            # header
+            o.write('time' + sep + 'xmean' + sep + 'ymean' + sep + 'xstd' + sep + 'ystd' + '\n')
+
+            # data
+            for i in xrange(len(self.statistics['xstat'][id]['mean'])):
+                s = str(i) + sep \
+                    + str(self.statistics['xstat'][id]['mean'][i]) + sep \
+                    + str(self.statistics['ystat'][id]['mean'][i]) + sep \
+                    + str(self.statistics['xstat'][id]['std'][i]) + sep \
+                    + str(self.statistics['ystat'][id]['std'][i]) + sep \
+                    + str(self.statistics['xstat'][id]['min'][i]) + sep \
+                    + str(self.statistics['ystat'][id]['min'][i]) + sep \
+                    + str(self.statistics['xstat'][id]['max'][i]) + sep \
+                    + str(self.statistics['ystat'][id]['max'][i]) + '\n'
+                o.write(s)
+            o.close()
+
+
+
+
+
+
+
+
+
+    def xxxxxxxxxxxxxprint_table(self, format='txt', filename=None):
         """
         print table of regional statistics
         """
 
-        if format not in ['txt']:
-            raise ValueError, 'ERROR: invalid output format in print_table()'
 
         def _get_string(d, id):
             #d: dictionary (self.statistics)
@@ -357,16 +425,11 @@ class RegionalAnalysis(object):
 
 
             # id, mean correlation, std of correlation
-            if d['corrstat']['corrstat1'] == None:
+            if d['corrstat']['corrstat1'] is None:
                 s += '' + sep + '' + sep
             else:
                 stat = d['corrstat']['corrstat1']
                 m = stat['id'] == id
-                #print id
-                #print stat['id']
-                #print m, len(m)
-                #print stat['mean']
-                #print stat['mean'][0]
                 if len(m) > 0:
                     if sum(m) == 1:
                         s += str(stat['mean'][0][m][0]) + sep + str(stat['std'][0][m][0]) + sep
@@ -386,11 +449,13 @@ class RegionalAnalysis(object):
 
                 if len(m) > 0:
                     if sum(m) == 1:
-                        s += str(stat['correlation'][m][0]) + sep + str(stat['pvalue'][m][0]) + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) + sep + str(stat['stdx'][m][0]) + sep + str(stat['stdy'][m][0]) + sep
+                        s += str(stat['correlation'][m][0]) + sep + str(stat['pvalue'][m][0]) \
+                             + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) \
+                             + sep + str(stat['stdx'][m][0]) + sep + str(stat['stdy'][m][0]) + sep
                     else:
                         print id
                         print m
-                        raise ValueError, 'The ID seems not to be unique here!'
+                        raise ValueError('The ID seems not to be unique here!')
                 else:
                     s += '' + sep + '' + sep + '' + sep + '' + sep + '' + sep + '' + sep
 
@@ -399,7 +464,7 @@ class RegionalAnalysis(object):
 
 
 
-        if filename != None:
+        if filename is not None:
             if os.path.exists(filename):
                 os.remove(filename)
             o = open(filename,'w')
