@@ -10,6 +10,8 @@ global-include pyCMBS_template.cfg
 graft tests
 graft logo
 graft configuration
+graft docsrc
+prune build
 prune test_eof
 prune dirk
 prune misc
