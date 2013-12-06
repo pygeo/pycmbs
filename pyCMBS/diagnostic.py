@@ -181,7 +181,7 @@ class RegionalAnalysis(object):
         """
 
         if (self.x is None) or (self.y is None):
-            return {'corrstat1': None, 'corrstat2': None}
+            return {'analysis_A': None, 'analysis_B': None, 'analysis_C': None}
 
         #=======================================================================
         # A) calculate once correlation and then calculate regional statistics
@@ -203,7 +203,7 @@ class RegionalAnalysis(object):
         stdy = []
         vals = np.unique(self.region.data.flatten())
         for v in vals:
-            print('Regional analysis - correlation for ID: %s ' % str(v).zfill(3))
+            # print('Regional analysis - correlation for ID: %s ' % str(v).zfill(3))
             msk = self.region.data == v  # generate mask
             x = self.x.copy()
             y = self.y.copy()
@@ -260,6 +260,16 @@ class RegionalAnalysis(object):
         stdx = np.asarray(stdx)
         stdy = np.asarray(stdy)
 
+        def _reshuffle(d):
+            """reshuffle structure of output dictionary"""
+            r = {}
+            for i in xrange(len(d['id'])):
+                id = d['id'][i]
+                r.update({id: {'slope': d['slope'][i], 'intercept': d['intercept'][i],
+                               'correlation': d['correlation'][i], 'pvalue': d['pvalue'][i]}})
+                #stdx, stdy are not remapped at the moment
+            return r
+
         corrstat2 = {'id': vals, 'slope': slopes,
             'correlation': correlations,
             'pvalue': pvalues,
@@ -273,7 +283,7 @@ class RegionalAnalysis(object):
             'intercept': intercepts1}
 
         #--- return result ---
-        return {'analysis_A': corrstat1, 'analysis_B': corrstat2, 'analysis_C': corrstat3}
+        return {'analysis_A': corrstat1, 'analysis_B': _reshuffle(corrstat2), 'analysis_C': _reshuffle(corrstat3)}
 
 
 
@@ -310,28 +320,6 @@ class RegionalAnalysis(object):
         #--- 3) weighted squared difference --> Reichler index for different regions !
         #todo: how to do the weighting ????
         #stop
-
-
-
-
-
-
-#---
-
-    def xxxxxsave_result(self,key,corr,pcorr):
-        """
-        save result for later plotting/table statistics etc.
-
-        @param key: key/id, specifying the region or experiment
-        @type key: str
-
-        @param corr: correlation value
-        @type corr: float
-
-        @param pcorr: p-value of correlation value
-        @type pcorr: float
-        """
-        self.statistics.update({key:{'correlation': corr, 'p-value': pcorr}})
 
 #---
 
