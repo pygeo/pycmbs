@@ -17,9 +17,9 @@ from dateutil.rrule import *
 class TestData(TestCase):
 
     def setUp(self):
-        #init Data object for testing
-        n=1000 #slows down significantly! constraint is percentile  test
-        x = sc.randn(n)*100. #generate dummy data
+        # init Data object for testing
+        n=1000  # slows down significantly! constraint is percentile  test
+        x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None,None)
         d=np.ones((n,1,1))
         self.D.data = d

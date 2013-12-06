@@ -167,39 +167,54 @@ class RegionalAnalysis(object):
         """
         calculate correlation between two fields
 
-        in general one can think of two ways to calculate the correlation between X and Y
+        in general one can think of three ways to calculate the correlation between X and Y
         a) correlate per pixel --> map of correlation measures; calculate then regional mean of this skill score (e.g. R)
         b) use multidimensional array [time,ny,nx] and correlate whole dataset for a region, without averaging
+        c) calculate spatial mean field for each region and then correlate the means
 
-        Here we implement both to allow for comparisons
+        Here we implement all three approaches to allow for comparability
+
+        Parameters
+        ----------
+        pthres : float
+            threshold to mask insignificant correlations (default>1. ==> no masking)
         """
 
-        if (self.x == None) or (self.y == None):
+        if (self.x is None) or (self.y is None):
             return {'corrstat1': None, 'corrstat2': None}
 
+        #=======================================================================
         # A) calculate once correlation and then calculate regional statistics
         RO, PO = self.x.correlate(self.y, pthres=pthres,
                         spearman=False, detrend=False)
-        corrstat1 = RO.condstat(self.region) #gives a dictionary already
+        corrstat1 = RO.condstat(self.region)  # gives a dictionary already
 
-        # B) calculate regional statistics based on entire dataset
+
         correlations = []
+        correlations1 = []
         slopes = []
+        slopes1 = []
         pvalues = []
+        pvalues1 = []
         intercepts = []
+        intercepts1 = []
         ids = []
         stdx = []
         stdy = []
         vals = np.unique(self.region.data.flatten())
         for v in vals:
-            print 'Regional analysis - correlation for ID: ' + str(v).zfill(3)
+            print('Regional analysis - correlation for ID: %s ' % str(v).zfill(3))
             msk = self.region.data == v  # generate mask
             x = self.x.copy()
             y = self.y.copy()
             x._apply_mask(msk)
             y._apply_mask(msk)
             del msk
-            xvec = x.data.flatten(); yvec = y.data.flatten()
+
+            #=======================================================================
+            # B) calculate regional statistics based on entire dataset for a region
+            xvec = x.data.flatten()
+            yvec = y.data.flatten()
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xvec, yvec)
             ids.append(v)
             slopes.append(slope)
@@ -208,12 +223,40 @@ class RegionalAnalysis(object):
             intercepts.append(intercept)
             stdx.append(xvec.std())
             stdy.append(yvec.std())
-            del xvec, yvec, x, y
+            del xvec, yvec, slope, intercept, r_value, p_value, std_err
+
+            #=======================================================================
+            # C) fldmean() for each region and then correlate
+            xm = x.fldmean(return_data=True)
+            ym = y.fldmean(return_data=True)
+            sh = xm.shape
+            if xm.ndim !=3:
+                raise ValueError('Invalid shape: %s' % sh)
+            if sh[0] != xm.nt:
+                raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
+            if sh[1] != 1:
+                raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
+            if sh[2] != 1:
+                raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
+            slope1, intercept1, r_value1, p_value1, std_err1 = stats.mstats.linregress(xm.data[:, 0, 0], ym.data[:, 0, 0])
+
+            slopes1.append(slope1)
+            correlations1.append(r_value1)
+            pvalues1.append(p_value1)
+            intercepts1.append(intercept1)
+
+            print('TODO: how to deal with area weighting in global correlation analyis ????')
+
+            del x, y, xm, ym
         ids = np.asarray(ids)
         slopes = np.asarray(slopes)
+        slopes1 = np.asarray(slopes1)
         correlations = np.asarray(correlations)
+        correlations1 = np.asarray(correlations1)
         pvalues = np.asarray(pvalues)
+        pvalues1 = np.asarray(pvalues1)
         intercepts = np.asarray(intercepts)
+        intercepts1 = np.asarray(intercepts1)
         stdx = np.asarray(stdx)
         stdy = np.asarray(stdy)
 
@@ -224,8 +267,13 @@ class RegionalAnalysis(object):
             'stdx': stdx,
             'stdy': stdy}
 
+        corrstat3 = {'id': vals, 'slope': slopes1,
+            'correlation': correlations1,
+            'pvalue': pvalues1,
+            'intercept': intercepts1}
+
         #--- return result ---
-        return {'corrstat1': corrstat1, 'corrstat2': corrstat2}
+        return {'analysis_A': corrstat1, 'analysis_B': corrstat2, 'analysis_C': corrstat3}
 
 
 
@@ -261,7 +309,7 @@ class RegionalAnalysis(object):
 
         #--- 3) weighted squared difference --> Reichler index for different regions !
         #todo: how to do the weighting ????
-        stop
+        #stop
 
 
 
