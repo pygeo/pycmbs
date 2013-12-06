@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This file is part of pyCMBS.
-For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+For COPYRIGHT, LICENSE and AUTHORSHIP please refer to
 the pyCMBS licensing details.
 """
 
@@ -58,7 +58,7 @@ class RegionalAnalysis(object):
         self.statistics = {}
 
         if (x is None) or (y is None):
-            #in case of dummy data, do not perform data check
+            # in case of dummy data, do not perform data check
             if x is None:
                 self.x = None
             else:
@@ -75,8 +75,10 @@ class RegionalAnalysis(object):
 #---
     def save(self, fname='regional_statistics.pkl'):
         """
-        save statistics to a file using pickle
-        @return:
+        saves statistics to a file using pickle
+
+        fname : str
+            name of output file where statistics should be stored
         """
         if os.path.exists(fname):
             os.remove(fname)
@@ -230,8 +232,14 @@ class RegionalAnalysis(object):
     def calculate(self, pthres=1.01):
         """
         perform calculation of regional statistics
-        @return: returns a dictionary with details on regional statistics
-        @rtype: dict
+
+        The routine calculates the following statistics for EACH regions
+        a) timeseries of first and second order moments (mean, std)
+        b)
+
+        Returns
+        -------
+        returns a dictionary with details on regional statistics
         """
 
         #--- 1) standard statistic for X and Y datasets ---
@@ -239,7 +247,7 @@ class RegionalAnalysis(object):
         ystat = None
         if self.f_standard:
             if self.x is not None:
-                xstat = self.x.condstat(self.region) #returns a dictionary with statistics for each region (could be for all timesteps!)
+                xstat = self.x.condstat(self.region)  # returns a dictionary with statistics for each region (could be for all timesteps!)
             if self.y is not None:
                 ystat = self.y.condstat(self.region)
 
@@ -250,6 +258,10 @@ class RegionalAnalysis(object):
         corrstat = None
         if self.f_correlation:
             self.statistics.update({'corrstat': self._get_correlation(pthres=pthres)})
+
+        #--- 3) weighted squared difference --> Reichler index for different regions !
+        #todo: how to do the weighting ????
+        stop
 
 
 
@@ -271,7 +283,7 @@ class RegionalAnalysis(object):
         @param pcorr: p-value of correlation value
         @type pcorr: float
         """
-        self.statistics.update({key:{'correlation':corr,'p-value':pcorr}})
+        self.statistics.update({key:{'correlation': corr, 'p-value': pcorr}})
 
 #---
 
