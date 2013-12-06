@@ -327,7 +327,6 @@ class TestData(TestCase):
         self.assertAlmostEqual(u.t_value[0,0],0.847,places=3)
         self.assertEqual(u.data[0,0],1.)
 
-
     def test_save_netCDF(self):
         """
         test netCDF save routine
@@ -542,7 +541,7 @@ class TestData(TestCase):
 
         x = self.D.copy()
         y=x.normalize(return_object=True)
-        dif = np.abs(y.data[:,0,0]-r)
+        dif = np.abs(y.data[:, 0, 0]-r)
         self.assertTrue(np.all(dif == 0.))
 
 
@@ -563,13 +562,14 @@ class TestData(TestCase):
         #test for mask value == 1 (2 pixels)
         rm = 0.5*(D.data[:,0,0] + D.data[:,1,0])
         rs = (D.data[:,0,0] + D.data[:,1,0])
-        self.assertTrue(np.all( (res['mean'][:,0]-rm) == 0. ))
-        self.assertTrue(np.all( (res['sum'][:,0]-rs) == 0. ))
+
+        self.assertTrue(np.all((res[1]['mean']-rm) == 0. ))
+        self.assertTrue(np.all((res[1]['sum']-rs) == 0. ))
 
         #test for mask value == 3 (1 pixel)
         rm = rs = D.data[:,2,0]
-        self.assertTrue(np.all( (res['mean'][:,1]-rm) == 0. ))
-        self.assertTrue(np.all( (res['sum'][:,1]-rs) == 0. ))
+        self.assertTrue(np.all( (res[3]['mean']-rm) == 0. ))
+        self.assertTrue(np.all( (res[3]['sum']-rs) == 0. ))
 
 
     def test_apply_temporal_mask(self):
