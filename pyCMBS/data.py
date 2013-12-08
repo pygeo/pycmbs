@@ -269,7 +269,6 @@ class Data(object):
             rval = datetime.datetime(dmin.year, 1, 1, 0, 0, 0, 0, dmin.tzinfo)
         return rval
 
-
     def _get_maxdate(self,base=None):
         """
         get maximum date
@@ -291,6 +290,8 @@ class Data(object):
             rval = datetime.datetime(dmax.year,12,31,23,59,59,0,dmax.tzinfo)
 
         return rval
+
+
 
 
 
@@ -1010,6 +1011,7 @@ class Data(object):
             print 'scale_factor : ', self.scale_factor
 
         if self.data is None:
+            print self.varname
             raise ValueError, 'The data in the file ' + self.filename + ' is not existing. This must not happen!'
         if self.scale_factor == None:
             raise ValueError, 'The scale_factor for file ' + self.filename + 'is NONE, this must not happen!'
@@ -1314,7 +1316,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def correlate(self,Y,pthres=1.01,spearman=False,detrend=False):
+    def correlate(self, Y, pthres=1.01, spearman=False, detrend=False):
         """
         correlate present data on a grid cell basis
         with another dataset
@@ -1350,7 +1352,7 @@ class Data(object):
 
         if not Y.data.shape == self.data.shape:
             print Y.data.shape, self.data.shape
-            raise ValueError, 'unequal shapes: correlation not possible!'
+            raise ValueError('unequal shapes: correlation not possible!')
 
         #- generate a mask of all samples that are valid in BOTH datasets
         vmask = self.data.mask | Y.data.mask
@@ -1361,12 +1363,10 @@ class Data(object):
         yv = Y.data.copy()
         sdim = self.data.shape
 
-
         #--- detrend data if required
         if detrend:
             xv = self.detrend(return_object=True).data.copy()
             yv = Y.detrend(return_object=True).data.copy()
-
 
         #- ... and reshape it
         nt = len(self.data)
@@ -1397,19 +1397,23 @@ class Data(object):
         #do correlation calculation; currently using np.ma.corrcoef as this
         #supports masked arrays, while stats.linregress doesn't!
 
-        if spearman:
-            res = [stats.mstats.spearmanr(xn[:,i], yn[:,i]) for i in xrange(sum(mskvalid))]
-            res = np.asarray(res)
-            r = res[:,0]; p = res[:, 1]
-            r[p>pthres] = np.nan
+        if mskvalid.sum() > 0:
+            if spearman:
+                res = [stats.mstats.spearmanr(xn[:, i], yn[:, i]) for i in xrange(sum(mskvalid))]
+                res = np.asarray(res)
+                r = res[:, 0]
+                p = res[:, 1]
+                r[p > pthres] = np.nan
 
-        else: #Pearson product-moment correlation
-            res = [np.ma.corrcoef(xn[:,i], yn[:,i]) for i in xrange(sum(mskvalid))]  #<<<< as an alternative one could use stats.mstats.linregress ; results are however equal for R-VALUE, but NOT for P-value, here mstats.linregress seems to be buggy!, see unittests
-            res = np.asarray(res)
-            r = res[:, 0, 1] #correlation coefficient
-            p = get_significance(r, nv)
-            r[p>pthres] = np.nan
-
+            else: #Pearson product-moment correlation
+                res = [np.ma.corrcoef(xn[:, i], yn[:, i]) for i in xrange(sum(mskvalid))]  #<<<< as an alternative one could use stats.mstats.linregress ; results are however equal for R-VALUE, but NOT for P-value, here mstats.linregress seems to be buggy!, see unittests
+                res = np.asarray(res)
+                r = res[:, 0, 1]  # correlation coefficient
+                p = get_significance(r, nv)
+                r[p > pthres] = np.nan
+        else:
+            r = None
+            p = None
 
         #remap to original geometry
         R = np.ones(xv.shape[1]) * np.nan #matrix for results
@@ -1420,8 +1424,8 @@ class Data(object):
         R = R.reshape(orgshape) #generate a map again
         P = P.reshape(orgshape)
 
-        R = np.ma.array(R,mask=np.isnan(R))
-        P = np.ma.array(P,mask=np.isnan(P))
+        R = np.ma.array(R, mask=np.isnan(R))
+        P = np.ma.array(P, mask=np.isnan(P))
 
         RO = self.copy()
         RO.data = R
@@ -1432,14 +1436,11 @@ class Data(object):
         RO.unit = ''
 
         PO = self.copy()
-        PO.data = P; PO.label = 'p-value' # + self.label + ' ' + y.label
+        PO.data = P
+        PO.label = 'p-value' # + self.label + ' ' + y.label
         PO.unit = ''
 
-        return RO,PO
-
-
-
-
+        return RO, PO
 
 #-----------------------------------------------------------------------
 
@@ -1460,7 +1461,7 @@ class Data(object):
 
         """
 
-        valid_types = ['monthly','yearly']
+        valid_types = ['monthly', 'yearly']
         if mtype in valid_types:
             pass
         else:
@@ -1485,7 +1486,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_climatology(self,return_object=False,nmin=1):
+    def get_climatology(self, return_object=False, nmin=1):
         """
         calculate climatological mean for a time increment
         specified by self.time_cycle
@@ -1499,7 +1500,7 @@ class Data(object):
         @param nmin: specifies the minimum number of datasets used for climatology; else the result is masked
         @type nmin: bool
         """
-        if hasattr(self,'time_cycle'):
+        if hasattr(self, 'time_cycle'):
             pass
         else:
             raise ValueError, 'Climatology can not be calculated without a valid time_cycle'
@@ -1527,8 +1528,10 @@ class Data(object):
         else:
             raise ValueError, 'Invalid dimension when calculating climatology'
 
-        n = slim / clim; del slim #number of data taken into account for climatology
-        clim = np.ma.array(clim, mask=( np.isnan(clim) | (n < nmin) | np.isnan(n)) ); del n
+        n = slim / clim
+        del slim  # number of data taken into account for climatology
+        clim = np.ma.array(clim, mask=( np.isnan(clim) | (n < nmin) | np.isnan(n)) )
+        del n
 
         if return_object:
             r = self.copy()
@@ -3100,7 +3103,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_valid_data(self,return_mask=False,mode='all'):
+    def get_valid_data(self, return_mask=False, mode='all'):
         """
         this routine calculates from the masked array
         only the valid data and returns it together with its
@@ -3137,18 +3140,17 @@ class Data(object):
 
         #- extract only valid (not masked data)
         if mode == 'all':
-            msk = np.sum(~data.mask,axis=0) == n #identify all ngrid cells where all timesteps are valid
+            msk = np.sum(~data.mask,axis=0) == n  # identify all ngrid cells where all timesteps are valid
         elif mode == 'one':
-            msk = np.sum(~data.mask,axis=0) > 0  #identify ONE grid cell where all timesteps are valid
+            msk = np.sum(~data.mask,axis=0) > 0  # identify ONE grid cell where all timesteps are valid
         else:
-            print mode
-            raise ValueError, 'Invalid option in get_valid_data()'
+            raise ValueError('Invalid option in get_valid_data() %s' % mode)
 
         data = data[:,msk]
         if lon is not None:
-            lon  = lon[msk]
+            lon = lon[msk]
         if lat is not None:
-            lat  = lat[msk]
+            lat = lat[msk]
 
         if return_mask:
             return lon,lat,data,msk
@@ -3157,7 +3159,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def _apply_mask(self,msk1,keep_mask=True):
+    def _apply_mask(self, msk1, keep_mask=True):
         """
         apply a mask to C{Data}. All data where mask==True
         will be masked. Former data and mask will be stored
@@ -3167,7 +3169,7 @@ class Data(object):
         @type keep_mask : boolean
         """
 
-        if isinstance(msk1,Data):
+        if isinstance(msk1, Data):
             msk = msk1.data
         else:
             msk = msk1
