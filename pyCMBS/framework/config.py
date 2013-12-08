@@ -11,7 +11,7 @@ import numpy as np
 from utils import get_data_pool_directory
 import pylab as pl
 import glob
-from pyCMBS import Region
+from pyCMBS import Region, Data
 from cdo import *
 
 
@@ -303,11 +303,11 @@ class PlotOptions(object):
         for var in cfg.variables:
             parser = SafeConfigParser()
 
-            """ The plot options are assumed to be in a file that has the same name as the variable to look be analyzed """
+            # The plot options are assumed to be in a file that has the same name as the variable to look be analyzed
             file = cfg.options['configdir'] + var + '.ini'
             if os.path.exists(file):
-                parser.read(file)
                 sys.stdout.write('\n *** Reading configuration for %s: ' % var + "\n")
+                parser.read(file)
             else:
                 raise ValueError('Plot option file not existing: %s' % file)
 
@@ -320,25 +320,24 @@ class PlotOptions(object):
             The other sections specify the details for each observational dataset
             """
 
-            print('\n*** VARIABLE: %s ***' % var)
+            #print('\n*** VARIABLE: %s ***' % var)
             dl = {}
-            print parser.sections()
+            #print parser.sections()
             for section_name in parser.sections():
-                #/// add global plotting options
+                # add global plotting options
                 if section_name.upper() == 'OPTIONS':
                     o = {}
                     for name, value in parser.items(section_name):
                         o.update({name: value})
                     dl.update({'OPTIONS': o})
-                    #/// observation specific dictionary
-                else:
+                else:  # observation specific dictionary
                     o = {}
                     for name, value in parser.items(section_name):
                         o.update({name: value})
                     dl.update({section_name: o})
 
             #/// update options dictionary for this variable
-            print '    OBSERVATIONS for this variable: ', dl.keys()
+            #print '    OBSERVATIONS for this variable: ', dl.keys()
             self.options.update({var: dl})
 
             #/// destroy parser (important, as otherwise problems)
@@ -378,8 +377,6 @@ class PlotOptions(object):
         # a value of [bilinear,conservative,nearest]
         for var in cfg.variables:
             lopt = self.options[var]
-            print lopt['OPTIONS']['interpolation']
-
             if lopt['OPTIONS']['interpolation'] == 'bilinear':
                 lopt['OPTIONS'].update({'interpolation': 'remapbil'})
             elif lopt['OPTIONS']['interpolation'] == 'conservative':
@@ -507,6 +504,12 @@ class PlotOptions(object):
                         raise ValueError('CTICKS option needs to \
                                            be a list')
 
+                if k == 'regional_analysis':
+                    if 'region_file' not in d['OPTIONS'].keys():
+                        raise ValueError('ERROR: You need to provide a region file name if '
+                                         'you want to use regional_analysis!')
+
+
             # check local options
             # odat is key for a specific observational dataset
             for odat in d.keys():
@@ -519,10 +522,33 @@ class PlotOptions(object):
                         cerr += 1
                     if k == 'obs_file':
                         d[odat]['obs_file'] = d[odat]['obs_file'].rstrip()
-                        if ((d[odat]['obs_file'][-1] == os.sep) or (d[odat]['obs_file'][-3:] == '.nc') or (d[odat]['obs_file'][-4:] == '.nc4')):
+                        if ((d[odat]['obs_file'][-1] == os.sep) or (d[odat]['obs_file'][-3:] == '.nc')
+                            or (d[odat]['obs_file'][-4:] == '.nc4')):
                             pass
                         else:
                             d[odat]['obs_file'] = d[odat]['obs_file'] + os.sep
+
+
+        # check if region file is given
+        if 'region_file' in d['OPTIONS'].keys():
+            if d['OPTIONS']['region_file'].lower() == 'none':
+                print 'Da sammer1'
+                pass
+            elif len(d['OPTIONS']['region_file']) == 0:
+                print 'Da sammer2'
+                pass
+            else:
+                if not os.path.exists(d['OPTIONS']['region_file']):
+                    raise ValueError('Regional masking file not existing: %s' % d['OPTIONS'][k])
+                else:
+                    if 'region_file_varname' in d['OPTIONS'].keys():
+                        try:
+                            tmp = Data(d['OPTIONS']['region_file'],d['OPTIONS']['region_file_varname'], read=True)  # try reading
+                        except:
+                            raise ValueError('ERROR: the regional masking file can not be read!')
+                    else:
+                        raise ValueError('You need to specify also the name for the variable of the regional '
+                                         'mask! (region_file_varname)')
 
         if cerr > 0:
             raise ValueError('There were errors in the initialization \

@@ -571,14 +571,12 @@ class TestData(TestCase):
         self.assertTrue(np.all( (res[3]['mean']-rm) == 0. ))
         self.assertTrue(np.all( (res[3]['sum']-rs) == 0. ))
 
-
     def test_apply_temporal_mask(self):
         D=self.D.copy()
         D.data[:,:,:]=1.
         m = np.zeros(len(D.data)).astype('bool')
         m[1] = True; m[5]=True
         D._apply_temporal_mask(m)
-
 
     def test_bounding_box(self):
         D = self.D.copy()
@@ -596,7 +594,6 @@ class TestData(TestCase):
         self.assertEqual(i2,3)
         self.assertEqual(j1,1)
         self.assertEqual(j2,6)
-
 
     def test_fldmean(self):
         """
@@ -623,16 +620,15 @@ class TestData(TestCase):
         r1 = D.fldmean()[0] #with weights
         r1a = D1.fldmean()[0]
 
-        self.assertEqual(r1,9.)
-        self.assertEqual(r1a,9.)
+        self.assertEqual(r1, 9.)
+        self.assertEqual(r1a, 9.)
 
         r2 = D.fldmean(apply_weights=False) #without weights
         r2a = D1.fldmean(apply_weights=False)
         self.assertEqual(r2[0],x.mean())
         self.assertEqual(r2a[0],xx.mean())
 
-
-        #2D case
+        # 2D case
         D=self.D.copy()
         x=np.ones((1,4))
         x[0,1]=1.; x[0,2] = 5.

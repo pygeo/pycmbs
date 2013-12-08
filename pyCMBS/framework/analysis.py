@@ -744,8 +744,17 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         # Perform regional analysis
         if f_regional_analysis:
-            raise ValueError('ERROR: Regional analysis not implemented so far completely!')
-            REGSTAT = RegionalAnalysis(obs_orig, model_data, r)
+
+            #some dummy region
+            #regions_for_stat = Data(None,None)
+            #regions_for_stat.data = (np.random.random(obs_orig.shape[1:3])*5. + 1.).astype('int')
+
+            region_file = local_plot_options['OPTIONS']['region_file']
+            region_file_varname = local_plot_options['OPTIONS']['region_file_varname']
+            # user needs to ensure that geometry matches!
+            regions_for_stat = Data(region_file, region_file_varname, read=True)
+
+            REGSTAT = RegionalAnalysis(obs_orig, model_data, regions_for_stat)
             REGSTAT.calculate()  # after that we have the regional statistics already calculated for the current model
 
             # save results
