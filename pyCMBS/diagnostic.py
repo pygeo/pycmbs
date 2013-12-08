@@ -171,12 +171,13 @@ class RegionalAnalysis(object):
         if (self.x is None) or (self.y is None):
             return {'analysis_A': None, 'analysis_B': None, 'analysis_C': None}
 
+        #x.get_valid_data
+
         #=======================================================================
         # A) calculate once correlation and then calculate regional statistics
         RO, PO = self.x.correlate(self.y, pthres=pthres,
                         spearman=False, detrend=False)
         corrstat1 = RO.condstat(self.region)  # gives a dictionary already
-
 
         correlations = []
         correlations1 = []
