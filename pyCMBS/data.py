@@ -267,6 +267,8 @@ class Data(object):
             rval = datetime.datetime(dmin.year, dmin.month, dmin.day, 0, 0, 0, 0, dmin.tzinfo)
         elif base == 'year':
             rval = datetime.datetime(dmin.year, 1, 1, 0, 0, 0, 0, dmin.tzinfo)
+        else:
+            raise ValueError('Invalid base in _get_mindate()')
         return rval
 
     def _get_maxdate(self, base=None):
@@ -289,6 +291,8 @@ class Data(object):
             rval = datetime.datetime(dmax.year,dmax.month,dmax.day,23,59,59,0,dmax.tzinfo)
         elif base == 'year':
             rval = datetime.datetime(dmax.year,12,31,23,59,59,0,dmax.tzinfo)
+        else:
+            raise ValueError('Invalid base in _get_maxdate()')
 
         return rval
 
@@ -1790,48 +1794,129 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def _temporal_subsetting(self,i1,i2):
+    def _temporal_subsetting(self, i1, i2):
         """
         perform temporal subsetting of the data based on given
         time indices i1,i2
 
-        @param i1: start time index
-        @type i1: int
+        Parameters
+        ----------
+        i1 : int
+            start time index
+        i2 : int
+            stop time index
 
-        @param i2: stop time index
-        @type i2: int
+        Returns
+        -------
+        Returns nothing, but modifies the current Data object
         """
 
-        if i2<i1:
+        if i2 < i1:
             sys.exit('Invalid indices _temporal_subsetting')
-        i2 += 1 #increme last index, as otherwise the last dataset is missing!
+        i2 += 1  # incremet last index, as otherwise the last dataset is missing!
         if i2 > len(self.time):
             i2 = len(self.time)
-
-        #print 'In subsetting: ', i1,i2
-        #print self.date[i1], self.date[i2]
-
         self.time = self.time[i1:i2]
 
-
         if self.data.ndim == 3:
-            if self.verbose:
-                print 'Temporal subsetting for 3D variable ...'
-            self.data = self.data[i1:i2,:,:]
+            self.data = self.data[i1:i2, :, :]
         elif self.data.ndim == 2:
-            if self.squeezed: #data has already been squeezed and result was 2D (thus without time!)
-                print 'Data was already squeezed: not temporal subsetting is performed!'
-                pass
+            if self.squeezed:  # data has already been squeezed and result was 2D (thus without time!)
+                print 'Data was already squeezed: no temporal subsetting is performed!'
             else:
-                self.data = self.data[i1:i2,:]
-        elif self.data.ndim == 1: #single temporal vector assumed
+                self.data = self.data[i1:i2, :]
+        elif self.data.ndim == 1:  # single temporal vector assumed
             self.data = self.data[i1:i2]
         else:
             sys.exit('Error temporal subsetting: invalid dimension!')
 
 #-----------------------------------------------------------------------
 
-    def interp_time(self,t,method='linear'):
+    def align(self, y, base=None):
+        """
+        Temporal alignment of two Data objects.
+        The datasets need to have a similar time stepping. The desired timestepping is explicitely specified
+        by the user in the *base* argument. It is obligatory to provide this argument.write
+
+        Parameters
+        ----------
+        y : Data
+            Data object that should be aligned with current data
+        base : str
+            specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
+            a time stepping. Currently supported values: ['monthly','day']
+        """
+
+        assert(isinstance(y, Data))
+        if base is None:
+            raise ValueError('You need to specify the base for the alignment [monthly,day] !')
+
+        # ensure ascending time order
+        x = self.copy()
+
+        if not x._is_sorted():
+            raise ValueError('Time series in X is not sorted ascending!')
+        if not y._is_sorted():
+            raise ValueError('Time series in Y is not sorted ascending!')
+
+        if base == 'monthly':
+            if not x._is_monthly():
+                print x.date
+                raise ValueError('Dataset X is not monthly data!')
+            if not y._is_monthly():
+                print y.date
+                raise ValueError('Dataset Y is not monthly data!')
+        elif base == 'day':
+            if not x._is_daily():
+                print x.date
+                raise ValueError('Dataset X is not daily data!')
+            if not y._is_daily():
+                print y.date
+                raise ValueError('Dataset Y is not daily data!')
+        else:
+            raise ValueError('Unsupported base for alignment!')
+
+        # min/max dates
+        ymin = y._get_mindate(base=base)
+        ymax = y._get_maxdate(base=base)
+        xmin = x._get_mindate(base=base)
+        xmax = x._get_maxdate(base=base)
+
+        start = None
+        stop = None
+
+        # search first for the dataset which starts first
+        if xmin <= ymin:
+            xfirst = True
+        else:
+            xfirst = False
+
+        # check if overlap at all
+        err = 0
+        if xfirst:
+            if xmax < ymin:
+               err += 1  # no overlap
+        else:
+            if ymax < xmin:
+                err += 1
+        if err > 0:
+            return None, None
+
+        # from here onwards we know that there is an overlap
+        start = max(xmin, ymin)
+        stop = min(xmax, ymax)
+
+        x1, x2 = x._get_time_indices(start, stop)
+        y1, y2 = y._get_time_indices(start, stop)
+
+        x._temporal_subsetting(x1, x2)
+        y._temporal_subsetting(y1, y2)
+
+        return x, y
+
+#-----------------------------------------------------------------------
+
+    def interp_time(self, t, method='linear'):
         """
         interpolate data matrix in time. The existing data is interpolated to a new temporal spaceing that
         is specified by the time vector argument 't'
@@ -1852,25 +1937,25 @@ class Data(object):
         @todo: still some boundary effects for last timestep
         """
 
-
         d = np.asarray(pl.num2date(t))
 
         if method != 'linear':
             raise ValueError, 'Only linear interpolation supported at the moment so far!'
 
         #/// checks
-        if self.data.ndim !=3:
+        if self.data.ndim != 3:
             raise ValueError, 'Interpolation currently only supported for 3D arrays!'
         if not np.all(np.diff(t) > 0):
             raise ValueError, 'Input time array is not in ascending order! This must not happen! Please ensure ascending order'
         if not np.all(np.diff(self.time) > 0):
             raise ValueError, 'Time array of data is not in ascending order! This must not happen! Please ensure ascending order'
 
-        nt0,ny,nx = self.shape #original dimensions
-        nt = len(t) #target length of time
+        nt0,ny,nx = self.shape  # original dimensions
+        nt = len(t)  # target length of time
 
         #/// copy data
-        X = self.data.copy(); X.shape = (nt0,-1) #[time,npix]
+        X = self.data.copy()
+        X.shape = (nt0, -1) #[time,npix]
         nt0,npix = X.shape
 
         #/// preliminary checks
@@ -1885,18 +1970,21 @@ class Data(object):
 
         #B) all data is AFTER desired period
         if self.date.min() > d.max():
-            self.date.min(), d.max()
+            print self.date.min(), d.max()
             print 'WARNING: specified time period is AFTER any data availability. NO INTERPOLATION CAN BE DONE!'
             f_err = True
 
         if f_err:
             tmp = np.zeros((nt,ny,nx))
-            r = self.copy(); r.data = np.ma.array(tmp,mask=tmp>0.); r.time=t #return some dummy result
+            r = self.copy()
+            r.data = np.ma.array(tmp,mask=tmp>0.)
+            r.time=t #return some dummy result
             return r
 
         #/// construct weighting matrix
         W = np.zeros((nt,nt0))
-        i1 = 0; i2 = 1 #indices in original data
+        i1 = 0
+        i2 = 1 #indices in original data
         f_init=True
         for i in xrange(nt-1):
             #1) find start of interpolation period
@@ -1962,10 +2050,6 @@ class Data(object):
         N.shape = (nt,ny,nx)
 
         res = self.copy()
-
-        #print 'Length in interpolation:'
-        #print 't: ', len(t)
-        #print 'res.date1: ', len(res.date)
 
         res.time = t
         res.time_str = 'days since 0001-01-01 00:00:00'
@@ -2154,43 +2238,35 @@ class Data(object):
 
 
         #data = data * scal + offset
-        #~ print 'Scaling: ', scal, offset
-        #~ print type(scal), type(offset)
-        #~ print data.min(), data.max()
         data *= scal
         data += offset
-
-        #~ print data.min(), data.max()
 
         if hasattr(var,'long_name'):
             self.long_name = var.long_name
         else:
             self.long_name = '-'
 
-
-        #check if file has cell_area attribute and only use it if it has not been set by the user
+        # check if file has cell_area attribute and only use it if it has not been set by the user
         if 'cell_area' in File.F.variables.keys() and self.cell_area == None:
-            #~ self.cell_area = F.variables['cell_area'].get_value().astype('float').copy() #unit should be in m**2
             self.cell_area = File.get_variable('cell_area')
 
-    #set units if possible; if given by user, this is taken
-        #otherwise unit information from file is used if available
+        # set units if possible; if given by user, this is taken
+        # otherwise unit information from file is used if available
         if self.unit == None and hasattr(var, 'units'):
             self.unit = var.units
 
         if self.time_var in File.F.variables.keys():
             tvar = File.get_variable_handler(self.time_var)
-            if hasattr(tvar,'units'):
+            if hasattr(tvar, 'units'):
                 self.time_str = tvar.units
             else:
                 self.time_str = None
 
-            if hasattr(tvar,'calendar'):
+            if hasattr(tvar, 'calendar'):
                 self.calendar = tvar.calendar
             else:
                 print 'WARNING: no calendar specified!'
                 self.calendar = 'standard'
-
         else:
             self.time = None
             self.time_str = None
@@ -2200,7 +2276,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def temporal_trend(self,return_object=False, pthres=1.01):
+    def temporal_trend(self, return_object=False, pthres=1.01):
         """
         calculate temporal trend of the data over time
         the slope of the temporal trend
@@ -2233,7 +2309,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def timmean(self,return_object=False):
+    def timmean(self, return_object=False):
         """
         calculate temporal mean of data field
 
@@ -2250,14 +2326,15 @@ class Data(object):
             sys.exit('Temporal mean can not be calculated as dimensions do not match!')
 
         if return_object:
-            tmp = self.copy(); tmp.data = res
+            tmp = self.copy()
+            tmp.data = res
             return tmp
         else:
             return res
 
 #-----------------------------------------------------------------------
 
-    def timmin(self,return_object=False):
+    def timmin(self, return_object=False):
         """
         calculate temporal minimum of data field
 
@@ -2274,14 +2351,15 @@ class Data(object):
             sys.exit('Temporal minimum can not be calculated as dimensions do not match!')
 
         if return_object:
-            tmp = self.copy(); tmp.data = res
+            tmp = self.copy()
+            tmp.data = res
             return tmp
         else:
             return res
 
 #-----------------------------------------------------------------------
 
-    def timmax(self,return_object=False):
+    def timmax(self, return_object=False):
         """
         calculate temporal maximum of data field
 
@@ -2291,21 +2369,22 @@ class Data(object):
         if self.data.ndim == 3:
             res = self.data.max(axis=0)
         elif self.data.ndim == 2:
-            #no temporal averaging
+            # no temporal averaging
             res = self.data.copy()
         else:
             print self.data.ndim
             sys.exit('Temporal maximum can not be calculated as dimensions do not match!')
 
         if return_object:
-            tmp = self.copy(); tmp.data = res
+            tmp = self.copy()
+            tmp.data = res
             return tmp
         else:
             return res
 
 #-----------------------------------------------------------------------
 
-    def timcv(self,return_object=True):
+    def timcv(self, return_object=True):
         """
         calculate temporal coefficient of variation
 
@@ -2317,14 +2396,16 @@ class Data(object):
             if res is None:
                 return res
             else:
-                tmp = self.copy(); tmp.data = res; tmp.label=self.label + ' (CV)'; tmp.unit='-'
+                tmp = self.copy()
+                tmp.data = res
+                tmp.label=self.label + ' (CV)'; tmp.unit='-'
                 return tmp
         else:
             return res
 
 #-----------------------------------------------------------------------
 
-    def normalize(self,return_object=True):
+    def normalize(self, return_object=True):
         """
         normalize data by removing the mean and dividing by the standard deviation
         normalization is done for each grid cell
@@ -2355,7 +2436,7 @@ class Data(object):
             return None
 
 
-    def timstd(self,return_object=False):
+    def timstd(self, return_object=False):
         """
         calculate temporal standard deviation of data field
 
@@ -2382,7 +2463,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def timvar(self,return_object=False):
+    def timvar(self, return_object=False):
         """
         calculate temporal variance of data field
         """
@@ -2423,7 +2504,6 @@ class Data(object):
 
         res =  self.data.sum(axis=0)
 
-
         if return_object:
             if res is None:
                 return res
@@ -2442,7 +2522,6 @@ class Data(object):
         done via timmean and timsum to take
         into account the valid values only
         """
-
         res = self.timsum() / self.timmean()
 
         if return_object:
@@ -2454,7 +2533,6 @@ class Data(object):
                 return tmp
         else:
             return res
-
 
 #-----------------------------------------------------------------------
 
@@ -2723,7 +2801,7 @@ class Data(object):
                     s[i] /= (w[i, :, :].sum()**2. - (w[i, :, :]*w[i, :, :]).sum()  )
                 tmp = np.sqrt(s)
             else:
-                raise ValueError, 'Undefined'
+                raise ValueError('Undefined')
 
         else:
             #no area weighting
@@ -2732,8 +2810,7 @@ class Data(object):
             elif self.data.ndim ==3:
                 tmp = np.reshape(self.data,(len(self.data),-1)).std(axis=1)
             else:
-                raise ValueError, 'Undefined'
-
+                raise ValueError('Undefined')
 
         if return_data: #return data object
             if self.data.ndim == 3:
@@ -2779,7 +2856,7 @@ class Data(object):
         convert time that was given as YYYYMMDD.f
         and set time variable of Data object
         """
-        s = map(str,self.time)
+        s = map(str, self.time)
         T=[]
         for t in s:
             y = t[0:4]
@@ -2852,7 +2929,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def timsort(self,return_object = False):
+    def timsort(self, return_object = False):
         """
         sorts a C{Data} object in accordance with its time axis.
 
@@ -2877,28 +2954,28 @@ class Data(object):
         @return: either a C{Data} object is returned or the current data object is modified
         """
 
-        #- checks
-        if self.time == None:
+        # checks
+        if self.time is None:
             raise ValueError, 'Time array needed for timsort()'
         if self.data.ndim != 3:
             raise ValueError, '3D array needed for timsort()'
 
-        #- specify object ot work on
+        # specify object ot work on
         if return_object:
             x = self.copy()
         else:
             x = self
 
-        #- do the sorting
+        # do the sorting
         s = np.argsort(x.time)
-        x.data = x.data[s,:,:]
+        x.data = x.data[s, :, :]
         x.time = x.time[s]
-        if hasattr(x,'std'): #standard deviation
-            x.std = x.std[s,:,:]
-        if hasattr(x,'n'):   #number of datasets
-            x.n = x.n[s,:,:]
+        if hasattr(x, 'std'): #standard deviation
+            x.std = x.std[s, :, :]
+        if hasattr(x, 'n'):   #number of datasets
+            x.n = x.n[s, :, :]
 
-        #- result
+        # result
         if return_object:
             return x
 
@@ -2973,11 +3050,9 @@ class Data(object):
         else:
             raise ValueError, 'Unsupported unit value'
 
-
-
 #-----------------------------------------------------------------------
 
-    def get_aoi(self,region):
+    def get_aoi(self, region):
         """
         region of class Region
 
@@ -3149,7 +3224,7 @@ class Data(object):
         else:
             lat = None
 
-        data = self.data.reshape(n,-1)
+        data = self.data.reshape(n, -1)
         data.mask[np.isnan(data.data)] = True
 
         #- extract only valid (not masked data)
@@ -3167,9 +3242,9 @@ class Data(object):
             lat = lat[msk]
 
         if return_mask:
-            return lon,lat,data,msk
+            return lon, lat, data, msk
         else:
-            return lon,lat,data
+            return lon, lat, data
 
 #-----------------------------------------------------------------------
 
@@ -3235,9 +3310,9 @@ class Data(object):
                     if hasattr(self,'std'):
                         self.std.data[self.__oldmask] = np.nan
 
-            self.data = np.ma.array(self.data.data,mask=np.isnan(self.data.data))
+            self.data = np.ma.array(self.data.data, mask=np.isnan(self.data.data))
             if hasattr(self,'std'):
-                self.std = np.ma.array(self.std.data,mask=np.isnan(self.std.data))
+                self.std = np.ma.array(self.std.data, mask=np.isnan(self.std.data))
             #self._climatology_raw = np.ma.array(self._climatology_raw,mask=np.isnan(self._climatology_raw))
         else:
             print np.shape(self.data)
@@ -3279,16 +3354,16 @@ class Data(object):
         @param n: shifting step
         @type n: int
         """
-        tmp = x.copy(); y=x.copy()
+        tmp = x.copy()
+        y=x.copy()
         y[:,:,:]=np.nan
         y[:,:,0:n] = tmp[:,:,-n:]
         y[:,:,n:]  = tmp[:,:,0:-n]
-
         return y
 
 #-----------------------------------------------------------------------
 
-    def timeshift(self,n,return_data = False):
+    def timeshift(self, n, return_data = False):
         """
         shift data in time by n-steps
         positive numbers mean, that the
@@ -3348,7 +3423,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def __shift2D(self,x,n):
+    def __shift2D(self, x, n):
         """
         shift 2D data
 
@@ -3370,21 +3445,18 @@ class Data(object):
     def copy(self):
         """
         copy complete C{Data} object including all attributes
-        @return C{Data} object
         """
-        d = Data(None,None)
-
+        d = Data(None, None)
 
         for attr, value in self.__dict__.iteritems():
             try:
-                #-copy (needed for arrays)
+                # copy (needed for arrays)
                 cmd = "d." + attr + " = self." + attr + '.copy()'
                 exec cmd
             except:
                 #-copy
                 cmd = "d." + attr + " = self." + attr
                 exec cmd
-
         return d
 
 #-----------------------------------------------------------------------
@@ -3408,10 +3480,8 @@ class Data(object):
             d = self.copy()
         else:
             d = self
-
         d.data = d.data + x.data
         d.label = self.label + ' + ' + x.label
-
         return d
 
 #-----------------------------------------------------------------------
@@ -3434,7 +3504,9 @@ class Data(object):
             if (s1[1] == x.data.shape[0]) & (s1[2] == x.data.shape[1]): #x is a 2D data
                 f_elementwise = True
             else:
-                raise ValueError, 'Inconsistent geometry (sub): can not calculate!'
+                sys.stdout.write(str(self.shape))
+                sys.stdout.write(str(x.shape))
+                raise ValueError('Inconsistent geometry (sub): can not calculate!')
 
         if copy:
             d = self.copy()
@@ -3491,8 +3563,6 @@ class Data(object):
         @todo: implementation of welch test. This should be actually already be implemented in stats.ttest_ind, but is not available in my python installation!
         http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html#scipy.stats.ttest_ind
         but the code would be available here: https://github.com/scipy/scipy/blob/v0.11.0/scipy/stats/stats.py#L2957
-
-
         """
 
         #/// check consistency
@@ -3504,7 +3574,8 @@ class Data(object):
             raise ValueError, 'Invalid axis parameter: ' + str(axis)
 
         #/// create new data object
-        d = self.copy(); d.label = self.label + ' - ' + x.label
+        d = self.copy()
+        d.label = self.label + ' - ' + x.label
 
         #/// calculate statistical significance of the difference
         if isinstance(d.data,np.ma.masked_array):
@@ -3513,7 +3584,7 @@ class Data(object):
         else:
             t,p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
 
-        p   = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
+        p = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
 
         #/// mean difference masked if p-value too low
         mask      = p <= pthres
@@ -3838,7 +3909,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def detrend(self,return_object=True):
+    def detrend(self, return_object=True):
         """
         detrend data timeseries by removing linear trend over time.
         It is assumed that the timesamples have equidistant spacing.
@@ -3861,7 +3932,7 @@ class Data(object):
         Rout,Sout,Iout,Pout, Cout = self.corr_single(x)
 
         #calculate regression field
-        reg = Data(None,None)
+        reg = Data(None, None)
         reg.data = np.zeros(self.data.shape) * np.nan
         reg.label = 'trend line'
         nt = self.data.shape[0]
@@ -3880,19 +3951,33 @@ class Data(object):
             self.detrended = True
             return None
 
+
+#-----------------------------------------------------------------------
+
+    def _is_daily(self):
+        """
+        check if the timeseries is daily
+
+        (unittest)
+        """
+        if hasattr(self, 'time'):
+            d = np.ceil(pl.date2num(self.date))
+            return np.all(np.diff(d) == 1.)
+        else:
+            return False
+
 #-----------------------------------------------------------------------
 
     def _is_monthly(self):
         """
         check if the data is based on a sequence of increasing monthly values
-
         The routine simply checks of the months of the timeseries is increasing. Days are not considered!
 
         (unittest)
 
         @return:
         """
-        if hasattr(self,'time'):
+        if hasattr(self, 'time'):
             # get list of all months
             mo = self._get_months()
 
@@ -3918,7 +4003,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def _pad_timeseries(self,fill_value=-99.):
+    def _pad_timeseries(self, fill_value=-99.):
 
         import numpy as np
         from matplotlib import dates
@@ -3965,10 +4050,7 @@ class Data(object):
         """
         determine automatically the timecycle of the data and
         set the appropriate variable if possible
-
         (unittest)
-
-        @return:
         """
         if self._is_monthly():
             self.time_cycle = 12
@@ -3993,3 +4075,9 @@ class Data(object):
             self.cell_area = self.cell_area[::-1, :]
         if hasattr(self, 'lat'):
             self.lat = self.lat[::-1, :]
+
+#-----------------------------------------------------------------------
+
+    def _is_sorted(self):
+        """Checks if timeseries is increasingly sorted"""
+        return np.all(np.diff(self.time) >= 0.)
