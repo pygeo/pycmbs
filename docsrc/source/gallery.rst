@@ -1,6 +1,9 @@
-====
+==============
 pyCMBS gallery
-====
+==============
+
+In the following,  examples will be given that introduce different features of pyCMBS.
+
 
 Here the gallery::
 
@@ -19,9 +22,16 @@ bla bla again
 
 
 
-xxxxx
+Basic plotting
+--------------
+
+#.. plot:: examples/plots_01.py
+
+.. plot:: examples/dummy.py
+   :include-source:
 
 
+asdsada
 
 .. plot:: testplot.py
    :include-source:

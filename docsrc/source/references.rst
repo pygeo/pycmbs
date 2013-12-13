@@ -1,6 +1,6 @@
-##########
+==========
 References
-##########
+==========
 
 Publications where pyCMBS has been used
 ---------------------------------------
@@ -13,11 +13,9 @@ Publications where pyCMBS has been used
 
  * Loew, A., 2013. Terrestrial satellite records for climate studies: how long is long enough? A test case for the Sahel. Theoretical and Applied Climatology. doi:10.1007/s00704-013-0880-6
 
+
 Projects where pyCMBS has been used
 -----------------------------------
 
  * EvaCliMod (German Weather Service)
  * ESA Climate Change Initiative (European Space Agency)
-
-
-
