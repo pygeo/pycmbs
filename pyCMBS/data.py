@@ -2719,8 +2719,8 @@ class Data(object):
 
                 s = np.ones(nt)*np.nan #generate output array (unbiased variance estimator)
                 for i in xrange(nt):
-                    s[i] = h1[i, :, :].sum() * w[i, :, :].sum() - h2[i, :, :].sum()**2
-                    s[i] /= (w[i, :, :].sum()**2 - (w[i, :, :]*w[i, :, :]).sum()  )
+                    s[i] = h1[i, :, :].sum() * w[i, :, :].sum() - h2[i, :, :].sum()**2.
+                    s[i] /= (w[i, :, :].sum()**2. - (w[i, :, :]*w[i, :, :]).sum()  )
                 tmp = np.sqrt(s)
             else:
                 raise ValueError, 'Undefined'
@@ -2740,7 +2740,7 @@ class Data(object):
                 x = np.zeros((len(tmp), 1, 1))
                 x[:, 0, 0] = tmp
             elif self.data.ndim == 2:
-                x = np.zeros((1,1,1))
+                x = np.zeros((1, 1, 1))
                 x[0, 0, 0] = tmp
             else:
                 raise ValueError('Undefined')
@@ -3007,7 +3007,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_aoi_lat_lon(self,R,apply_mask=True):
+    def get_aoi_lat_lon(self, R, apply_mask=True):
         """
         get area of interest (AOI) given lat/lon coordinates
 
