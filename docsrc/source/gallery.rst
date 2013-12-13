@@ -1,6 +1,6 @@
-==============
+
 pyCMBS gallery
-==============
+--------------
 
 In the following,  examples will be given that introduce different features of pyCMBS.
 

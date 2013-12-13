@@ -91,13 +91,24 @@ The global plot options have the following structure (example below)::
     label text to be used for the variable
 
 *cticks*
-    xxxxxxxxxxxxxxxxx
+    tick labels for colormap
 
 
 Observation specific plot options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TBD
+Below the global options, one can include an arbitrary number of observations. 
+
+Each observation is specified by a block of configuration parameters, like in the following example.::
+
+    xxxxxxxxxx
+    xxxxxxxxxx
+    
+aaaaaaa
+  bbbbbbbb
+  
+ccccccc
+  dddddddd
 
 
 

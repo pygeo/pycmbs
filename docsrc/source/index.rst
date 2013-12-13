@@ -10,18 +10,15 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   :titlesonly:
 
    intro
    concept
    installation
    getting_started
-   faq
    gallery
-   diagnostics
    benchmarking
-   configuration
-   benchmarking_custom
-   external
+   models
    references
 
 
