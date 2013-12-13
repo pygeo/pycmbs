@@ -140,30 +140,41 @@ class CorrelationAnalysis(object):
 #-----------------------------------------------------------------------
 
 class HovmoellerPlot(object):
-    def __init__(self,D,rescaley=10,rescalex=10,yticksampling=1,monthly=False,ax=None):
+    def __init__(self, D, rescaley=10, rescalex=10, yticksampling=1,
+                 monthly=False, ax=None, figsize=(10, 5)):
         """
-        D : C{Data} object
+        D : Data object
+            Data object that should be used for plotting the Hovmoeller
+            diagram
+
 
         if the argument lat is provided it is assumed that lat/lon are 2D matrices
         In this case the value is expected to be a 3D variables as
         value(time,ny,nx)
         """
         if ax is None:
-            self.figure = pl.figure()
+            self.figure = pl.figure(figsize=figsize)
             self.ax = self.figure.add_subplot(111)
         else:
             self.ax = ax
             self.figure = self.ax.figure
 
-        self.hov = hovmoeller(D.num2date(D.time),None,rescaley=rescaley,rescalex=rescalex)
+        self.hov = hovmoeller(D.num2date(D.time), None,
+                              rescaley=rescaley, rescalex=rescalex)
         #self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
         self.x = D
 
-    def plot(self,title=None,climits=None,showxticks=True,showcolorbar=True,cmap='jet',xtickrotation=90,ylim=None):
+    def plot(self, title=None, climits=None, showxticks=True,
+             showcolorbar=True, cmap='jet', xtickrotation=90,
+             ylim=None):
         if climits is None:
             raise ValueError('CLIMITS needs to be specified!')
-        self.hov.plot(input=self.x,ax=self.ax,title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=xtickrotation,climits=climits,showxticks=showxticks,showcolorbar=showcolorbar,cmap=cmap)
-        if ylim != None:
+        self.hov.plot(input=self.x, ax=self.ax, title=title,
+                      ylabel='lat', xlabel='days', origin='lower',
+                      xtickrotation=xtickrotation, climits=climits,
+                      showxticks=showxticks, showcolorbar=showcolorbar,
+                      cmap=cmap)
+        if ylim is not None:
             self.ax.set_ylim(ylim)
 
 #-----------------------------------------------------------------------
@@ -529,7 +540,10 @@ class LinePlot(object):
     This class is usefull for plotting timeseries
     """
 
-    def __init__(self,ax=None,regress=False,title=None,show_xlabel=True,show_ylabel=True,ticksize=10,normx=1.,show_equation=True,xtickrotation=90):
+    def __init__(self, ax=None, regress=False, title=None,
+                 show_xlabel=True, show_ylabel=True, ticksize=10,
+                 normx=1., show_equation=True, xtickrotation=90,
+                 figsize=(8, 7)):
         """
         constructor of LinePlot
 
@@ -557,7 +571,7 @@ class LinePlot(object):
         """
 
         if ax is None:
-            f = plt.figure(figsize=(8,7))
+            f = plt.figure(figsize=figsize)
             self.ax = f.add_subplot(111)
         else:
             self.ax = ax
@@ -602,7 +616,7 @@ class LinePlot(object):
 
 #-----------------------------------------------------------------------
 
-    def plot(self,x,ax=None,vmin=None,vmax=None,label = None, norm_std = False, set_ytickcolor=True, **kwargs):
+    def plot(self, x, ax=None, vmin=None, vmax=None, label = None, norm_std = False, set_ytickcolor=True, **kwargs):
         """
         plot LinePlot data. If a spatial field is provided, this is aggregated
         using the fldmean() function of C{Data}
