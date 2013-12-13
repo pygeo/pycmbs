@@ -3,10 +3,7 @@ import unittest
 
 __author__ = 'm300028'
 
-#identify pyCMBS path and add it to pythonpath, as otherwise the modules are not found properly!
-
 from pyCMBS.data import *
-#from diagnostic import *
 import scipy as sc
 import pylab as pl
 import numpy as np
@@ -53,7 +50,7 @@ class TestData(TestCase):
     def test_addc(self):
         #test with data copy
         r1 = self.D.addc(5.,copy=True)
-        self.assertEqual(r1.data[4,0,0]-5.,self.D.data[4,0,0])
+        self.assertAlmostEqual(r1.data[4,0,0]-5.,self.D.data[4,0,0], 8)
         #test without data copy
         ref = self.D.data[5,0,0]
         self.D.addc(666.,copy=False)
@@ -110,14 +107,7 @@ class TestData(TestCase):
         self.D.data[:,0,0] = y
 
         #reference solution
-
-        #print 'time: ', self.D.time
-        #print 'y: ', y
         slope, intercept, r_value, p_value, std_err = stats.linregress(self.D.time,y)
-
-        #print 'intercept: ', intercept
-        #print 'r: ', r_value
-        #print 'slope: ', slope
 
         #calculate temporal correlation WITHOUT normalization of time
         R,S,I,P = self.D.temporal_trend() #no object is returned (default)
@@ -186,29 +176,18 @@ class TestData(TestCase):
         r = D._get_weighting_matrix()
         self.assertFalse(r[0,1,0] != 0.25)
 
-
-
-
     def test_adjust_time(self):
-        '''
-        test the adjust_time function
-        @return:
-        '''
-        '''
-        @return:
-        '''
         D = self.D.copy()
         D._oldtime = True #use old time convention to be compliant with test routines here
         D.adjust_time(day=17)
         for i in xrange(len(D.time)):
-            self.assertEqual(pl.num2date(D.time[i]).day,17)
+            self.assertEqual(pl.num2date(D.time[i]).day, 17)
         D.adjust_time(month=10)
         for i in xrange(len(D.time)):
-            self.assertEqual(pl.num2date(D.time[i]).month,10)
+            self.assertEqual(pl.num2date(D.time[i]).month, 10)
         D.adjust_time(year=2025)
         for i in xrange(len(D.time)):
-            self.assertEqual(pl.num2date(D.time[i]).year,2025)
-
+            self.assertEqual(pl.num2date(D.time[i]).year, 2025)
 
     def test_timstat(self):
         """
@@ -256,17 +235,17 @@ class TestData(TestCase):
         s = np.argsort(t)
         y1 = y[s]
 
-        print 'Time BEFORE sorting: ', D.time
-        print 'Data BEFORE sorting: ', D.data[:,0,0]
+        #print 'Time BEFORE sorting: ', D.time
+        #print 'Data BEFORE sorting: ', D.data[:,0,0]
 
 
         #sort data
         D.timsort()
 
 
-        print 'Time AFTER sorting: ', D.time
-        print 'Data AFTER sorting: ', D.data[:,0,0]
-        print '                    ', y1
+        #print 'Time AFTER sorting: ', D.time
+        #print 'Data AFTER sorting: ', D.data[:,0,0]
+        #print '                    ', y1
 
         #/// checks
 
@@ -461,8 +440,8 @@ class TestData(TestCase):
 
         if n != None:
             if n < len(x.data)-1:
-                x._temporal_subsetting(0,n)
-                y._temporal_subsetting(0,n)
+                x._temporal_subsetting(0, n)
+                y._temporal_subsetting(0, n)
 
         return x,y
 
@@ -697,8 +676,6 @@ class TestData(TestCase):
         self.assertAlmostEqual(ref2,r2,places=8)
         self.assertAlmostEqual(D1.fldstd()[0],ref,places=8)
 
-
-
     def test_areasum(self):
         """
         unittest for areasum() function
@@ -866,29 +843,46 @@ class TestData(TestCase):
         self.assertTrue(np.all(d == 0.))
 
 
+    def test_align(self):
+        """test temporal alignment of two datasets"""
+        x = self.D.copy()
+        y = self.D.copy()
+        y.subc(2.5, copy=False)
+        y._temporal_subsetting(500, 750)  # generate a subset dataset
+
+        x1, y1 = x.align(y, base='day')  # do temporal alignment
+        ###x1 = x.copy(); y1=y.copy()
+        d = x1.sub(y1).divc(2.5).subc(1.)  # should give small diff.
+
+        # check dates
+        self.assertEqual(x1.date[0], y1.date[0])
+        self.assertEqual(x1.date[-1], y1.date[-1])
+
+        # check that really the same data is used
+        self.assertTrue(np.all(np.abs(d.data) < 0.00000001))
+
+        #... and the other way round
+        y1, x1 = y.align(x, base='day')
+        d = x1.sub(y1).divc(2.5).subc(1.)
+        self.assertEqual(x1.date[0], y1.date[0])
+        self.assertEqual(x1.date[-1], y1.date[-1])
+        self.assertTrue(np.all(np.abs(d.data) < 0.00000001))
+
+    def test_is_daily(self):
+        x = self.D.copy()  # is already daily
+        self.assertTrue(x._is_daily())
+
+        x = self.D.copy()
+        x.time[2] += 4.
+        self.assertFalse(x._is_daily())
+
+    def test_is_sorted(self):
+        x = self.D.copy()
+        self.assertTrue(x._is_sorted())
+
+        x.time[5] += 10.
+        self.assertFalse(x._is_sorted())
+
 
 #~ if __name__ == '__main__':
     #~ unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
