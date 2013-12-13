@@ -1,8 +1,7 @@
-####################
 Introduction
-####################
+============
 
-pyCMBS is a simple toolkit to perform quick analysis of geospatial data, visualize it as well as to perform benchmarking of climate model simulations. Its a very lightweight and powerful tool, easy to install and to use. pyCMBS comes with full python power included.
+pyCMBS is a simple and flexible toolkit to perform quick analysis of geospatial data, visualize it as well as to perform benchmarking of climate model simulations. Its a very lightweight and powerful tool, easy to install and to use. pyCMBS comes with full python power included.
 
 
 Why to use?
