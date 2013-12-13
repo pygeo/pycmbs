@@ -3074,7 +3074,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_valid_mask(self,frac=1.):
+    def get_valid_mask(self, frac=1., return_frac=False):
         """
         calculate a mask which is True, when a certain fraction of
         all timestamps of the field are valid
@@ -3084,22 +3084,30 @@ class Data(object):
         """
 
         if (frac < 0.) or (frac>1.):
-            raise ValueError, 'Fraction needs to be between 0 ... 1!'
+            raise ValueError('Fraction needs to be between 0 ... 1!')
 
         if self.data.ndim == 2:
-            return np.ones(self.data.shape).astype('bool')
+            if return_frac:
+                thefrac = np.ones(self.data.shape)
+                return np.ones(self.data.shape).astype('bool'), thefrac
+            else:
+                return np.ones(self.data.shape).astype('bool')
         elif self.data.ndim == 3:
             n = len(self.data) #number of timesteps
             hlp = self.data.copy()
             if hasattr(hlp,'mask'):
-                hlp1 = hlp.data.copy(); hlp1[hlp.mask] = np.nan
+                hlp1 = hlp.data.copy()
+                hlp1[hlp.mask] = np.nan
             else:
                 hlp1 = hlp.data.copy()
-
-            msk = (np.sum(~np.isnan(hlp1),axis=0) / float(n)) >= frac
-            return msk
+            thefrac = (np.sum(~np.isnan(hlp1),axis=0) / float(n))
+            msk = thefrac >= frac
+            if return_frac:
+                return msk, thefrac
+            else:
+                return msk
         else:
-            raise ValueError, 'unsupported dimension!'
+            raise ValueError('Unsupported dimension!')
 
 #-----------------------------------------------------------------------
 
