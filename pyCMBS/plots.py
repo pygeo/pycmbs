@@ -581,35 +581,31 @@ class LinePlot(object):
         self.title = title
         self.show_xlabel = show_xlabel
         self.show_ylabel = show_ylabel
-
-        self.lines = []; self.labels = []
-
+        self.lines = []
+        self.labels = []
         self.ticksize = ticksize
-
         self.normx=normx
         self.show_equation = show_equation
-
         self.xtickrotation = xtickrotation
-
 
 #-----------------------------------------------------------------------
 
-    def legend(self,prop={'size':8},**kwargs):
+    def legend(self, prop={'size':8}, **kwargs):
         """
         plot legend
         """
-        self.ax.legend(self.lines,self.labels,prop=prop,**kwargs)
+        self.ax.legend(self.lines, self.labels, prop=prop, **kwargs)
 
 #-----------------------------------------------------------------------
 
-    def _change_ticklabels(self,ax=None):
+    def _change_ticklabels(self, ax=None):
         if ax is None:
             ax = self.ax
 
-        #yaxis
+        # yaxis
         for tick in ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
-        #xaxis
+        # xaxis
         for tick in ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
             tick.label.set_rotation(self.xtickrotation)

@@ -1013,6 +1013,9 @@ class Data(object):
         if self.scale_factor == None:
             raise ValueError, 'The scale_factor for file ' + self.filename + 'is NONE, this must not happen!'
 
+        # ensure that no Nan values occur
+        self.data = np.ma.masked_where(np.isnan(self.data), self.data)
+
         # this scaling is related to unit conversion and NOT
         # due to data compression
         self.data *= self.scale_factor
@@ -1099,7 +1102,7 @@ class Data(object):
         if hasattr(self, 'time_cycle'):
             self._climatology_raw = self.get_climatology()
 
-        #- perform temporal subsetting
+        # perform temporal subsetting
         if self.time is not None:
             #- now perform temporal subsetting
             # BEFORE the conversion to the right time is required!
@@ -1137,7 +1140,7 @@ class Data(object):
         """
 
         if mask is None:
-            #if not mask is provided, take everything
+            # if not mask is provided, take everything
             mask = np.ones(len(self.time)).astype('bool')
         else:
             if mask.ndim != 1:
@@ -1150,12 +1153,12 @@ class Data(object):
         years = pl.unique(ye)
         dat = self.data
 
-        #/// calculate mean
+        # calculate mean
         if self.data.ndim == 1:
             res = np.zeros(len(years))*np.nan
             su = np.zeros(len(years))*np.nan
         elif self.data.ndim == 3:
-            nt,ny,nx = self.data.shape
+            nt, ny, nx = self.data.shape
             res = np.zeros((len(years), ny, nx))
             su = np.zeros((len(years), ny, nx))
         else:
@@ -1168,10 +1171,10 @@ class Data(object):
                 res[i] = dat[hlp].mean()
                 su [i] = dat[hlp].sum()  #calculate sum also (needed for masking in the end)
             else:
-                res[i,:,:] = dat[hlp,:].mean(axis=0)
-                su [i,:,:] = dat[hlp].sum(axis=0)  #calculate sum also (needed for masking in the end)
+                res[i, :, :] = dat[hlp,:].mean(axis=0)
+                su [i, :, :] = dat[hlp].sum(axis=0)  #calculate sum also (needed for masking in the end)
 
-        res = np.ma.array(res,mask= (su == 0.)) #this is still not the best solution, but works
+        res = np.ma.array(res, mask=(su==0.)) #this is still not the best solution, but works
 
         if return_data:
             #generate data object
@@ -1197,7 +1200,6 @@ class Data(object):
         @type mask : numpy boolean array
 
         """
-
 
         if mask is None:
             #if not maks is provided, take everything
@@ -1230,13 +1232,6 @@ class Data(object):
 
         res = np.ma.array(res,mask=np.isnan(res)) #mask all data that contained no single valid value!
 
-
-        #res = pl.asarray(res)
-
-        #return years, res xxxxxxxxxxxxxx
-
-
-
         if return_data:
             #generate data object
             r = self.copy()
@@ -1251,7 +1246,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def partial_correlation(self,Y,Z,ZY=None,pthres=1.01,return_object=True):
+    def partial_correlation(self, Y, Z, ZY=None, pthres=1.01, return_object=True):
         """
         perform partial correlation analysis.
 
@@ -3394,7 +3389,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def add(self,x,copy=True):
+    def add(self, x, copy=True):
         """
         Add a C{Data} object to the current object field
 
@@ -3407,7 +3402,7 @@ class Data(object):
         """
 
         if np.shape(self.data) != np.shape(x.data):
-            raise ValueError, 'Inconsistent geometry (add): can not calculate!'
+            raise ValueError('Inconsistent geometry (add): can not calculate!')
 
         if copy:
             d = self.copy()
@@ -3421,7 +3416,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def sub(self,x,copy=True):
+    def sub(self, x, copy=True):
         """
         Substract a C{Data} object from the current object field
 
@@ -3459,7 +3454,8 @@ class Data(object):
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def diff(self,x,axis=0,equal_var=True,mask_data = False,pthres=0.05):
+    def diff(self, x, axis=0, equal_var=True, mask_data=False,
+             pthres=0.05):
         """
         Difference between two C{Data} objects
 
@@ -3534,7 +3530,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def subc(self,x,copy=True):
+    def subc(self, x, copy=True):
         """
         Substract a constant value from the current object field
 
@@ -3563,7 +3559,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def addc(self,x,copy=True):
+    def addc(self, x, copy=True):
         """
         Add a constant value to the current object field
         (unittest)
@@ -3585,7 +3581,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def mulc(self,x,copy=True):
+    def mulc(self, x, copy=True):
         """
         Multiply current data by a constant
 
@@ -3608,7 +3604,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def divc(self,x,copy=True):
+    def divc(self, x, copy=True):
         """
         Divide current data by a constant
 
@@ -3631,7 +3627,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def div(self,x,copy=True):
+    def div(self, x, copy=True):
         """
         Divide current object field by field of a C{Data} object
 
@@ -3684,7 +3680,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def mul(self,x,copy=True):
+    def mul(self, x, copy=True):
         """
         Multiply current object field by field by a C{Data} object
 
@@ -3735,7 +3731,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def _sub_sample(self,step):
+    def _sub_sample(self, step):
         """
         subsample data of current C{Data} object
 
@@ -3748,12 +3744,12 @@ class Data(object):
             self.data = self.data[::step,::step]
         else:
             raise ValueError, 'Data Dimension not supported!'
-        self.lat  = self.lat [::step,::step]
-        self.lon  = self.lon [::step,::step]
+        self.lat = self.lat [::step,::step]
+        self.lon = self.lon [::step,::step]
 
 #-----------------------------------------------------------------------
 
-    def corr_single(self,x,pthres=1.01,mask=None):
+    def corr_single(self, x, pthres=1.01, mask=None):
         """
         The routine correlates a data vector with
         all data of the current object.
