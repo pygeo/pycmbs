@@ -12,13 +12,16 @@ Contents:
    :maxdepth: 2
 
    intro
+   concept
    installation
    getting_started
    faq
    gallery
    diagnostics
-   external
+   benchmarking
+   configuration
    benchmarking_custom
+   external
    references
 
 
