@@ -638,6 +638,7 @@ class LinePlot(object):
 
         @param norm_std: normalize timeseries with its stdv. This is a useful option when comparing trends of variables with different amplitudes
         @type norm_std: bool
+
         """
 
         if len(x.time) > 0:
