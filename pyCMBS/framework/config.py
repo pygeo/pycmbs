@@ -495,6 +495,7 @@ class PlotOptions(object):
                 if not k in d['OPTIONS'].keys():
                     sys.stdout.write('Error: missing global option: %s (%s)' % (k, v))
                     cerr += 1
+
                 if k == 'cticks':
                     if isinstance(d['OPTIONS'][k], list):
                         if np.any(np.diff(d['OPTIONS'][k]) < 0):
@@ -505,9 +506,10 @@ class PlotOptions(object):
                                            be a list')
 
                 if k == 'regional_analysis':
-                    if 'region_file' not in d['OPTIONS'].keys():
-                        raise ValueError('ERROR: You need to provide a region file name if '
-                                         'you want to use regional_analysis!')
+                    if d['OPTIONS'][k] == True:
+                        if 'region_file' not in d['OPTIONS'].keys():
+                            raise ValueError('ERROR: You need to provide a region file name if '
+                                             'you want to use regional_analysis!')
 
 
             # check local options
@@ -532,10 +534,8 @@ class PlotOptions(object):
         # check if region file is given
         if 'region_file' in d['OPTIONS'].keys():
             if d['OPTIONS']['region_file'].lower() == 'none':
-                print 'Da sammer1'
                 pass
             elif len(d['OPTIONS']['region_file']) == 0:
-                print 'Da sammer2'
                 pass
             else:
                 if not os.path.exists(d['OPTIONS']['region_file']):
