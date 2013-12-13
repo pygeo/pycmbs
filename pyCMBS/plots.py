@@ -21,7 +21,6 @@ from data import *
 from hov import *
 
 from matplotlib import pylab as plt
-#plt = mpl.pylab
 
 from matplotlib.patches import Polygon
 import matplotlib.path as mpath
@@ -162,7 +161,7 @@ class HovmoellerPlot(object):
 
     def plot(self,title=None,climits=None,showxticks=True,showcolorbar=True,cmap='jet',xtickrotation=90,ylim=None):
         if climits is None:
-            raise ValueError, 'CLIMITS needs to be specified!'
+            raise ValueError('CLIMITS needs to be specified!')
         self.hov.plot(input=self.x,ax=self.ax,title=title,ylabel='lat',xlabel='days',origin='lower',xtickrotation=xtickrotation,climits=climits,showxticks=showxticks,showcolorbar=showcolorbar,cmap=cmap)
         if ylim != None:
             self.ax.set_ylim(ylim)
@@ -2312,11 +2311,70 @@ class MapPlotGeneric(object):
     """
 
     def __init__(self,backend=None, format='png', savefile=None,
-                    show_statistic = True):
+                    show_statistic = True, stat_type='mean'):
         self.backend = backend
         self.format = format
         self.savefile = savefile
         self.show_statistic = show_statistic
+        self.stat_type = stat_type
+
+        self._check()
+
+    def _check(self):
+        if self.stat_type not in ['mean', 'median', 'sum']:
+            raise ValueError('Invalid statistic type: %s' % self.stat_type)
+
+    def plot(self):
+        raise ValueError('This routine shall be overwritten by herited class')
+
+    def _draw_imshow(self, ax, **kwargs):
+        """
+        draw data using imshow command
+
+        ax : axis
+            axis to plot to
+        """
+        ax.imshow(self.x.timmean(), **kwargs)
+        self._draw_title(ax)
+
+
+    def _draw_title(self, ax):
+        """
+        draw title, units and statistics
+        """
+        stat = self._get_statistics_str()
+        #tit = self._get_title_str()
+        unit = self.x._get_unit()
+
+        ax.set_title('testtitle')
+        ax.set_title(unit, loc='right')
+        ax.set_title(stat, loc='left')
+
+
+    def _get_statistics_str(self):
+        tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
+        s = ''
+        if self.show_statistic:
+            if self.stat_type == 'mean':
+                me = tmp_xm.fldmean()
+                st = tmp_xm.fldstd()
+                assert(len(me) == 1)
+                assert(len(st) == 1)
+                me = me[0]
+                st=st[0]
+                s ='weighted mean:\n$' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
+            elif stat_type == 'sum': #area sum
+                me = tmp_xm.areasum()
+                assert(len(me) == 1)
+                me = me[0]
+                s = 'weighted sum:\n$' + str(round(me,2))  + '$'
+            else:
+                me = np.ma.median(tmp_xm.data)
+                s = 'median:\n$' + str(round(me,2)) + '$'
+        return s
+
+
+
 
 
 
@@ -2334,6 +2392,9 @@ class SingleMap(MapPlotGeneric):
         assert(isinstance(x,Data))
         super(SingleMap,self).__init__(**kwargs)
         self.x = x
+
+
+
 
     def plot(self):
         self.fig = map_plot(self.x, savefile=self.savefile,
@@ -2355,7 +2416,7 @@ class MultipleMap(MapPlotGeneric):
         self.m = geometry[1]
         super(MultipleMap,self).__init__(**kwargs)
         self.fig = plt.figure()
-
+        stop
         #todo: define axes here !
 
 
@@ -2562,7 +2623,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
     #--- checks
 
     if proj not in ['robin','npstere','spstere']:
-        raise ValueError, 'ERROR: projection type not validated for map_plot so far: ' + proj
+        raise ValueError('ERROR: projection type not validated for map_plot so far: %s' % proj)
     if proj == 'npstere': #todo: for stereographic projection, scatter is used as method at the moment
         plot_method = 'scatter'
     if proj == 'spstere': #todo: for stereographic projection, scatter is used as method at the moment
@@ -2570,7 +2631,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
 
 
 
-    if overlay != None:
+    if overlay is not None:
 
         if x.data.ndim == 2:
             if overlay.shape != x.data.shape:
@@ -2584,13 +2645,14 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
             raise ValueError, 'Overlay for this geometry not supported!'
 
     #--- create new figure
-    if ax == None:
+    if ax is None:
         fig = plt.figure()
 
         #with timeseries plot?
         if show_timeseries:
             gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
-            ax  = fig.add_subplot(gs[0]); ax2 = fig.add_subplot(gs[1])
+            ax = fig.add_subplot(gs[0])
+            ax2 = fig.add_subplot(gs[1])
         else:
             ax = fig.add_subplot(111)
     else:
@@ -2826,7 +2888,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
             xcoordnew=XN[overlay]; ycoordnew=YN[overlay]
             pl.scatter(xcoordnew,ycoordnew,marker='.',s=1,c='white',edgecolors='white',alpha=1.)
 
-        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_xticks([])
+        ax.set_yticks([])
 
     #set legend aligned with plot (nice looking)
 
@@ -2842,7 +2905,8 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
     else:
         raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
     ax.figure.add_axes(cax)
-    vmin = im1.get_clim()[0]; vmax = im1.get_clim()[1]
+    vmin = im1.get_clim()[0]
+    vmax = im1.get_clim()[1]
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
     #dummy axis to ensure equal spacing in multiple plots
