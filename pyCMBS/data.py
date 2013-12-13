@@ -199,7 +199,7 @@ class Data(object):
             self.read(shift_lon, start_time=start_time, stop_time=stop_time,
                       time_var=time_var, checklat=checklat)
 
-        #/// check if longitudes are from 0 ... 360 ///
+        # check if longitudes are from 0 ... 360
         if self.lon is not None:
             if self._lon360:
                 if self.lon.min() < 0.:
@@ -226,7 +226,7 @@ class Data(object):
 
         try:
             return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC) for x in self.num2date(self.time)])
-        except: #if an exception occurs then write data on screen for bughandling
+        except:  # if an exception occurs then write data on screen for bughandling
             if os.path.exists('dump.pkl'):
                 os.remove('dump.pkl')
             pickle.dump (self,open('dump.pkl','w'))
@@ -269,7 +269,7 @@ class Data(object):
             rval = datetime.datetime(dmin.year, 1, 1, 0, 0, 0, 0, dmin.tzinfo)
         return rval
 
-    def _get_maxdate(self,base=None):
+    def _get_maxdate(self, base=None):
         """
         get maximum date
 
@@ -280,10 +280,11 @@ class Data(object):
 
         dmax = self.date.max()
 
-        if base == None:
+        if base is None:
             rval = dmax
         elif base == 'month':
-            rval = datetime.datetime(dmax.year,dmax.month,calendar.monthrange(dmax.year,dmax.month)[1],23,59,59,0,dmax.tzinfo)
+            rval = datetime.datetime(dmax.year, dmax.month,
+                                     calendar.monthrange(dmax.year,dmax.month)[1],23,59,59,0, dmax.tzinfo)
         elif base == 'day':
             rval = datetime.datetime(dmax.year,dmax.month,dmax.day,23,59,59,0,dmax.tzinfo)
         elif base == 'year':
@@ -976,7 +977,8 @@ class Data(object):
 #-----------------------------------------------------------------------
 
 
-    def read(self,shift_lon,start_time=None,stop_time=None,time_var='time',checklat=True):
+    def read(self, shift_lon, start_time=None, stop_time=None,
+             time_var='time', checklat=True):
         """
         read data from file
         @param shift_lon: if given, longitudes will be shifted
@@ -1003,42 +1005,38 @@ class Data(object):
 
         self.time_var = time_var
 
-        #read data
+        # read data
         self.data = self.read_netcdf(self.varname) #o.k.
-        #this scaling is related to unit conversion and NOT
-        #due to data compression
-        if self.verbose:
-            print 'scale_factor : ', self.scale_factor
-
         if self.data is None:
             print self.varname
             raise ValueError, 'The data in the file ' + self.filename + ' is not existing. This must not happen!'
         if self.scale_factor == None:
             raise ValueError, 'The scale_factor for file ' + self.filename + 'is NONE, this must not happen!'
 
+        # this scaling is related to unit conversion and NOT
+        # due to data compression
         self.data *= self.scale_factor
 
-        #--- squeeze data to singletone
+        # squeeze data to singletone
         if self.squeeze:
             self._squeeze()
 
-        #--- mask data when desired ---
+        # mask data when desired ---
         if self.inmask is not None:
             self._apply_mask(self.inmask)
 
-        #read lat/lon
-        if self.lat_name is None: #try reading lat/lon using default names
+        # read lat/lon (try default names)
+        if self.lat_name is None:
             self.lat_name = 'lat'
         if self.lon_name is None:
             self.lon_name = 'lon'
         if self.lat_name is not None:
             self.lat = self.read_netcdf(self.lat_name)
-            #ensure that lat has NOT dimension (1,nlat)
+            # ensure that lat has NOT dimension (1,nlat)
             if self.lat is not None:
                 if self.lat.ndim == 2:
                     if self.lat.shape[0] == 1:
                         self.lat = self.lat[0,:]
-
         else:
             self.lat = None
         if not self.lon_name is None:
@@ -1047,43 +1045,43 @@ class Data(object):
             if self.lon is not None:
                 if self.lon.ndim == 2:
                     if self.lon.shape[0] == 1:
-                        self.lon = self.lon[0,:]
-
-            #- shift longitudes such that -180 < lon < 180
+                        self.lon = self.lon[0, :]
+            # shift longitudes such that -180 < lon < 180
             if shift_lon:
                 self._shift_lon()
         else:
             self.lon = None
 
-        #- read time
+        # read time
         if self.time_var is not None:
-            self.time = self.read_netcdf(self.time_var) #returns either None or a masked array
+            # returns either None or a masked array
+            self.time = self.read_netcdf(self.time_var)
             if hasattr(self.time,'mask'):
                 self.time = self.time.data
             else:
                 self.time = None
             if self.time is not None:
                 if self.time.ndim != 1:
-                    self.time = self.time.flatten() #remove singletone dimensions
+                    self.time = self.time.flatten()  # remove singletone
         else:
             self.time = None
 
-        #- determine time
+        # determine time
         if self.time is not None:
             self.set_time()
 
-        #- lat lon to 2D matrix
+        # lat lon to 2D matrix
         try:
             self._mesh_lat_lon()
         except:
             if self.verbose:
                 print '        WARNING: No lat/lon mesh was generated!'
 
-        #- cell_area
+        #  cell_area
         #  check if cell_area is already existing. if not, try to calculate from coordinates
         self._set_cell_area()
 
-        #- check if latitude in decreasing order (N ... S)?
+        #  check if latitude in decreasing order (N ... S)?
         if checklat:
             if hasattr(self,'lat'):
                 if self.lat is not None:
@@ -1098,21 +1096,22 @@ class Data(object):
                         #raise ValueError, 'Can not handle automatic flipping of lat!'
 
         #- calculate climatology from ORIGINAL (full dataset)
-        if hasattr(self,'time_cycle'):
+        if hasattr(self, 'time_cycle'):
             self._climatology_raw = self.get_climatology()
 
         #- perform temporal subsetting
-        if self.time != None:
+        if self.time is not None:
             #- now perform temporal subsetting
             # BEFORE the conversion to the right time is required!
-            m1,m2 = self._get_time_indices(start_time,stop_time)
-            #print 'Before subsetting: ', m1, m2, self.date[m1],self.date[m2]
-            self._temporal_subsetting(m1,m2)
-            #print 'After subsetting: ', self.date.min(), self.date.max()
+            #~ print 'START_TIME: ', start_time
+            m1, m2 = self._get_time_indices(start_time, stop_time)
+            #~ print 'Before subsetting: ', m1, m2, self.date[m1],self.date[m2]
+            self._temporal_subsetting(m1, m2)
+            #~ print 'After subsetting: ', self.date.min(), self.date.max()
 
-        #calculate time_cycle automatically if not set already. Try to detect it automatically
+        # calculate time_cycle automatically if not set already.
         if self.time is not None:
-            if hasattr(self,'time_cycle'):
+            if hasattr(self, 'time_cycle'):
                 if self.time_cycle is None:
                     self._set_timecycle()
             else:
@@ -1121,7 +1120,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_yearmean(self,mask=None,return_data=False):
+    def get_yearmean(self, mask=None, return_data=False):
         """
         This routine calculate the yearly mean of the data field
         A vector with a mask can be provided for further filtering
@@ -1569,7 +1568,7 @@ class Data(object):
         if base == 'current':
             clim = self.get_climatology()
         elif base == 'all':
-            #- if raw climatology not available so far, try to calculate it
+            # if raw climatology not available so far, try to calculate it
             if hasattr(self,'_climatology_raw'):
                 clim = self._climatology_raw
             else:
@@ -1984,24 +1983,44 @@ class Data(object):
 
     #-----------------------------------------------------------------------
 
-    def _get_time_indices(self,start,stop):
+    def _get_time_indices(self, start, stop):
         """
         determine time indices start/stop based on data timestamps
         and desired start/stop dates
 
-        @param start: start time
-        @type start: datetime object
+        Parameters
+        ----------
+        start : datetime
+            start time
+        stop : datetime
+            stop time
 
-        @param stop: stop time
-        @type stop: datetime object
-
-        @return: returns start/stop indices (int)
-        @rtype: int
+        Returns
+        -------
+        returns start/stop indices (int)
         """
 
-        #- no subsetting
-        if start == None or stop is None:
+        def _check_timezone(d):
+            # if no timezone, then set it
+            if d.tzinfo is None:
+                t = datetime.datetime(d.year, d.month, d.day, d.hour, d.minute, d.second, d.microsecond, pytz.UTC)
+                return t
+            else:
+                return d
+
+        # no subsetting
+        if start is None and stop is None:
             return 0, len(self.time)-1
+        if start is None:
+            start = self.date[0]
+        else:
+            assert(isinstance(start, datetime.datetime))
+            start = _check_timezone(start)
+        if stop is None:
+            stop = self.date[-1]
+        else:
+            assert(isinstance(stop, datetime.datetime))
+            stop = _check_timezone(stop)
         if stop < start:
             sys.exit('Error: startdate > stopdate')
 
@@ -2012,13 +2031,9 @@ class Data(object):
         if any(np.diff(self.time)) < 0.:
             sys.exit('Error _get_time_indices: Time is not increasing')
 
-        #- determine indices
-        m1 = abs(self.time - s1).argmin(); m2 = abs(self.time - s2).argmin()
-
-        #~ print ''
-        #~ print 'Init'
-        #~ print self.date[m1], start
-        #~ print self.date[m2], stop
+        # determine indices
+        m1 = abs(self.time - s1).argmin()
+        m2 = abs(self.time - s2).argmin()
 
         if self.time[m1] < s1:
             m1 += 1
@@ -2026,13 +2041,7 @@ class Data(object):
             m2 -= 1
         if m2 < m1:
             sys.exit('Something went wrong _get_time_indices')
-
-        #~ print 'Final'
-        #~ print self.date[m1], start
-        #~ print self.date[m2], stop
-
-
-        return m1,m2
+        return m1, m2
 
 #-----------------------------------------------------------------------
 
@@ -2042,7 +2051,8 @@ class Data(object):
 
         @return list of years
         """
-        d = self.num2date(self.time); years = []
+        d = self.num2date(self.time)
+        years = []
         for x in d:
             years.append(x.year)
         return years
@@ -2054,7 +2064,8 @@ class Data(object):
         get months from timestamp
         @return: returns a list of months
         """
-        d = self.num2date(self.time); months = []
+        d = self.num2date(self.time)
+        months = []
         for x in d:
             months.append(x.month)
         return months
