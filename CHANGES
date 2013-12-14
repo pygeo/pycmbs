@@ -1,5 +1,6 @@
 version 0.1.5
 ============================
+o adapted calculation of error index of Gleckler et al. (2008) to account for temporal weighting
 o file structure was revised to be more compliant with python standards
 o installation using distutils is now possible, using simply 'python setup.py install'
 o implemented flexible netCDF I/O handler (currently works only with Nio, but should work with netCDF module in the future)
