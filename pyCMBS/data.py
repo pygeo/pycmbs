@@ -296,9 +296,9 @@ class Data(object):
 
         return rval
 
-
-
-
+    def _days_per_month(self):
+        """return the number of days per month in Data timeseries"""
+        return [calendar.monthrange(d.year, d.month) for d in self.date]
 
     def _log_warning(self,s):
         """
@@ -1479,7 +1479,6 @@ class Data(object):
         for m in v:
             hlp = vals == m
             mask[hlp] = True
-
         return pl.asarray(mask)
 
 #-----------------------------------------------------------------------
@@ -1844,12 +1843,12 @@ class Data(object):
             Data object that should be aligned with current data
         base : str
             specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
-            a time stepping. Currently supported values: ['monthly','day']
+            a time stepping. Currently supported values: ['month','day']
         """
 
         assert(isinstance(y, Data))
         if base is None:
-            raise ValueError('You need to specify the base for the alignment [monthly,day] !')
+            raise ValueError('You need to specify the base for the alignment [month,day] !')
 
         # ensure ascending time order
         x = self.copy()
@@ -1859,7 +1858,7 @@ class Data(object):
         if not y._is_sorted():
             raise ValueError('Time series in Y is not sorted ascending!')
 
-        if base == 'monthly':
+        if base == 'month':
             if not x._is_monthly():
                 print x.date
                 raise ValueError('Dataset X is not monthly data!')
