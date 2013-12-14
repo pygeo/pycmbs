@@ -2019,6 +2019,8 @@ class GlecklerPlot(object):
 
             wt = np.ones(len(e2)) #just for testing first !!!
 
+            print wt
+
             return np.sqrt((e2*wt).sum())
 
             #hier weiter fuer reichler index weighting ????
