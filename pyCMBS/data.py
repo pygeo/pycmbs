@@ -3434,9 +3434,9 @@ class Data(object):
         @type n: int
         """
         tmp = x.copy(); y=x.copy()
-        y[:,:]=np.nan
-        y[:,0:n] = tmp[:,-n:]
-        y[:,n:]  = tmp[:,0:-n]
+        y[:, :]=np.nan
+        y[:, 0:n] = tmp[:, -n:]
+        y[:, n:]  = tmp[:, 0:-n]
 
         return y
 
@@ -3589,9 +3589,9 @@ class Data(object):
         #/// mean difference masked if p-value too low
         mask      = p <= pthres
         if mask_data:
-            d.data    = np.ma.array(self.timmean() - x.timmean(),mask=~mask) #mean difference as masked array
+            d.data = np.ma.array(self.timmean() - x.timmean(),mask=~mask) #mean difference as masked array
         else:
-            d.data    = np.ma.array(self.timmean() - x.timmean(),mask=np.zeros(self.timmean().shape).astype('bool') ) #mean difference as masked array
+            d.data = np.ma.array(self.timmean() - x.timmean(),mask=np.zeros(self.timmean().shape).astype('bool') ) #mean difference as masked array
         d.p_value = p
         d.p_mask  = mask #masks the grid cells that show significant changes (todo check this again!) needs additional validation
         d.t_value = t
@@ -3623,7 +3623,7 @@ class Data(object):
             d.data -= x
         elif x.ndim == 2: #x is an array
             for i in xrange(len(self.time)):
-                d.data[i,:,:] -= x[:,:]
+                d.data[i, :, :] -= x[:, :]
         else:
             raise ValueError, 'Invalid geometry in detrend()'
         return d
@@ -3716,21 +3716,21 @@ class Data(object):
         if np.shape(self.data) != np.shape(x.data):
             if self.data.ndim == 3:
                 if x.data.ndim == 2:
-                    if np.shape(self.data[0,:,:]) == np.shape(x.data):
+                    if np.shape(self.data[0, :, :]) == np.shape(x.data):
                         #second and third dimension match
                         pass
                     else:
                         print np.shape(self.data)
                         print np.shape(x.data)
-                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                        raise ValueError('Inconsistent geometry (div): can not calculate!')
                 else:
                         print np.shape(self.data)
                         print np.shape(x.data)
-                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                        raise ValueError('Inconsistent geometry (div): can not calculate!')
             else:
                 print np.shape(self.data)
                 print np.shape(x.data)
-                raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                raise ValueError('Inconsistent geometry (div): can not calculate!')
 
 
         if copy:
@@ -3741,9 +3741,9 @@ class Data(object):
             d.data /=  x.data
         elif np.shape(d.data[0,:,:]) == np.shape(x.data):
             for i in xrange(len(self.time)):
-                d.data[i,:,:] /=  x.data
+                d.data[i, :, :] /=  x.data
         else:
-            raise ValueError, 'Can not handle this geometry in div()'
+            raise ValueError('Can not handle this geometry in div()')
 
         d.label = self.label + ' / ' + x.label
 
@@ -3767,21 +3767,21 @@ class Data(object):
         if np.shape(self.data) != np.shape(x.data):
             if self.data.ndim == 3:
                 if x.data.ndim == 2:
-                    if np.shape(self.data[0,:,:]) == np.shape(x.data):
+                    if np.shape(self.data[0, :, :]) == np.shape(x.data):
                         #second and third dimension match
                         pass
                     else:
                         print np.shape(self.data)
                         print np.shape(x.data)
-                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                        raise ValueError('Inconsistent geometry (div): can not calculate!')
                 else:
                         print np.shape(self.data)
                         print np.shape(x.data)
-                        raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                        raise ValueError('Inconsistent geometry (div): can not calculate!')
             else:
                 print np.shape(self.data)
                 print np.shape(x.data)
-                raise ValueError, 'Inconsistent geometry (div): can not calculate!'
+                raise ValueError('Inconsistent geometry (div): can not calculate!')
 
 
         if copy:
@@ -3792,7 +3792,7 @@ class Data(object):
             d.data = d.data * x.data
         elif np.shape(d.data[0,:,:]) == np.shape(x.data):
             for i in xrange(len(self.time)):
-                d.data[i,:,:] = d.data[i,:,:] * x.data
+                d.data[i, :, :] = d.data[i, :, :] * x.data
         else:
             raise ValueError, 'Can not handle this geometry in div()'
 
@@ -3810,13 +3810,13 @@ class Data(object):
         @type step: int
         """
         if self.data.ndim == 3:
-            self.data = self.data[:,::step,::step]
+            self.data = self.data[:,::step, ::step]
         elif self.data.ndim == 2:
-            self.data = self.data[::step,::step]
+            self.data = self.data[::step, ::step]
         else:
-            raise ValueError, 'Data Dimension not supported!'
-        self.lat = self.lat [::step,::step]
-        self.lon = self.lon [::step,::step]
+            raise ValueError('Data Dimension not supported!')
+        self.lat = self.lat[::step, ::step]
+        self.lon = self.lon[::step, ::step]
 
 #-----------------------------------------------------------------------
 
@@ -3840,53 +3840,63 @@ class Data(object):
         """
 
         if self.ndim != 3:
-            raise ValueError, 'Invalid geometry!'
+            raise ValueError('Invalid geometry!')
 
-        nt,ny,nx = sz = self.shape
+        nt, ny, nx = sz = self.shape
 
         if nt != len(x):
-            raise ValueError, 'Inconsistent geometries'
+            raise ValueError('Inconsistent geometries')
 
-        #--- get data with at least one valid value
-        lo,la,dat,msk = self.get_valid_data(return_mask=True,mode='one')
+        # get data with at least one valid value
+        lo,la,dat,msk = self.get_valid_data(return_mask=True, mode='one')
         xx,n = dat.shape
         if self.verbose:
-            print '   Number of grid points: ', n
+            print('   Number of grid points: ', n)
 
-        R=np.ones((ny,nx))*np.nan #output matrix for correlation
-        P=np.ones((ny,nx))*np.nan #output matrix for p-value
-        S=np.ones((ny,nx))*np.nan #output matrix for slope
-        I=np.ones((ny,nx))*np.nan #output matrix for intercept
-        CO=np.ones((ny,nx))*np.nan #output matrix for covariance
+        R=np.ones((ny, nx))*np.nan  # output matrix for correlation
+        P=np.ones((ny, nx))*np.nan  # output matrix for p-value
+        S=np.ones((ny, nx))*np.nan  # output matrix for slope
+        I=np.ones((ny, nx))*np.nan  # output matrix for intercept
+        CO=np.ones((ny, nx))*np.nan  # output matrix for covariance
 
-        R.shape = (-1); S.shape = (-1)
-        P.shape = (-1); I.shape = (-1)
+        R.shape = (-1)
+        S.shape = (-1)
+        P.shape = (-1)
+        I.shape = (-1)
         CO.shape = (-1)
 
         print 'Calculating correlation ...'
-        res = [stats.mstats.linregress(x,dat[:,i]) for i in range(n)]
+        res = [stats.mstats.linregress(x,dat[:, i]) for i in range(n)]
         res = np.asarray(res)
 
-        slope = res[:,0]; intercept = res[:,1]
-        r_value = res[:,2]; p_value = res[:,3]
-        std_err = res[:,4]
+        slope = res[:, 0]
+        intercept = res[:, 1]
+        r_value = res[:, 2]
+        p_value = res[:, 3]
+        std_err = res[:, 4]
 
-        R[msk] = r_value; P[msk] = p_value; I[msk] = intercept; S[msk] = slope
-        R.shape = (ny,nx); P.shape = (ny,nx); I.shape = (ny,nx); S.shape = (ny,nx)
+        R[msk] = r_value
+        P[msk] = p_value
+        I[msk] = intercept
+        S[msk] = slope
+        R.shape = (ny,nx)
+        P.shape = (ny,nx)
+        I.shape = (ny,nx)
+        S.shape = (ny,nx)
 
         #--- prepare output data objects
         Rout = self.copy() #copy obkect to get coordinates
         Rout.label = 'correlation'
         msk = (P > pthres) | np.isnan(R)
-        Rout.data = np.ma.array(R,mask=msk).copy()
+        Rout.data = np.ma.array(R, mask=msk).copy()
 
         Sout = self.copy() #copy object to get coordinates
         Sout.label = 'slope'
-        Sout.data = np.ma.array(S,mask=msk).copy()
+        Sout.data = np.ma.array(S, mask=msk).copy()
 
         Iout = self.copy() #copy object to get coordinates
         Iout.label = 'intercept'
-        Iout.data = np.ma.array(I,mask=msk).copy()
+        Iout.data = np.ma.array(I, mask=msk).copy()
 
         Pout = self.copy() #copy object to get coordinates
         Pout.label = 'p-value'
@@ -3894,18 +3904,23 @@ class Data(object):
 
         Cout = self.copy() #copy object to get coordinates
         Cout.label = 'covariance'
-        Cout.data = np.ma.array(np.ones(P.shape)*np.nan,mask=msk).copy() #currently not supported: covariance!
+        Cout.data = np.ma.array(np.ones(P.shape)*np.nan, mask=msk).copy() #currently not supported: covariance!
 
         if mask is not None:
             #apply a mask
-            Rout._apply_mask(mask); Sout._apply_mask(mask)
-            Iout._apply_mask(mask); Pout._apply_mask(mask)
+            Rout._apply_mask(mask)
+            Sout._apply_mask(mask)
+            Iout._apply_mask(mask)
+            Pout._apply_mask(mask)
             Cout._apply_mask(mask)
 
-            Rout.unit = None; Sout.unit = None; Iout.unit = None
-            Pout.unit = None; Cout.unit = None
+            Rout.unit = None
+            Sout.unit = None
+            Iout.unit = None
+            Pout.unit = None
+            Cout.unit = None
 
-        return Rout,Sout,Iout,Pout, Cout
+        return Rout, Sout, Iout, Pout, Cout
 
 #-----------------------------------------------------------------------
 
@@ -3929,7 +3944,7 @@ class Data(object):
         x = np.arange(len(self.time)) #@todo: replace this by using actual timestamp for regression calcuclation
 
         #correlate and get slope and intercept
-        Rout,Sout,Iout,Pout, Cout = self.corr_single(x)
+        Rout, Sout, Iout, Pout, Cout = self.corr_single(x)
 
         #calculate regression field
         reg = Data(None, None)
@@ -3937,7 +3952,7 @@ class Data(object):
         reg.label = 'trend line'
         nt = self.data.shape[0]
         for i in range(nt):
-            reg.data[i,:,:] = Sout.data * i + Iout.data
+            reg.data[i, :, :] = Sout.data * i + Iout.data
 
         #substract regression line
         res = self.sub(reg)
@@ -3987,13 +4002,13 @@ class Data(object):
                 return False
 
             for d in di:
-                if d not in [1,-11]:
+                if d not in [1, -11]:
                     return False
 
             #if we have reached this point, then the months are in ascending monthly order. Now check if the years are as well
-            di =   np.unique(np.diff(self._get_years()))
+            di = np.unique(np.diff(self._get_years()))
             for d in di:
-                if d not in [0,1]:
+                if d not in [0, 1]:
                     return False
 
             #... everything is o.k., we have an increasing monthly and yearly timeseries
@@ -4011,12 +4026,12 @@ class Data(object):
 
         self._log_warning('Trying to pad timeseries')
 
-        data   = self.data
-        time   = self.time
+        data = self.data
+        time = self.time
 
-        dummy_data = np.ma.array(np.ones(data[0,:,:].shape)*data.fill_value,\
+        dummy_data = np.ma.array(np.ones(data[0, :, :].shape)*data.fill_value,\
                                         fill_value=data.fill_value,
-                                        mask=np.ones(data[0,:,:].shape)*True)
+                                        mask=np.ones(data[0, :, :].shape)*True)
 
         months = self._get_months()
         mondif = np.diff(months)
