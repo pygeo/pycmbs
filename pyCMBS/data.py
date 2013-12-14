@@ -299,7 +299,7 @@ class Data(object):
 
     def _days_per_month(self):
         """return the number of days per month in Data timeseries"""
-        return [calendar.monthrange(d.year, d.month)[1] for d in self.date]
+        return [float(calendar.monthrange(d.year, d.month)[1]) for d in self.date]
 
     def _log_warning(self,s):
         """
