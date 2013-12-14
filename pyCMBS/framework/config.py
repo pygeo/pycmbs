@@ -506,11 +506,10 @@ class PlotOptions(object):
                                            be a list')
 
                 if k == 'regional_analysis':
-                    if d['OPTIONS'][k] == True:
+                    if d['OPTIONS'][k] is True:
                         if 'region_file' not in d['OPTIONS'].keys():
                             raise ValueError('ERROR: You need to provide a region file name if '
                                              'you want to use regional_analysis!')
-
 
             # check local options
             # odat is key for a specific observational dataset
@@ -530,7 +529,6 @@ class PlotOptions(object):
                         else:
                             d[odat]['obs_file'] = d[odat]['obs_file'] + os.sep
 
-
         # check if region file is given
         if 'region_file' in d['OPTIONS'].keys():
             if d['OPTIONS']['region_file'].lower() == 'none':
@@ -543,7 +541,7 @@ class PlotOptions(object):
                 else:
                     if 'region_file_varname' in d['OPTIONS'].keys():
                         try:
-                            tmp = Data(d['OPTIONS']['region_file'],d['OPTIONS']['region_file_varname'], read=True)  # try reading
+                            tmp = Data(d['OPTIONS']['region_file'], d['OPTIONS']['region_file_varname'], read=True)  # try reading
                         except:
                             raise ValueError('ERROR: the regional masking file can not be read!')
                     else:
