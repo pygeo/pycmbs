@@ -1995,13 +1995,29 @@ class GlecklerPlot(object):
 
         from diagnostic import Diagnostic
         D = Diagnostic(x, y=y)
-        e2 = D.calc_reichler_index(weights) #reichler performance index (might return a list if multiple times analyzed)
-        #Note that the returned value is E**2 for each timestep! When doing the normalization, one needs to take the sqrt(E++2) to obtain the actual RMSE
+        # reichler performance index
+        # (might return a list if multiple times analyzed)
+        e2 = D.calc_reichler_index(weights)
+        e2 = np.ma.masked_where(np.isnan(e2), e2)
+        # Note that the returned value is E**2 for each timestep!
+        # When doing the normalization, one needs to take the sqrt(E++2)
+        # to obtain the actual RMSE
 
         if e2 is None:
             return None
         else:
-            return np.sqrt(np.nansum(e2)) #temporal aggregation and return E instead of E**2; this corresponds to the usage of the RMSE instead of teh error variance!
+            # todo: here temporal weighting !!!
+            # x is assumed to be the reference dataset
+            #~ ndays =
+#~
+            #~ ??? why the sum here ???? and not the mean ????
+            #~ xxxx
+            #~ return np.sqrt(np.nansum(e2)) #temporal aggregation and return E instead of E**2; this corresponds to the usage of the RMSE instead of teh error variance!
+
+
+            #hier weiter fuer reichler index weighting ????
+
+            return np.sqrt(e2.sum())
 
 #-----------------------------------------------------------------------
 
@@ -2037,9 +2053,7 @@ class GlecklerPlot(object):
                                    norm=self.norm,
                                    orientation='horizontal',format=l_f,boundaries=self.bounds,extend=extend)
 
-
-
-    def _draw_legend(self,labels,title=None):
+    def _draw_legend(self, labels, title=None):
         """
         draw automatic legend for Gleckler plot
 
@@ -2059,12 +2073,8 @@ class GlecklerPlot(object):
 
         #generate separate figure for legend
         f=plt.figure()
-        ax=f.add_subplot(111,frameon=True,aspect='equal',axisbg='grey')
-        f.subplots_adjust(bottom=0.25,top=0.75,left=0.25,right=0.75)
-
-        #if len(labels.keys()) != pmax: #not useful, if multiple variables are used!
-        #    print len(labels.keys()), pmax
-        #    raise ValueError, 'Legend for Gleckler Plot can not be plotted, as labels inconsistent with number of available positions!'
+        ax=f.add_subplot(111, frameon=True, aspect='equal', axisbg='grey')
+        f.subplots_adjust(bottom=0.25, top=0.75, left=0.25, right=0.75)
 
         for k in labels.keys():
             if k == 1:
@@ -2078,11 +2088,9 @@ class GlecklerPlot(object):
             else:
                 raise ValueError, 'Can not draw Gleckler legend! Invalid position value! ' + str(k)
 
-
-            #self.__plot_triangle(ax,k*0.01,pos=pos
             oldval = self.show_value
             self.show_value=False
-            self.__plot_triangle(ax,np.random.random(),pos=pos)
+            self.__plot_triangle(ax, np.random.random(), pos=pos)
             self.show_value=oldval
             ax.set_xticks([])
             ax.set_yticks([])
@@ -2090,28 +2098,21 @@ class GlecklerPlot(object):
         fontsize=16
         linewidth=3
 
-
         for k in labels.keys():
             if k == 1: #top
-                ax.annotate(labels[k], xy=(0.5, 0.9),  xycoords='axes fraction',xytext=(0., 1.2), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+                ax.annotate(labels[k], xy=(0.5, 0.9), xycoords='axes fraction', xytext=(0., 1.2), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
             elif k == 2:
-                ax.annotate(labels[k], xy=(0.5, 0.1),  xycoords='axes fraction',xytext=(0., -0.3), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+                ax.annotate(labels[k], xy=(0.5, 0.1), xycoords='axes fraction', xytext=(0., -0.3), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
             elif k == 3:
-                ax.annotate(labels[k], xy=(0.1, 0.5),  xycoords='axes fraction',xytext=(-0.6,0.2), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+                ax.annotate(labels[k], xy=(0.1, 0.5), xycoords='axes fraction', xytext=(-0.6,0.2), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
             elif k == 4:
-                ax.annotate(labels[k], xy=(0.9, 0.5),  xycoords='axes fraction',xytext=(1.1,0.8), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
+                ax.annotate(labels[k], xy=(0.9, 0.5), xycoords='axes fraction', xytext=(1.1,0.8), textcoords='axes fraction',arrowprops=dict(arrowstyle="->",connectionstyle="angle3,angleA=0,angleB=-90",linewidth=linewidth),horizontalalignment='left',size=fontsize)
 
-        if title != None:
-            f.suptitle(title,size=fontsize)
+        if title is not None:
+            f.suptitle(title, size=fontsize)
 
         return f
 
-
-
-
-
-
-#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True,drawcountries=True,land_color=0.8):
@@ -2145,7 +2146,7 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True,
 
 #-----------------------------------------------------------------------
 
-def pm_bar(x,y=None,pcolor='red',ncolor='blue',ax=None,**kwargs):
+def pm_bar(x, y=None, pcolor='red', ncolor='blue', ax=None, **kwargs):
     """
     generate a nice looking barchart with different color for positive/negative numbers
 
@@ -2156,34 +2157,31 @@ def pm_bar(x,y=None,pcolor='red',ncolor='blue',ax=None,**kwargs):
     """
 
     if ax is None:
-        f = pl.figure(); ax = f.add_subplot(111)
+        f = pl.figure()
+        ax = f.add_subplot(111)
     else:
         ax = ax
 
-    if y == None:
+    if y is None:
         y = x*1.
         x = np.arange(len(y))
     else:
         pass
 
-    yp = y*1.; yp[y<0.] = 0.
-    yn = y*1.; yn[y>0.] = 0.
+    yp = y*1.
+    yp[y<0.] = 0.
+    yn = y*1.
+    yn[y>0.] = 0.
 
     #--- plot
-    ax.bar(x,yp,color=pcolor,edgecolor='None',**kwargs)
-    ax.bar(x,yn,color=ncolor,edgecolor='None',**kwargs)
+    ax.bar(x, yp, color=pcolor, edgecolor='None', **kwargs)
+    ax.bar(x, yn, color=ncolor, edgecolor='None', **kwargs)
 
     return ax
 
-
-
-
 #-----------------------------------------------------------------------
 
-
-
-
-def map_season(x,**kwargs):
+def map_season(x, figsize=(8,6), **kwargs):
     """
     generate a seasonal plot
     all arguments are parsed directly to map_plot function
@@ -2222,16 +2220,16 @@ def map_season(x,**kwargs):
     if 'vmax' not in kwargs.keys():
         raise ValueError, 'vmax argument is obligatory for map_seasons()'
 
-    if kwargs['vmin'] == None:
+    if kwargs['vmin'] is None:
         raise ValueError, 'vmin MUST NOT be None!'
-    if kwargs['vmax'] == None:
+    if kwargs['vmax'] is None:
         raise ValueError, 'vmax MUST NOT be None!'
 
     #/// figure and axes
     if 'figure' in kwargs:
         f = kwargs['figure']
     else:
-        f = pl.figure()
+        f = pl.figure(figsize=figsize)
 
     if 'title' in kwargs:
         tit = kwargs.pop('title')
@@ -2243,8 +2241,6 @@ def map_season(x,**kwargs):
     else:
         drawparallels = False
 
-
-
     if 'savefile' in kwargs:
         savefile = kwargs.pop('savefile')
         if '.nc' in savefile:
@@ -2253,13 +2249,13 @@ def map_season(x,**kwargs):
         savefile = None
 
 
-    #/// plot
+    # plot
     if year:
         labels=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     else:
         labels=['DJF','MAM','JJA','SON']
 
-    #/// check dates
+    # check dates
     if year:
         mo = 1
         for t in x.time:
@@ -2267,8 +2263,6 @@ def map_season(x,**kwargs):
                 print x.num2date(t), mo
                 raise ValueError, 'Invalid monthly sequence! Can not plot results!'
             mo +=1
-
-
 
     #/// in case that an overlay is provided, this needs to be processed for each timestep individually
     if 'overlay' in kwargs.keys():
@@ -2300,19 +2294,14 @@ def map_season(x,**kwargs):
         else:
             overlay = overlays[i,:,:]
 
-        if savefile != None:
+        if savefile is not None:
             tmpoutname=savefile + '_' + labels[i]
         else:
             tmpoutname = None
 
         map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal',drawparallels=drawparallels, **kwargs); del d
-
     f.suptitle(tit,size=16)
-
     return f
-
-
-
 
 #-----------------------------------------------------------------------
 
