@@ -6,6 +6,9 @@ the pyCMBS licensing details.
 """
 
 
+# added some comments for teststing GIT behavor
+
+
 """
 Module that contains relevant classes for diagnostic plots
 
