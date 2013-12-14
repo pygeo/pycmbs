@@ -1954,7 +1954,7 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def calc_index(self, x, y, model, variable, weights=None):
+    def calc_index(self, x, y, model, variable, weights=None, time_weighting=True):
         """
         calculate model performance index
         the model and the variable need to have been registered
@@ -2006,26 +2006,13 @@ class GlecklerPlot(object):
         if e2 is None:
             return None
         else:
-            # todo: here temporal weighting !!!
-            # x is assumed to be the reference dataset
-            #~ ndays =
-#~
-            #~ ??? why the sum here ???? and not the mean ????
-            #~ xxxx
-            #~ return np.sqrt(np.nansum(e2)) #temporal aggregation and return E instead of E**2; this corresponds to the usage of the RMSE instead of teh error variance!
-
-            days = np.asarray(x._days_per_month())  # number of days for each month
-            wt = days / days.sum()  # weights for time
-
-            wt = np.ones(len(e2)) #just for testing first !!!
-
-            print wt
+            if time_weighting:
+                days = np.asarray(x._days_per_month())  # number of days for each month
+                wt = days / float(days.sum())  # weights for time
+            else:
+                wt = np.ones(len(e2)) / float(len(e2))
 
             return np.sqrt((e2*wt).sum())
-
-            #hier weiter fuer reichler index weighting ????
-
-            #return np.sqrt(e2.sum())
 
 #-----------------------------------------------------------------------
 

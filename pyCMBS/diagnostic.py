@@ -2090,6 +2090,7 @@ class Diagnostic(object):
             print('Reichler: e2 contains NAN, this happens most likely if STDV == 0')
             return None
         else:
+            #~ print e2
             return e2
 
 #-----------------------------------------------------------------------
