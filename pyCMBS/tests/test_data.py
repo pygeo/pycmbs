@@ -892,10 +892,10 @@ class TestData(TestCase):
         x.time[4] = pl.datestr2num('2003-02-15')
 
         d = x._days_per_month()
-        self.assertEqual(d[0][1], 31)
-        self.assertEqual(d[1][1], 31)
-        self.assertEqual(d[2][1], 30)
-        self.assertEqual(d[3][1], 29)
-        self.assertEqual(d[4][1], 28)
+        self.assertEqual(d[0], 31)
+        self.assertEqual(d[1], 31)
+        self.assertEqual(d[2], 30)
+        self.assertEqual(d[3], 29)
+        self.assertEqual(d[4], 28)
 #~ if __name__ == '__main__':
     #~ unittest.main()
