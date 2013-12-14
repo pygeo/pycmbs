@@ -1997,7 +1997,7 @@ class GlecklerPlot(object):
         D = Diagnostic(x, y=y)
         # reichler performance index
         # (might return a list if multiple times analyzed)
-        e2 = D.calc_reichler_index(weights)
+        e2 = D.calc_reichler_index(weights)  # returns [time, index]
         e2 = np.ma.masked_where(np.isnan(e2), e2)
         # Note that the returned value is E**2 for each timestep!
         # When doing the normalization, one needs to take the sqrt(E++2)
@@ -2014,10 +2014,16 @@ class GlecklerPlot(object):
             #~ xxxx
             #~ return np.sqrt(np.nansum(e2)) #temporal aggregation and return E instead of E**2; this corresponds to the usage of the RMSE instead of teh error variance!
 
+            days = np.asarray(x._days_per_month())  # number of days for each month
+            wt = days / days.sum()  # weights for time
+
+            wt = np.ones(len(e2)) #just for testing first !!!
+
+            return np.sqrt((e2*wt).sum())
 
             #hier weiter fuer reichler index weighting ????
 
-            return np.sqrt(e2.sum())
+            #return np.sqrt(e2.sum())
 
 #-----------------------------------------------------------------------
 
