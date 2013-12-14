@@ -1895,7 +1895,7 @@ class Diagnostic(object):
         @type y: C{Data} object
         """
         self.x = x
-        if y != None:
+        if y is not None:
             self.y = y
 
 #-----------------------------------------------------------------------
@@ -1922,7 +1922,7 @@ class Diagnostic(object):
 
 #-----------------------------------------------------------------------
 
-    def lagged_correlation_vec(self,lags,pthres=1.01,detrend_linear=False,detrend_mean=False):
+    def lagged_correlation_vec(self, lags, pthres=1.01, detrend_linear=False, detrend_mean=False):
         """
         lagged correlation for two vectors
 
@@ -1943,7 +1943,8 @@ class Diagnostic(object):
 
         CO = []
         for lag in lags:
-            hlpx = self.x.data.copy(); hlpy = self.y.data.copy()
+            hlpx = self.x.data.copy()
+            hlpy = self.y.data.copy()
 
             if detrend_linear:
                 hlpx = plt.detrend_linear(hlpx)
@@ -1959,9 +1960,10 @@ class Diagnostic(object):
 
             #2) calculation of lagged correlation
             if len(hlpx) > 1:
-                slope, intercept, r_value, p_value, std_err = sci.stats.linregress(hlpx,hlpy)
+                slope, intercept, r_value, p_value, std_err = sci.stats.linregress(hlpx, hlpy)
             else:
-                r_value = np.nan; p_value =2.
+                r_value = np.nan
+                p_value =2.
 
             if p_value < pthres:
                 CO.append(r_value)
@@ -1982,12 +1984,12 @@ class Diagnostic(object):
         """
         get correlation between two vectors
         """
-        c = np.ma.corrcoef(self.xvec,self.yvec)[0][1]
-        return c #correlation coefficient
+        c = np.ma.corrcoef(self.xvec, self.yvec)[0][1]
+        return c  # correlation coefficient
 
 #-----------------------------------------------------------------------
 
-    def _mat2vec(self,mask = None):
+    def _mat2vec(self, mask=None):
         """
         concatenate all information into
         a vector and apply a given
@@ -1999,26 +2001,27 @@ class Diagnostic(object):
 
         #--- generated copies and mask data if desired
         X = self.x.copy()
-        if mask != None:
-            X._apply_mask(mask,keep_mask=False)
-        if self.y != None:
+        if mask is not None:
+            X._apply_mask(mask, keep_mask=False)
+        if self.y is not None:
             Y = self.y.copy()
-            if mask != None:
-                Y._apply_mask(mask,keep_mask=False)
+            if mask is not None:
+                Y._apply_mask(mask, keep_mask=False)
         else:
             Y = None
 
         #--- vectorize the data (concatenate in space and time)
         xvec = X.data.copy()
         xvec.shape = (-1)
-        if self.y != None:
-            yvec = Y.data.copy(); yvec.shape = (-1)
-
-        self.xvec = xvec; self.yvec = yvec
+        if self.y is not None:
+            yvec = Y.data.copy()
+            yvec.shape = (-1)
+        self.xvec = xvec
+        self.yvec = yvec
 
 #-----------------------------------------------------------------------
 
-    def calc_reichler_index(self,weights=None):
+    def calc_reichler_index(self, weights=None):
         """
         calculate index after Reichler & Kim (2008)
         for a single model
@@ -2036,15 +2039,20 @@ class Diagnostic(object):
         to take the sum of all values in the calling program!
         """
 
-        if not hasattr(self,'y'):
-            raise ValueError, 'Can not calculate Reichler & Kim index without a second variable!'
+        if not hasattr(self, 'y'):
+            raise ValueError('Can not calculate Reichler & Kim index without a second variable!')
 
-        if not hasattr(self.x,'std'):
-            raise ValueError, 'Can not calculate Reichler & Kim index without STD information!'
+        if not hasattr(self.x, 'std'):
+            raise ValueError('Can not calculate Reichler & Kim index without STD information!')
 
+        if not self.x._is_monthly():
+            raise ValueError('Variable X has no monthly stepping!')
+        if not self.y._is_monthly():
+            raise ValueError('Variable Y has no monthly stepping!')
 
-        if weights == None:
-            if self.x.cell_area == None:
+        # spatial weights
+        if weights is None:
+            if self.x.cell_area is None:
                 print 'WARNING: Reichler: can not calculated weighted index, as no cell_area given!'
                 weights = np.ones(self.x.data.shape)
             else:
@@ -2052,39 +2060,41 @@ class Diagnostic(object):
         else:
             weights = weights.copy()
 
-        x = self.x.data.copy(); y = self.y.data.copy()
+        x = self.x.data.copy()
+        y = self.y.data.copy()
         std_x = self.x.std.copy()
 
         if np.shape(x) != np.shape(y):
             print np.shape(x), np.shape(y)
-            raise ValueError, 'Invalid shapes of arrays!'
+            raise ValueError('Invalid shapes of arrays!')
 
-        if x.ndim == 1: #only timeseries
-            e2 = sum(weights * (x-y)**2 / std_x)
+        if x.ndim == 1:  # only timeseries
+            e2 = sum(weights * (x-y)**2. / std_x)
         else:
             n = len(x)
-            x.shape = (n,-1) #[time,index]
-            y.shape = (n,-1)
-            std_x.shape = (n,-1); weights.shape = (n,-1)
+            x.shape = (n, -1)  # [time,index]
+            y.shape = (n, -1)
+            std_x.shape = (n, -1)
+            weights.shape = (n, -1)
             if np.shape(x) != np.shape(weights):
                 print x.shape,weights.shape
-                raise ValueError, 'Invalid shape for weights!'
+                raise ValueError('Invalid shape for weights!')
 
-            #calculate weighted average for all timesteps
+            # calculate weighted average for all timesteps
             e2 = np.ones(n)*np.nan
             for i in xrange(n):
-                d = weights[i,:] * ( (x[i,:]-y[i,:])**2.)   / std_x[i,:]
-                e2[i] = np.sum(d) #sum at end to avoid nan's   #it is important to use np.sum() !!
+                d = weights[i,:] * ((x[i,:]-y[i,:])**2.) / std_x[i,:]
+                e2[i] = np.sum(d)  # sum at end to avoid nan's   #it is important to use np.sum() !!
 
         if np.any(np.isnan(e2)):
-            print 'Reichler: e2 contains NAN, this happens most likely if STDV == 0'
+            print('Reichler: e2 contains NAN, this happens most likely if STDV == 0')
             return None
         else:
             return e2
 
 #-----------------------------------------------------------------------
 
-    def get_correlationxxxxx(self,lag=0,nlags=None):
+    def get_correlationxxxxx(self, lag=0, nlags=None):
         """
         calculate correlation between two data sets
         """
@@ -2114,32 +2124,23 @@ class Diagnostic(object):
 
             return np.array(res), np.array(lags)
 
+        if not hasattr(self, 'y'):
+            raise ValueError('No y variable existing!')
 
+        x = self.x.data.copy()
+        y = self.y.data.copy()
 
-
-        if not hasattr(self,'y'):
-            raise ValueError, 'No y variable existing!'
-
-        x = self.x.data.copy(); y = self.y.data.copy()
-
-        s1 = np.shape(x); s2 = np.shape(y)
+        s1 = np.shape(x)
+        s2 = np.shape(y)
         if s1 != s2:
             print s1,s2
             raise ValueError, 'Invalid shapes!'
 
 
         n = np.shape(x)[0]
-        #~ print n
-        x.shape = (n,-1); y.shape = (n,-1)
+        x.shape = (n, -1)
+        y.shape = (n, -1)
 
-
-
-
-        #~ print s1
-        print x.shape
-        print s1
-        print x.ndim
-        print len(s1)
         if len(s1) ==2:
             ndata = s1[1]*s1[2]
         elif len(s1) == 1:
@@ -2185,7 +2186,7 @@ class Diagnostic(object):
 
 #-----------------------------------------------------------------------
 
-    def slice_corr(self,timmean=True,spearman=False,partial=False,z=None):
+    def slice_corr(self, timmean=True, spearman=False, partial=False, z=None):
         """
         perform correlation analysis for
         different starting times and length
@@ -2217,8 +2218,7 @@ class Diagnostic(object):
             print 'No y-value specified. Use time as indpendent variable!'
 
             y = x.copy()
-            x = np.ma.array(self.x.time.copy(),mask = self.x.time < 0. )
-
+            x = np.ma.array(self.x.time.copy(), mask=self.x.time < 0. )
         else:
             y = self.y.data.copy()
 
@@ -2227,12 +2227,10 @@ class Diagnostic(object):
                 print np.shape(x), np.shape(y)
                 raise ValueError, 'slice_corr: shapes not matching!'
 
-
-
         #--- reshape data
-        n = len(x) #timesteps
-        x.shape = (n,-1) #size [time,ngridcells]
-        y.shape = (n,-1)
+        n = len(x)  # timesteps
+        x.shape = (n, -1)  # size [time,ngridcells]
+        y.shape = (n, -1)
 
         if partial:
             z = z.data.copy()
@@ -2402,12 +2400,14 @@ class Diagnostic(object):
             i1 += 1
 
 
-        if pthres != None: #mask all insignificant values
+        if pthres is not None: #mask all insignificant values
             R = np.ma.array(R,mask=P>pthres)
             S = np.ma.array(S,mask=P>pthres)
 
-        self.slice_r_gap = R; self.slice_p_gap = P
-        self.slice_length_gap = L; self.slice_slope_gap = S
+        self.slice_r_gap = R
+        self.slice_p_gap = P
+        self.slice_length_gap = L
+        self.slice_slope_gap = S
 
 
 #-----------------------------------------------------------------------
