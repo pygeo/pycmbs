@@ -138,7 +138,7 @@ class NetCDFHandler(object):
             size of dimension; if None, then it is unlimited
         """
         if size is not None:
-            assert(isinstance(size,int))
+            assert(isinstance(size, int))
 
         if self.type.lower() == 'nio':
             self.F.create_dimension(dimname, size)
