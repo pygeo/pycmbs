@@ -33,8 +33,8 @@ pep8 :
 	$(PEP) ./pyCMBS/region.py
 	$(PEP) ./pyCMBS/framework/__init__.py
 	$(PEP) ./pyCMBS/framework/utils.py
-	#$(PEP) ./pyCMBS/diagnostic.py
-	#$(PEP) ./pyCMBS/framework/config.py
+	$(PEP) ./pyCMBS/diagnostic.py
+	$(PEP) ./pyCMBS/framework/config.py
 	#$(PEP) ./pyCMBS/framework/pycmbs.py
 	$(PEP) ./pyCMBS/data.py
 	#data.py models.py analysis.py pycmbs.py

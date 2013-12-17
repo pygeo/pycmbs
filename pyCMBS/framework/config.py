@@ -541,7 +541,7 @@ class PlotOptions(object):
                 else:
                     if 'region_file_varname' in d['OPTIONS'].keys():
                         try:
-                            tmp = Data(d['OPTIONS']['region_file'], d['OPTIONS']['region_file_varname'], read=True)  # try reading
+                            tmp = Data(d['OPTIONS']['region_file'], d['OPTIONS']['region_file_varname'], read=True)
                         except:
                             raise ValueError('ERROR: the regional masking file can not be read!')
                     else:
@@ -687,7 +687,8 @@ class CFGWriter(object):
         self._write('# analysis details for each variable are:')
         self._write('# name, [0,1], [monthly,season]')
         self._write('#')
-        self._write("# 'name' specifies the variable name to be analyzed; needs to be consistent with routines defined in main()")
+        self._write("# 'name' specifies the variable name to be analyzed; needs to be consistent with routines defined"
+                    " in main()")
         self._write('# [0,1] specified if the data shall be used')
         self._write('# [monthly,season] specifies the temporal scale of the analysis')
         self._write('#')
