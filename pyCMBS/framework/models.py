@@ -147,7 +147,8 @@ class MedianModel(Model):
                 if isinstance(self.variables[k], tuple):
                     self.variables.update({k: (None, None, None) })
                 else: #mean model!
-                    print('Todo hier weiter')
+                    msk_below = M.variables[k].data <= self.variables[k].data
+                    raise ValueError('Implementation of median model has not yet been finished!')
                     stop
 
 
