@@ -13,8 +13,7 @@ The model benchmarking framework can be easily customized and adapted to the use
 How to add new model data for an already existing model output format?
 ----------------------------------------------------------------------
 
-Adding two mode
-
+TBD
 
 
 
@@ -90,16 +89,39 @@ If one of the two tests above fail, then your file is missing some essential met
 
 
 
-
-
-
-
-
-
-
 How to integrate new variables in the analysis?
 -----------------------------------------------
-TBD
+
+To add new variables in pyCMBS implies the following steps:
+
+1. **Define I/O routine:** Implement for each model class that shall support the new variable a routine
+that allows to read the data. Let's say you have a variable *sis*, then you
+would need e.g. to implement a routine *get_sis()* for the CMIP5 model class.
+Note that there is already a routine which can be used for generic I/O.
+
+2. **Register I/O routine**: After you have implemented the routine to read the
+data, you need to let the program know about it. All data is read using a
+routine called *get_data()*. This routine gets the information which
+subroutines to call from details provided in a configuration file. The
+configuration file is found in::
+    ./configuration/model_data_routines.json
+
+The file is a simple JSON dictionary. Make yourself a bit familar with the
+structure and it should not be a problem to implement your new routine there.
+
+3. **Analysis script:** Now you have the analysis script that can be used to
+read the data. However, you still need to tell pyCMBS how to make use of this
+new information. This you do by implementing an analysis routine in
+*analysis.py*. For most variables supported so far, this analysis routine is
+just a wrapper which is calling a very generic analysis routine that basically
+does everything you tell it to do. What to do is specified in the INI files for
+each variable. Note however, that you are free to do what you want and you can
+implement a new analysis routine which is doing right the thing you want it to
+do.
+
+4. **Last step** is to tell pyCMBS that the analysis script you implemented is
+existing. This is again done, by simply registering it in the following file::
+    ./configuration/analysis_scripts.json
 
 
 How to use external scripts?
