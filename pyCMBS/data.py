@@ -1390,7 +1390,8 @@ class Data(object):
         r = np.ones(sum(mskvalid)) * np.nan
         p = np.ones(sum(mskvalid)) * np.nan
 
-        xn = xv[:,mskvalid]; yn=yv[:, mskvalid] #copy data
+        xn = xv[:,mskvalid]
+        yn = yv[:, mskvalid]  # copy data
         nv = nvalid[mskvalid]
 
         #do correlation calculation; currently using np.ma.corrcoef as this

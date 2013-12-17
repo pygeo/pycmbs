@@ -2242,17 +2242,17 @@ class Diagnostic(object):
 
         if partial:
             if spearman:
-                raise ValueError, 'Spearman and partial correlation not supported'
-            if z == None:
-                raise ValueError, 'no z-value given for partial correlation!'
+                raise ValueError('Spearman and partial correlation not supported')
+            if z is None:
+                raise ValueError('no z-value given for partial correlation!')
             if self.x.data.shape != z.data.shape:
                 print self.x.data.shape
                 print z.data.shape
-                raise ValueError, 'Invalid geometries for partial correlation!'
+                raise ValueError('Invalid geometries for partial correlation!')
 
         x=self.x.data.copy()
 
-        if not hasattr(self,'y'):
+        if not hasattr(self, 'y'):
             #if no y value is given, then time is used as independent variable
             print 'No y-value specified. Use time as indpendent variable!'
 
@@ -2262,9 +2262,9 @@ class Diagnostic(object):
             y = self.y.data.copy()
 
         if np.shape(x) != np.shape(y):
-            if np.prod(np.shape(x)) != np.prod(np.shape(y)): #check if flattened arrays would work
+            if np.prod(np.shape(x)) != np.prod(np.shape(y)):  # check if flattened arrays would work
                 print np.shape(x), np.shape(y)
-                raise ValueError, 'slice_corr: shapes not matching!'
+                raise ValueError('slice_corr: shapes not matching!')
 
         #--- reshape data
         n = len(x)  # timesteps
@@ -2275,8 +2275,10 @@ class Diagnostic(object):
             z = z.data.copy()
             z.shape = (n,-1)
 
-        R=np.ones((n,n))*np.nan; P=np.ones((n,n))*np.nan
-        L=np.ones((n,n))*np.nan; S=np.ones((n,n))*np.nan
+        R = np.ones((n,n))*np.nan
+        P = np.ones((n,n))*np.nan
+        L = np.ones((n,n))*np.nan
+        S = np.ones((n,n))*np.nan
 
         #--- perform correlation analysis
         print '   Doing slice correlation analysis ...'
@@ -2329,8 +2331,6 @@ class Diagnostic(object):
 
                     slope, intercept, r, p, stderr = sci.stats.linregress(zdata,ydata)
                     ydata = (ydata - intercept) / slope
-
-
 
                 slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
                 R[length,i1] = r
