@@ -5,8 +5,8 @@ __author__ = 'Walter Sauf'
 
 #identify pyCMBS path and add it to pythonpath, as otherwise the modules are not found properly!
 
-from data import *
-from data4D import *
+from pyCMBS.data import *
+from pyCMBS.data4D import *
 #from diagnostic import *
 import scipy as sc
 #import pylab as pl
@@ -278,23 +278,23 @@ class TestData4D(TestCase):
     def test_setDataFromLevel(self):
         print "\nDoing Test setDataFromLevel"
 
-    print "  - Check if Data  and Data4D are not equal at the start"
+        print "  - Check if Data  and Data4D are not equal at the start"
         if self.D4d.data4D[0][17,0,0] == self.Da.data[17,0,0]:
-      print "  - Data and Data4D Elements are Equal. Please, try again"
+            print "  - Data and Data4D Elements are Equal. Please, try again"
 
         print "  - Check if Data4d on level 1 and Data4D on level 2 are not equal at the start"
         if self.D4d.data4D[0][17,0,0] == self.D4d.data4D[1][17,0,0]:
-      print "  - Data4D Elements on level 1 and 2 are Equal. Please, try again"
+            print "  - Data4D Elements on level 1 and 2 are Equal. Please, try again"
 
-    print "  - Check set Data to first level"
-    self.D4d.setDataFromLevel(self.Da,1)
+        print "  - Check set Data to first level"
+        self.D4d.setDataFromLevel(self.Da,1)
         self.assertAlmostEqual(self.Da.data[17,0,0],self.D4d.data4D[0][17,0,0])
 
-    print "  - Check set Data to second level"
-    self.D4d.setDataFromLevel(self.Da,2)
+        print "  - Check set Data to second level"
+        self.D4d.setDataFromLevel(self.Da,2)
         self.assertAlmostEqual(self.Da.data[17,0,0],self.D4d.data4D[1][17,0,0])
 
-    print "  - Check if Data on first level and second level equal"
+        print "  - Check if Data on first level and second level equal"
         self.assertAlmostEqual(self.D4d.data4D[0][17,0,0],self.D4d.data4D[1][17,0,0])
 
 #================================================================================
@@ -303,14 +303,14 @@ class TestData4D(TestCase):
         print "\nDoing Test getDataFromLevel"
 
         if self.D4d.data4D[0][33,0,0] == self.Da.data[33,0,0]:
-      print "  - Data and Data4D Elements are Equal. Please, try again"
+            print "  - Data and Data4D Elements are Equal. Please, try again"
 
-    print "  - Check getting Data from first level"
-    self.Da = self.D4d.getDataFromLevel(1)
+        print "  - Check getting Data from first level"
+        self.Da = self.D4d.getDataFromLevel(1)
         self.assertAlmostEqual(self.Da.data[33,0,0],self.D4d.data4D[0][33,0,0])
 
-    print "  - Check getting Data from second level"
-    self.Da = self.D4d.getDataFromLevel(2)
+        print "  - Check getting Data from second level"
+        self.Da = self.D4d.getDataFromLevel(2)
         self.assertAlmostEqual(self.Da.data[33,0,0],self.D4d.data4D[1][33,0,0])
 
 #================================================================================
@@ -324,11 +324,11 @@ class TestData4D(TestCase):
         r_copy = self.D4d.copy()
         r_copy.mulc(2.,copy=False)
 
-    print "  - Check if old values has not changed?"
+        print "  - Check if old values has not changed?"
         self.assertAlmostEqual(Da_1.data[15,0,0],self.D4d.data4D[0][15,0,0])
         self.assertAlmostEqual(Da_2.data[14,0,0],self.D4d.data4D[1][14,0,0])
 
-    print "  - Check if the values of the copy are correct?"
+        print "  - Check if the values of the copy are correct?"
         self.assertAlmostEqual(Da_1.data[29,0,0]*2.,r_copy.data4D[0][29,0,0])
         self.assertAlmostEqual(Da_2.data[24,0,0]*2.,r_copy.data4D[1][24,0,0])
 
@@ -342,7 +342,7 @@ class TestData4D(TestCase):
         Da_2 = self.D4d.getDataFromLevel(2)
 
         D4d_sum = self.D4d.sum_data4D()
-    print "  - Check if the sum across all levels are correct?"
+        print "  - Check if the sum across all levels are correct?"
         self.assertAlmostEqual(Da_1.data[17,0,0]+Da_2.data[17,0,0],D4d_sum.data[17,0,0])
 
 
