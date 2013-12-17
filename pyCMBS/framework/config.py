@@ -124,6 +124,18 @@ class ConfigFile():
         else:
             raise ValueError('CONFIG directory not specified!')
 
+        l = self.f.readline().replace('\n', '')
+        if 'OUTPUT_DIRECTORY=' in l.upper():
+            s = l[17:]
+            if s[-1] != os.sep:
+                s = s+os.sep
+            if not os.path.exists(s):
+                os.makedirs(s)
+            self.options.update({'outputdir': s.replace(' ', '')})
+        else:
+            raise ValueError('OUTPUT directory not specified!')
+
+
         #//// create / remove directories
         if not os.path.exists(self.options['tempdir']):
             print 'Creating temporary output directory: ', self.options['tempdir']
@@ -644,7 +656,11 @@ class CFGWriter(object):
         """
         # list which specifies which default variables should be written
         # to the standard configuration file
-        supported_vars = ['albedo', 'sis', 'precipitation']
+        supported_vars = ['albedo', 'sis', 'precipitation', 'albedo_vis',
+                          'albedo_nir', 'surface_upward_flux', 'tree',
+                          'temperature', 'rain', 'evap', 'hair', 'wind',
+                          'twpa', 'wvpa', 'late', 'budg',
+                          'phenology_faPAR', 'gpp']
 
         if format.lower() not in ['pdf', 'png']:
             raise ValueError('Invalid output format for report: %s' % format)
@@ -678,6 +694,8 @@ class CFGWriter(object):
         self._write('clean_tempdir,' + str(clean_temp.real))
         self._write('summary_only,' + str(summary_only.real))
         self._write('config_dir=' + self.output_dir + '/configuration/')
+        self._write('output_directory=' + self.output_dir + '/reports/')
+        self._write('')
 
         self._write('################################')
         self._write('# Specify variables to analyze')
@@ -709,6 +727,7 @@ class CFGWriter(object):
         self._write(start_date)
         self._write(stop_date)
         self._write('use_for_observations,0')
+        self._write('')
 
         self._write('################################')
         self._write('# Register models to analyze')
