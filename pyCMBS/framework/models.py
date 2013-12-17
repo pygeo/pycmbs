@@ -86,47 +86,52 @@ class Model(Data):
 
 class MeanModel(Model):
     """
-    implements a class that allows to handle multiple ensembles and calculate ensemble statistics
+    implements a class that allows to handle multiple ensembles and calculate
+    ensemble statistics
     """
-    def __init__(self,dic_variables,intervals=None,**kwargs):
-        super(MeanModel,self).__init__(None,dic_variables,name='mean-model',intervals=intervals,**kwargs)
-        self.n=0 #specifies only the number of models that were used in general, does NOT specify if the data is valid!
+    def __init__(self, dic_variables, intervals=None, **kwargs):
+        super(MeanModel, self).__init__(None, dic_variables, 
+                                        name='mean-model',
+                                        intervals=intervals, **kwargs)
+        self.n = 0  #  specifies only the number of models that were used in general, does NOT specify if the data is valid!
         self._unique_name = 'model_mean'
-        self.model_mean=None
+        self.model_mean = None
         self.ensmean_called = False
 
-    def add_member(self,M):
+    def add_member(self, M):
         """
         add ensemble member
-        this routine adds an ensemble member to the already existing dataset; note: to save memory, we
+        this routine adds an ensemble member to the already existing
+        dataset; note: to save memory, we
         don't store the individual members, but just the sum of them!
 
         one needs to call ensmean() afterwards to get the ensemble mean!
         """
 
-        if not (M,Model): #check if Model class or subclass of Model at least!
-            if not issubclass(M,Model):
-                raise ValueError, 'Model instance or derived class expected here!'
-        # print('Adding model %s to MeanModel' % M._unique_name)
+        if not (M, Model): 
+            if not issubclass(M, Model):
+                raise ValueError('Model instance or derived class expected here!')
 
         if self.n == 0:
             #self.model_mean = M.copy()
             tmp = M.copy()
-            self.variables = tmp.variables; del tmp
+            self.variables = tmp.variables
+            del tmp
             self.name = 'mean-model'
             self._unique_name = 'model_mean'
             self.N = {}
 
             for k in self.variables.keys(): #count for each variable the number of valid models
-                if self.variables[k] != None:
+                if self.variables[k] is not None:
                     self.N.update({k:1})
                 else:
                     self.N.update({k:0})
         else:
+            # Do processing for each variable ...
             for k in self.variables.keys():
-                print '    Processing ... ', k
+                print('    Processing ... ', k)
 
-                #the variables[] list contains Data objects!
+                # the variables[] list contains Data objects!
                 hlp1 = self.variables[k] #is a Data object or a tuple! The Data object contains already the climatological mean value!
                 if k in M.variables.keys():
                     hlp2 = M.variables[k]
@@ -135,133 +140,41 @@ class MeanModel(Model):
                     hlp2 = None
 
                 if hlp2 is None:
-                    print 'WARNING: Provided model is missing data field for variable ' + k.upper()
-                    #print '         Ensemble member can not be added! Do debugging using pickled file!'
-                    #pickle.dump(M,open('model.pkl','w'))
+                    print('WARNING: Provided model is missing data field for variable %s' % k.upper())
                     continue
 
-                if isinstance(hlp1,tuple):
-                    self.variables.update( { k : (None,None,None) } )
+                if isinstance(hlp1, tuple):
+                    self.variables.update({k: (None, None, None) })
                 else: #mean model!
                     if hlp1 is None:
                         continue
                     theD = hlp1.copy()
-                    theD.add(hlp2,copy=False) #SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
+                    theD.add(hlp2, copy=False)  # SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
                     theD.label = 'Mean-model'
-                    self.variables.update( { k : theD } )
+                    self.variables.update({k:theD})
                     nn = self.N[k]
                     self.N.update({k:nn+1})
-                del hlp1,hlp2 #, theD
+                del hlp1, hlp2 
 
         self.n += 1 #specifies only the number of models that were used in general, does NOT specify if the data is valid!
-
 
     def ensmean(self):
         """
         calculate ensemble mean statistics
         """
         if self.ensmean_called:
-            raise ValueError, 'Ensemble mean has been already called! MUST NOT be called a second time !'
+            raise ValueError('Ensemble mean has been already called! MUST NOT be called a second time !')
 
-        #now we have the sum and can calculate the average
+        # now we have the sum and can calculate the average
         for k in self.variables.keys():
-            #hlp1 = self.model_mean.variables[k]
             if isinstance(self.variables[k],tuple):
                 pass
-                #model_mean.variables.update( { k : (hlp1[0],hlp1[1],hlp1[2].mulc(1./float(len(proc_models)),copy=False )  ) } )
             else:
-                if self.variables[k] != None:
-                    self.variables[k].mulc(1./float(self.N[k]),copy=False) #weight with number of models
-
+                if self.variables[k] is not None:
+                    self.variables[k].mulc(1./float(self.N[k]), copy=False)  # weight with number of models
         self.ensmean_called = True
 
-    """
-    The following code provides a routine that allows to validate the MeanModel() class
-    """
-    #~ from pyCMBS import *
-    #~ from models import MeanModel,Model
-    #~
-    #~ import numpy as np
-    #~
-    #~ #--- generate some sample data ---
-    #~ x=Data(None,None)
-    #~ x.data = np.random.random((10,20,30))
-    #~ x.label='nix'
-    #~
-    #~ y=x.mulc(0.3)
-    #~ z=x.mulc(0.5)
-    #~ m=x.add(y).add(z).divc(3.)
-    #~ r=m.div(x) #gives 0.6 as reference solution
-    #~
-    #~ #--- generate Model instances and store Data objects is 'variables' ---
-    #~ dic_variables=['var1','var2']
-    #~ X=Model(None,dic_variables,name='x',intervals='season'); X.variables={'var1':x,'var2':x}
-    #~ Y=Model(None,dic_variables,name='y',intervals='season'); Y.variables={'var1':y,'var2':y}
-    #~ Z=Model(None,dic_variables,name='z',intervals='season'); Z.variables={'var1':z,'var2':z}
-    #~
-    #~ #... now try multimodel ensemble
-    #~ M=MeanModel(dic_variables,intervals='season')
-    #~ M.add_member(X)
-    #~ M.add_member(Y)
-    #~ M.add_member(Z)
-    #~ M.ensmean()
-    #~ print M.model_mean.variables['var2'].div(x).data #should give 0.6
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#------------------------------------------------------------------------------
 
 
 
@@ -271,7 +184,7 @@ class CMIP5Data(Model):
     """
     Class for CMIP5 model simulations. This class is derived from C{Model}.
     """
-    def __init__(self,data_dir,model,experiment,dic_variables,name='',shift_lon=False,**kwargs):
+    def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
         """
         @param data_dir: directory that specifies the root directory where the data is located
         @param model: TBD tood
