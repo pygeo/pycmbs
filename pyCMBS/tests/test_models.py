@@ -35,14 +35,58 @@ def test_mean_model():
     # print M.variables['var2'].div(x).data #should give 0.6
     npt.assert_equal(np.all(np.abs(1. - M.variables['var2'].div(x).data/0.6) < 0.00000001), True)
 
+def test_median_model():
+    x = Data(None, None)
+    x.label = 'nothing'
+    d = np.random((100, 1, 1))
+    x.data = np.ma.array(d, mask= d!=d)
+
+    # odd number and no masked values
+    a = x.copy()
+    a.data[:, 0, 0] = 1.
+    b = x.copy()
+    b.data[:, 0, 0] = 3.
+    c = x.copy()
+    c.data[:, 0, 0] = 2.
+    d = x.copy()
+    d.data[:, 0, 0] = 5.
+    e = x.copy()
+    e.data[:, 0, 0] = 4.
+
+    m = MedianModel()
+    m.add_member(a)
+    m.add_member(b)
+    m.add_member(c)
+    m.add_member(d)
+    m.add_member(e)
+    m.ensmedian()
+
+    # should give the value of 3. for all timesteps
+    
+    del m
+
+    # even number and no masked values
+    a = x.copy()
+    a.data[:, 0, 0] = 1.
+    b = x.copy()
+    b.data[:, 0, 0] = 3.
+    c = x.copy()
+    c.data[:, 0, 0] = 2.
+    d = x.copy()
+    c.data[:, 0, 0] = 4.
+
+    m = MedianModel()
+    m.add_member(a)
+    m.add_member(b)
+    m.add_member(c)
+    m.add_member(d)
+    
+    m.ensmedian()
+
+    # should give the value of 2.5 for all timesteps
 
 
-
-
-
-
-
-
+    del m
 
 
 

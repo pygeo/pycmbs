@@ -83,6 +83,97 @@ class Model(Data):
                 self.variables.update({ k : None })
 
 
+class MedianModel(Model):
+    """
+    implements a class that allows to handle multiple ensembles and calculate
+    ensemble statistics
+    """
+    def __init__(self, dic_variables, intervals=None, **kwargs):
+        super(MeanModel, self).__init__(None, dic_variables,
+                                        name='median-model',
+                                        intervals=intervals, **kwargs)
+        self.n = 0  #  specifies only the number of models that were used in general, does NOT specify if the data is valid!
+        self._unique_name = 'model_median'
+        self.ensmean_called = False
+
+    def add_member(self, M):
+        """
+        add ensemble member
+        this routine adds an ensemble member to the already existing
+        dataset; note: to save memory, we
+        don't store the individual members, but calculate the median
+        on the fly
+        """
+
+        if not (M, Model):
+            if not issubclass(M, Model):
+                raise ValueError('Model instance or derived class expected here!')
+
+        if self.n == 0:
+            # copy only variables that are valid. This will be the basis
+            # for the whole output
+            self.variables={}
+            for k in M.variables.keys():
+                if M.variables[k] is not None:
+                    self.variables.update({k: M.variables[k]})
+            self.name = 'median-model'
+            self._unique_name = 'model_median'
+            self.n_above = {}
+            self.n_below = {}
+
+            # init arrays that specify how much datasets are above/below
+            # the current value
+            for k in self.variables.keys():
+                if self.variables[k] is not None:
+                    self.n_above.update({k: np.zeros_like(self.variables[k].data)})
+                    self.n_below.update({k: np.zeros_like(self.variables[k].data)})
+        else:
+            # Processing in case that the data arrays already contain
+            # data. The actual value is compared to the new value
+            # and the information is stored how many values are
+            # above/below
+            for k in self.variables.keys():
+                # the variables[] list contains Data objects!
+                #hlp1 = self.variables[k]  # is a Data object or a tuple! The Data object contains already the climatological mean value!
+                if k in M.variables.keys():
+                    hlp2 = M.variables[k]
+                else:
+                    print('Warning: variable %s is not available!' % k)
+                    hlp2 = None
+                if hlp2 is None:
+                    print('WARNING: Provided model is missing data field for variable %s' % k.upper())
+                    continue
+
+                if isinstance(self.variables[k], tuple):
+                    self.variables.update({k: (None, None, None) })
+                else: #mean model!
+                    print('Todo hier weiter')
+                    stop
+
+
+                    up = self.n_above[k]
+
+
+
+
+                    theD = hlp1.copy()
+                    theD.add(hlp2, copy=False)  # SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
+                    theD.label = 'Mean-model'
+                    self.variables.update({k:theD})
+                    nn = self.N[k]
+                    self.N.update({k:nn+1})
+                del hlp1, hlp2
+
+
+
+
+
+
+
+
+
+
+
 
 class MeanModel(Model):
     """
@@ -90,7 +181,7 @@ class MeanModel(Model):
     ensemble statistics
     """
     def __init__(self, dic_variables, intervals=None, **kwargs):
-        super(MeanModel, self).__init__(None, dic_variables, 
+        super(MeanModel, self).__init__(None, dic_variables,
                                         name='mean-model',
                                         intervals=intervals, **kwargs)
         self.n = 0  #  specifies only the number of models that were used in general, does NOT specify if the data is valid!
@@ -108,7 +199,7 @@ class MeanModel(Model):
         one needs to call ensmean() afterwards to get the ensemble mean!
         """
 
-        if not (M, Model): 
+        if not (M, Model):
             if not issubclass(M, Model):
                 raise ValueError('Model instance or derived class expected here!')
 
@@ -129,8 +220,6 @@ class MeanModel(Model):
         else:
             # Do processing for each variable ...
             for k in self.variables.keys():
-                print('    Processing ... ', k)
-
                 # the variables[] list contains Data objects!
                 hlp1 = self.variables[k] #is a Data object or a tuple! The Data object contains already the climatological mean value!
                 if k in M.variables.keys():
@@ -154,7 +243,7 @@ class MeanModel(Model):
                     self.variables.update({k:theD})
                     nn = self.N[k]
                     self.N.update({k:nn+1})
-                del hlp1, hlp2 
+                del hlp1, hlp2
 
         self.n += 1 #specifies only the number of models that were used in general, does NOT specify if the data is valid!
 
