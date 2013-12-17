@@ -1,8 +1,9 @@
-The pyCMBS programm code is provided under MIT license:
+The pyCMBS programm code is provided under the following license:
 
-The MIT License (MIT)
+pyCMBS License
+==============
 
-Copyright (c) 2012-2013 Alexander Loew
+Copyright (c) 2012-2013 Alexander Loew, Max-Planck-Institute for Meteorology (MPI-M)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +23,21 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-For copyright of used libraries see COPYING_netCDF4
+Specifically, and not to limit the foregoing, the author or MPI-M makes
+no representations or warranties
+  (i) regarding the fitness for a particular purpose of the Software
+      and the Results,
+ (ii) that the use of the Software and the Results will not infringe
+      any patents or other
+      intellectual property rights of any third party, and
+(iii) that the use of the Software and the Results will not cause any
+      damages of any kind to you or to any third party.
 
 
 
 
-pyCMBS contains input from the netCDF4 library, which is provided
-under the license specified in the file COPYING_netCDF4
+For copyright of the following used libraries see:
+netcdf4 library:    COPYING_netCDF4
+
 
 
