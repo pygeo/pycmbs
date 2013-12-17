@@ -227,7 +227,8 @@ class RegionalAnalysis(object):
                 raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
             if sh[2] != 1:
                 raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
-            slope1, intercept1, r_value1, p_value1, std_err1 = stats.mstats.linregress(xm.data[:, 0, 0], ym.data[:, 0, 0])
+            slope1, intercept1, r_value1, p_value1, std_err1 = stats.mstats.linregress(xm.data[:, 0, 0],
+                                                                                       ym.data[:, 0, 0])
 
             slopes1.append(slope1)
             correlations1.append(r_value1)
@@ -294,7 +295,8 @@ class RegionalAnalysis(object):
         ystat = None
         if self.f_standard:
             if self.x is not None:
-                xstat = self.x.condstat(self.region)  # returns a dictionary with statistics for each region (could be for all timesteps!)
+                # returns a dictionary with statistics for each region (could be for all timesteps!)
+                xstat = self.x.condstat(self.region)
             if self.y is not None:
                 ystat = self.y.condstat(self.region)
 
@@ -538,7 +540,8 @@ class RegionalAnalysis(object):
         #--- loop over all regions ---
         keys = np.unique(self.region.data.flatten()); keys.sort()
         sep = '\t'
-        header = 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2' + sep + 'intercept2' + sep + 'stdx' + sep + 'stdy' + sep
+        header = 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2'\
+                 + sep + 'intercept2' + sep + 'stdx' + sep + 'stdy' + sep
         print header
         if filename != None:
             o.write(header + '\n')
@@ -563,7 +566,8 @@ class RegionalAnalysis(object):
         Taylor plot of statistics
 
         The plot produced contains the IDs of each region as default.
-        todo: as an alternative one should be able to provide a dictionary that specifies how to plot results (e.hg. labels, markerstyles etc.)
+        todo: as an alternative one should be able to provide a dictionary that specifies how to plot results
+        (e.hg. labels, markerstyles etc.)
 
         requires that statistics have alredy been calculated
 
@@ -618,7 +622,8 @@ class EOF(object):
     [1] ﻿von Storch, H. & Zwiers, F.W., 1999. Statistical Analysis in Climate Research, chapter 13
     """
 
-    def __init__(self,x0,allow_gaps=False,normalize=False,cov_norm = True,anomalies=False,area_weighting=True,use_corr=False,use_svd=True):
+    def __init__(self,x0,allow_gaps=False,normalize=False,cov_norm = True,anomalies=False, area_weighting=True,
+                 use_corr=False, use_svd=True):
         """
         constructor for EOF analysis
 
@@ -647,7 +652,8 @@ class EOF(object):
         @param area_weighting: perform area weighting of data prior to analysis
         @type area_weighting: bool
 
-        @param use_svd: use SVD for decomposition; if False, then eigenvalue decomposition for symmetric matrices (eigh) is used
+        @param use_svd: use SVD for decomposition; if False, then eigenvalue decomposition for symmetric matrices (eigh)
+         is used
         @type use_svd: bool
 
         @todo: how to deal with negative eigenvalues, which sometimes occur?
@@ -742,10 +748,12 @@ class EOF(object):
         # Bjoernosson and Venegas, 1997, p. 17, the eigenvalues should correspond to the square of the singular values.
         # in the validdation, the eigenvalues however corresponded directly to the singular values!
         if use_svd:
-            self.eigvec,self.eigval,v = linalg.svd( self.C ) # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
+            # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
+            self.eigvec,self.eigval,v = linalg.svd( self.C )
         else:
             #returns the eigenvalues in ASCENDING order (or no order at all!)
-            self.eigval,self.eigvec = np.linalg.eigh(self.C) # complex numbers in output matrices (eigenvalues not necessarily increasing!)
+            # complex numbers in output matrices (eigenvalues not necessarily increasing!)
+            self.eigval,self.eigvec = np.linalg.eigh(self.C)
 
 
         #self.eigvec /= self._sum_weighting #normalize Eigenvector with the sum of the weights that have been applied. This gives the timeseries mean amplitude (see NCL EOF example)
@@ -756,7 +764,8 @@ class EOF(object):
         #--- check if Eigenvalues are in descending order
         if np.any(np.diff(self.eigval) > 0. ):
             print self.eigval
-            raise ValueError, 'Eigenvalues are not in descending order. This is not supported yet so far. Needs ordering of results!'
+            raise ValueError('Eigenvalues are not in descending order. This is not supported yet so far.'
+                             ' Needs ordering of results!')
 
         #/// calculate EOF expansion coefficients == PC (projection of original data to new parameter space)
         if allow_gaps:
@@ -777,7 +786,8 @@ class EOF(object):
         nt,nx = np.shape(self.x)
         s = self.x.std(axis=0) #temporal standard deviation
         S = np.repeat(s,nt).reshape(nx,nt).T #generate array with all same std
-        self.x /= S; del S,s
+        self.x /= S
+        del S,s
 
     def _calc_anomalies(self):
         """
@@ -786,7 +796,8 @@ class EOF(object):
         nt,nx = np.shape(self.x)
         m = self.x.mean(axis=0) #temporal mean
         M = np.repeat(m,nt).reshape(nx,nt).T
-        self.x -= M; del M,m
+        self.x -= M
+        del M,m
 
     def get_explained_variance(self):
         """
@@ -814,12 +825,12 @@ class EOF(object):
             if np.isscalar(k):
                 k=[k]
 
-        if ax == None:
+        if ax is None:
             f = plt.figure(); ax = f.add_subplot(111)
         else:
             f=ax.figure
 
-        if label == None:
+        if label is None:
             label=''
         else:
             label += ' '
@@ -843,7 +854,8 @@ class EOF(object):
 
         return ax
 
-    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,show_coef=False,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10,levels=None):
+    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,
+                 vmax=None,show_coef=False,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10,levels=None):
         """
         plot multiple eof patterns
 
@@ -885,7 +897,9 @@ class EOF(object):
                 gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
                 ax  = f.add_subplot(gs[0]); ax2 = f.add_subplot(gs[1])
 
-            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,vmin=vmin,vmax=vmax,cmap=cmap,title=title,corr_plot=corr_plot,contours=contours,norm=norm,nclasses=nclasses,levels=levels)
+            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,
+                                  vmin=vmin,vmax=vmax,cmap=cmap,title=title,corr_plot=corr_plot,contours=contours,
+                                  norm=norm,nclasses=nclasses,levels=levels)
             if show_coef:
                 self.plot_eof_coefficients(i,ax=ax2,show_legend=False,norm=False)
                 ax2.grid()
@@ -900,7 +914,9 @@ class EOF(object):
 #-----------------------------------------------------------------------------------------------------------------------
 
 
-    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,vmax=None,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10,levels=None):
+    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,
+                         vmax=None,cmap=None,title=None,corr_plot=False,contours=False,norm=False,
+                         nclasses=10,levels=None):
         """
         plot principal component k
 
@@ -960,7 +976,8 @@ class EOF(object):
 
             #normalization like in NCL
             #The returned values are normalized such that the sum of squares for each EOF pattern equals one.
-            #To denormalize the returned EOFs multiply by the square root of the associated eigenvalue (aka,the singular value).
+            #To denormalize the returned EOFs multiply by the square root of the associated eigenvalue
+            #aka,the singular value).
             hlp /= np.sqrt(self.eigval[k]) #todo not sure if this really works!
             print 'WARNING, not sure if this normalization of EOF makes sense!'
 
@@ -974,8 +991,10 @@ class EOF(object):
         #/// calculate normalized EOFs by correlation of data with expansion coefficients ///
         if corr_plot:
             if norm:
-                raise ValueError, 'Data normalization and correlation plot does not make sense and is not supported therefore'
-            Rout,Sout,Iout,Pout, Cout = self._x0.corr_single(self.eigvec[:,k]) #todo that can be done also more efficiently using matrix methods I guess
+                raise ValueError('Data normalization and correlation plot does not make sense and is not'
+                                 ' supported therefore')
+            #todo that can be done also more efficiently using matrix methods I guess
+            Rout,Sout,Iout,Pout, Cout = self._x0.corr_single(self.eigvec[:,k])
             D = Rout.copy()
             D.unit = None
             del Rout,Sout,Iout,Pout, Cout
@@ -987,7 +1006,8 @@ class EOF(object):
 
         D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100.,2)) + '%)' #caution: labeling is always k+1!
 
-        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,cmap_data=cmap,title=title,contours=contours,nclasses=nclasses,levels=levels)
+        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,
+                 cmap_data=cmap,title=title,contours=contours,nclasses=nclasses,levels=levels)
 
     def reconstruct_data(self,maxn=None,input=None):
         """
@@ -1039,7 +1059,7 @@ class EOF(object):
         """
         correlation matrix of original data [ntimes,ntimes]
         """
-        return np.corrcoef(self.x,rowvar=0)
+        return np.corrcoef(self.x, rowvar=0)
 
     def get_eof_data_correlation(self,plot=True):
         """
@@ -1126,7 +1146,8 @@ class ANOVA(object):
             #~ if not has_mask:
                 #~ print d.data
                 #~ print e
-                #~ raise ValueError, 'All data objects need to me masked arrays!' #this is needed,as otherwise common mask generation is not possible
+                #~ raise ValueError, 'All data objects need to me masked arrays!' #this is needed,as
+                # otherwise common mask generation is not possible
             self.data[k].append(d)
         else:
             raise ValueError, 'Experiment was not yet registered!'
@@ -1462,7 +1483,8 @@ class SVD(object):
 
         #/// calculate covariance matrix
         print 'Construct covariance matrix ...'
-        C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual grid points, but only the covariance terms!
+        C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual
+        # grid points, but only the covariance terms!
         print 'Done!'
         self.C = C
         self.x_used = x.copy() #store vectors like they are used for SVD calculations
@@ -1473,7 +1495,8 @@ class SVD(object):
 
         U, s, V = linalg.svd( C )
         print 'Done!'
-        L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is somewhat python specific
+        L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is
+        # somewhat python specific
 
         #/// expansion coefficients (time series)
         A = dot(x,U); B = dot(y,V.T) # ACHTUNG!!! SCHOULD BE B = dot(y,V)
@@ -1511,7 +1534,8 @@ class SVD(object):
         """
 
         #x_used is a vector that only contains the valid values that were used for caluclation of covariance matrix C
-        #mskx is the corresponding mask that maps x_used to the original geometry (both are estimated with _get_valid_timeseries()  )
+        #mskx is the corresponding mask that maps x_used to the original geometry (both are estimated with
+        # _get_valid_timeseries()  )
         u = self.U[:,mode]; v = self.V[:,mode] #get singular vectors
 
         #map singular vectors to 2D
@@ -1666,7 +1690,8 @@ class SVD(object):
 
 #-----------------------------------------------------------------------
 
-    def plot_correlation_map(self,mode,ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,region1=None,region2=None,regions_to_plot=None):
+    def plot_correlation_map(self,mode,ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,
+                             region1=None,region2=None,regions_to_plot=None):
         """
         plot correlation map of an SVN mode
         with original data
@@ -1702,7 +1727,8 @@ class SVD(object):
         else:
             mode_list = [mode]
 
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,cmap='RdBu_r',cticks=None,regions_to_plot=None):
+        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,
+                      cmap='RdBu_r',cticks=None,regions_to_plot=None):
             """
             R data object
             """
@@ -1751,16 +1777,27 @@ class SVD(object):
             #--- plot maps
             print 'Starting map plotting'
             #homogeneous
-            plot_cmap(Rout1_ho,ax1a,'correlation (homo) ' + self.X.label,plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
-            plot_cmap(Rout2_ho,ax1b,'correlation (homo) ' + self.Y.label,plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
-            plot_cmap(Rout2_ho,ax1c,'exp.frac.var (homo)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
-            #~ plot_cmap(Cout2_ho,ax1d,'covariance (homo)',plot_var=False,use_basemap=self.use_basemap,region=region2,cmap='jet',regions_to_plot=regions_to_plot,vmin=None,vmax=None) #explained covariance
+            plot_cmap(Rout1_ho,ax1a,'correlation (homo) ' + self.X.label,plot_var=False,
+                      use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
+                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
+            plot_cmap(Rout2_ho,ax1b,'correlation (homo) ' + self.Y.label,plot_var=False,
+                      use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
+                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
+            plot_cmap(Rout2_ho,ax1c,'exp.frac.var (homo)'   ,plot_var=True,
+                      use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',
+                      cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
 
             #heterogeneous
-            plot_cmap(Rout1_he,ax2a,'correlation (hetero) ' + self.X.label,plot_var=False,use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
-            plot_cmap(Rout2_he,ax2b,'correlation (hetero) ' + self.Y.label,plot_var=False,use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
-            plot_cmap(Rout2_he,ax2c,'exp.frac.var (hetero)'   ,plot_var=True,use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
-            #~ plot_cmap(Cout2_he,ax2d,'covariance (hetero)',plot_var=False,use_basemap=self.use_basemap,region=region2,cmap='jet',regions_to_plot=regions_to_plot,vmin=None,vmax=None) #explained covariance
+            plot_cmap(Rout1_he,ax2a,'correlation (hetero) ' + self.X.label,plot_var=False,
+                      use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
+                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
+            plot_cmap(Rout2_he,ax2b,'correlation (hetero) ' + self.Y.label,plot_var=False,
+                      use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
+                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
+            plot_cmap(Rout2_he,ax2c,'exp.frac.var (hetero)'   ,plot_var=True,
+                      use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',
+                      cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
+
 
             #expansion coefficients
             self.plot_expansion_correlation(i,ax=ax3)
@@ -1819,7 +1856,7 @@ class SVD(object):
         O = None
         for mode in mode_list:
             V = self._get_variance_field(X,E,mode,pthres=pthres)
-            if O == None:
+            if O is None:
                 O = V.data
             else:
                 O = O + V.data #add variances
@@ -1848,10 +1885,11 @@ class SVD(object):
             if self.scf[i] > self.scf_threshold:
                 print i, self.scf[i], self.mcorr[i]
                 if filename != None:
-                    s = str(i) + sep + str(np.round(self.scf[i],rnd)) + sep +  str(np.round(self.mcorr[i],rnd)) + ' \\\ ' +  '\n'
+                    s = str(i) + sep + str(np.round(self.scf[i],rnd)) + sep \
+                        + str(np.round(self.mcorr[i],rnd)) + ' \\\ ' +  '\n'
                     o.write(s)
 
-        if not filename == None:
+        if not filename is None:
             o.close()
 
 #-----------------------------------------------------------------------
@@ -2734,7 +2772,8 @@ class koeppen(object):
         self.koeppen_cmap()
         self.cmap = cm.get_cmap('koeppen')
         # convert from [kg m-2 s-1] to [kg m-2 day-1] (= [mm day-1])
-        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12.,copy=True) # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
+         # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
+        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12.,copy=True)
         self.temp = temp.subc(273.15,copy=True) # ??? Unklar warum nicht 'temp.subc(273.15)'
 
         Psum = self.precip.timsum(return_object=True)            # Berechnet die Summe der Jahresniederschlag
@@ -2747,10 +2786,14 @@ class koeppen(object):
         Pmax = self.precip.data.max(axis=0)
 
         precipHS = self.precip.copy()
-        precipHS.data[(0, 1, 2, 3, 4, 5), 0:(nlat/2-1), :] = self.precip.data[(3, 4, 5, 6, 7, 8),0:(nlat/2-1), :]
-        precipHS.data[(6, 7, 8, 9, 10, 11), 0:(nlat/2-1), :] = self.precip.data[(3, 4, 5, 6, 7, 8),0:(nlat/2-1), :]
-        precipHS.data[(0, 1, 2, 3, 4, 5), (nlat/2):(nlat-1), :]   = self.precip.data[(0, 1, 2, 9, 10, 11),(nlat/2):(nlat-1), :]
-        precipHS.data[(6, 7, 8, 9, 10, 11),(nlat/2):(nlat-1), :] = self.precip.data[(0, 1, 2, 9, 10, 11),(nlat/2):(nlat-1), :]
+        precipHS.data[(0, 1, 2, 3, 4, 5), 0:(nlat/2-1), :] \
+            = self.precip.data[(3, 4, 5, 6, 7, 8),0:(nlat/2-1), :]
+        precipHS.data[(6, 7, 8, 9, 10, 11), 0:(nlat/2-1), :] \
+            = self.precip.data[(3, 4, 5, 6, 7, 8),0:(nlat/2-1), :]
+        precipHS.data[(0, 1, 2, 3, 4, 5), (nlat/2):(nlat-1), :] \
+            = self.precip.data[(0, 1, 2, 9, 10, 11),(nlat/2):(nlat-1), :]
+        precipHS.data[(6, 7, 8, 9, 10, 11),(nlat/2):(nlat-1), :] \
+            = self.precip.data[(0, 1, 2, 9, 10, 11),(nlat/2):(nlat-1), :]
 
         precipHW = self.precip.copy()
         precipHW.data[(0,1,2,3,4,5),0:(nlat/2-1),:]   = self.precip.data[(0, 1, 2, 9, 10, 11),0:(nlat/2-1),:]
