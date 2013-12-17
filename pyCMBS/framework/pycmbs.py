@@ -53,7 +53,7 @@ def create_dummy_configuration():
     """
     creates a dummy configuration
 
-    1) copy template configuration file
+    1) creates dummy configuration file
     2) copy template directory with INI files
     """
 
@@ -63,13 +63,20 @@ def create_dummy_configuration():
     cwd = os.getcwd()
     odir = cwd + '/configuration'
 
+    # copy samples of INI files from repository
     if os.path.exists(odir):
         os.system('rm -rf ' + odir)
     shutil.copytree(d + '/framework/configuration', odir)
-    shutil.copy(d + '/framework/pyCMBS_template.cfg', cwd)
-    os.system('rm -rf ' + odir + '/.svn')
 
-    print('Init')
+    # create dummy configuration file
+    CFGW = CFGWriter(cwd + '/template.cfg', generator='pyCMBS CONFIGURATION WRITER')
+    CFGW.save(temp_dir='<put here the temporary data processing directory>',
+              vars=['albedo', 'sis'], start_date='2000-01-01',
+              stop_date='2007-09-30',
+              models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP', 'path': '/this/is/the/root/path/to/the/model/data/'}, {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST', 'path': '/this/is/the/root/path/to/the/model/data/'}])
+
+    os.system('rm -rf ' + odir + '/.svn')
+    print('Initialization of template setup finalized.')
 
 ########################################################################
 

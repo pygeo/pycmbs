@@ -1429,7 +1429,7 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def __draw_ranking_scatter(self,p1,p2,var,ax=None,marker='o',color='red',show_text=False):
+    def __draw_ranking_scatter(self, p1, p2, var, ax=None, marker='o', color='red', show_text=False):
         """
         ranking scatterplot between two positions
         """
@@ -1461,7 +1461,7 @@ class GlecklerPlot(object):
                     y[i] = j+1
 
         #Spearman correlation coefficient based on ranks
-        spear = np.corrcoef(np.asarray(x),np.asarray(y))[0][1]
+        spear = np.corrcoef(np.asarray(x), np.asarray(y))[0][1]
 
         #--- generate plot ---
         if ax is None:
@@ -1481,7 +1481,7 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def _draw_error_scatter(self,p1,p2,var,color='red',marker='*',ax=None):
+    def _draw_error_scatter(self, p1, p2, var, color='red', marker='*', ax=None):
         """
         draw scatterplot of errors for a combination
         of two different observations p1,p2
@@ -1530,7 +1530,7 @@ class GlecklerPlot(object):
         ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value,2)) + ')' ,linestyle='None')
         return ax
 
-    def plot_model_error(self,var):
+    def plot_model_error(self, var):
         """
         plots a scatterplot of errors of different models
         for a particular variable
@@ -1540,21 +1540,21 @@ class GlecklerPlot(object):
         """
 
         fig = pl.figure()
-        gs = gridspec.GridSpec(1, 2, wspace=0.05,hspace=0.05,bottom=0.2,width_ratios = [3,1])
+        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
 
 
         # 1 vs. 2
-        self._draw_error_scatter(1,2,var,color='red',marker='o',ax=ax)
+        self._draw_error_scatter(1, 2, var, color='red', marker='o',ax=ax)
 
         # 1 vs. 3
-        self._draw_error_scatter(1,3,var,color='green',marker='*',ax=ax)
+        self._draw_error_scatter(1, 3, var, color='green', marker='*',ax=ax)
 
         # 1 vs. 4
-        self._draw_error_scatter(1,4,var,color='blue',marker='^',ax=ax)
+        self._draw_error_scatter(1, 4, var, color='blue', marker='^',ax=ax)
 
         # 2 vs. 3
-        self._draw_error_scatter(2,3,var,color='grey',marker='x',ax=ax)
+        self._draw_error_scatter(2, 3, var, color='grey', marker='x',ax=ax)
 
         # 2 vs 4
         self._draw_error_scatter(2,4,var,color='m',marker='+',ax=ax)
