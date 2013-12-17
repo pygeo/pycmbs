@@ -137,7 +137,7 @@ print 'Using Basemap: ', use_basemap
 ########################################################################
 # TIMES
 ########################################################################
-s_start_time = CF.start_date  # '1983-01-01' #todo where is this used ?
+s_start_time = CF.start_date  # '1983-01-01'
 s_stop_time = CF.stop_date  # '2005-12-31'
 start_time = pl.num2date(pl.datestr2num(s_start_time))
 stop_time = pl.num2date(pl.datestr2num(s_stop_time))
@@ -611,7 +611,7 @@ for v in global_gleckler.variables:
                datasets: ' + v.upper())
     del tmpfig
 
-    # plot absolut model error
+    # plot absolute model error
     tmpfig = global_gleckler.plot_model_error(v)
     rep.figure(tmpfig, width='8cm', bbox_inches=None,
                caption='Model ERROR for different observational \
@@ -628,5 +628,5 @@ print('##########################################')
 print('# BENCHMARKING FINIHSED!                 #')
 print('##########################################')
 
-#~ if __name__ == '__main__': todo
+#~ if __name__ == '__main__':
     #~ main()
