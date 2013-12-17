@@ -36,6 +36,7 @@ pep8 :
 	$(PEP) ./pyCMBS/diagnostic.py
 	$(PEP) ./pyCMBS/framework/config.py
 	#$(PEP) ./pyCMBS/framework/pycmbs.py
+	#$(PEP) ./pyCMBS/framework/models.py
 	$(PEP) ./pyCMBS/data.py
 	#data.py models.py analysis.py pycmbs.py
 
