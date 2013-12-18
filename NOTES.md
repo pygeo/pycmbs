@@ -56,8 +56,6 @@
         └── Makefile
 
 # Notes
- * `MI`: according to PEP8 module names should have short lowercase names.
-       name `pyCMBS` could be the name of the package, but importable module shall be in lowercase: `pycmbs`
+ * `MI`: according to PEP8 module names should have short lowercase names. Name `pyCMBS` could be the name of the package, but importable module shall be in lowercase: `pycmbs`
  * `MI`: There can be a dedicated folder just for integration/acceptance tests. It also makes running unittests much faster.
- * `MI`: Python applications, like `pycmbs.py` could be just placed in the root space.
-       Projects like [`virtualenv`](https://github.com/pypa/virtualenv/blob/develop/virtualenv.py) (with standalone application) do it that way.
+ * `MI`: Python applications, like `pycmbs.py` could be just placed in the root space. Projects like [`virtualenv`](https://github.com/pypa/virtualenv/blob/develop/virtualenv.py) (with standalone application) do it that way.
