@@ -64,37 +64,37 @@
 # Comments (AL)
 
 I think I am in favor of the side-by-side layout as it is cleaner. Thanks for the idea. Some remarks below
+
  * What is purpose of having `docs` and `apidocs` ?
  * I suggest that we replace the `pycmbs` subfolder by `core`
  * The structure of the *whole* package would look then e.g. like
-
 
         MANIFEST.in
         Makefile
         setup.py
         pyCMBS──|
-                | __init__.py   (new!)     
-		├── benchmarking (currently "framework")
-		│   ├── config.py
-		│   ├── __init__.py
-		│   ├── test_model.py
-		│   ├── model.py
-		│   └── test_config.py
-		├── configuration
-		│   ├── analysis.json
-		│   ├── cfc.ini
-		│   ├── dummy_project.cfg
-		│   └── models.json
-		├── docs
-		├── core
-		│   ├── data.py
-		│   ├── __init__.py
-		│   ├── test_data.py
-		│   ├── test_utils.py
-		│   └── utils.py
-		├── apidocs
-		├── benchmark_models.py (currently "pycmbs.py")
-		└── Makefile (purpose of this??)
+                | __init__.py   (new!)
+        ├── benchmarking (currently "framework")
+        │   ├── config.py
+        │   ├── __init__.py
+        │   ├── test_model.py
+        │   ├── model.py
+        │   └── test_config.py
+        ├── configuration
+        │   ├── analysis.json
+        │   ├── cfc.ini
+        │   ├── dummy_project.cfg
+        │   └── models.json
+        ├── docs
+        ├── core
+        │   ├── data.py
+        │   ├── __init__.py
+        │   ├── test_data.py
+        │   ├── test_utils.py
+        │   └── utils.py
+        ├── apidocs
+        ├── benchmark_models.py (currently "pycmbs.py")
+        └── Makefile (purpose of this??)
 
 The installation would then by like `python setup.py install` which would copy the `pyCMBS` directory in `dist-packages`. Import statements in any script would then look like.
 `from pyCMBS.core import Data` or `from pyCMBS.benchmarking import Model`. I am still not very familar with best way of python module structuring, thus there might be a cleaner way to do it.
