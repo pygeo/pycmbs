@@ -72,8 +72,8 @@ I think I am in favor of the side-by-side layout as it is cleaner. Thanks for th
         MANIFEST.in
         Makefile
         setup.py
-        pyCMBS──|
-                | __init__.py   (new!)
+        pyCMBS──│
+                │ __init__.py   (new!)
                 ├── benchmarking (currently "framework")
                 │   ├── config.py
                 │   ├── __init__.py
