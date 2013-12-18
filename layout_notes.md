@@ -2,6 +2,7 @@
 ## Nested layout
  * `benchmarking` is always a part of `pycmbs`
  * Imports look like `from pycmbs.benchmarking import model`
+ * Unittests reside in the same directory for easy packaging
 
         .
         ├── configuration
@@ -30,7 +31,7 @@
  * `benchmarking` module resides in the same root as pycmbs.
     * That way its easy to split the packages apart at any point.
  * Imports look like: `from benchmarking import model`
- * Unittests reside in the same directory for easy branching and packaging
+ * Unittests reside in the same directory for easy packaging
 
         .
         ├── benchmarking (currently "framework")
