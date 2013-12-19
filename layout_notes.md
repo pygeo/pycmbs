@@ -104,13 +104,14 @@ The installation would then by like `python setup.py install` which would copy t
  * Having the `benchmark_models.py` on the uppermost level would be o.k. with me. However I don't see a strong need here, as the installation procedure will basically ensure that it will be found in the system path anyhow. Thus for the user it doesn't matter. It's more that it might matter from a developer perspective.
 
 
-----------------
-Comments from MI:
+# Comments from MI, 19 Dec 2013:
 
 > I  dont like too much the `benchmark_models.py`. We should try to find a better name for this. What  about `pycmbs-benchmarking.py` or `pycmbs-score.py`
+
 `pycmbs-benchmarking.py` sounds good (`benchmark_models.py` was just a stub)
 
 > What is the purpose of the `Makefile` on the same level like `core` and `benchmarking`?
+
 I think there was a bit of confusion. There must be one more directory level that defines the lib. Yes, there should be only one Makefile, in the project root. I will paste an example below.
 
 >  Having the `benchmark_models.py` on the uppermost level would be o.k. with me. However I dont see a strong need here, as the installation procedure will basically ensure that it will be found in the system path anyhow. Thus for the user it doesnt matter. Its more that it might matter from a developer perspective.
