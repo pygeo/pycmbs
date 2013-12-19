@@ -177,4 +177,4 @@ If `grid.py` or `test_data.py`  need to import `data.py`, with nosetests a state
 
 ** Benchmarking **: If `benchmarking` wont become totally independent of the `pycmbs` library, it may be easier just to keep it inside the `pycmbs` module as displayed above. 
 
-Actually my suggestion is to change as little as absolutely necessary and to make pycmbs easy to maintain and to use. It seems to me that many parts are already isolated quite well, I would mostly like to move the application and configuration parts out of the library space and make the package more compliant to the standards (thus making it more attractive to the others).
+Actually my suggestion is to change as little as absolutely necessary to make pycmbs easy to maintain and to use. It seems to me that many parts are already isolated quite well, I would mostly like to move the application and configuration parts out of the library space and make the package more compliant to the standards (thus making it more attractive to the others).
