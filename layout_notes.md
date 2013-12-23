@@ -116,10 +116,10 @@ I think there was a bit of confusion. There must be one more directory level tha
 
 >  Having the `benchmark_models.py` on the uppermost level would be o.k. with me. However I dont see a strong need here, as the installation procedure will basically ensure that it will be found in the system path anyhow. Thus for the user it doesnt matter. Its more that it might matter from a developer perspective.
 
-Yes, that should make the life of the developers much easier. Basically the aim is to avoid setting PYTHONPATH for development branches, as it causes collisions with production code. Placed in the root level the application will have exactly the same import statements as if it would be outside of the project, and it will use modules from the current (development) branch. 
+Yes, that should make the life of the developers much easier. Basically the aim is to avoid setting PYTHONPATH for development branches, as it causes collisions with production code. Placed in the root level the application will have exactly the same import statements as if it would be outside of the project, and it will use modules from the current (development) branch.
 
 The cool thing is that `nosetests` will automatically track where is the root of the project and collect the full path to the modules. It allows parts of the library to communicate just as they would normally do when invoked by user. Also tests will be able to use appropriate import statements, practically eliminating the need to include the project under development in the system path. Here is what I mean:
- 
+
 
 
     pyCMBS-v1.00
@@ -147,7 +147,7 @@ The cool thing is that `nosetests` will automatically track where is the root of
     ├── README
     └── setup.py
 
-If `grid.py` or `test_data.py`  need to import `data.py`, with nosetests a statement like `from pycmbs.core import data` will just work. it wont work otherwise unless the PYTHONPATH is set somewhere. 
+If `grid.py` or `test_data.py`  need to import `data.py`, with nosetests a statement like `from pycmbs.core import data` will just work. it wont work otherwise unless the PYTHONPATH is set somewhere.
 
  ** Layout **: if users are going to frequently use `pycmbs.core` in their scripts or for interactive work its probably better to make the path shorter and skip `core` completely, unless you see that it may cause name collisions in the future. Now it looks pretty safe. Just to improve users workflow I would probably use such layout:
 
@@ -175,6 +175,52 @@ If `grid.py` or `test_data.py`  need to import `data.py`, with nosetests a state
     ├── pycmbs-benchmarking.py
     └── setup.py
 
-** Benchmarking **: If `benchmarking` wont become totally independent of the `pycmbs` library, it may be easier just to keep it inside the `pycmbs` module as displayed above. 
+** Benchmarking **: If `benchmarking` wont become totally independent of the `pycmbs` library, it may be easier just to keep it inside the `pycmbs` module as displayed above.
 
 Actually my suggestion is to change as little as absolutely necessary to make pycmbs easy to maintain and to use. It seems to me that many parts are already isolated quite well, I would mostly like to move the application and configuration parts out of the library space and make the package more compliant to the standards (thus making it more attractive to the others).
+
+
+
+# Comments AL, 23.12.2013
+
+Now I understand why it makes sense to have tests together with the actual code. Let's also move the configuration up like you suggested. Actually it is already quite independent from a user point of view, as if you say `pycmby.py init` you get a fresh setup. Only point here is that we would need to install the `configuration` separately and I doubt that this is very convenient. My understanding is, that everything under `pycmbs` would go into `dist-packages`, thus `configuration` wouldn't! Any idea here?
+
+The structure you suggested below is actually quite similar to what we have at the moment, except for the benchmarking script and the configuration directory:
+
+    pyCMBS-v1.00
+    ├── configuration
+    │   ├── analysis.json
+    │   ├── models.json
+    │   └── parameter.ini
+    ├── docs
+    ├── docsrc   << note the change here
+    ├── pycmbs
+    │   ├── benchmarking
+    │   │   ├── analysis.py
+    │   │   ├── __init__.py
+    │   │   ├── models.py
+    │   │   ├── test_analysis.py
+    │   │   └── test_models.py
+    │   ├── data.py
+    │   ├── grid.py
+    │   ├── __init__.py
+    │   ├── test_data.py
+    │   └── test_grid.py
+    ├── Makefile
+    ├── pycmbs-benchmarking.py
+    └── setup.py
+
+
+
+I was also thinking, if it would make sense to rename the whole project, as I found that people have actually difficulties in pronouncing `pyCMBS` (don't know why, for me it is easy).
+
+We don't need to change this now, but probably you have some good idea for a different name. Here are mine
+
+* Climate Data Verficiation Toolkit (CDVT)
+* Geoscientifc Data Analysis Suite (GDAS)
+* Geoscientifc Data Analysis Toolkit (GDAT)
+
+
+
+
+
