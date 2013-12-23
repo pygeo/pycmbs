@@ -4,7 +4,7 @@
 
 PEP = /home/m300028/shared/dev/svn/pep8/pep8/pep8.py
 TDIR = /home/m300028/shared/temp/nixxxx
-VERSION = 0.1.4
+VERSION = 0.1.5
 
 clean :
 	find . -name "*.pyc" -exec rm -rf {} \;
