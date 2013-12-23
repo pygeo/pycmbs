@@ -2537,6 +2537,83 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
+    def hp_filter(self, lam, return_object=True):
+        """
+        implements the Hodrick-Prescott filter
+
+        todo: use more efficient implementation from statsmodels
+
+        Parameters
+        ----------
+        lam : float
+            lambda parameter of HP filter. The larger it is, the smoother
+            the resulting trend timeseries will be
+        return_object : bool
+            return a Data object if True
+
+        References
+        ----------
+        http://python4econ.blogspot.de/2012/05/hodrick-prescott-filter.html
+        """
+        from scipy import linalg as la
+        from scipy import sparse
+        import scipy as sp
+
+        def _hp_filter(y,w):
+            # make sure the inputs are the right shape
+            m,n  = y.shape
+            if m < n:
+                y = y.T
+                m = n
+            a    = sp.array([w, -4*w, ((6*w+1)/2.)])
+            d    = sp.tile(a, (m, 1))
+
+            d[0, 1] = -2.*w
+            d[m-2, 1] = -2.*w
+            d[0, 2] = (1+w)/2.
+            d[m-1, 2] = (1+w)/2.
+            d[1, 2] = (5*w+1)/2.
+            d[m-2, 2] = (5*w+1)/2.
+
+            B = sparse.spdiags(d.T, [-2,-1,0], m, m)
+            B = B+B.T
+            # report the filtered series, s
+            return sp.dot(la.inv(B.todense()), y)
+
+        if self.ndim != 1:
+            if self.ndim == 3:
+                if (self.shape[1] == 1) and (self.shape[2]==1):
+                    pass
+                else:
+                    print self.shape
+                    raise ValueError('HP filter currently only implemented for 1D data! (A)')
+            else:
+                print self.shape
+                raise ValueError('HP filter currently only implemented for 1D data! (B)')
+
+        if lam < 0.:
+            raise ValueError('HP filter needs lambda>0. as input!')
+
+        # the HP filter is based on the log() of the data
+        # avoid therefore negative numbers
+        dmin = self.data.min()
+        x = self.data.flatten() - dmin + 1.
+        y = _hp_filter(np.log(np.asarray([x])), lam)  # 2D input needed
+        y = np.ma.array(y, mask=y != y)
+        y = np.exp(y)
+        y += dmin - 1.
+
+        if return_object:
+            r = self.copy()
+            tmp = np.ones((self.nt, 1, 1))*np.nan
+            tmp[:, 0, 0] = y[:, 0]
+            r.data = np.ma.array(tmp, mask = np.isnan(tmp))
+            return r
+        else:
+            return y
+
+#-----------------------------------------------------------------------
+
     def _get_weighting_matrix(self):
         """
         (unittest)
