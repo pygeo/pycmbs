@@ -1,5 +1,9 @@
-version 0.1.5
-============================
+version 0.1.6
+=============
+* implementation of Hodrick-Prescott filter for *Data* object
+
+version 0.1.5 (=rev 513)
+========================
 o adapted calculation of error index of Gleckler et al. (2008) to account for temporal weighting
 o file structure was revised to be more compliant with python standards
 o installation using distutils is now possible, using simply 'python setup.py install'
@@ -12,7 +16,7 @@ o implementation of new dataset(s) for evaluation of land surface evaporation fr
 o implementation of diagnostics for RegionalAnalysis, which allows to calculated for each region standard statistics as well as relationship between two variables.
 
 version 0.1.4 (=rev 405)
-============================
+========================
 o This version is the reference version for the EvaCliMod project
 o major improvements of reporting functionalities as needed for EvaClimod project
 o added new functionality in GlecklerPlot class to plor errors and ranked errors
@@ -27,7 +31,7 @@ o automatic logging of errors in the Data class (uses environment variable)
 o implemented mindate/maxdate for Data object
 
 version 0.1.3
-============================
+=============
 o albedo analysis for VIS and NIR separately for JSBACH raw output
 o bugfix with datetime conversion for GlobalMean plot.
 o proper implementation of multimodel mean
@@ -35,7 +39,7 @@ o implemented Data.date to allow for an easier access to date from a Data object
 o implemented standard analysis of variable: surface_upward_flux
 
 version 0.1.2 (=rev274)
-============================
+=======================
 o implemented new class JSBACH_RAW2, which automatically preprocessed JSBACH and ECHAM output from different (yearly) files
 o removed dependencies from old pyCDO module which is supposed to be obsolete and will be removed in the future
 o applied several bugfixes
@@ -43,7 +47,7 @@ o changed name of main routine for benchmarking from main.py to pycmbs.py
 o handling of generation of temporary files in case that directory is write protected. Then temporary data is written to temp directory specified by the system
 
 version 0.1.1 (= rev258)
-============================
+========================
 o path of INI files can now be specified explicitely in benchmarking framework
 o implemented automatic calculation of land-sea masks using CDO operator topo on-the-fly.
 o implementation of sea-ice analysis in benchmarking framework
@@ -62,5 +66,5 @@ o initial support for ICON generic unstructured grid. There are still some worka
 o added option to show values in Gleckler Plot in different colors
 
 version 0.1.0 (= rev240)
-============================
+========================
 o initial version released with major data analysis and benchmarking features already included
