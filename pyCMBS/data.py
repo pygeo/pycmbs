@@ -2541,7 +2541,11 @@ class Data(object):
         """
         implements the Hodrick-Prescott filter
 
-        todo: use more efficient implementation from statsmodels
+        Todo
+        ----
+        - use more efficient implementation from statsmodels
+        - support HP filter for multidimensional data
+        - implement unittests
 
         Parameters
         ----------
