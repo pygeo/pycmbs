@@ -226,7 +226,7 @@ class Data(object):
         #CAUTION: assumes that timezone is always UTC !!
 
         try:
-            return np.asarray([datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC) for x in self.num2date(self.time)])
+            return np.asarray([datetime.datetime(x.year, x.month, x.day, x.hour, x.minute, x.second, 0, pytz.UTC) for x in self.num2date(self.time)])
         except:  # if an exception occurs then write data on screen for bughandling
             if os.path.exists('dump.pkl'):
                 os.remove('dump.pkl')
@@ -234,7 +234,7 @@ class Data(object):
             print 'An error occured in Data.date! Printing data for bugfixing'
             for i in range(len(self.time)):
                 x = self.num2date(self.time[i])
-                print self.time[i], x , datetime.datetime(x.year,x.month,x.day,x.hour,x.minute,x.second,0,pytz.UTC)
+                print self.time[i], x , datetime.datetime(x.year, x.month, x.day, x.hour, x.minute, x.second, 0, pytz.UTC)
             raise ValueError, 'Some error in time conversion happened! Look in dump.pkl to fix it'
     date  = property(_get_date)
 
@@ -401,7 +401,7 @@ class Data(object):
         if self.time_str is None:
             raise ValueError('date2num can not work without timestr!')
         else:
-            return netcdftime.date2num(t,self.time_str,
+            return netcdftime.date2num(t, self.time_str,
                                         calendar=self.calendar)-offset
 
 #-----------------------------------------------------------------------
@@ -2546,6 +2546,7 @@ class Data(object):
         - use more efficient implementation from statsmodels
         - support HP filter for multidimensional data
         - implement unittests
+        - how to handle gaps ???
 
         Parameters
         ----------
@@ -2563,7 +2564,7 @@ class Data(object):
         from scipy import sparse
         import scipy as sp
 
-        def _hp_filter(y,w):
+        def _hp_filter(y, w):
             # make sure the inputs are the right shape
             m,n  = y.shape
             if m < n:
@@ -2602,15 +2603,18 @@ class Data(object):
         # avoid therefore negative numbers
         dmin = self.data.min()
         x = self.data.flatten() - dmin + 1.
-        y = _hp_filter(np.log(np.asarray([x])), lam)  # 2D input needed
-        y = np.ma.array(y, mask=y != y)
-        y = np.exp(y)
+        msk = x.mask  # work only on valid data; note that this approech is probably not the best one!
+        #~ print 'X: ', x[~msk]
+        hp = _hp_filter(np.log(np.asarray([x[~msk]])), lam)  # 2D input needed
+        y = np.ones_like(x) * np.nan
+        y[~msk] = np.exp(hp)
         y += dmin - 1.
+        y[msk] = np.nan
 
         if return_object:
             r = self.copy()
             tmp = np.ones((self.nt, 1, 1))*np.nan
-            tmp[:, 0, 0] = y[:, 0]
+            tmp[:, 0, 0] = y[:]
             r.data = np.ma.array(tmp, mask = np.isnan(tmp))
             return r
         else:
