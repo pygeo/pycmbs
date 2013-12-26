@@ -198,6 +198,11 @@ class ColorMapGenerator(object):
     def __init__(self):
         pass
 
+
+    def albedo(self):
+        lb, ct = get_albedo_colortable()
+        return self.rgb_to_cmap(lb, ct, name='albedo')
+
     def rgb_to_cmap(self, lbound, rgb, name='mymap'):
         """
         generate a colormap based on a list of lower boundaries
