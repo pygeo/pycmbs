@@ -87,6 +87,8 @@ from region import *
 
 from netcdftime import *
 
+from colormaps.colormaps import *
+
 #------------------------------
 #--- Global constants
 #------------------------------
