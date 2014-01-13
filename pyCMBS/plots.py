@@ -2805,16 +2805,19 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                         tmp_lon = x._get_unique_lon() #get unique longitudes
                         tmplon1 = tmp_lon.copy()
                         Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
-                        if overlay != None:
+                        if overlay is not None:
                             overlay, nope = shiftgrid(180, overlay, tmplon1, start=False)
                         lon, lat = np.meshgrid(tmp_lon, np.arange(Z.shape[0]))
                         lat = x.lat
                     else:
                         print '*** WARNING: not lon360 not validated yet, try KDTREE option if stripes in plot ***'
-                        lon = x.lon; lat=x.lat
+                        lon = x.lon
+                        lat=x.lat
                         Z = xm
                 elif plot_method == 'scatter':
-                        lon = x.lon; lat = x.lat; Z = xm
+                        lon = x.lon
+                        lat = x.lat
+                        Z = xm
                 else:
                     raise ValueError, 'Invalid option'
 
@@ -2836,9 +2839,9 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                     else:
                         raise ValueError, 'When plotting with contours, you need to specify the levels option (see contour documnetation)'
                     if contourf:
-                        im1=m1.contourf(X,Y,Z,levels,cmap=cmap,**kwargs1)
+                        im1=m1.contourf(X, Y, Z,levels, cmap=cmap, **kwargs1)
                     else:
-                        im1=m1.contour(X,Y,Z,levels,cmap=cmap,**kwargs1)
+                        im1=m1.contour(X, Y, Z, levels, cmap=cmap, **kwargs1)
                         ax.clabel(im1, inline=1, fontsize=10) #contour label
 
                 else:
@@ -2851,8 +2854,9 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
                 if overlay != None:
                     #print 'Doing overlay plot! ...'
-                    xcoordnew=X[overlay]; ycoordnew=Y[overlay]
-                    m1.scatter(xcoordnew,ycoordnew,marker='x',s=50,c='white',edgecolors='white',linewidth=1)
+                    xcoordnew=X[overlay]
+                    ycoordnew=Y[overlay]
+                    m1.scatter(xcoordnew, ycoordnew, marker='x', s=50, c='white', edgecolors='white', linewidth=1)
                     #todo: there is still a problem that the coordinates are not properly aligned with the grid cells!!!
 
             #/// ANCILLARY PLOT FOR BASEMAP ///
@@ -2864,16 +2868,16 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
             #--- generate collection of patches for Basemap plot
             collection = _get_unstructured_collection(x.vlon,x.vlat,xm,vmin,vmax,basemap_object=None)
             im1 = ax.add_collection(collection)
-            ax.set_xlim(max(x.vlon.min(),-180.),min(x.vlon.max(),180.))
-            ax.set_ylim(max(x.vlat.min(),-90.),min(x.vlat.max(),90.))
+            ax.set_xlim(max(x.vlon.min(), -180.), min(x.vlon.max(), 180.))
+            ax.set_ylim(max(x.vlat.min(), -90.), min(x.vlat.max(), 90.))
         else:
 
             #- normal plots
             if contours:
                 if contourf:
-                    im1 = ax.contourf(xm,cmap=cmap,**kwargs1)
+                    im1 = ax.contourf(xm, cmap=cmap, **kwargs1)
                 else:
-                    im1 = ax.contour(xm,cmap=cmap,**kwargs1)
+                    im1 = ax.contour(xm, cmap=cmap, **kwargs1)
                     ax.clabel(im1, inline=1, fontsize=10) #contour label
             else:
                 im1=ax.imshow(xm,cmap=cmap,interpolation='nearest', **kwargs1)
@@ -2909,15 +2913,19 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
     #dummy axis to ensure equal spacing in multiple plots
-    caxdummy.set_xticks([]); caxdummy.set_yticks([]); caxdummy.set_frame_on(False)
+    caxdummy.set_xticks([])
+    caxdummy.set_yticks([])
+    caxdummy.set_frame_on(False)
 
     if show_colorbar:
         #plot actual colorbar
-        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm,ticks=cticks,orientation=colorbar_orientation)
-        if cticklabels != None:
+        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks, orientation=colorbar_orientation)
+        if cticklabels is not None:
           cb.set_ticklabels(cticklabels)
     else:
-        cax.set_xticks([]); cax.set_yticks([]); cax.set_frame_on(False)
+        cax.set_xticks([])
+        cax.set_yticks([])
+        cax.set_frame_on(False)
 
     #--- add a histogram below the map plot
     if show_histogram:
@@ -2926,7 +2934,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     #Zonal plot
     if show_zonal:
         if x._latitudecheckok:
-            add_zonal_plot(ax,x,timmean=zonal_timmean,vmin=vmin_zonal,vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+            add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
         else:
             print 'WARNING: zonal plot not possible due to invalid latitude configurations'
 
