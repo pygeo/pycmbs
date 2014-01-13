@@ -209,11 +209,11 @@ class Data(object):
                     self._lon360 = False
                 if self.lon.max() > 360.:
                     print self.lon.max()
-                    raise ValueError, 'invalid longitudes needs shifting !!!'
+                    raise ValueError('invalid longitudes needs shifting !!!')
             else:
                 print '_lon360: ', self._lon360
                 print self.lon.min(), self.lon.max()
-                print  'WARNING: plotting etc not supported for longitudes which are not equal to 0 ... 360'
+                print 'WARNING: plotting etc not supported for longitudes which are not equal to 0 ... 360'
 
 
     def _get_shape(self): return self.data.shape
@@ -230,7 +230,7 @@ class Data(object):
         except:  # if an exception occurs then write data on screen for bughandling
             if os.path.exists('dump.pkl'):
                 os.remove('dump.pkl')
-            pickle.dump (self,open('dump.pkl','w'))
+            pickle.dump(self,open('dump.pkl', 'w'))
             print 'An error occured in Data.date! Printing data for bugfixing'
             for i in range(len(self.time)):
                 x = self.num2date(self.time[i])
@@ -287,11 +287,11 @@ class Data(object):
             rval = dmax
         elif base == 'month':
             rval = datetime.datetime(dmax.year, dmax.month,
-                                     calendar.monthrange(dmax.year,dmax.month)[1],23,59,59,0, dmax.tzinfo)
+                                     calendar.monthrange(dmax.year, dmax.month)[1],23,59,59,0, dmax.tzinfo)
         elif base == 'day':
-            rval = datetime.datetime(dmax.year,dmax.month,dmax.day,23,59,59,0,dmax.tzinfo)
+            rval = datetime.datetime(dmax.year, dmax.month, dmax.day, 23, 59, 59, 0,dmax.tzinfo)
         elif base == 'year':
-            rval = datetime.datetime(dmax.year,12,31,23,59,59,0,dmax.tzinfo)
+            rval = datetime.datetime(dmax.year, 12, 31, 23, 59, 59, 0, dmax.tzinfo)
         else:
             raise ValueError('Invalid base in _get_maxdate()')
 
@@ -311,7 +311,7 @@ class Data(object):
 
         if 'DATA_WARNING_FILE' in os.environ.keys():
             file = os.environ['DATA_WARNING_FILE']
-            if not os.path.exists(os.path.dirname(file)): #create output directory if necessary
+            if not os.path.exists(os.path.dirname(file)):  # create output directory if necessary
                 os.makedirs(os.path.dirname(file))
         else:
             file = 'data_warnings.log'
@@ -323,7 +323,7 @@ class Data(object):
 
         print("   " + s)
 
-        f = open(file,mode)
+        f = open(file, mode)
         if self.filename is None:
             filename = 'data object has not filename'
         else:
@@ -341,13 +341,13 @@ class Data(object):
         This routine takes care of different time units
         @return:
         """
-        if not hasattr(self,'time_str'):
-            raise ValueError, 'ERROR: time offset can not be determined!'
+        if not hasattr(self, 'time_str'):
+            raise ValueError('ERROR: time offset can not be determined!')
 
         if 'hours' in self.time_str:
-            return 1.*24.
+            return 1. * 24.
         elif 'seconds' in self.time_str:
-            return 1.*86400.
+            return 1. * 86400.
         elif 'days' in self.time_str:
             return 1.
         else:
@@ -367,11 +367,11 @@ class Data(object):
         """
 
         #return pl.num2date(t)
-        if self._oldtime: #see documentation in __init__ of self
+        if self._oldtime:  # see documentation in __init__ of self
             offset = self.__oldtimeoffset()
         else:
             offset = 0.
-        if not hasattr(self,'time_str'):
+        if not hasattr(self, 'time_str'):
             raise ValueError('num2date can not work without timestr!')
         if self.time_str is None:
             raise ValueError('num2date can not work without timestr!')
@@ -406,11 +406,11 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def __set_sample_data(self,a,b,c):
+    def __set_sample_data(self, a, b, c):
         """
         fill data matrix with some sample data
         """
-        self.data = plt.rand(a,b,c)
+        self.data = plt.rand(a, b, c)
 
 #-----------------------------------------------------------------------
 
@@ -455,7 +455,7 @@ class Data(object):
 
 
 
-    def _save_ascii(self,filename,varname=None,delete=False):
+    def _save_ascii(self, filename, varname=None, delete=False):
         """
         saves the data object to an ASCII file
         (unittest)
@@ -1792,6 +1792,26 @@ class Data(object):
         self.calendar = 'standard'
         self.time_str = 'days since 0001-01-01 00:00:00'
         self.time = pl.date2num(newtime)+1. #plus one because of the num2date() basedate definition
+
+#-----------------------------------------------------------------------
+
+    def apply_temporal_subsetting(self, start_date, stop_date):
+        """
+        perform temporal subsetting of data
+
+        Parameters
+        ----------
+        start_date : datetime
+            start time
+        stop_date : datetime
+            stop time
+
+        Returns
+        -------
+        Returns nothing, but modifies the actual data
+        """
+        i1, i2 = self._get_time_indices(start_date, stop_date)
+        self._temporal_subsetting(i1, i2)
 
 #-----------------------------------------------------------------------
 
