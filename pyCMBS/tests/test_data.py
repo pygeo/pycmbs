@@ -851,19 +851,18 @@ class TestData(TestCase):
         m = D.get_valid_mask(frac=0.5)
         self.assertTrue(m[0,0]==True)
 
-
     def test_time_conversion(self):
         x = self.D.copy()
         t = x.time
-        dref = pl.num2date(t); t2=pl.date2num(dref)
-        d1 = x.num2date(t) #convert time to datetime object
-        t1 = x.date2num(d1) #convert back
+        dref = pl.num2date(t)
+        t2=pl.date2num(dref)
+        d1 = x.num2date(t)  # convert time to datetime object
+        t1 = x.date2num(d1)  # convert back
 
         d = t-t1
         self.assertTrue(np.all(d == 0.))
         d = t-t2
         self.assertTrue(np.all(d == 0.))
-
 
     def test_align(self):
         """test temporal alignment of two datasets"""
@@ -873,7 +872,6 @@ class TestData(TestCase):
         y._temporal_subsetting(500, 750)  # generate a subset dataset
 
         x1, y1 = x.align(y, base='day')  # do temporal alignment
-        ###x1 = x.copy(); y1=y.copy()
         d = x1.sub(y1).divc(2.5).subc(1.)  # should give small diff.
 
         # check dates
@@ -920,12 +918,26 @@ class TestData(TestCase):
         self.assertEqual(d[3], 29)
         self.assertEqual(d[4], 28)
 
-
     def test_smooth(self):
         """ test smooth routine """
         x = self.D.copy()
         tmp = np.random.random(100)
         x.data = np.ma.array(tmp, mask=tmp!=tmp)
+
+        # windowsize 3
+        y3a = x.temporal_smooth(3)
+        y3b = x.temporal_smooth(3, return_object=False)
+        self.assertEqual(y3a.data[10], y3b[10])
+        self.assertAlmostEqual(tmp[10:13].sum()/3., y3a.data[11], 8.)
+
+        # windowsize 5
+        y5a = x.temporal_smooth(5)
+        y5b = x.temporal_smooth(5, return_object=False)
+        self.assertEqual(y5a.data[20], y5b[20])
+        self.assertAlmostEqual(tmp[30:35].sum()/5., y5a.data[32], 8.)
+
+
+
 
 
 

@@ -3294,7 +3294,6 @@ class Data(object):
 
         if self.data.ndim == 1:
             thefrac = 1. - float(sum(self.data.mask)) / float(len(self.data.mask))  # valid fraction
-            print('thefrac: %f' % thefrac)
             if thefrac >= frac:
                 msk = np.ones((1, 1)).astype('bool')
             else:
@@ -4249,7 +4248,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def temporal_smooth(self, N, copy=True, frac=1.):
+    def temporal_smooth(self, N, return_object=True, frac=1.):
         """
         Temporal smoothing of datasets. The routine applies a fast
         approach based on convolution to calculate the temporal smoothing
@@ -4264,8 +4263,8 @@ class Data(object):
         Parameters
         ----------
         N : int
-            window size for smoothing
-        copy : bool
+            window size for smoothing (needs to be an odd number)
+        return_object : bool
             True: return Data object
             False: return numpy array
         frac : float
@@ -4275,17 +4274,24 @@ class Data(object):
         # http://stackoverflow.com/questions/13728392/moving-average-or-running-mean
         def _runningMeanFast(x, N):
             N = float(N)
-            return np.convolve(x, np.ones((N,))/N)[(N-1.):]
+            return np.convolve(x, np.ones((N,))/N)[(N-1.):]  # returns average. The result is always on the first item!
 
         N = int(N)
+        if N < 3:
+            raise ValueError('window need to be >= 3')
+        if N % 2 != 1:
+            raise ValueError('window size needs to be an odd number!')
 
         msk = self.get_valid_mask(frac=frac)
 
         if self.data.ndim == 1:  # single timeseries
+            tmp = np.ones_like(self.data) * np.nan
             r = _runningMeanFast(self.data.flatten(), N)
+            tmp[N/2:len(tmp)-N/2] = r[:-(N-1)] #  center data!
         elif self.data.ndim == 2:
             raise ValueError('Invalid data geometry for temporal smoothing! (2D)')
         elif self.data.ndim == 3:
+            raise ValueError('Not fully implemented yet! --> missing time adjustment so that smoothed data is centred')
             r = np.ones_like(self.data) * np.nan
             nt, ny, nx = self.data.shape
             for i in xrange(ny):  # todo: more efficient implementation
@@ -4294,13 +4300,13 @@ class Data(object):
                         r[:, i, j] = _runningMeanFast(self.data[:, i, j], N)
 
         # results
-        r = np.ma.array(r, mask = np.isnan(r))
-        if copy:
+        tmp = np.ma.array(tmp, mask = np.isnan(r))
+        if return_object:
             res = self.copy()
-            res.data = r
+            res.data = tmp
             return res
         else:
-            return r
+            return tmp
 
 
 
