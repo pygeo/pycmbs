@@ -61,11 +61,11 @@ class TestData(TestCase):
 #        r = self.D.get_percentile(0.5,return_object = False)[0,0]
 #        self.assertAlmostEqual(r,0.,delta = 0.5)
 
-    def test_correlate(self):
+    def test_correlate1(self):
         #test for correlation calculations
-        r,p = self.D.correlate(self.D,pthres=1.01) #1) correlation with itself (returns data objects)
-        self.assertEqual(r.data[0,0],1.)
-        self.assertEqual(p.data[0,0],0.)
+        r,p = self.D.correlate(self.D, pthres=1.01) #1) correlation with itself (returns data objects)
+        self.assertEqual(r.data[0,0], 1.)
+        self.assertEqual(p.data[0,0], 0.)
 
     def test_set_time(self):
         #self.D.time_str = 'day as %Y%m%d.%f'
@@ -101,18 +101,17 @@ class TestData(TestCase):
         #self.assertEqual(self.D.time[0],729318.0)
         #self.assertEqual(self.D.time[1],729320.0)
 
-
     def test_temporal_trend(self):
         y = np.arange(len(self.D.time))*2.+8.
-        self.D.data[:,0,0] = y
+        self.D.data[:, 0, 0] = y
 
-        #reference solution
+        # reference solution
         slope, intercept, r_value, p_value, std_err = stats.linregress(self.D.time,y)
 
-        #calculate temporal correlation WITHOUT normalization of time
-        R,S,I,P = self.D.temporal_trend() #no object is returned (default)
-        self.assertEqual(R[0,0],r_value)
-        self.assertEqual(S[0,0],slope)
+        # calculate temporal correlation WITHOUT normalization of time
+        R, S, I, P = self.D.temporal_trend()  # no object is returned (default)
+        self.assertEqual(R[0,0], r_value)
+        self.assertEqual(S[0,0], slope)
         #self.assertEqual(I[0,0],intercept)
 
     def test_get_yearmean(self):
@@ -123,10 +122,12 @@ class TestData(TestCase):
         t3 = pl.datestr2num('2010-07-15') + np.arange(4) #year 2010
         D.time = np.asarray([t1,t2,t3]).flatten()
         D._oldtime = True #use old python pylab time definition to be compliant with the test results here
-        data = pl.rand(len(D.time),1,1)
-        data[8:,0,0] = np.nan
+        data = pl.rand(len(D.time), 1, 1)
+        data[8:, 0, 0] = np.nan
         D.data = np.ma.array(data,mask=np.isnan(data))       #generate random data
-        r1 = np.mean(D.data[0:4]); r2 = np.mean(D.data[4:8]); r3=np.mean(D.data[8:])
+        r1 = np.mean(D.data[0:4])
+        r2 = np.mean(D.data[4:8])
+        r3=np.mean(D.data[8:])
         #print 'Reference results: ', r1, r2, r3
         years, res = D.get_yearmean()
         #print 'Result: ', res
@@ -449,16 +450,15 @@ class TestData(TestCase):
     #-----------------------------------------------------------
 
     def test_correlate(self):
-        #test correlation
-
         for n in [None,100,10,5]: #different size
-
             x,y = self.generate_tuple(n=n,mask=True)
-            x1=x.data[:,0,0]; y1=y.data[:,0,0]
+            x1=x.data[:, 0, 0]
+            y1=y.data[:, 0, 0]
             msk = (x1.mask == False) & (y1.mask == False)
-            x2 = x1[msk]; y2 = y1[msk] #this is only the valid data
+            x2 = x1[msk]
+            y2 = y1[msk] #this is only the valid data
 
-            print 'Number of masked pixels: ', sum(y.data.mask), n
+            #print 'Number of masked pixels: ', sum(y.data.mask), n
 
             ##################################################################
             # PEARSON CORRELATION
@@ -497,16 +497,18 @@ class TestData(TestCase):
         #/// linear detrending of data ///
         x = self.D.copy()
         tmp = np.arange(len(x.time))
-        x.data[:,0,0] = np.ma.array(tmp,mask=tmp!=tmp)
+        tmp = np.ma.array(tmp, mask = tmp != tmp)
+        x.data[:,0,0] = np.ma.array(tmp, mask=tmp!=tmp)
         y = x.copy()
         y.data = y.data * 1.2 + 3.
+        #~ y.data = np.ma.array(y.data, mask = y.data != y.data)
 
         r,p = x.correlate(y)
-        self.assertAlmostEqual(r.data[0,0],1.,10)
+        self.assertAlmostEqual(r.data[0,0], 1., 10)
 
         #--- detrending ---
-        r,p = x.correlate(y,detrend=True)
-        self.assertEquals(r.data[0,0],0.)
+        r,p = x.correlate(y, detrend=True)
+        self.assertEquals(r.data[0,0], 0.)
 
 
     def test_normalize(self):
