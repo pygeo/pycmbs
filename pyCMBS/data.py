@@ -3956,8 +3956,14 @@ class Data(object):
 
     def corr_single(self, x, pthres=1.01, mask=None):
         """
-        The routine correlates a data vector with
-        all data of the current object.
+        The routine correlates a data vector with all data of the
+        current object. It returns several correlation measures
+
+        Example
+        -------
+        >> d = Data(None, None)
+        >> x = np.random(100)
+        >> rpears, slope, intercept, p, covar =  d.corr_single(x, pthres=0.05)
 
         @param x: the data vector correlations should be calculated with
         @type  x: numpy array [time]
@@ -4300,7 +4306,7 @@ class Data(object):
                         r[:, i, j] = _runningMeanFast(self.data[:, i, j], N)
 
         # results
-        tmp = np.ma.array(tmp, mask = np.isnan(r))
+        tmp = np.ma.array(tmp, mask = np.isnan(tmp))
         if return_object:
             res = self.copy()
             res.data = tmp
