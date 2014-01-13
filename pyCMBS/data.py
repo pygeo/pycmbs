@@ -1556,13 +1556,20 @@ class Data(object):
         """
         calculate deseasonalized anomalies
 
-        @param base: specifies the base to be used for the
-                     climatology (all: use the WHOLE original dataset
-                     as a reference; current: use current data as a reference)
-        @type base: str
+        The anomalies are calculated by removing the mean seasonal cycle
+        The seasonality is specified by the time_cycle variable of the
+        Data object
 
-        @return: returns a C{Data} object with the anomalies
-        @rtype: C{Data}
+        Parameters
+        ----------
+        base : str
+            specifies the base to be used for the climatology
+            'all': use the WHOLE original dataset as a reference
+            'current' : use current data as a reference
+
+        Returns
+        -------
+        return a Data object of deseasonalized anomalies
         """
 
         if base == 'current':
@@ -1576,7 +1583,7 @@ class Data(object):
                     self._climatology_raw = self.get_climatology()
                     clim = self._climatology_raw
                 else:
-                    raise ValueError, 'Climatology can not be calculated because of missing time_cycle!'
+                    raise ValueError('Climatology can not be calculated because of missing time_cycle!')
         else:
             raise ValueError('Anomalies can not be calculated, invalid BASE')
 
@@ -1585,7 +1592,7 @@ class Data(object):
         else:
             raise ValueError('Anomalies can not be calculated without a valid time_cycle')
 
-        ret = np.ones(np.shape(self.data)) * np.nan
+        ret = np.ones_like(self.data) * np.nan
 
         if ret.ndim == 1:
             for i in xrange(self.time_cycle):
@@ -1597,7 +1604,7 @@ class Data(object):
             for i in xrange(self.time_cycle):
                 ret[i::self.time_cycle, :, :] = self.data[i::self.time_cycle, :, :] - clim[i, :, :]
         else:
-            raise ValueError, 'Invalid dimension when calculating anomalies'
+            raise ValueError('Invalid dimension when calculating anomalies')
 
         ret = np.ma.array(ret, mask=(np.isnan(ret) | self.data.mask) )
 
@@ -2624,7 +2631,6 @@ class Data(object):
         dmin = self.data.min()
         x = self.data.flatten() - dmin + 1.
         msk = x.mask  # work only on valid data; note that this approech is probably not the best one!
-        #~ print 'X: ', x[~msk]
         hp = _hp_filter(np.log(np.asarray([x[~msk]])), lam)  # 2D input needed
         y = np.ones_like(x) * np.nan
         y[~msk] = np.exp(hp)

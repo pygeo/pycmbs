@@ -854,7 +854,8 @@ class EOF(object):
 
         return ax
 
-    def plot_EOF(self,k,all=False,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,
+    def plot_EOF(self, k, all=False, use_basemap=False, logplot=False,
+                 ax=None,label=None,region=None,vmin=None,
                  vmax=None,show_coef=False,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10,levels=None):
         """
         plot multiple eof patterns
