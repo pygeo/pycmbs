@@ -2927,7 +2927,7 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
             print 'WARNING: zonal plot not possible due to invalid latitude configurations'
 
 
-    def _add_region(m,r,color='red',linewidth=1):
+    def _add_region_basemap(m, r, color='red', linewidth=1):
         """
         plot region r on top of basemap map m
 
@@ -2942,18 +2942,45 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
         """
         corners = r.get_corners() #get list of corner coordinates
         corners = np.asarray(corners)
-        lons = corners[:,0]; lats=corners[:,1]
+        lons = corners[:,0]
+        lats=corners[:,1]
         x,y = m(lons,lats)
-        xy = list(zip(x,y))
-        mapboundary = Polygon(xy,edgecolor=color,linewidth=linewidth,fill=False,linestyle='dashed')
+        xy = list(zip(x, y))
+        mapboundary = Polygon(xy, edgecolor=color, linewidth=linewidth, fill=False, linestyle='dashed')
         m.ax.add_patch(mapboundary)
 
+    def _add_region_standard(ax, r, color='red', linewidth=1):
+        """
+        plot region r on top of a normal map plot
+
+        @param m: map
+        @type m: C{Basemap} object
+
+        @param r: region to plot
+        @type r: C{Region}
+
+        @param color: color to plot region
+        @type color: str
+        """
+        corners = r.get_corners() #get list of corner coordinates
+        corners = np.asarray(corners)
+        xcoords = corners[:, 0]
+        ycoords=corners[:, 1]
+        xy = list(zip(xcoords, ycoords))
+        mapboundary = Polygon(xy, edgecolor=color, linewidth=linewidth, fill=False, linestyle='dashed')
+        ax.add_patch(mapboundary)
+
+
     #--- plot regions in the map ---
-    if regions_to_plot != None:
+    if regions_to_plot is not None:
         if use_basemap:
             for region in regions_to_plot:
                 if region.type=='latlon':
-                    _add_region(m1,region,linewidth=regionlinewidth)
+                    _add_region_basemap(m1, region, linewidth=regionlinewidth)
+        else:
+            for region in regions_to_plot:
+                if region.type=='index':
+                    _add_region_standard(ax, region, linewidth=regionlinewidth)
 
     #--- set title
     if title == None:
