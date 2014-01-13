@@ -4293,17 +4293,19 @@ class Data(object):
         if self.data.ndim == 1:  # single timeseries
             tmp = np.ones_like(self.data) * np.nan
             r = _runningMeanFast(self.data.flatten(), N)
-            tmp[N/2:len(tmp)-N/2] = r[:-(N-1)] #  center data!
+            tmp[N/2:len(tmp)-N/2] = r[:-(N-1)]  # center data!
         elif self.data.ndim == 2:
             raise ValueError('Invalid data geometry for temporal smoothing! (2D)')
         elif self.data.ndim == 3:
-            raise ValueError('Not fully implemented yet! --> missing time adjustment so that smoothed data is centred')
             r = np.ones_like(self.data) * np.nan
             nt, ny, nx = self.data.shape
             for i in xrange(ny):  # todo: more efficient implementation
                 for j in xrange(nx):
                     if msk[i,j]:
                         r[:, i, j] = _runningMeanFast(self.data[:, i, j], N)
+            # ensure that smoothed data is centred in time!
+            tmp = np.ones_like(self.data) * np.nan
+            tmp[N/2:len(tmp)-N/2, :, :] = r[:-(N-1), :, :]  # center data!
 
         # results
         tmp = np.ma.array(tmp, mask = np.isnan(tmp))
