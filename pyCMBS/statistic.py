@@ -31,14 +31,21 @@ def get_significance(correlation, n, pthres=1.01):
 
     """
 
-    nf = n - 2.  # degree of freedom
-    # abs() is important
-    if abs(correlation) < 1.:
-        t_value = np.abs(correlation) * np.sqrt(nf / (1.-correlation**2))
-        # calculate two-sided p-value
-        p = 2. * stats.t.sf(t_value, nf)
+    nf = n - 2  # degree of freedom
+
+    if np.isscalar(correlation):
+        if abs(correlation) < 1.:
+            # abs() is important
+            t_value = np.abs(correlation) * np.sqrt(nf / (1.-correlation**2.))
+            # calculate two-sided p-value
+            p = 2. * stats.t.sf(t_value, nf)
+        else:
+            p = 0.
     else:
-        p = np.zeros(np.shape(correlation))
+        msk = correlation < 1.
+        p = np.zeros_like(correlation)
+        t_value = np.abs(correlation[msk]) * np.sqrt(nf / (1.-correlation[msk]**2.))
+        p[msk] = 2. * stats.t.sf(t_value, nf)
 
     return np.ma.array(p, mask=p > pthres)
 
