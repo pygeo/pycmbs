@@ -921,20 +921,32 @@ class TestData(TestCase):
     def test_smooth(self):
         """ test smooth routine """
         x = self.D.copy()
-        tmp = np.random.random(100)
+
+        #--- TEST for 1D data ---
+        tmp = np.random.random(1000)
         x.data = np.ma.array(tmp, mask=tmp!=tmp)
 
         # windowsize 3
         y3a = x.temporal_smooth(3)
         y3b = x.temporal_smooth(3, return_object=False)
         self.assertEqual(y3a.data[10], y3b[10])
-        self.assertAlmostEqual(tmp[10:13].sum()/3., y3a.data[11], 8.)
+        self.assertAlmostEqual(tmp[10:13].sum()/3., y3a.data[11], 8)
 
         # windowsize 5
         y5a = x.temporal_smooth(5)
         y5b = x.temporal_smooth(5, return_object=False)
         self.assertEqual(y5a.data[20], y5b[20])
-        self.assertAlmostEqual(tmp[30:35].sum()/5., y5a.data[32], 8.)
+        self.assertAlmostEqual(tmp[30:35].sum()/5., y5a.data[32], 8)
+
+        #--- TEST FOR 3D data ---
+        tmp = np.random.random((100, 2, 3))
+        x.data = np.ma.array(tmp, mask=tmp!=tmp)
+        y3a = x.temporal_smooth(3)
+        y3b = x.temporal_smooth(3, return_object=False)
+        self.assertEqual(y3a.data[10,0,0], y3b[10,0,0])
+        self.assertAlmostEqual(tmp[10:13,0,0].sum()/3., y3a.data[11,0,0], 8)
+        self.assertAlmostEqual(tmp[10:13,1,1].sum()/3., y3a.data[11,1,1], 8)
+        self.assertAlmostEqual(tmp[10:13,1,0].sum()/3., y3a.data[11,1,0], 8)
 
 
 
