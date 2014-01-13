@@ -273,25 +273,28 @@ class TestData(TestCase):
 
         D.label='test2'
 
-        x=D.data[:,0,0]; y=A.data[:,0,0]
-        x1=D.data[:,0,1]; y1=A.data[:,0,1]
+        x=D.data[:,0,0]
+        y=A.data[:,0,0]
+        x1=D.data[:,0,1]
+        y1=A.data[:,0,1]
         t,p = stats.ttest_ind(x,y,axis=0)
         t1,p1 = stats.ttest_ind(x1,y1,axis=0)
 
-        s  = A.diff(D,pthres=0.05)
-        s1 = D.diff(D,pthres=0.05) #test with the same data
+        s = A.diff(D, pthres=0.05)
+        s1 = D.diff(D, pthres=0.05)  # test with the same data
 
         #checks
-        self.assertAlmostEqual(s.p_value[0,0],1.-p,places=8)
-        self.assertAlmostEqual(s.p_value[0,1],1.-p1,places=8)
+        self.assertAlmostEqual(s.p_value[0,0], 1.-p, places=8)
+        self.assertAlmostEqual(s.p_value[0,1], 1.-p1, places=8)
         if p <= 0.05:
-            self.assertEqual(s.p_mask[0,0],True)
+            self.assertEqual(s.p_mask[0,0], True)
         else:
-            self.assertEqual(s.p_mask[0,0],False)
+            print p
+            self.assertEqual(s.p_mask[0,0], False)
 
         #test for same data
-        self.assertEqual(s1.p_value[0,0],0.)
-        self.assertEqual(s1.p_value[0,1],0.)
+        self.assertEqual(s1.p_value[0,0], 0.)
+        self.assertEqual(s1.p_value[0,1], 0.)
 
 
         #another test of the t-test, taken from http://web.mst.edu/~psyworld/texample.htm
