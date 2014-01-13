@@ -9,6 +9,7 @@ from scipy import stats
 import numpy as np
 import scipy.special as special
 from scipy import stats as Sstats
+import sys
 
 
 def get_significance(correlation, n, pthres=1.01):
@@ -32,10 +33,12 @@ def get_significance(correlation, n, pthres=1.01):
 
     nf = n - 2.  # degree of freedom
     # abs() is important
-    t_value = np.abs(correlation) * np.sqrt(nf / (1.-correlation**2))
-
-    # calculate two-sided p-value
-    p = 2. * stats.t.sf(t_value, nf)
+    if abs(correlation) < 1.:
+        t_value = np.abs(correlation) * np.sqrt(nf / (1.-correlation**2))
+        # calculate two-sided p-value
+        p = 2. * stats.t.sf(t_value, nf)
+    else:
+        p = np.zeros(np.shape(correlation))
 
     return np.ma.array(p, mask=p > pthres)
 
