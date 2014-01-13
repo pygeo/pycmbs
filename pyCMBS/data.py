@@ -3342,17 +3342,11 @@ class Data(object):
         else:
             raise ValueError('Invalid option in get_valid_data() %s' % mode)
 
-        print 'data.shape: ', data.shape
-        print 'msk.shape: ', msk.shape
-        print 'sum(msk): ', sum(msk)
-
         data = data[:, msk]
         if lon is not None:
             lon = lon[msk]
         if lat is not None:
             lat = lat[msk]
-
-        print 'get_valid_data shape: ', data.shape
 
         if return_mask:
             return lon, lat, data, msk
