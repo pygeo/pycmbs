@@ -2470,10 +2470,9 @@ class Data(object):
         """
         if self.data.ndim == 3:
             res = self.data.var(axis=0)
-        if self.data.ndim == 2:
+        elif self.data.ndim == 2:
             # no temporal averaging
             res = None
-        else:
             sys.exit('Temporal variance can not be calculated as dimensions do not match!')
 
         if return_object:
