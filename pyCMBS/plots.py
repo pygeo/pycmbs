@@ -2417,23 +2417,23 @@ class MultipleMap(MapPlotGeneric):
 
 
 
-def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
-             nclasses=10,cmap_data='jet',
-             title=None,regions_to_plot = None,logplot=False,
-             logoffset=None,show_stat=False,
-             f_kdtree=False,show_colorbar=True,latvalues=None,
-             lonvalues=None,show_zonal=False,
-             zonal_timmean=True,show_timeseries=False,
-             scal_timeseries=1.,vmin_zonal=None,vmax_zonal=None,
+def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
+             nclasses=10, cmap_data='jet',
+             title=None, regions_to_plot=None, logplot=False,
+             logoffset=None, show_stat=False,
+             f_kdtree=False, show_colorbar=True, latvalues=None,
+             lonvalues=None, show_zonal=False,
+             zonal_timmean=True, show_timeseries=False,
+             scal_timeseries=1., vmin_zonal=None, vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,
-             titlefontsize=14,drawparallels=True,drawcountries=True,
+             titlefontsize=14, drawparallels=True,drawcountries=True,
              show_histogram=False,
              contourf = False, land_color=(0.8,0.8,0.8),
              regionlinewidth=1, bins=10,
-             colorbar_orientation='vertical',stat_type='mean',
-             cax_rotation=0.,cticklabels=None, proj='robin',
+             colorbar_orientation='vertical', stat_type='mean',
+             cax_rotation=0., cticklabels=None, proj='robin',
              plot_method='colormesh', boundinglat=60.,
-             savefile=None, **kwargs):
+             savefile=None, lon_0=0., lat_0=0., **kwargs):
     """
     produce a nice looking map plot
 
@@ -2692,14 +2692,18 @@ def map_plot(x,use_basemap=False,ax=None,cticks=None,region=None,
         tmp.save(savefile,varname='temporal_mean_field')
         del tmp
 
-
     #--- set projection parameters
     if proj == 'robin': #todo: more flexible handling of projection parameters (dictionary ??)
-        lon_0=0.; lat_0=0.
+        lon_0=lon_0
+        lat_0=lat_0
     elif proj == 'npstere':
-        lon_0 = 0.; lat_0 = 0.; boundinglat = boundinglat
+        lon_0 = lon_0
+        lat_0 = lat_0
+        boundinglat = boundinglat
     elif proj == 'spstere':
-        lon_0 = 0.; lat_0 = 0.; boundinglat = -boundinglat
+        lon_0 = lon_0
+        lat_0 = lat_0
+        boundinglat = -boundinglat
     else:
         raise ValueError,'Unsupported projection in map_plot (unsupported means, that it was not tested yet)'
 
