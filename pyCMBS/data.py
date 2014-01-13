@@ -2310,9 +2310,10 @@ class Data(object):
         @return: returns either C{Data} object or a numpy array. The following variables are returned: correlation, slope, intercept, p-value
                  the slope which is returned has unit [dataunit/day]
         """
-        dt = np.asarray([x.days for x in self.date-self.date[0]]) #time difference in days
-        x = dt
-        R,S,I,P,C = self.corr_single(x,pthres=pthres)
+        dt = np.asarray([x.days for x in self.date-self.date[0]])  # time difference in days
+        x = np.ma.array(dt, mask=dt != dt)  # ensure that a masked array is used
+
+        R, S, I, P, C = self.corr_single(x, pthres=pthres)
 
         R.label = self.label + '(correlation)'
         S.label = self.label + '($\partial x / \partial t$)'
@@ -2324,9 +2325,9 @@ class Data(object):
             R.unit = '-'
             I.unit = self.unit
             P.unit = '-'
-            return R,S,I,P
+            return R, S, I, P
         else:
-            return R.data,S.data,I.data,P.data
+            return R.data, S.data, I.data, P.data
 
 #-----------------------------------------------------------------------
 
@@ -3314,38 +3315,44 @@ class Data(object):
 
         n = len(self.time)
 
-        #- vectorize the data
-        if hasattr(self,'lon'):
-            if self.lon != None:
-                lon  = self.lon.reshape(-1)
+        # vectorize the data
+        if hasattr(self, 'lon'):
+            if self.lon is not None:
+                lon = self.lon.reshape(-1)
             else:
                 lon = None
         else:
             lon = None
-        if hasattr(self,'lat'):
-            if self.lat != None:
-                lat  = self.lat.reshape(-1)
+        if hasattr(self, 'lat'):
+            if self.lat is not None:
+                lat = self.lat.reshape(-1)
             else:
                 lat = None
         else:
             lat = None
 
         data = self.data.reshape(n, -1)
-        data.mask[np.isnan(data.data)] = True
+        data.mask[np.isnan(data.data)] = True  # set pixels with NaN to invalid
 
-        #- extract only valid (not masked data)
+        # extract only valid (not masked data)
         if mode == 'all':
-            msk = np.sum(~data.mask,axis=0) == n  # identify all ngrid cells where all timesteps are valid
+            msk = np.sum(~data.mask, axis=0) == n  # identify all ngrid cells where all timesteps are valid
         elif mode == 'one':
-            msk = np.sum(~data.mask,axis=0) > 0  # identify ONE grid cell where all timesteps are valid
+            msk = np.sum(~data.mask, axis=0) > 0  # identify ONE grid cell where all timesteps are valid
         else:
             raise ValueError('Invalid option in get_valid_data() %s' % mode)
 
-        data = data[:,msk]
+        print 'data.shape: ', data.shape
+        print 'msk.shape: ', msk.shape
+        print 'sum(msk): ', sum(msk)
+
+        data = data[:, msk]
         if lon is not None:
             lon = lon[msk]
         if lat is not None:
             lat = lat[msk]
+
+        print 'get_valid_data shape: ', data.shape
 
         if return_mask:
             return lon, lat, data, msk
@@ -3953,8 +3960,21 @@ class Data(object):
         if nt != len(x):
             raise ValueError('Inconsistent geometries')
 
+        # check if 'x' is a masked array where the mask has the same
+        # size as the data. If this is not the case, then set it
+        if isinstance(x,np.ma.core.MaskedArray):
+            if isinstance(x.mask,np.ndarray):
+                if x.mask.shape != x.data.shape:
+                    raise ValueError('Invalid mask geometry!')
+            else:
+                raise ValueError('The mask of the dataset needs to be an array!')
+        else:
+            raise ValueError('Expect masked array as input in corr_single')
+
+
+
         # get data with at least one valid value
-        lo,la,dat,msk = self.get_valid_data(return_mask=True, mode='one')
+        lo, la, dat, msk = self.get_valid_data(return_mask=True, mode='one')
         xx,n = dat.shape
         if self.verbose:
             print('   Number of grid points: ', n)
@@ -3972,7 +3992,7 @@ class Data(object):
         CO.shape = (-1)
 
         print 'Calculating correlation ...'
-        res = [stats.mstats.linregress(x,dat[:, i]) for i in range(n)]
+        res = [stats.mstats.linregress(x, dat[:, i]) for i in range(n)]
         res = np.asarray(res)
 
         slope = res[:, 0]
@@ -3985,46 +4005,47 @@ class Data(object):
         P[msk] = p_value
         I[msk] = intercept
         S[msk] = slope
-        R.shape = (ny,nx)
-        P.shape = (ny,nx)
-        I.shape = (ny,nx)
-        S.shape = (ny,nx)
+        R.shape = (ny, nx)
+        P.shape = (ny, nx)
+        I.shape = (ny, nx)
+        S.shape = (ny, nx)
 
         #--- prepare output data objects
-        Rout = self.copy() #copy obkect to get coordinates
+        Rout = self.copy()  # copy object to get coordinates
         Rout.label = 'correlation'
-        msk = (P > pthres) | np.isnan(R)
+        msk = (P > pthres) | (np.isnan(R))
+        #msk = np.zeros_like(R).astype('bool')
         Rout.data = np.ma.array(R, mask=msk).copy()
 
-        Sout = self.copy() #copy object to get coordinates
+        Sout = self.copy()  # copy object to get coordinates
         Sout.label = 'slope'
         Sout.data = np.ma.array(S, mask=msk).copy()
 
-        Iout = self.copy() #copy object to get coordinates
+        Iout = self.copy()  # copy object to get coordinates
         Iout.label = 'intercept'
         Iout.data = np.ma.array(I, mask=msk).copy()
 
-        Pout = self.copy() #copy object to get coordinates
+        Pout = self.copy()  # copy object to get coordinates
         Pout.label = 'p-value'
-        Pout.data = np.ma.array(P).copy()
+        Pout.data = np.ma.array(P, mask=msk).copy()
 
-        Cout = self.copy() #copy object to get coordinates
+        Cout = self.copy()  # copy object to get coordinates
         Cout.label = 'covariance'
-        Cout.data = np.ma.array(np.ones(P.shape)*np.nan, mask=msk).copy() #currently not supported: covariance!
+        Cout.data = np.ma.array(np.ones(P.shape)*np.nan, mask=msk).copy()  # currently not supported: covariance!
 
         if mask is not None:
-            #apply a mask
+            # apply a mask
             Rout._apply_mask(mask)
             Sout._apply_mask(mask)
             Iout._apply_mask(mask)
             Pout._apply_mask(mask)
             Cout._apply_mask(mask)
 
-            Rout.unit = None
-            Sout.unit = None
-            Iout.unit = None
-            Pout.unit = None
-            Cout.unit = None
+        Rout.unit = None
+        Sout.unit = None
+        Iout.unit = None
+        Pout.unit = None
+        Cout.unit = None
 
         return Rout, Sout, Iout, Pout, Cout
 
@@ -4048,6 +4069,7 @@ class Data(object):
 
         #generate dummy vector for linear correlation (assumes equally spaced data!!!!!) todo: generate unittest for this
         x = np.arange(len(self.time)) #@todo: replace this by using actual timestamp for regression calcuclation
+        x = np.ma.array(x, mask = x != x)
 
         #correlate and get slope and intercept
         Rout, Sout, Iout, Pout, Cout = self.corr_single(x)
