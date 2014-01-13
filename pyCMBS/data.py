@@ -3167,6 +3167,7 @@ class Data(object):
         #copy self
         d = self.copy()
         d.data = region.get_subset(d.data)
+        d.cell_area = region.get_subset(d.cell_area)
 
         if hasattr(d,'_climatology_raw'):
             d._climatology_raw = region.get_subset(d._climatology_raw)
