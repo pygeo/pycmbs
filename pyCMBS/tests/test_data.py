@@ -831,6 +831,26 @@ class TestData(TestCase):
         self.assertTrue(m[0,0]==False)
         self.assertTrue(m[0,1]==True)
 
+        #case 6: 1D data (all valid)
+        x = np.ones(100)
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask()
+        self.assertTrue(m[0,0]==True)
+
+        #case 7: 1D data (51% invalid)
+        x = np.ones(100)
+        x[0:51] = 0.
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask(frac=0.5)
+        self.assertTrue(m[0,0]==False)
+
+        #case 7: 1D data (50% invalid)
+        x = np.ones(100)
+        x[0:50] = 0.
+        D.data = np.ma.array(x,mask=x == 0)
+        m = D.get_valid_mask(frac=0.5)
+        self.assertTrue(m[0,0]==True)
+
 
     def test_time_conversion(self):
         x = self.D.copy()
@@ -899,5 +919,18 @@ class TestData(TestCase):
         self.assertEqual(d[2], 30)
         self.assertEqual(d[3], 29)
         self.assertEqual(d[4], 28)
+
+
+    def test_smooth(self):
+        """ test smooth routine """
+        x = self.D.copy()
+        tmp = np.random.random(100)
+        x.data = np.ma.array(tmp, mask=tmp!=tmp)
+
+
+
+
+
+
 #~ if __name__ == '__main__':
     #~ unittest.main()

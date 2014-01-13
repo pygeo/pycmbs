@@ -3273,21 +3273,44 @@ class Data(object):
         calculate a mask which is True, when a certain fraction of
         all timestamps of the field are valid
 
-        @type frac: fraction of timesteps required to be valid [0...1]
-        @param frac: float
+        Parameters
+        ----------
+        frac : float
+            minimum fraction of valid data in all timesteps needed [0..1]
+        return_frac : bool
+            return also fraction and not only final mask
+
+        Returns
+        -------
+        msk : ndarray
+            array with mask where valid data is available for at least
+            *frac* timesteps
+        frac : ndarray
+            optional: fraction
         """
 
         if (frac < 0.) or (frac>1.):
             raise ValueError('Fraction needs to be between 0 ... 1!')
 
-        if self.data.ndim == 2:
+        if self.data.ndim == 1:
+            thefrac = 1. - float(sum(self.data.mask)) / float(len(self.data.mask))  # valid fraction
+            print('thefrac: %f' % thefrac)
+            if thefrac >= frac:
+                msk = np.ones((1, 1)).astype('bool')
+            else:
+                msk = np.zeros((1, 1)).astype('bool')
+            if return_frac:
+                return msk, thefrac
+            else:
+                return msk
+        elif self.data.ndim == 2:
             if return_frac:
                 thefrac = np.ones(self.data.shape)
                 return np.ones(self.data.shape).astype('bool'), thefrac
             else:
                 return np.ones(self.data.shape).astype('bool')
         elif self.data.ndim == 3:
-            n = len(self.data) #number of timesteps
+            n = len(self.data)  # number of timesteps
             hlp = self.data.copy()
             if hasattr(hlp,'mask'):
                 hlp1 = hlp.data.copy()
@@ -3353,7 +3376,6 @@ class Data(object):
             lon = lon[msk]
         if lat is not None:
             lat = lat[msk]
-
         if return_mask:
             return lon, lat, data, msk
         else:
@@ -4224,3 +4246,70 @@ class Data(object):
     def _is_sorted(self):
         """Checks if timeseries is increasingly sorted"""
         return np.all(np.diff(self.time) >= 0.)
+
+#-----------------------------------------------------------------------
+
+    def temporal_smooth(self, N, copy=True, frac=1.):
+        """
+        Temporal smoothing of datasets. The routine applies a fast
+        approach based on convolution to calculate the temporal smoothing
+        of the timeseries.
+
+        Note that the routine does not take into account any time units,
+        nor does it check if the data is without gaps. It simply applies
+        the smoothing window on the whole timeseries. It is subject
+        of the user to ensure that the data is prepared in a way that
+        the results make sense.
+
+        Parameters
+        ----------
+        N : int
+            window size for smoothing
+        copy : bool
+            True: return Data object
+            False: return numpy array
+        frac : float
+            minimum fraction of valid timesteps required for calculation
+        """
+
+        # http://stackoverflow.com/questions/13728392/moving-average-or-running-mean
+        def _runningMeanFast(x, N):
+            N = float(N)
+            return np.convolve(x, np.ones((N,))/N)[(N-1.):]
+
+        N = int(N)
+
+        msk = self.get_valid_mask(frac=frac)
+
+        if self.data.ndim == 1:  # single timeseries
+            r = _runningMeanFast(self.data.flatten(), N)
+        elif self.data.ndim == 2:
+            raise ValueError('Invalid data geometry for temporal smoothing! (2D)')
+        elif self.data.ndim == 3:
+            r = np.ones_like(self.data) * np.nan
+            nt, ny, nx = self.data.shape
+            for i in xrange(ny):  # todo: more efficient implementation
+                for j in xrange(nx):
+                    if msk[i,j]:
+                        r[:, i, j] = _runningMeanFast(self.data[:, i, j], N)
+
+        # results
+        r = np.ma.array(r, mask = np.isnan(r))
+        if copy:
+            res = self.copy()
+            res.data = r
+            return res
+        else:
+            return r
+
+
+
+
+
+
+
+
+
+
+
+
