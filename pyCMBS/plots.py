@@ -2617,7 +2617,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
     #--- checks
 
-    if proj not in ['robin','npstere','spstere']:
+    if proj not in ['robin', 'npstere', 'spstere']:
         raise ValueError('ERROR: projection type not validated for map_plot so far: %s' % proj)
     if proj == 'npstere': #todo: for stereographic projection, scatter is used as method at the moment
         plot_method = 'scatter'
@@ -3008,25 +3008,29 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         #tmp_xm = x.copy()
         #tmp_xm.data = xm.reshape(1,xm.shape[0],xm.shape[1]) #make a 3D object thus fldmean works appropriately
         #tmp_xm.cell_area = tmp_xm.cell_area.reshape(xm.shape[0],xm.shape[1]) #reshape cell area, that get_area_weighting() works!
-        tmp_xm = x.timmean(return_object=True) #from temporal mean
+        tmp_xm = x.timmean(return_object=True)  # from temporal mean
 
         if stat_type == 'mean':
             me = tmp_xm.fldmean()
             st = tmp_xm.fldstd()
             assert(len(me) == 1)
             assert(len(st) == 1)
-            me = me[0]; st=st[0]
-            title = title + '\n (weighted mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$' + ')'
+            me = me[0]
+            st=st[0]
+            atitle = 'mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
         elif stat_type == 'sum': #area sum
             me = tmp_xm.areasum()
             assert(len(me) == 1)
             me = me[0]
-            title = title + '\n (weighted sum: $' + str(round(me,2))  + '$' + ')'
+            atitle = 'sum: $' + str(round(me,2))  + '$'
         else:
             me = np.ma.median(tmp_xm.data)
-            title = title + '\n (median: $' + str(round(me,2)) + '$)'
+            atitle = 'median: $' + str(round(me,2)) + '$'
+        ax.set_title(atitle, size=titlefontsize, loc='left')
 
-    ax.set_title(title,size=titlefontsize)
+    ax.set_title(title + '\n', size=titlefontsize, loc='center')
+    ax.set_title(x._get_unit(), size=titlefontsize, loc='right')
+
 
 
     #/// show timeseries? ///
