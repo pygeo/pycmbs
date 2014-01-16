@@ -753,22 +753,20 @@ class Data(object):
         if not self.cell_area is None:
             return
 
-        if (self.lat == None) or (self.lon is None):
-            #logger.warning('WARNING: cell area can not be calculated (missing coordinates)!')
+        if (self.lat is None) or (self.lon is None):
             self._log_warning("WARNING: cell area can not be calculated (missing coordinates)!")
             if self.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
             elif self.ndim == 3:
                 self.cell_area = np.ones(self.data[0,:,:].shape)
             else:
-                #logger.error('Invalid geometry')
-                raise ValueError, 'Invalid geometry!'
+                raise ValueError('Invalid geometry!')
             return
 
         #--- calculate cell area from coordinates ---
         cell_file = self.filename[:-3]+'_cell_area.nc'
 
-        if not os.path.exists(cell_file): #calculate grid area using CDO's
+        if not os.path.exists(cell_file):  # calculate grid area using CDO's
             cdo = Cdo()
             try:
                 cdo.gridarea(options='-f nc',output=cell_file,input=self.filename)
@@ -788,8 +786,6 @@ class Data(object):
                     except:
                         print('WARNING: no cell area could be generated!')
 
-
-
         #--- read cell_area file ---
         if os.path.exists(cell_file):
             #--- read cell area from file
@@ -798,13 +794,23 @@ class Data(object):
             self.cell_area = File.get_variable('cell_area')
             File.close()
 
+            # check geometries
+            if self.data.ndim == 2:
+                if self.cell_area.shape != self.data.shape:
+                    raise ValueError('Invalid cell_area file: delete it manually and check again!')
+            elif self.data.ndim == 1:
+                if self.cell_area.shape != self.data.shape:
+                    raise ValueError('Invalid cell_area file: delete it manually and check again!')
+            elif self.data.ndim == 3:
+                if self.cell_area.shape != self.data[0,:,:].shape:
+                    raise ValueError('Invalid cell_area file: delete it manually and check again!')
+
         else:
             #--- no cell are calculation possible!!!
             #logger.warning('Can not estimate cell area! (setting all equal) ' + cell_file)
 
             self._log_warning('*** WARNING: Can not estimate cell area! ' + cell_file)
             self._log_warning(' setting cell_area all to equal')
-
 
             if self.data.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
@@ -817,7 +823,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_zonal_mean(self,return_object=False):
+    def get_zonal_mean(self, return_object=False):
         """
         calculate zonal mean statistics of the data for each timestep
         returns zonal statistics [time,ny]
@@ -855,18 +861,17 @@ class Data(object):
             for i in xrange(nt):
                 r[i] = dat[i,:,:].sum(axis=1) / w[i,:,:].sum(axis=1) #weighted sum, normalized by valid data why ???
                 W[i] = w[i,:,:].sum(axis=1)
-
             r = np.ma.array(r,mask=W==0.)
 
         else:
             print dat.shape
-            raise ValueError, 'Unsupported geometry'
+            raise ValueError('Unsupported geometry')
 
         if return_object:
             res = self.copy()
             res.label = self.label + ' zonal mean'
-            res.data  =  r.T #[lat,time]
-            res.lat = self.lat[:, 0] #latitudes as a vector
+            res.data  =  r.T  # [lat,time]
+            res.lat = self.lat[:, 0]  # latitudes as a vector
         else:
             res = r
         return res
@@ -920,16 +925,13 @@ class Data(object):
 
     def _get_unit(self):
         """
-        get a nice looking string for units
-        @return: string with unit like [unit]
+        get a nice looking string for units like e.g. '[mm/d]'
         """
         if self.unit is None:
             u = ''
         else:
             u = '[' + self.unit + ']'
-
         return u
-
 
 #-----------------------------------------------------------------------
 
@@ -956,7 +958,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def _apply_temporal_mask(self,mask):
+    def _apply_temporal_mask(self, mask):
         """
         apply a temporal mask to data. All timesteps where the mask is True will
         be masked, but geometry will not be changed, thus no masking will be applied
@@ -981,13 +983,16 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-
     def read(self, shift_lon, start_time=None, stop_time=None,
              time_var='time', checklat=True):
         """
-        read data from file
-        @param shift_lon: if given, longitudes will be shifted
-        @type shift_lon: bool
+        Read data from a file. This functions provides a wrapper for
+        I/O of different file formats
+
+        Parameters
+        ----------
+        shift_lon : bool
+            if given, longitudes will be shifted
 
         @param start_time: start time for reading the data
         @type: start_time: datetime object
@@ -1004,22 +1009,21 @@ class Data(object):
         if not os.path.exists(self.filename):
             sys.exit('Error: file not existing: '+ self.filename)
         else:
-            #print ''
-            #print 'FILE: ', self.filename
             pass
 
         self.time_var = time_var
 
         # read data
-        self.data = self.read_netcdf(self.varname) #o.k.
+        self.data = self.read_netcdf(self.varname)
+
         if self.data is None:
             print self.varname
             raise ValueError, 'The data in the file ' + self.filename + ' is not existing. This must not happen!'
-        if self.scale_factor == None:
+        if self.scale_factor is None:
             raise ValueError, 'The scale_factor for file ' + self.filename + 'is NONE, this must not happen!'
 
         # ensure that no Nan values occur
-        self.data = np.ma.masked_where(np.isnan(self.data), self.data)
+        np.ma.masked_where(np.isnan(self.data), self.data, copy=False)
 
         # this scaling is related to unit conversion and NOT
         # due to data compression
@@ -1064,7 +1068,7 @@ class Data(object):
         if self.time_var is not None:
             # returns either None or a masked array
             self.time = self.read_netcdf(self.time_var)
-            if hasattr(self.time,'mask'):
+            if hasattr(self.time, 'mask'):
                 self.time = self.time.data
             else:
                 self.time = None
@@ -1085,25 +1089,24 @@ class Data(object):
             if self.verbose:
                 print '        WARNING: No lat/lon mesh was generated!'
 
-        #  cell_area
-        #  check if cell_area is already existing. if not, try to calculate from coordinates
+        # check if cell_area is already existing. if not,
+        # try to calculate from coordinates
         self._set_cell_area()
 
         #  check if latitude in decreasing order (N ... S)?
         if checklat:
             if hasattr(self,'lat'):
                 if self.lat is not None:
-                    if np.all(np.diff(self.lat[:,0])>0.): #increasing order!
+                    if np.all(np.diff(self.lat[:,0])>0.):  # increasing order!
                         self._flipud()
                         self._latitudecheckok = True
-                    elif np.all(np.diff(self.lat[:,0])<0.): #decreasing order!
+                    elif np.all(np.diff(self.lat[:,0])<0.):  # decreasing order!
                         self._latitudecheckok = True
                     else:
                         print 'WARNING: latitudes not in systematic order! Might cause trouble with zonal statistics!'
                         self._latitudecheckok = False
-                        #raise ValueError, 'Can not handle automatic flipping of lat!'
 
-        #- calculate climatology from ORIGINAL (full dataset)
+        # calculate climatology from ORIGINAL (full dataset)
         if hasattr(self, 'time_cycle'):
             self._climatology_raw = self.get_climatology()
 
@@ -1111,11 +1114,8 @@ class Data(object):
         if self.time is not None:
             #- now perform temporal subsetting
             # BEFORE the conversion to the right time is required!
-            #~ print 'START_TIME: ', start_time
             m1, m2 = self._get_time_indices(start_time, stop_time)
-            #~ print 'Before subsetting: ', m1, m2, self.date[m1],self.date[m2]
             self._temporal_subsetting(m1, m2)
-            #~ print 'After subsetting: ', self.date.min(), self.date.max()
 
         # calculate time_cycle automatically if not set already.
         if self.time is not None:
@@ -1137,21 +1137,23 @@ class Data(object):
         result will correspnd to the JFM mean for each year
         (unittest)
 
-        @param mask: temporal mask [time]
-        @type mask : numpy boolean array
+        Parameters
+        ----------
+        mask : ndarray (bool)
+            temporal mask [time]
 
-        @param return_data: specifies if results should be returned as C{Data} object
-        @type return_data: bool
+        return_data : bool
+            specifies if results should be returned as C{Data} object
         """
 
         if mask is None:
-            # if not mask is provided, take everything
+            # if no mask is provided, take everything
             mask = np.ones(len(self.time)).astype('bool')
         else:
             if mask.ndim != 1:
-                raise ValueError, 'Mask needs to be 1-D of length of time!'
+                raise ValueError('Mask needs to be 1-D of length of time!')
             if len(mask) != len(self.time):
-                raise ValueError, 'Mask needs to be 1-D of length of time!'
+                raise ValueError('Mask needs to be 1-D of length of time!')
 
         #/// get data
         ye = pl.asarray(self._get_years())
@@ -1167,22 +1169,22 @@ class Data(object):
             res = np.zeros((len(years), ny, nx))
             su = np.zeros((len(years), ny, nx))
         else:
-            raise ValueError, 'Unsupported dimension!'
+            raise ValueError('Unsupported dimension!')
 
         for i in xrange(len(years)):
             y = years[i]
             hlp = (ye == y) & mask
             if self.data.ndim == 1:
                 res[i] = dat[hlp].mean()
-                su [i] = dat[hlp].sum()  #calculate sum also (needed for masking in the end)
+                su [i] = dat[hlp].sum()  # calculate sum also (needed for masking in the end)
             else:
                 res[i, :, :] = dat[hlp,:].mean(axis=0)
-                su [i, :, :] = dat[hlp].sum(axis=0)  #calculate sum also (needed for masking in the end)
+                su [i, :, :] = dat[hlp].sum(axis=0)  # calculate sum also (needed for masking in the end)
 
-        res = np.ma.array(res, mask=(su==0.)) #this is still not the best solution, but works
+        res = np.ma.array(res, mask=(su==0.))  # this is still not the best solution, but works
 
         if return_data:
-            #generate data object
+            # generate data object
             r = self.copy()
             r.data = res
             r.time = self.date2num(np.asarray([datetime.datetime(year, 1, 1) for year in years]))
@@ -2213,32 +2215,29 @@ class Data(object):
 
         data = File.get_variable(varname)
         var  = File.get_variable_handler(varname)
-        #~ if netcdf_backend == 'Nio':
-            #~ data = var.get_value().astype('float').copy()
-        #~ else:
-            #~ data = var[:].astype('float').copy()
 
         if data.ndim > 3:
             if self.level == None:
                 print data.shape
-                raise ValueError, '4-dimensional variables not supported yet! Either remove a dimension or specify a level!'
+                raise ValueError,('4-dimensional variables not supported yet! Either remove a dimension or specify a level!')
             else:
-                data = data[:,self.level,:,:] #[time,level,ny,nx ] --> [time,ny,nx]
+                data = data[:,self.level, :, :]  # [time,level,ny,nx ] --> [time,ny,nx]
 
-        if data.ndim == 1: #in case of vector data, generate a dummy dimension
-            tmp = np.zeros((1,len(data)))
+        if data.ndim == 1:  # in case of vector data, generate a dummy dimension
+            tmp = np.zeros((1, len(data)))
             tmp[:] = data[:]*1.
-            data = tmp*1.; del tmp
-
+            data = tmp*1.
+            del tmp
 
         self.fill_value = None
         if hasattr(var,'_FillValue'):
             self.fill_value = float(var._FillValue)
             msk = data == self.fill_value
-            data[msk] = np.nan #set to nan, as otherwise problems with masked and scaled data
-            data = np.ma.array(data,mask=np.isnan(data))
+            data[msk] = np.nan  # set to nan, as otherwise problems with masked and scaled data
+            data = np.ma.array(data, mask=np.zeros(data.shape).astype('bool'))  # generate an empty mask first to ensure that the mask has the same geometry as the data!
+            data.mask[np.isnan(data)] = True
         else:
-            data = np.ma.array(data,mask=np.zeros(data.shape).astype('bool'))
+            data = np.ma.array(data, mask=np.zeros(data.shape).astype('bool'))
             self.fill_value = -99999.
 
         #--- scale factor
@@ -2342,14 +2341,15 @@ class Data(object):
         """
         calculate temporal mean of data field
 
-        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-        @type return_object: bool
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
         """
         if self.data.ndim == 3:
             res = self.data.mean(axis=0)
         elif self.data.ndim == 2:
-            #no temporal averaging
-            res = self.data.copy()
+            res = self.data.copy()  # no temporal averaging
         else:
             print self.data.ndim
             sys.exit('Temporal mean can not be calculated as dimensions do not match!')
@@ -2958,8 +2958,8 @@ class Data(object):
             pass
         else:
             self.label = ''
-        u = self._get_unit()
-        return self.label + ' ' + u
+        #u = self._get_unit()
+        return self.label #+ ' ' + u
 
 #-----------------------------------------------------------------------
 
@@ -3554,7 +3554,6 @@ class Data(object):
         """
         self.data = np.ma.array(self.data,mask = ((self.data < vmin) | (self.data > vmax))   )
 
-
 #-----------------------------------------------------------------------
 
     def __shift2D(self, x, n):
@@ -3567,7 +3566,8 @@ class Data(object):
         @param n: shifting step
         @type n: int
         """
-        tmp = x.copy(); y=x.copy()
+        tmp = x.copy()
+        y=x.copy()
         y[:, :]=np.nan
         y[:, 0:n] = tmp[:, -n:]
         y[:, n:]  = tmp[:, 0:-n]
@@ -3954,7 +3954,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def corr_single(self, x, pthres=1.01, mask=None):
+    def corr_single(self, x, pthres=1.01, mask=None, method='pearson'):
         """
         The routine correlates a data vector with all data of the
         current object. It returns several correlation measures
@@ -3965,19 +3965,21 @@ class Data(object):
         >> x = np.random(100)
         >> rpears, slope, intercept, p, covar =  d.corr_single(x, pthres=0.05)
 
-        @param x: the data vector correlations should be calculated with
-        @type  x: numpy array [time]
-
-        @param pthres: significance threshold. All values below this
-                       threshold will be returned as valid
-        @type pthres:  float
-
-        @param mask: mask to flag invalid data
-        @type mask: array(:,:)
-
-        @return: list of C{Data} objects for correlation, slope, intercept, p-value, covariance
-        @rtype: list
+        Parameters
+        ----------
+        x : ndarray
+            the data vector correlations should be calculated with,numpy array [time]
+        method : str
+            correlation method to be used ['spearman','pearson']
+        pthres : float
+            significance threshold. All values below this
+            threshold will be returned as valid
+        mask : ndarray
+            mask to flag invalid data
         """
+
+        if method not in ['pearson','spearman']:
+            raise ValueError('Only pearson or spearman rank correlation supported so far.')
 
         if self.ndim != 3:
             raise ValueError('Invalid geometry!')
@@ -3998,8 +4000,6 @@ class Data(object):
         else:
             raise ValueError('Expect masked array as input in corr_single')
 
-
-
         # get data with at least one valid value
         lo, la, dat, msk = self.get_valid_data(return_mask=True, mode='one')
         xx,n = dat.shape
@@ -4019,14 +4019,24 @@ class Data(object):
         CO.shape = (-1)
 
         print 'Calculating correlation ...'
-        res = [stats.mstats.linregress(x, dat[:, i]) for i in range(n)]
-        res = np.asarray(res)
-
-        slope = res[:, 0]
-        intercept = res[:, 1]
-        r_value = res[:, 2]
-        p_value = res[:, 3]
-        std_err = res[:, 4]
+        if method == 'pearson':
+            res = [stats.mstats.linregress(x, dat[:, i]) for i in xrange(n)]
+            res = np.asarray(res)
+            slope = res[:, 0]
+            intercept = res[:, 1]
+            r_value = res[:, 2]
+            p_value = res[:, 3]
+            std_err = res[:, 4]
+        elif method == 'spearman':
+            res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]  # rho, prob
+            res = np.asarray(res)
+            r_value = res[:,0]
+            p_value = res[:,1]
+            std_err = np.asarray([np.nan for i in xrange(n)])
+            slope = np.asarray([np.nan for i in xrange(n)])
+            intercept = np.asarray([np.nan for i in xrange(n)])
+        else:
+            raise ValueError('Invalid method!')
 
         R[msk] = r_value
         P[msk] = p_value
