@@ -225,7 +225,7 @@ class hovmoeller:
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def plot(self,xticks=None,xlabel=None,ylabel=None,title='',grid=True,climits=None,figsize=None,origin=None,xtickrotation=0,cmap='jet',showcolorbar=True,ax=None,show_uncertainties=False,norm_uncertainties=False,input=None,showxticks=True,nclasses=11):
+    def plot(self, xticks=None, xlabel=None,ylabel=None,title='',grid=True,climits=None,figsize=None,origin=None,xtickrotation=0,cmap='jet',showcolorbar=True,ax=None,show_uncertainties=False,norm_uncertainties=False,input=None,showxticks=True,nclasses=11):
 
         """
         Generates a Hovmoeller plot
@@ -280,8 +280,8 @@ class hovmoeller:
 
         """
 
-        if input != None:
-            if self.hov != None:
+        if input is not None:
+            if self.hov is not None:
                 raise ValueError, 'If precalculated dat is provided as input, the data MUST not be calculated already by the class!'
             else:
                 #////////////////////////////////////////////////
@@ -289,8 +289,7 @@ class hovmoeller:
                 #////////////////////////////////////////////////
 
                 input1 = input.get_zonal_mean(return_object=True)
-                input1.adjust_time(day=1,month=1)
-
+                input1.adjust_time(day=1, month=1)
 
                 nlat,nt = input1.data.shape
                 if nt != len(self.time):
@@ -315,19 +314,18 @@ class hovmoeller:
                     if not np.all(np.diff(lats) > 0):
                         raise ValueError, 'Latitudes can not be put into ascending order!!!!'
 
-
                 #/// monthly ticks ///
                 data_days = generate_monthly_timeseries(pl.date2num(input1.date)) #convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
                 all_days  = unique(data_days)
                 if showxticks:
                     self.generate_xticks(all_days,monthsamp=1) #todo
 
-                dlat = 30. #todo
+                dlat = 10. #todo
 
                 lat_tick = arange(-90.,90+dlat,dlat) #positions for yticks (degree)
 
                 #interpolate the tick grid to the data grid
-                lat_pos  = interp(lat_tick, lats,arange(len(lats))) #index positions
+                lat_pos  = interp(lat_tick, lats, arange(len(lats))) #index positions
 
                 if f_invert: #invert position back
                     #lat_tick = lat_tick[::-1]
