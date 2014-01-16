@@ -452,6 +452,33 @@ class TestData(TestCase):
 
     #-----------------------------------------------------------
 
+    def test_corr_single(self):
+        x = self.D.copy()
+        y = x.data[:,0,0]
+        y += np.random.random(len(y))
+
+        #--- pearson
+        slope, intercept, r, prob, sterrest = stats.linregress(x.data[:,0,0],y)
+        Rout, Sout, Iout, Pout, Cout = x.corr_single(y)
+
+        self.assertEqual(r,Rout.data[0,0])
+        self.assertEqual(slope,Sout.data[0,0])
+        self.assertEqual(intercept,Iout.data[0,0])
+        self.assertEqual(prob,Pout.data[0,0])
+
+        #--- spearman
+        rho, prob = stats.spearmanr(x.data[:,0,0],y)
+        Rout, Sout, Iout, Pout, Cout = x.corr_single(y, method='spearman')
+        self.assertEqual(r,Rout.data[0,0])
+        self.assertEqual(prob,Pout.data[0,0])
+
+        y = x.data[:,0,0]
+        y *= np.random.random(len(y))
+        rho, prob = stats.spearmanr(x.data[:,0,0],y)
+        Rout, Sout, Iout, Pout, Cout = x.corr_single(y, method='spearman')
+        self.assertEqual(r,Rout.data[0,0])
+        self.assertEqual(prob,Pout.data[0,0])
+
     def test_correlate(self):
         for n in [None,100,10,5]: #different size
             x,y = self.generate_tuple(n=n,mask=True)
