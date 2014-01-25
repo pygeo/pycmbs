@@ -4026,17 +4026,19 @@ class Data(object):
             intercept = res[:, 1]
             r_value = res[:, 2]
             p_value = res[:, 3]
-            #~ print ('p-value')
-            #~ print(p_value)
-            #~ print ('r-value')
-            #~ print(r_value)
-            #~ print res[:,3]
-            #~ print sum(np.isnan(x))
-            #~ print sum(np.isnan(dat))
             std_err = res[:, 4]
         elif method == 'spearman':
             res = np.ones((n,5))*np.nan
-            for i in xrange(n):
+
+            #better implementation
+            #~ if n < 3: not so easy, as 'n' is the total number of points ???
+                #~ set results as invalid
+            #~ else:
+                #~ res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]
+                #~ ...
+
+
+            for i in xrange(n):  # this is implemented like this at the moment, as the number of valid data points needs to be > 3
                 invalid = False
                 if (~x.mask).sum() < 3:
                     invalid = True
@@ -4048,7 +4050,6 @@ class Data(object):
                     continue
                 else:
                     rho, prob = stats.mstats.spearmanr(x, dat[:, i])  # todo: implement it more efficiently
-                    #~ res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]  # rho, prob
                     res[i,0] = np.nan  # slope
                     res[i,1] = np.nan  # intercept
                     res[i,2] = rho  # r_value
@@ -4144,7 +4145,7 @@ class Data(object):
         for i in range(nt):
             reg.data[i, :, :] = Sout.data * i + Iout.data
 
-        #substract regression line
+        # substract regression line
         res = self.sub(reg)
         res.label = self.label + '(det.)'
 
@@ -4162,7 +4163,6 @@ class Data(object):
     def _is_daily(self):
         """
         check if the timeseries is daily
-
         (unittest)
         """
         if hasattr(self, 'time'):
@@ -4177,10 +4177,7 @@ class Data(object):
         """
         check if the data is based on a sequence of increasing monthly values
         The routine simply checks of the months of the timeseries is increasing. Days are not considered!
-
         (unittest)
-
-        @return:
         """
         if hasattr(self, 'time'):
             # get list of all months
