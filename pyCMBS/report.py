@@ -10,8 +10,7 @@ import sys
 
 from matplotlib import pylab as pl
 
-
-class Report():
+class Report(object):
     """
     A class to generate latex based report
     """
