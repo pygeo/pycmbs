@@ -117,7 +117,6 @@ plot_options = PCFG
 ########################################################################
 # REMOVE previous Data warnings
 ########################################################################
-#outdir = '.' + os.sep + 'report_' + CF.options['report'] + os.sep
 outdir = CF.options['outputdir']
 if outdir[-1] != os.sep:
     outdir += os.sep
@@ -141,7 +140,7 @@ else:
     f_fast = True
 shift_lon = use_basemap = not f_fast
 
-print 'Using Basemap: ', use_basemap
+#print 'Using Basemap: ', use_basemap
 
 
 ########################################################################
