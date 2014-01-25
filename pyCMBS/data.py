@@ -4026,15 +4026,40 @@ class Data(object):
             intercept = res[:, 1]
             r_value = res[:, 2]
             p_value = res[:, 3]
+            #~ print ('p-value')
+            #~ print(p_value)
+            #~ print ('r-value')
+            #~ print(r_value)
+            #~ print res[:,3]
+            #~ print sum(np.isnan(x))
+            #~ print sum(np.isnan(dat))
             std_err = res[:, 4]
         elif method == 'spearman':
-            res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]  # rho, prob
-            res = np.asarray(res)
-            r_value = res[:,0]
-            p_value = res[:,1]
-            std_err = np.asarray([np.nan for i in xrange(n)])
-            slope = np.asarray([np.nan for i in xrange(n)])
-            intercept = np.asarray([np.nan for i in xrange(n)])
+            res = np.ones((n,5))*np.nan
+            for i in xrange(n):
+                invalid = False
+                if (~x.mask).sum() < 3:
+                    invalid = True
+                if (~dat[:,i].mask).sum() < 3:
+                    invalid = True
+                # do processing only for at least 3 samples!
+                if invalid:
+                    res[i, :] = np.nan  # set all to nan
+                    continue
+                else:
+                    rho, prob = stats.mstats.spearmanr(x, dat[:, i])  # todo: implement it more efficiently
+                    #~ res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]  # rho, prob
+                    res[i,0] = np.nan  # slope
+                    res[i,1] = np.nan  # intercept
+                    res[i,2] = rho  # r_value
+                    res[i,3] = prob  # p-value
+                    res[i,4] = np.nan  # std_err
+            slope = res[:, 0]
+            intercept = res[:, 1]
+            r_value = res[:, 2]
+            p_value = res[:, 3]
+            std_err = res[:, 4]
+
         else:
             raise ValueError('Invalid method!')
 
