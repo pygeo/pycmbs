@@ -1530,7 +1530,10 @@ class GlecklerPlot(object):
             raise ValueError('The length of the arrays are not the same !')
 
         slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x,y)
-        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value,2)) + ')' ,linestyle='None')
+        if r_value is None:
+            return ax
+        else:
+            ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value, 2)) + ')' ,linestyle='None')
         return ax
 
     def plot_model_error(self, var):
