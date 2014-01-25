@@ -366,7 +366,7 @@ class ScatterPlot(object):
     """
     Class for generation of scatterplots
     """
-    def __init__(self,x,ax=None,ticksize=10,normalize_data=False,show_xlabel=True):
+    def __init__(self, x, ax=None, ticksize=10, normalize_data=False, show_xlabel=True):
         """
         constructor of class C{ScatterPlot}
 
@@ -393,14 +393,14 @@ class ScatterPlot(object):
 
         self.figure = self.ax.figure
         self.x = x
-        self.lines = []; self.labels = []
-        self.ticksize=ticksize
+        self.lines = []
+        self.labels = []
+        self.ticksize = ticksize
         self.normalize = normalize_data
-
 
 #-----------------------------------------------------------------------
 
-    def __normalize_data(self,x):
+    def __normalize_data(self, x):
         """
         normmalize timeseries
         """
@@ -484,13 +484,16 @@ class ScatterPlot(object):
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
-            label = '\n' + label + '\nr=' + str(round(r_value,2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
+            if r_value is None:
+                label = ''
+            else:
+                label = '\n' + label + '\nr=' + str(round(r_value,2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
 
         #- actual plot
         if hexbin:
-            l = self.ax.hexbin(xdat,ydat,**kwargs)
+            l = self.ax.hexbin(xdat, ydat,**kwargs)
         else:
-            l = self.ax.plot(xdat,ydat,'.',label=label,**kwargs)[0]
+            l = self.ax.plot(xdat,ydat,'.', label=label, **kwargs)[0]
 
         if hexbin:
             pass
@@ -498,10 +501,11 @@ class ScatterPlot(object):
             self.lines.append(l); self.labels.append(label)
 
         if regress:
-            if hexbin:
-                self.ax.plot(xdat,xdat*slope+intercept,'--')
-            else:
-                self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
+            if r_value is not None:
+                if hexbin:
+                    self.ax.plot(xdat,xdat*slope+intercept,'--')
+                else:
+                    self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
 
         if self.show_xlabel:
             self.ax.set_xlabel(self.x._get_label(),size=self.ticksize )
@@ -510,7 +514,6 @@ class ScatterPlot(object):
         self._change_ticklabels()
 
         if regress:
-
             return r_value,p_value,rms_error,c_rms, std_error, nval, np.ma.std(xdat.flatten()), np.ma.std(ydat.flatten())
         else:
             return None
