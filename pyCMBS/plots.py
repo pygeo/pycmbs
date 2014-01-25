@@ -3244,9 +3244,9 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 #-----------------------------------------------------------------------
 
 
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,
-                   region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,
-                   rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, proj='robin',stat_type='mean',savefile=None,**kwargs):
+def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title=None, cticks=None,
+                   region=None, nclasses=10, cmap_data='jet', cmap_difference = 'RdBu_r', rmin=-1.,
+                   rmax=1., absthres=None, show_stat=True, show_zonal=True, zonal_timmean=False, proj='robin', stat_type='mean', savefile=None, **kwargs):
     """
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets
