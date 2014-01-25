@@ -14,9 +14,6 @@ import glob
 from pyCMBS import Region, Data
 from cdo import *
 
-
-
-
 class ConfigFile(object):
     """
     class to read pyCMBS configuration file
