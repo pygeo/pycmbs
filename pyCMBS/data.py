@@ -3714,11 +3714,11 @@ class Data(object):
         #/// calculate statistical significance of the difference
         if isinstance(d.data,np.ma.masked_array):
             sta = stats.mstats
-            t,p = ttest_ind(d.data, x.data ,axis=axis) #use routine in pyCMBS.statistic.py
+            t, p = ttest_ind(d.data, x.data ,axis=axis)  # use routine in pyCMBS.statistic.py
         else:
-            t,p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
+            t, p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
 
-        p = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
+        p = 1.- p  # invert p-value, as a p-value of 1. would correspond to the same data
 
         #/// mean difference masked if p-value too low
         mask      = p <= pthres
