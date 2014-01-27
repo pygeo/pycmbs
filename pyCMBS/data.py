@@ -2243,7 +2243,7 @@ class Data(object):
             pass
 
 
-# TODO HIER WEITER MIT UNITTESTIN etc.
+
 
 #-----------------------------------------------------------------------
 
@@ -2397,6 +2397,10 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+
+        Test
+        ----
+        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.mean(axis=0)
@@ -2419,13 +2423,19 @@ class Data(object):
         """
         calculate temporal minimum of data field
 
-        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-        @type return_object: bool
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+
+        Test
+        ----
+        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.min(axis=0)
         elif self.data.ndim == 2:
-            #no temporal averaging
+            # no temporal averaging
             res = self.data.copy()
         else:
             print self.data.ndim
@@ -2444,8 +2454,14 @@ class Data(object):
         """
         calculate temporal maximum of data field
 
-        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-        @type return_object: bool
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+
+        Test
+        ----
+        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.max(axis=0)
@@ -2495,6 +2511,11 @@ class Data(object):
         @type return_object: bool
 
         @return:
+
+        Test
+        ----
+        unittest implemented
+
         """
 
         if self.data.ndim != 3:
@@ -2505,17 +2526,15 @@ class Data(object):
         else:
             d = self
 
-        me = d.timmean(return_object=True)
-        st = d.timstd(return_object=True)
-
-        d.sub(me,copy=False)
-        d.div(st,copy=False)
+        d.sub(d.timmean(return_object=True), copy=False)
+        d.div(d.timstd(return_object=True), copy=False)
 
         if return_object:
             return d
         else:
             return None
 
+#-----------------------------------------------------------------------
 
     def timstd(self, return_object=False):
         """
