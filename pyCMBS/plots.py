@@ -3345,8 +3345,8 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
         tmpoutname=None
     else:
         tmpoutname = savefile + '_xvar'
-    map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
-             cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
+    map_plot(x, use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
+             cmap_data=cmap_data, title=title, show_stat=show_stat,show_zonal=show_zonal,
              zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
              colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, **kwargs)
 
@@ -3369,10 +3369,10 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_absdif'
 
-    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,
-             nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',
-             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
-             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels)
+    map_plot(adif, use_basemap=use_basemap, ax=ax3, vmin=dmin, vmax=dmax,cticks=cticks_diff, region=region,
+             nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
+             show_stat=show_stat, show_zonal=show_zonal, zonal_timmean=zonal_timmean, proj=proj, stat_type=stat_type, savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation, drawparallels=drawparallels)
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data
@@ -3385,11 +3385,11 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_reldif'
 
-    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',
-             cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=nclasses,
-             cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,stat_type='median',proj=proj,savefile=tmpoutname,
-             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels)
+    map_plot(rdat, use_basemap=use_basemap, ax=ax4, vmin=rmin, vmax=rmax, title='relative difference',
+             cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.], region=region, nclasses=nclasses,
+             cmap_data=cmap_difference,show_stat=show_stat, show_zonal=show_zonal,
+             zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation, drawparallels=drawparallels)
 
 
     return fig
