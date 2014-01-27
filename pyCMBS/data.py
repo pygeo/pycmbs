@@ -4437,9 +4437,11 @@ class Data(object):
         else:
             raise ValueError('Unsupported geometry for _flipud()')
         if hasattr(self, 'cell_area'):
-            self.cell_area = self.cell_area[::-1, :]
+            if self.cell_area is not None:
+                self.cell_area = self.cell_area[::-1, :]
         if hasattr(self, 'lat'):
-            self.lat = self.lat[::-1, :]
+            if self.lat is not None:
+                self.lat = self.lat[::-1, :]
 
 #-----------------------------------------------------------------------
 
