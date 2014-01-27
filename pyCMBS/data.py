@@ -2915,7 +2915,7 @@ y
                 raise ValueError('Undefined')
 
         #////
-        if return_data: #return data object
+        if return_data:  # return data object
             if self.data.ndim == 3:
                 x = np.zeros((len(tmp), 1, 1))
                 x[:, 0, 0] = tmp
@@ -2923,17 +2923,17 @@ y
                 x = np.zeros((1, 1))
                 x[:, :] = tmp[0]
             else:
-                raise ValueError, 'Undefined'
+                raise ValueError('Undefined')
 
             assert (isinstance(tmp, np.ma.masked_array))
             r = self.copy()
             r.data = np.ma.array(x.copy(), mask=tmp.mask) #use mask of array tmp (important if all values are invalid!)
 
-            #return cell area array with same size of data
+            # return cell area array with same size of data
             r.cell_area = np.array([1.])
 
             return r
-        else: #return numpy array
+        else:  # return numpy array
             return tmp
 
 
@@ -3000,7 +3000,7 @@ y
             r.data = np.ma.array(x.copy(),
                                  mask=tmp.mask)  # use mask of array tmp (important if all values are invalid!)
 
-            #return cell area array with same size of data
+            # return cell area array with same size of data
             r.cell_area = np.array([1.])
             return r
         else:  # return numpy array
@@ -3014,12 +3014,15 @@ y
         calculate stdv of the spatial field using area weighting
         returns exactly same results as the same CDO function
 
-        (unittest)
+        Parameters
+        ----------
+        return_data : bool
+            if True, then a C{Data} object is returned
 
-        @param return_data: if True, then a C{Data} object is returned
-        @type return_data: bool
-
-        @return: vector of spatial std array[time]
+        Returns
+        -------
+        res : ndarray, Data
+            vector of spatial std array[time]
 
         Test
         ----
@@ -3043,8 +3046,8 @@ y
             w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
 
             if self.data.ndim == 2:
-                h2 = self.data * w  #wx
-                h1 = self.data * h2 #w*x**2
+                h2 = self.data * w  # wx
+                h1 = self.data * h2  # w*x**2
                 ny, nx = self.data.shape
 
                 s = h1.sum() * w.sum() - h2.sum() ** 2
@@ -3052,13 +3055,13 @@ y
 
                 tmp = [np.sqrt(s)]
             elif self.data.ndim == 3:
-                h2 = self.data * w  #wx
-                h1 = self.data * h2 #w*x**2
+                h2 = self.data * w  # wx
+                h1 = self.data * h2  # w*x**2
 
-                #do calculation
+                # do calculation
                 nt, ny, nx = self.data.shape
 
-                s = np.ones(nt) * np.nan #generate output array (unbiased variance estimator)
+                s = np.ones(nt) * np.nan  # generate output array (unbiased variance estimator)
                 for i in xrange(nt):
                     s[i] = h1[i, :, :].sum() * w[i, :, :].sum() - h2[i, :, :].sum() ** 2.
                     s[i] /= (w[i, :, :].sum() ** 2. - (w[i, :, :] * w[i, :, :]).sum()  )
@@ -3067,7 +3070,7 @@ y
                 raise ValueError('Undefined')
 
         else:
-            #no area weighting
+            # no area weighting
             if self.data.ndim == 2:
                 tmp = self.data.std()
             elif self.data.ndim == 3:
@@ -3089,11 +3092,11 @@ y
             r.data = np.ma.array(x.copy(),
                                  mask=tmp.mask)  # use mask of array tmp (important if all values are invalid!)
 
-            #return cell area array with same size of data
+            # return cell area array with same size of data
             r.cell_area = np.array([1.])
 
             return r
-        else: #return numpy array
+        else:  # return numpy array
             return tmp
 
         #-----------------------------------------------------------------------
@@ -3101,11 +3104,7 @@ y
     def _get_label(self):
         """
         return a nice looking label
-
-        @return: label
-        @rtype: str
         """
-
         if hasattr(self, 'label'):
             pass
         else:
@@ -3248,18 +3247,14 @@ y
         s = np.argsort(x.time)
         x.data = x.data[s, :, :]
         x.time = x.time[s]
-        if hasattr(x, 'std'): #standard deviation
+        if hasattr(x, 'std'):  # standard deviation
             x.std = x.std[s, :, :]
-        if hasattr(x, 'n'):   #number of datasets
+        if hasattr(x, 'n'):  #number of datasets
             x.n = x.n[s, :, :]
 
         # result
         if return_object:
             return x
-
-
-
-
 
         #-----------------------------------------------------------------------
 
@@ -3710,13 +3705,14 @@ y
     def _set_valid_range(self, vmin, vmax):
         """
         sets the valid range of the data
-
         only data with vmin <= data <= vmax will be kept as valid
 
-        @param vmin: minimum valid value
-        @type vmin: float
-        @param vmax: maximum valid value
-        @type vmax: float
+        Parameters
+        ----------
+        vmin : float
+            minimum valid value
+        vmax : float
+            maximum valid value
         """
         self.data = np.ma.array(self.data, mask=((self.data < vmin) | (self.data > vmax)))
 
@@ -3726,11 +3722,12 @@ y
         """
         shift 2D data
 
-        @param x: data to be shifted
-        @type x: array(:,:)
-
-        @param n: shifting step
-        @type n: int
+        Parameters
+        ----------
+        x : Data
+            data to be shifted
+        n : int
+            shifting step
         """
         tmp = x.copy()
         y = x.copy()
@@ -3911,15 +3908,15 @@ y
         """
         Substract a constant value from the current object field
 
-        @param x: constant (can be either a scalar or a field that has
-                  the same geometry as the second and third dimension of self.data)
-        @type  x: float
-
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Parameters
+        ----------
+        x : float
+            constant (can be either a scalar or a field that has
+            the same geometry as the second and third dimension of self.data)
+        copy : bool
+            if True, then a new data object is returned
+            else, the data of the present object is changed
         """
-
         if copy:
             d = self.copy()
         else:
@@ -4126,8 +4123,10 @@ y
         """
         subsample data of current C{Data} object
 
-        @param step: stepsize for subsampling
-        @type step: int
+        Parameters
+        ----------
+        step : int
+            stepsize for subsampling
         """
         if self.data.ndim == 3:
             self.data = self.data[:, ::step, ::step]
@@ -4312,8 +4311,10 @@ y
         This assumption is important to consider, as regression is calculated
         only using the length of the data vector!
 
-        @param return_object: specifies if C{Data} object will be returned (default0True)
-        @type return_object: bool
+        Parameters
+        ----------
+        return_object : bool
+            specifies if C{Data} object will be returned (default=True)
         """
 
         print 'Detrending data ...'
