@@ -1799,7 +1799,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def _get_date_from_month(self,nmonths):
+    def _get_date_from_month(self, nmonths):
         """
         calculate a datetime object for a time given in 'months since' a basedate
         The routine increments itteratively the number of months and returns a datetime object
@@ -2485,8 +2485,14 @@ class Data(object):
         """
         calculate temporal coefficient of variation
 
-        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-        @type return_object: bool
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
+
+        Test
+        ----
+        unittest implemented
         """
         res = self.timstd (return_object=False) / self.timmean(return_object=False)
         if return_object:
@@ -2540,8 +2546,15 @@ class Data(object):
         """
         calculate temporal standard deviation of data field
 
-        @param return_object: specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-        @type return_object: bool
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True];
+            else a numpy array is returned
+
+        Test
+        ----
+        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.std(axis=0)
@@ -2566,6 +2579,16 @@ class Data(object):
     def timvar(self, return_object=False):
         """
         calculate temporal variance of data field
+
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True];
+            else a numpy array is returned
+
+        Test
+        ----
+        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.var(axis=0)
@@ -2584,15 +2607,21 @@ class Data(object):
         else:
             return res
 
-
-
-
-
 #-----------------------------------------------------------------------
 
     def timsum(self, return_object=False):
         """
         calculate temporal sum of data field
+
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True];
+            else a numpy array is returned
+
+        Test
+        ----
+        unittest implemented
         """
         if self.data.ndim == 3:
             pass
@@ -2600,9 +2629,7 @@ class Data(object):
             pass
         else:
             sys.exit('Temporal sum can not be calculated as dimensions do not match!')
-
         res =  self.data.sum(axis=0)
-
         if return_object:
             if res is None:
                 return res
@@ -2617,9 +2644,16 @@ class Data(object):
 
     def timn(self, return_object=False):
         """
-        calculate number of samples
-        done via timmean and timsum to take
-        into account the valid values only
+        calculate number of valid samples per time
+        The implementation is by using timmean() and timsum()
+
+        Parameters
+        ----------
+        return_object : bool
+            return Data object
+        Test
+        ----
+        unittest implemented
         """
         res = self.timsum() / self.timmean()
 
@@ -2803,7 +2837,6 @@ class Data(object):
         NOTE, that results must not be the same as from cdo fldsum(), as fldsum() DOES NOT
         perform an area weighting!
 
-        (unittest)
 
         @param return_data: if True, then a C{Data} object is returned
         @type return_data: bool
@@ -2813,6 +2846,11 @@ class Data(object):
 
         @return: vector of spatial mean array[time]
         @rtype: C{Data} object or numpy array
+
+        Test
+        ----
+        unittest implemented
+
         """
 
         if self.data.ndim == 3:
@@ -2883,6 +2921,12 @@ class Data(object):
 
         @return: vector of spatial mean array[time]
         @rtype: C{Data} object or numpy array
+
+
+        Test
+        ----
+        unittest implemented
+
         """
 
         if self.data.ndim == 3:
@@ -2945,6 +2989,11 @@ class Data(object):
         @type return_data: bool
 
         @return: vector of spatial std array[time]
+
+        Test
+        ----
+        unittest implemented
+
         """
 
         if self.data.ndim == 3:
@@ -3025,12 +3074,11 @@ class Data(object):
         @rtype: str
         """
 
-        if hasattr(self,'label'):
+        if hasattr(self, 'label'):
             pass
         else:
             self.label = ''
-        #u = self._get_unit()
-        return self.label #+ ' ' + u
+        return self.label
 
 #-----------------------------------------------------------------------
 
@@ -3081,16 +3129,24 @@ class Data(object):
 
     def adjust_time(self, day=None, month=None, year=None):
         """
-        correct all timestamps and assign
-        same day and/or month
+        correct all timestamps and assign same day and/or month
+        for all timesteps
 
-        (unittest)
+        Parameters
+        ----------
+        day : int
+            if specified then the argument will be used as day for
+            all timestamps
+        month : int
+            if specified then the argument will be used as month for
+            all timestamps
+        year : int
+            if specified then the argument will be used as year for
+            all timestamps
 
-        @param day: day to apply to all timestamps
-        @type day: int
-
-        @param month: year to apply to all timestamps
-        @type month: int
+        Test
+        ----
+        unittest implemented
         """
 
         o = []
@@ -3098,13 +3154,14 @@ class Data(object):
             d = self.num2date(t)
             s = str(d) #convert to a string
             if day is not None:
-                s = s[0:8] + str(day).zfill(2) + s[10:] #replace day
+                s = s[0:8] + str(day).zfill(2) + s[10:]  # replace day
             if month is not None:
-                s = s[0:5] + str(month).zfill(2) + s[7:] #replace day
+                s = s[0:5] + str(month).zfill(2) + s[7:]  # replace month
             if year is not None:
                 s = str(year).zfill(4) + s[4:]
 
-            #convert str. a number and then again to a datetime object to allow to employ specific time conversion of data object
+            # convert str. a number and then again to a datetime object
+            # to allow to employ specific time conversion of data object
             o.append(self.date2num(plt.num2date(plt.datestr2num(s))))
 
         o = np.asarray(o)
@@ -3112,7 +3169,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def timsort(self, return_object = False):
+    def timsort(self, return_object=False):
         """
         sorts a C{Data} object in accordance with its time axis.
 
@@ -3135,6 +3192,12 @@ class Data(object):
         @type return_object: bool
 
         @return: either a C{Data} object is returned or the current data object is modified
+
+
+        Test
+        ----
+        unittest implemented
+
         """
 
         # checks
@@ -3242,7 +3305,7 @@ class Data(object):
         @todo: documentation
         """
 
-        #copy self
+        # copy self
         d = self.copy()
         d.data = region.get_subset(d.data)
         d.cell_area = region.get_subset(d.cell_area)
@@ -3261,7 +3324,6 @@ class Data(object):
             d.lon  = region.get_subset(d.lon)
 
         d.label = d.label + ' (' + region.label + ')'
-
         return d
 
 #-----------------------------------------------------------------------
@@ -3270,16 +3332,17 @@ class Data(object):
         """
         get area of interest (AOI) given lat/lon coordinates
 
-        the routine masks all area which
-        is NOT in the given area
-
+        the routine masks all area which is NOT in the given area
         coordinates of region are assumed to be in -180 < lon < 180
 
-        @param R: region object that specifies region
-        @type R: Region
+        CAUTION: the current object will be changed
 
-        @param apply_mask: apply former data mask (default)
-        @type apply_mask: bool
+        Parameters
+        ----------
+        R : Region
+            region object that specifies region
+        apply_mask : bool
+            apply former data mask (default)
         """
 
         LON = self.lon.copy()
@@ -3287,27 +3350,23 @@ class Data(object):
             tmsk = LON>180.
             LON[tmsk] -= 360.
             del tmsk
-
         msk_lat = (self.lat >= R.latmin) & (self.lat <= R.latmax)
-        msk_lon = (LON      >= R.lonmin) & (LON      <= R.lonmax)
+        msk_lon = (LON >= R.lonmin) & (LON <= R.lonmax)
 
-
-        if (R.mask == None) | (apply_mask==False): #additional mask in Region object
+        if (R.mask is None) | (apply_mask==False):  # additional mask in Region object
             msk_region = np.ones(np.shape(msk_lat)).astype('bool')
         else:
             if np.shape(msk_lat) != np.shape(R.mask):
                 print np.shape(msk_lat), np.shape(R.mask)
-                raise ValueError, 'Invalid geometries for mask'
+                raise ValueError('Invalid geometries for mask')
             else:
                 msk_region = R.mask
-
         msk = msk_lat & msk_lon & msk_region  # valid area
-
         self._apply_mask(msk)
 
 #-----------------------------------------------------------------------
 
-    def cut_bounding_box(self,return_object=False):
+    def cut_bounding_box(self, return_object=False):
         """
         estimate bounding box of data and subset dataset such that only valid data
         is contained in the bounding box
@@ -3316,16 +3375,14 @@ class Data(object):
         @type return_object: bool
         """
 
-        #get bounding box
+        # get bounding box
         # note that the indices can not be used directly for array slicing. One tyipically needs to add '1' to the alst index
         i1,i2,j1,j2 = self.get_bounding_box()
-        #print 'Bounding box indices: i1,i2,j1,j2', i1,i2,j1,j2
 
         if return_object:
             D = self.copy()
         else:
             D = self
-
         D.data = D.data[:,i1:i2+1,j1:j2+1]
         if hasattr(self,'lat'):
             D.lat  = D.lat[i1:i2+1,j1:j2+1]
@@ -3358,6 +3415,10 @@ class Data(object):
             *frac* timesteps
         frac : ndarray
             optional: fraction
+
+        Test
+        ----
+        unittest implemented
         """
 
         if (frac < 0.) or (frac>1.):
@@ -3533,7 +3594,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def shift_x(self,nx):
+    def shift_x(self, nx):
         """
         shift data array in x direction by nx steps
 
@@ -3549,7 +3610,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def __shift3D(self,x,n):
+    def __shift3D(self, x, n):
         """
         shift 3D data
 
@@ -3608,11 +3669,9 @@ class Data(object):
             self.data[-n:,:,:]  = tmp[0:n,:,:]
             return None
 
-
-
 #-----------------------------------------------------------------------
 
-    def _set_valid_range(self,vmin,vmax):
+    def _set_valid_range(self, vmin, vmax):
         """
         sets the valid range of the data
 
@@ -3638,11 +3697,10 @@ class Data(object):
         @type n: int
         """
         tmp = x.copy()
-        y=x.copy()
-        y[:, :]=np.nan
+        y = x.copy()
+        y[:, :] = np.nan
         y[:, 0:n] = tmp[:, -n:]
         y[:, n:]  = tmp[:, 0:-n]
-
         return y
 
 #-----------------------------------------------------------------------
@@ -3659,7 +3717,7 @@ class Data(object):
                 cmd = "d." + attr + " = self." + attr + '.copy()'
                 exec cmd
             except:
-                #-copy
+                # copy
                 cmd = "d." + attr + " = self." + attr
                 exec cmd
         return d
@@ -3668,14 +3726,19 @@ class Data(object):
 
     def add(self, x, copy=True):
         """
-        Add a C{Data} object to the current object field
+        Add a Data object to the current object field
 
-        @param x: C{Data} object which will be added
-        @type  x: Data object
+        Parameters
+        ----------
+        x : Data
+            object to be added to the current object
+        copy : bool
+            if True, then a copy is returned. Otherwise the actual data
+            is modified
 
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Test
+        ----
+        unittest implemented
         """
 
         if np.shape(self.data) != np.shape(x.data):
@@ -3695,18 +3758,23 @@ class Data(object):
         """
         Substract a C{Data} object from the current object field
 
-        @param x: C{Data} object which will be substracted
-        @type  x: Data object
+        Parameters
+        ----------
+        x : Data
+            object to be substracted from the current object
+        copy : bool
+            if True, then a copy is returned. Otherwise the actual data
+            is modified
 
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Test
+        ----
+        unittest implemented
         """
 
         f_elementwise = False
         if np.shape(self.data) != np.shape(x.data):
             s1 = np.shape(self.data)
-            if (s1[1] == x.data.shape[0]) & (s1[2] == x.data.shape[1]): #x is a 2D data
+            if (s1[1] == x.data.shape[0]) & (s1[2] == x.data.shape[1]):
                 f_elementwise = True
             else:
                 sys.stdout.write(str(self.shape))
@@ -3717,16 +3785,12 @@ class Data(object):
             d = self.copy()
         else:
             d = self
-
         if f_elementwise:
             for i in xrange(len(d.data)):
                 d.data[i,:,:] = d.data[i,:,:] - x.data[:,:]
         else:
             d.data = d.data - x.data
-
-
         d.label = self.label + ' - ' + x.label
-
         return d
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -3803,7 +3867,6 @@ class Data(object):
 
         return d
 
-
 #-----------------------------------------------------------------------------------------------------------------------
 
     def subc(self, x, copy=True):
@@ -3823,10 +3886,9 @@ class Data(object):
             d = self.copy()
         else:
             d = self
-
         if np.isscalar(x):
             d.data -= x
-        elif x.ndim == 2: #x is an array
+        elif x.ndim == 2:  # x is an array
             for i in xrange(len(self.time)):
                 d.data[i, :, :] -= x[:, :]
         else:
@@ -3838,14 +3900,18 @@ class Data(object):
     def addc(self, x, copy=True):
         """
         Add a constant value to the current object field
-        (unittest)
 
-        @param x: constant
-        @type  x: float
+        Parameters
+        ----------
+        x : float
+            constant value to add to current object
+        copy : bool
+            if True, then a new data object is returned
+            else, the data of the present object is changed
 
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Test
+        ----
+        unittest implemented
         """
 
         if copy:
@@ -3861,14 +3927,17 @@ class Data(object):
         """
         Multiply current data by a constant
 
-        (unittest)
+        Parameters
+        ----------
+        x : float
+            constant value to multiply with current object
+        copy : bool
+            if True, then a new data object is returned
+            else, the data of the present object is changed
 
-        @param x: constant
-        @type  x: float
-
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Test
+        ----
+        unittest implemented
         """
 
         if copy:
@@ -3884,14 +3953,17 @@ class Data(object):
         """
         Divide current data by a constant
 
-        (unittest)
+        Parameters
+        ----------
+        x : float
+            constant value to divide current object by
+        copy : bool
+            if True, then a new data object is returned
+            else, the data of the present object is changed
 
-        @param x: constant
-        @type  x: float
-
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Test
+        ----
+        unittest implemented
         """
 
         if copy:
@@ -3907,15 +3979,18 @@ class Data(object):
         """
         Divide current object field by field of a C{Data} object
 
-        (unittest)
+        Parameters
+        ----------
+        x : Data
+            object in the denominator, (data needs to have either same
+            geometry as self.data or second and third dimension need to match)
+        copy : bool
+            if True, then a new data object is returned
+            else, the data of the present object is changed
 
-        @param x: C{Data} object in the denominator
-        @type  x: C{Data} object (data needs to have either same geometry
-                  as self.data or second and third dimension need to match)
-
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Test
+        ----
+        unittest implemented
         """
 
         if np.shape(self.data) != np.shape(x.data):
@@ -3960,20 +4035,25 @@ class Data(object):
         """
         Multiply current object field by field by a C{Data} object
 
-        @param x: C{Data} object in the denominator
-        @type  x: C{Data} object (data needs to have either same geometry
-                  as self.data or second and third dimension need to match)
+        Parameters
+        ----------
+        x : Data
+            object in the denominator, (data needs to have either same
+            geometry as self.data or second and third dimension need to match)
+        copy : bool
+            if True, then a new data object is returned
+            else, the data of the present object is changed
 
-        @param copy: if True, then a new data object is returned
-                     else, the data of the present object is changed
-        @type copy: bool
+        Test
+        ----
+        unittest implemented
         """
 
         if np.shape(self.data) != np.shape(x.data):
             if self.data.ndim == 3:
                 if x.data.ndim == 2:
                     if np.shape(self.data[0, :, :]) == np.shape(x.data):
-                        #second and third dimension match
+                        # second and third dimension match
                         pass
                     else:
                         print np.shape(self.data)
@@ -3988,7 +4068,6 @@ class Data(object):
                 print np.shape(x.data)
                 raise ValueError('Inconsistent geometry (div): can not calculate!')
 
-
         if copy:
             d = self.copy()
         else:
@@ -4002,7 +4081,6 @@ class Data(object):
             raise ValueError, 'Can not handle this geometry in div()'
 
         d.label = self.label + ' * ' + x.label
-
         return d
 
 #-----------------------------------------------------------------------
@@ -4033,7 +4111,7 @@ class Data(object):
         Example
         -------
         >> d = Data(None, None)
-        >> x = np.random(100)
+            >> x = np.random(100)
         >> rpears, slope, intercept, p, covar =  d.corr_single(x, pthres=0.05)
 
         Parameters
@@ -4047,6 +4125,10 @@ class Data(object):
             threshold will be returned as valid
         mask : ndarray
             mask to flag invalid data
+
+        Test
+        ----
+        unittest implemented
         """
 
         if method not in ['pearson','spearman']:
@@ -4228,13 +4310,15 @@ class Data(object):
             self.detrended = True
             return None
 
-
 #-----------------------------------------------------------------------
 
     def _is_daily(self):
         """
         check if the timeseries is daily
-        (unittest)
+
+        Test
+        ----
+        unittest implemented
         """
         if hasattr(self, 'time'):
             d = np.ceil(pl.date2num(self.date))
@@ -4246,9 +4330,17 @@ class Data(object):
 
     def _is_monthly(self):
         """
-        check if the data is based on a sequence of increasing monthly values
-        The routine simply checks of the months of the timeseries is increasing. Days are not considered!
-        (unittest)
+        check if the data is based on a sequence of increasing monthly
+        values. The routine simply checks of the months of the
+        timeseries is increasing. Days are not considered!
+
+        Returns
+        -------
+        bool
+
+        Test
+        ----
+        unittest implemented
         """
         if hasattr(self, 'time'):
             # get list of all months
@@ -4258,17 +4350,15 @@ class Data(object):
             di = np.unique(np.diff(mo))
             if len(di) > 2:
                 return False
-
             for d in di:
                 if d not in [1, -11]:
                     return False
-
-            #if we have reached this point, then the months are in ascending monthly order. Now check if the years are as well
+            # if we have reached this point, then the months are in
+            # ascending monthly order. Now check if the years are as well
             di = np.unique(np.diff(self._get_years()))
             for d in di:
                 if d not in [0, 1]:
                     return False
-
             #... everything is o.k., we have an increasing monthly and yearly timeseries
             return True
         else:
@@ -4323,7 +4413,10 @@ class Data(object):
         """
         determine automatically the timecycle of the data and
         set the appropriate variable if possible
-        (unittest)
+
+        Test
+        ----
+        unittest implemented
         """
         if self._is_monthly():
             self.time_cycle = 12
@@ -4343,7 +4436,6 @@ class Data(object):
             self.data = self.data[::-1, :]
         else:
             raise ValueError('Unsupported geometry for _flipud()')
-
         if hasattr(self, 'cell_area'):
             self.cell_area = self.cell_area[::-1, :]
         if hasattr(self, 'lat'):
@@ -4352,7 +4444,13 @@ class Data(object):
 #-----------------------------------------------------------------------
 
     def _is_sorted(self):
-        """Checks if timeseries is increasingly sorted"""
+        """
+        Checks if timeseries is increasingly sorted
+
+        Test
+        ----
+        unittest implemented
+        """
         return np.all(np.diff(self.time) >= 0.)
 
 #-----------------------------------------------------------------------
@@ -4378,6 +4476,10 @@ class Data(object):
             False: return numpy array
         frac : float
             minimum fraction of valid timesteps required for calculation
+
+        Test
+        ----
+        unittest implemented
         """
 
         # http://stackoverflow.com/questions/13728392/moving-average-or-running-mean
@@ -4418,15 +4520,4 @@ class Data(object):
             return res
         else:
             return tmp
-
-
-
-
-
-
-
-
-
-
-
 
