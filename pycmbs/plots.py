@@ -366,7 +366,7 @@ class ScatterPlot(object):
     """
     Class for generation of scatterplots
     """
-    def __init__(self,x,ax=None,ticksize=10,normalize_data=False,show_xlabel=True):
+    def __init__(self, x, ax=None, ticksize=10, normalize_data=False, show_xlabel=True):
         """
         constructor of class C{ScatterPlot}
 
@@ -393,14 +393,14 @@ class ScatterPlot(object):
 
         self.figure = self.ax.figure
         self.x = x
-        self.lines = []; self.labels = []
-        self.ticksize=ticksize
+        self.lines = []
+        self.labels = []
+        self.ticksize = ticksize
         self.normalize = normalize_data
-
 
 #-----------------------------------------------------------------------
 
-    def __normalize_data(self,x):
+    def __normalize_data(self, x):
         """
         normmalize timeseries
         """
@@ -484,13 +484,16 @@ class ScatterPlot(object):
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
-            label = '\n' + label + '\nr=' + str(round(r_value,2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
+            if r_value is None:
+                label = ''
+            else:
+                label = '\n' + label + '\nr=' + str(round(r_value,2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
 
         #- actual plot
         if hexbin:
-            l = self.ax.hexbin(xdat,ydat,**kwargs)
+            l = self.ax.hexbin(xdat, ydat,**kwargs)
         else:
-            l = self.ax.plot(xdat,ydat,'.',label=label,**kwargs)[0]
+            l = self.ax.plot(xdat,ydat,'.', label=label, **kwargs)[0]
 
         if hexbin:
             pass
@@ -498,10 +501,11 @@ class ScatterPlot(object):
             self.lines.append(l); self.labels.append(label)
 
         if regress:
-            if hexbin:
-                self.ax.plot(xdat,xdat*slope+intercept,'--')
-            else:
-                self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
+            if r_value is not None:
+                if hexbin:
+                    self.ax.plot(xdat,xdat*slope+intercept,'--')
+                else:
+                    self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
 
         if self.show_xlabel:
             self.ax.set_xlabel(self.x._get_label(),size=self.ticksize )
@@ -510,7 +514,6 @@ class ScatterPlot(object):
         self._change_ticklabels()
 
         if regress:
-
             return r_value,p_value,rms_error,c_rms, std_error, nval, np.ma.std(xdat.flatten()), np.ma.std(ydat.flatten())
         else:
             return None
@@ -1527,7 +1530,10 @@ class GlecklerPlot(object):
             raise ValueError('The length of the arrays are not the same !')
 
         slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x,y)
-        ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value,2)) + ')' ,linestyle='None')
+        if r_value is None:
+            return ax
+        else:
+            ax.plot(x,y,marker=marker,color=color,label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value, 2)) + ')' ,linestyle='None')
         return ax
 
     def plot_model_error(self, var):
@@ -3241,9 +3247,9 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 #-----------------------------------------------------------------------
 
 
-def map_difference(x,y,dmin=None,dmax=None,use_basemap=False,ax=None,title=None,cticks=None,
-                   region=None,nclasses=10,cmap_data='jet',cmap_difference = 'RdBu_r',rmin=-1.,
-                   rmax=1., absthres=None, show_stat=True,show_zonal=True,zonal_timmean=False, proj='robin',stat_type='mean',savefile=None,**kwargs):
+def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title=None, cticks=None,
+                   region=None, nclasses=10, cmap_data='jet', cmap_difference = 'RdBu_r', rmin=-1.,
+                   rmax=1., absthres=None, show_stat=True, show_zonal=True, zonal_timmean=False, proj='robin', stat_type='mean', savefile=None, **kwargs):
     """
     Given two datasets, this map generates a map plot of each dataset as
     well as of the difference of the two datasets

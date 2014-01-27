@@ -3714,11 +3714,11 @@ class Data(object):
         #/// calculate statistical significance of the difference
         if isinstance(d.data,np.ma.masked_array):
             sta = stats.mstats
-            t,p = ttest_ind(d.data, x.data ,axis=axis) #use routine in pyCMBS.statistic.py
+            t, p = ttest_ind(d.data, x.data ,axis=axis)  # use routine in pyCMBS.statistic.py
         else:
-            t,p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
+            t, p = stats.ttest_ind(d.data, x.data ,axis=axis) #todo equal var for welch test not part of my psthon installation!
 
-        p = 1.- p #invert p-value, as a p-value of 1. would correspond to the same data
+        p = 1.- p  # invert p-value, as a p-value of 1. would correspond to the same data
 
         #/// mean difference masked if p-value too low
         mask      = p <= pthres
@@ -4028,13 +4028,39 @@ class Data(object):
             p_value = res[:, 3]
             std_err = res[:, 4]
         elif method == 'spearman':
-            res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]  # rho, prob
-            res = np.asarray(res)
-            r_value = res[:,0]
-            p_value = res[:,1]
-            std_err = np.asarray([np.nan for i in xrange(n)])
-            slope = np.asarray([np.nan for i in xrange(n)])
-            intercept = np.asarray([np.nan for i in xrange(n)])
+            res = np.ones((n,5))*np.nan
+
+            #better implementation
+            #~ if n < 3: not so easy, as 'n' is the total number of points ???
+                #~ set results as invalid
+            #~ else:
+                #~ res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]
+                #~ ...
+
+
+            for i in xrange(n):  # this is implemented like this at the moment, as the number of valid data points needs to be > 3
+                invalid = False
+                if (~x.mask).sum() < 3:
+                    invalid = True
+                if (~dat[:,i].mask).sum() < 3:
+                    invalid = True
+                # do processing only for at least 3 samples!
+                if invalid:
+                    res[i, :] = np.nan  # set all to nan
+                    continue
+                else:
+                    rho, prob = stats.mstats.spearmanr(x, dat[:, i])  # todo: implement it more efficiently
+                    res[i,0] = np.nan  # slope
+                    res[i,1] = np.nan  # intercept
+                    res[i,2] = rho  # r_value
+                    res[i,3] = prob  # p-value
+                    res[i,4] = np.nan  # std_err
+            slope = res[:, 0]
+            intercept = res[:, 1]
+            r_value = res[:, 2]
+            p_value = res[:, 3]
+            std_err = res[:, 4]
+
         else:
             raise ValueError('Invalid method!')
 
@@ -4119,7 +4145,7 @@ class Data(object):
         for i in range(nt):
             reg.data[i, :, :] = Sout.data * i + Iout.data
 
-        #substract regression line
+        # substract regression line
         res = self.sub(reg)
         res.label = self.label + '(det.)'
 
@@ -4137,7 +4163,6 @@ class Data(object):
     def _is_daily(self):
         """
         check if the timeseries is daily
-
         (unittest)
         """
         if hasattr(self, 'time'):
@@ -4152,10 +4177,7 @@ class Data(object):
         """
         check if the data is based on a sequence of increasing monthly values
         The routine simply checks of the months of the timeseries is increasing. Days are not considered!
-
         (unittest)
-
-        @return:
         """
         if hasattr(self, 'time'):
             # get list of all months

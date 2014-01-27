@@ -454,30 +454,33 @@ class TestData(TestCase):
 
     def test_corr_single(self):
         x = self.D.copy()
-        y = x.data[:,0,0]
+        y = x.data[:,0,0].copy()*2.
         y += np.random.random(len(y))
 
         #--- pearson
-        slope, intercept, r, prob, sterrest = stats.linregress(x.data[:,0,0],y)
+        slope, intercept, r, prob, sterrest = stats.linregress(y, x.data[:,0,0])
+
+        print('Reference solution')
+        print('r_value %f' % r)
+        print('p_value %f' % prob)
+
+
         Rout, Sout, Iout, Pout, Cout = x.corr_single(y)
 
-        self.assertEqual(r,Rout.data[0,0])
-        self.assertEqual(slope,Sout.data[0,0])
-        self.assertEqual(intercept,Iout.data[0,0])
-        self.assertEqual(prob,Pout.data[0,0])
+        self.assertAlmostEqual(r,Rout.data[0,0], 8)
+        self.assertAlmostEqual(slope,Sout.data[0,0],8)
+        self.assertAlmostEqual(intercept,Iout.data[0,0], 8)
+        self.assertAlmostEqual(prob,Pout.data[0,0], 8)
 
         #--- spearman
-        rho, prob = stats.spearmanr(x.data[:,0,0],y)
-        Rout, Sout, Iout, Pout, Cout = x.corr_single(y, method='spearman')
-        self.assertEqual(r,Rout.data[0,0])
-        self.assertEqual(prob,Pout.data[0,0])
+        y = x.data[:,0,0].copy()*5.
+        y += np.random.random(len(y))*3.
 
-        y = x.data[:,0,0]
-        y *= np.random.random(len(y))
-        rho, prob = stats.spearmanr(x.data[:,0,0],y)
+        rho, prob = stats.mstats.spearmanr(y, x.data[:,0,0])
         Rout, Sout, Iout, Pout, Cout = x.corr_single(y, method='spearman')
-        self.assertEqual(r,Rout.data[0,0])
-        self.assertEqual(prob,Pout.data[0,0])
+        self.assertAlmostEqual(r,Rout.data[0,0],5)
+        self.assertAlmostEqual(prob,Pout.data[0,0],8)
+
 
     def test_correlate(self):
         for n in [None,100,10,5]: #different size
