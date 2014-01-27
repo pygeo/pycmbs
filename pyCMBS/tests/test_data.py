@@ -19,13 +19,12 @@ from dateutil.rrule import *
 # - _shift_lon
 # - _shift_lon_360
 # - _apply_temporal_mask
-# - get_yearsum
+
 # - partial_correlation
 #- get_temporal_mask
 #- get_climatology
 #- get_deseasonalized_anomaly
 #- set_time ???
-#- apply_temporal_subsetting
 # _temporal_subsetting
 # interp_time
 #- _mesh_lat_lon
@@ -785,6 +784,24 @@ class TestData(TestCase):
         rm = rs = D.data[:,2,0]
         self.assertTrue(np.all( (res[3]['mean']-rm) == 0. ))
         self.assertTrue(np.all( (res[3]['sum']-rs) == 0. ))
+
+
+    def test_apply_temporal_subsetting(self):
+        # checks only if the right time is subsetted
+        import datetime
+        x = self.D.copy()
+
+        start_date = datetime.datetime(2003,3,1)
+        stop_date = datetime.datetime(2003,5,28)
+        x.apply_temporal_subsetting(start_date, stop_date)
+
+        d = x.date
+        self.assertEqual(d[0].year,2003)
+        self.assertEqual(d[0].month,3)
+        self.assertEqual(d[0].day,1)
+        self.assertEqual(d[-1].year,2003)
+        self.assertEqual(d[-1].month,5)
+        self.assertEqual(d[-1].day,28)
 
     def test_apply_temporal_mask(self):
         D=self.D.copy()
