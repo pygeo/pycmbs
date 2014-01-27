@@ -11,6 +11,28 @@ from scipy import stats
 from pyCMBS.netcdf import *
 from dateutil.rrule import *
 
+#unittests needed for
+# - get_zonal_mean
+# - _set_cell_area
+# - get_percentile
+# - correlate
+# - _shift_lon
+# - _shift_lon_360
+# - _apply_temporal_mask
+# - get_yearsum
+# - partial_correlation
+#- correlate
+#- get_temporal_mask
+#- get_climatology
+#- get_deseasonalized_anomaly
+#- set_time
+#- apply_temporal_subsetting
+# _temporal_subsetting
+# interp_time
+#- _mesh_lat_lon
+
+
+
 class TestData(TestCase):
 
     def setUp(self):
@@ -131,15 +153,46 @@ class TestData(TestCase):
         #print 'Reference results: ', r1, r2, r3
         years, res = D.get_yearmean()
         #print 'Result: ', res
-        print 'years[0]: ',years[0]
-        print 'Times: ', D.num2date(D.time)
-        print 'Times2: ', pl.num2date(D.time)
-        print pl.num2date(t1)
+        #~ print 'years[0]: ',years[0]
+        #~ print 'Times: ', D.num2date(D.time)
+        #~ print 'Times2: ', pl.num2date(D.time)
+        #~ print pl.num2date(t1)
         self.assertEqual(years[0],2001)
         self.assertEqual(years[1],2005)
         self.assertEqual(res[0,0,0],r1)
         self.assertEqual(res[1,0,0],r2)
         self.assertEqual(res[2,0,0].mask,r3.mask)
+
+    def test_get_yearsum(self):
+        #check get_yeartime
+        D = self.D.copy()
+        t1 = pl.datestr2num('2001-01-01') + np.arange(4) #year 2001
+        t2 = pl.datestr2num('2005-05-15') + np.arange(4) #year 2005
+        t3 = pl.datestr2num('2010-07-15') + np.arange(4) #year 2010
+        D.time = np.asarray([t1,t2,t3]).flatten()
+        D._oldtime = True #use old python pylab time definition to be compliant with the test results here
+        data = pl.rand(len(D.time), 1, 1)
+        data[8:, 0, 0] = np.nan
+        D.data = np.ma.array(data,mask=np.isnan(data))       #generate random data
+        r1 = np.sum(D.data[0:4])
+        r2 = np.sum(D.data[4:8])
+        r3 = np.sum(D.data[8:])
+        #print 'Reference results: ', r1, r2, r3
+        years, res = D.get_yearsum()
+        #print 'Result: ', res
+        #~ print 'years[0]: ',years[0]
+        #~ print 'Times: ', D.num2date(D.time)
+        #~ print 'Times2: ', pl.num2date(D.time)
+        #~ print pl.num2date(t1)
+        self.assertEqual(years[0],2001)
+        self.assertEqual(years[1],2005)
+        self.assertEqual(res[0,0,0],r1)
+        self.assertEqual(res[1,0,0],r2)
+        #~ self.assertEqual(res[2,0,0].mask,r3)
+
+
+
+
 
 #    def test_diagnostic__get_valid_timeseries(self):
 #        #test _get_valid_timeseries() of diagnostic tool
@@ -212,6 +265,78 @@ class TestData(TestCase):
         ma = D.data.max(axis=0)
         MA = D.timmax(return_object=True)
         self.assertEquals(ma[0],MA.data[0])
+
+
+    def test_get_years(self):
+        d = self.D.date
+        y = self.D._get_years()
+        for i in xrange(self.D.nt):
+            self.assertEqual(d[i].year, y[i])
+
+    def test_get_months(self):
+        d = self.D.date
+        y = self.D._get_months()
+        for i in xrange(self.D.nt):
+            self.assertEqual(d[i].month, y[i])
+
+
+    def test_days_per_month(self):
+        ref = {1:[31],2:[28,29],3:31,4:30,5:31,6:30,7:31,8:31,9:30,10:31,11:30,12:31}
+        x = self.D.copy()
+        days = x._days_per_month()
+        for i in xrange(x.nt):
+            d = x.date[i]
+            if d.month == 2:
+                if d.year % 4 == 0:
+                    self.assertEqual(days[i],29)
+                else:
+                    self.assertEqual(days[i],28)
+            else:
+                self.assertEqual(ref[d.month], days[i])
+
+    def test_get_dateboundaries(self):
+        # check mindate/maxdate functions
+        x = self.D.copy()
+        ma_date = x.date.max()
+        mi_date = x.date.min()
+
+        self.assertEqual(x._get_maxdate(), ma_date)
+        self.assertEqual(x._get_mindate(), mi_date)
+
+        self.assertEqual(x._get_maxdate(base='day').hour, 23)
+        self.assertEqual(x._get_maxdate(base='day').minute, 59)
+        self.assertEqual(x._get_maxdate(base='day').second, 59)
+
+        self.assertEqual(x._get_mindate(base='day').hour, 0)
+        self.assertEqual(x._get_mindate(base='day').minute, 0)
+        self.assertEqual(x._get_mindate(base='day').second, 0)
+
+        self.assertEqual(x._get_maxdate(base='month').hour, 23)
+        self.assertEqual(x._get_maxdate(base='month').minute, 59)
+        self.assertEqual(x._get_maxdate(base='month').second, 59)
+        #~ self.assertEqual(x._get_maxdate(base='month').day, 1)
+
+        self.assertEqual(x._get_mindate(base='month').hour, 0)
+        self.assertEqual(x._get_mindate(base='month').minute, 0)
+        self.assertEqual(x._get_mindate(base='month').second, 0)
+        self.assertEqual(x._get_mindate(base='month').day, 1)
+
+        self.assertEqual(x._get_maxdate(base='year').hour, 23)
+        self.assertEqual(x._get_maxdate(base='year').minute, 59)
+        self.assertEqual(x._get_maxdate(base='year').second, 59)
+        self.assertEqual(x._get_maxdate(base='year').day, 31)
+        self.assertEqual(x._get_maxdate(base='year').month, 12)
+
+        self.assertEqual(x._get_mindate(base='year').hour, 0)
+        self.assertEqual(x._get_mindate(base='year').minute, 0)
+        self.assertEqual(x._get_mindate(base='year').second, 0)
+        self.assertEqual(x._get_mindate(base='year').day, 1)
+        self.assertEqual(x._get_mindate(base='year').month, 1)
+
+
+
+
+
 
     def test_timsort(self):
         D=self.D.copy()
@@ -322,7 +447,7 @@ class TestData(TestCase):
 
         self.assertEqual(len(F.time),len(self.D.time))
         self.assertFalse(np.any(self.D.data-F.data) != 0. )
-        self.assertFalse(np.any(self.D.time-F.time) != 0. ) #check that timestamp is equal
+        self.assertFalse(np.any(self.D.time-F.time) != 0. )
 
         del F
 
