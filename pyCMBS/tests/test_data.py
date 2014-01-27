@@ -44,7 +44,7 @@ from dateutil.rrule import *
 #_sub_sample
 #detrend
 #pad_timeseries
-#flidpud
+
 
 
 
@@ -111,10 +111,8 @@ class TestData(TestCase):
         self.assertEqual(c.data[100,0,0], -3.)
 
     def test_addc(self):
-        #test with data copy
         r1 = self.D.addc(5.,copy=True)
         self.assertAlmostEqual(r1.data[4,0,0]-5.,self.D.data[4,0,0], 8)
-        #test without data copy
         ref = self.D.data[5,0,0]
         self.D.addc(666.,copy=False)
         self.assertEqual(ref+666.,self.D.data[5,0,0])
@@ -127,17 +125,20 @@ class TestData(TestCase):
     def test_timn(self):
         A = self.D.copy()
         B = self.D.copy()
-
         me = A.timmean()
         su = B.timsum()
-
         an = A.timn()  # ndarray
         bn = B.timn(return_object=True)  # Data object
-
         r = su/me
-
         self.assertEqual(r[0,0], an[0,0])
         self.assertEqual(r[0,0], bn.data[0,0])
+
+    def test_flipud(self):
+        x = self.D.copy()
+        y = x.copy()
+        y._flipud()
+        self.assertEqual(x.data[0,0,0], y.data[0,-1,0])
+        self.assertEqual(x.data[0,-1,0], y.data[0,0,0])
 
 
     def test_correlate1(self):
