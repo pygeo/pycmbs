@@ -15,7 +15,6 @@ from dateutil.rrule import *
 # - get_zonal_mean
 # - _set_cell_area
 # - get_percentile
-# - correlate
 # - _shift_lon
 # - _shift_lon_360
 # - _apply_temporal_mask
@@ -43,6 +42,8 @@ from dateutil.rrule import *
 #_sub_sample
 #detrend
 #pad_timeseries
+#_get_date_from_month
+#_convert_monthly_timeseries
 
 
 
@@ -683,13 +684,13 @@ class TestData(TestCase):
 
 
     def test_correlate(self):
-        for n in [None,100,10,5]: #different size
+        for n in [None,100,10,5]:  # different size
             x,y = self.generate_tuple(n=n,mask=True)
             x1=x.data[:, 0, 0]
             y1=y.data[:, 0, 0]
             msk = (x1.mask == False) & (y1.mask == False)
             x2 = x1[msk]
-            y2 = y1[msk] #this is only the valid data
+            y2 = y1[msk]  # this is only the valid data
 
             #print 'Number of masked pixels: ', sum(y.data.mask), n
 
