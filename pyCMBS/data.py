@@ -257,6 +257,9 @@ class Data(object):
             or the first time of the day is returned instead of the
             actual minimum value. This allows to easily round the mindate.
 
+        Test
+        ----
+        unittest implemented
         """
         dmin = self.date.min()
 
@@ -276,9 +279,15 @@ class Data(object):
         """
         get maximum date
 
-        @param base: ['day','month']; if given, then e.g. the first of the month or the first time of the day is returned instead of the actual minimum value
-                                    this allows to easily round the mindate
-        @type base: str
+        Parameters
+        ----------
+        base : str
+            ['day','month']; if given, then e.g. the last day of the month or the last time of the day is
+            returned instead of the actual maximum value; this allows to easily round the maxdate
+
+        Test
+        ----
+        unittest implemented
         """
 
         dmax = self.date.max()
@@ -287,26 +296,27 @@ class Data(object):
             rval = dmax
         elif base == 'month':
             rval = datetime.datetime(dmax.year, dmax.month,
-                                     calendar.monthrange(dmax.year, dmax.month)[1],23,59,59,0, dmax.tzinfo)
+                                     calendar.monthrange(dmax.year, dmax.month)[1], 23, 59, 59, 0, dmax.tzinfo)
         elif base == 'day':
-            rval = datetime.datetime(dmax.year, dmax.month, dmax.day, 23, 59, 59, 0,dmax.tzinfo)
+            rval = datetime.datetime(dmax.year, dmax.month, dmax.day, 23, 59, 59, 0, dmax.tzinfo)
         elif base == 'year':
             rval = datetime.datetime(dmax.year, 12, 31, 23, 59, 59, 0, dmax.tzinfo)
         else:
             raise ValueError('Invalid base in _get_maxdate()')
-
         return rval
 
     def _days_per_month(self):
-        """return the number of days per month in Data timeseries"""
+        """return the number of days per month in Data timeseries (unittest)"""
         return [float(calendar.monthrange(d.year, d.month)[1]) for d in self.date]
 
-    def _log_warning(self,s):
+    def _log_warning(self, s):
         """
-        log warnings in a datafile
+        log warnings for class in a logfile
 
-        @param s: string with warning message
-        @type s: str
+        Parameters
+        ----------
+        s : str
+            string with warning message
         """
 
         if 'DATA_WARNING_FILE' in os.environ.keys():
@@ -354,19 +364,24 @@ class Data(object):
             print self.time_str
             raise ValueError, 'ERROR: Invalid timestring: conversion not possible!'
 
-
-
-    def num2date(self,t):
+    def num2date(self, t):
         """
         convert a numeric time to a datetime object
         Routine is similar to pylab num2date, but allows to make use
         of different calendars. It encapsulates the corresponding
         netcdftime function
 
-        @return: python datetime object
+        Parameters
+        ----------
+        t : float
+            numerical value describing time in accordance with calendar
+            settings
+
+        Returns
+        -------
+        d : datetime
         """
 
-        #return pl.num2date(t)
         if self._oldtime:  # see documentation in __init__ of self
             offset = self.__oldtimeoffset()
         else:
@@ -381,22 +396,30 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def date2num(self,t):
+    def date2num(self, t):
         """
         convert a datetime object into a numeric time variable
         Routine is similar to pylab date2num, but allows to make use
         of different calendars. It encapsulates the corresponding
         netcdftime function
 
-        @return: numeric time array
+        Parameters
+        ----------
+        t : datetime
+            datetime object with current date
+
+        Returns
+        -------
+        d : float
+            numerical value describing time in accordance with calendar
+            settings
         """
 
-        #return pl.date2num(t)
-        if self._oldtime: #see documentation in __init__ of self
+        if self._oldtime:  # see documentation in __init__ of self
             offset = self.__oldtimeoffset()
         else:
             offset = 0.
-        if not hasattr(self,'time_str'):
+        if not hasattr(self, 'time_str'):
             raise ValueError('date2num can not work without timestr!')
         if self.time_str is None:
             raise ValueError('date2num can not work without timestr!')
@@ -419,6 +442,8 @@ class Data(object):
         """
         saves the data object to a file
 
+        Parameters
+        ----------
         filename : str
             filename the file should be saved too
         varname : str
@@ -449,52 +474,41 @@ class Data(object):
         else:
             raise ValueError('This output format is not defined yet!')
 
-
 #-----------------------------------------------------------------------
-
-
-
 
     def _save_ascii(self, filename, varname=None, delete=False):
         """
         saves the data object to an ASCII file
-        (unittest)
 
-        @param filename: filename of output file
-        @param varname: name of output variable; this explicitely overwrites self.varname, which is tried to be used as a first order
-        @param delete: delete file if existing without asking
+        Parameters
+        ----------
+        filename : str
+            filename of output file
+        varname : str
+            name of output variable; this explicitely overwrites
+            self.varname, which is tried to be used in first place
+        delete : bool
+            delete file if existing without further asking
+
+        Test
+        ----
+        unittest implemented
         """
-
-        #raise ValueError, 'This is not implemented yet!!!'
 
         #/// check if output file already there
         if os.path.exists(filename):
             if delete:
                 os.remove(filename)
             else:
-                raise ValueError, 'File already existing. Please delete manually or use DELETE option: ' + filename
-
-        #/// variable name
-        #if varname is None:
-        #    if self.varname is None:
-        #        varname = 'var1'
-        #    else:
-        #        varname = self.varname
-
+                raise ValueError('File already existing. Please delete manually or use DELETE option: %s' % filename)
 
         F = open(filename,'w')
-
-        F.write(str(len(self.time)) + '\n')  #number of timesteps
+        F.write(str(len(self.time)) + '\n')  # number of timesteps
         for i in xrange(len(self.time)):
             F.write(str(self.num2date(self.time[i])) + ' , '
                   + str(self.data[i,:].flatten())
-                  .replace('[','').replace(']','') + '\n' )
-
+                  .replace('[', '').replace(']', '') + '\n' )
         F.close()
-
-
-        #write 2D field for each timestep
-
 
 #-----------------------------------------------------------------------
 
@@ -502,6 +516,8 @@ class Data(object):
         """
         saves the data object to a netCDF file
 
+        Parameters
+        ----------
         filename : str
             filename of output file
         varname : str
@@ -509,6 +525,10 @@ class Data(object):
             self.varname, which is tried to be used as a first order
         delete : bool
             delete file if existing without asking
+
+        Test
+        ----
+        unittest implemented
         """
 
         # check if output file already there
@@ -552,52 +572,47 @@ class Data(object):
         # Create variables
         if hasattr(self,'time'):
             if self.time is not None:
-                File.create_variable('time','d',('time',))
-                File.F.variables['time'].units = self.time_str #'days since 0001-01-01 00:00:00 UTC'
+                File.create_variable('time', 'd', ('time',))
+                File.F.variables['time'].units = self.time_str
 
         if hasattr(self,'data'):
             if self.data.ndim == 3:
-                File.create_variable(varname,'d',('time','ny','nx'))
+                File.create_variable(varname, 'd', ('time', 'ny', 'nx'))
             elif self.data.ndim == 2:
-                File.create_variable(varname,'d',('ny','nx'))
+                File.create_variable(varname, 'd', ('ny', 'nx'))
 
         if self.lat is not None:
-            File.create_variable('lat','d',('ny','nx'))
+            File.create_variable('lat', 'd', ('ny', 'nx'))
             File.F.variables['lat'].units = 'degrees_north'
             File.F.variables['lat'].axis  = "Y"
             File.F.variables['lat'].long_name  = "latitude"
 
         if self.lon is not None:
-            File.create_variable('lon','d',('ny','nx'))
+            File.create_variable('lon', 'd', ('ny', 'nx'))
             File.F.variables['lon'].units = 'degrees_east'
             File.F.variables['lon'].axis  = "X"
             File.F.variables['lon'].long_name  = "longitude"
 
-        if hasattr(self,'data'):
-            if hasattr(self,'cell_area'):
-                File.create_variable('cell_area','d',('ny','nx'))
-
+        if hasattr(self, 'data'):
+            if hasattr(self, 'cell_area'):
+                File.create_variable('cell_area', 'd', ('ny', 'nx'))
 
         #/// write data
         if hasattr(self, 'time'):
-            if self.time != None:
-                #F.variables['time'] .assign_value(self.time-1)
-                File.assign_value('time',self.time)
+            if self.time is not None:
+                File.assign_value('time', self.time)
                 File.F.variables['time'].calendar = self.calendar
 
         if hasattr(self, 'data'):
-            File.assign_value(varname,self.data)
+            File.assign_value(varname, self.data)
 
-        #print 'Assigning lat/lon'
         if self.lat is not None:
             File.assign_value('lat', self.lat)
-        #print 'Lat completed ...'
         if self.lon is not None:
             File.assign_value('lon', self.lon)
-        #print 'Lon completed ...'
 
-        if hasattr(self,'data'):
-            if hasattr(self,'cell_area'):
+        if hasattr(self, 'data'):
+            if hasattr(self, 'cell_area'):
                 if self.cell_area is not None:
                     File.assign_value('cell_area', self.cell_area)
 
@@ -608,12 +623,6 @@ class Data(object):
             File.F.variables[varname].add_offset = 0.
             File.F.variables[varname].coordinates = "lon lat"
 
-        #/// global attributes
-        #if hasattr(self,'filename'):
-        #    F.sourcefile = self.filename #store original filename
-
-        #/// close file
-        #print 'Saving completed ... closing file'
         File.close()
 
 #-----------------------------------------------------------------------
@@ -623,37 +632,46 @@ class Data(object):
         This routine identifies if all longitudes in the dataset
         are the same (except for numerical uncertainties)
 
-        (unittest)
+        Returns
+        -------
+        bool
 
-        @rtype: bool
+        Test
+        ----
+        unittest implemented
+
         """
         if self.lon.ndim == 1:
             return True
         elif self.lon.ndim == 2:
             lu = self.lon.mean(axis=0)
-            #this corresponds to an accuracy of 1m
+            # this corresponds to an accuracy of 1m
             if any( np.abs(lu - self.lon[0,:]) > 1.E-5):
                 return False
             else:
                 return True
         else:
-            raise ValueError, 'Unsupported geometry for longitude'
-
+            raise ValueError('Unsupported geometry for longitude')
 
 #-----------------------------------------------------------------------
 
     def _get_unique_lon(self):
         """
-        estimate if the Data contains unique longitudes and if so, returns a vector
-        with these longitudes
+        estimate if the Data contains unique longitudes and if so,
+        returns a vector with these longitudes
 
-        (unittest)
+        Returns
+        -------
+        lon : ndarray
+            unique longitudes
 
-        @return: unique longitudes
+        Test
+        ----
+        unittest implemented
         """
 
-        if self.lon == None:
-            raise ValueError, 'Can not estimate longitude, as no longitudes existing!'
+        if self.lon is None:
+            raise ValueError('Can not estimate longitude, as no longitudes existing!')
 
         if self.lon.ndim == 1:
             return self.lon
@@ -662,29 +680,38 @@ class Data(object):
                 return self.lon[0,:]
             else:
                 print self.filename
-                raise ValueError, 'The dataset does not contain unique LONGITUDES!'
+                raise ValueError('The dataset does not contain unique LONGITUDES!')
         else:
-            raise ValueError, 'Data dimension for longitudes not supported yet!'
+            raise ValueError('Data dimension for longitudes not supported yet!')
 
 #-----------------------------------------------------------------------
-
 
     def get_bounding_box(self):
         """
         estimates bounding box of valid data. It returns the indices
         of the bounding box which frames all valid data
 
-        note that the indices can not be used directly for array slicing. One tyipically needs to add '1' to the alst index
+        CAUTION
+        note that the indices can not be used directly for array slicing!
+        One typically needs to add '1' to the last index
 
-        (unittests o.k.)
+        Returns
+        -------
+        r : list
+            returns indices for bounding box [i1,i2,j1,j2]
 
-        @return: returns indices for bounding box [i1,i2,j1,j2]
+        Test
+        ----
+        unittest implemented
+
+        @return:
         """
 
-        msk = self.get_valid_mask() #gives a 2D mask
+        msk = self.get_valid_mask()  # gives a 2D mask
 
-        #estimate boundary box indices
-        xb = msk.sum(axis=0); yb = msk.sum(axis=1)
+        # estimate boundary box indices
+        xb = msk.sum(axis=0)
+        yb = msk.sum(axis=1)
 
         j1 = -99
         for i in xrange(len(xb)):
@@ -713,9 +740,7 @@ class Data(object):
                 continue
             if (yb[i]>0) & (i2 == -99):
                 i2 = i
-
         return i1,i2,j1,j2
-
 
 #-----------------------------------------------------------------------
 
@@ -748,6 +773,9 @@ class Data(object):
             a) directory is write protected --> write to temporary directory
             b) unknown grid --> try to select another grid, using cdo selgrid
         3) if all this does not work, then cell_area is set to unity for all grid cells and a WARNING is raised
+
+        TODO IMPLEMENT UNITTEST!!!
+
         """
 
         if not self.cell_area is None:
@@ -903,19 +931,20 @@ class Data(object):
             raise ValueError, 'Percentile calculation only supported for 3D data!'
 
         nt = len(self.data)
-        x = self.data.copy(); x.shape = (nt,-1)
+        x = self.data.copy()
+        x.shape = (nt, -1)
 
         #--- calculate percentile ---
-        res = stats.mstats.scoreatpercentile(x,p*100.)
+        res = stats.mstats.scoreatpercentile(x, p*100.)
 
         #--- reshape data array ---
-        res.shape = np.shape(self.data[0,:,:])
-        res = np.ma.array(res,mask=np.isnan(res))
+        res.shape = np.shape(self.data[0, :, :])
+        res = np.ma.array(res, mask=np.isnan(res))
 
         #--- return
         if return_object:
             r = self.copy()
-            r.label = self.label + '\n percentile: ' + str(round(p,2))
+            r.label = self.label + '\n percentile: ' + str(round(p, 2))
             r.data = res
             return r
         else:
@@ -948,38 +977,44 @@ class Data(object):
     def _shift_lon_360(self):
         """
         shift longitude coordinates. Coordinates given as [-180...180] are
-        converted to [0 ...180]
+        converted to [0 ...360]
 
         changes lon field of Data object and sets variable _lon360
         """
         self.lon[self.lon<0.] += 360.
         self._lon360 = True
-        print 'Longitudes were shifted to 0 ... 360!'
+        print('Longitudes were shifted to 0 ... 360!')
 
 #-----------------------------------------------------------------------
 
     def _apply_temporal_mask(self, mask):
         """
-        apply a temporal mask to data. All timesteps where the mask is True will
-        be masked, but geometry will not be changed, thus no masking will be applied
+        apply a temporal mask to data. All timesteps where the mask is
+        True will be masked, but geometry will not be changed, thus no
+        masking will be applied
 
-        the Data.data is changed
+        The Data.data is changed
 
-        @param mask: boolean numpy array of size [time]
+        Parameters
+        ----------
+        mask : ndarray of type bool
+            needs to be of size [time]
 
-        @return: None
+        Returns
+        -------
+        None
         """
 
         if self.data.ndim != 3:
-            raise ValueError, 'temporal masking only possible for 3D data'
+            raise ValueError('temporal masking only possible for 3D data')
 
         if len(mask) != len(self.data):
             print len(mask), self.data.shape
-            raise ValueError, 'Inconsistent length of data and mask'
+            raise ValueError('Inconsistent length of data and mask')
 
         for i in xrange(len(mask)):
             if mask[i]:
-                self.data.mask[i,:,:] = True
+                self.data.mask[i, :, :] = True
 
 #-----------------------------------------------------------------------
 
@@ -1135,7 +1170,6 @@ class Data(object):
 
         e.g. if all the months from JAN-March are masked as TRUE, the
         result will correspnd to the JFM mean for each year
-        (unittest)
 
         Parameters
         ----------
@@ -1144,6 +1178,10 @@ class Data(object):
 
         return_data : bool
             specifies if results should be returned as C{Data} object
+
+        Test
+        ----
+        unittest implemented
         """
 
         if mask is None:
@@ -1203,13 +1241,20 @@ class Data(object):
         e.g. if all the months from JAN-March are masked as TRUE, the
         result will correspnd to the JFM sum for each year
 
-        @param mask: mask [time]
-        @type mask : numpy boolean array
+        Parameters
+        ----------
+        mask : ndarray
+            mask [time]
+        return_data : bool
+            specifies if a Data object shall be returned
 
+        Test
+        ----
+        unittest implemented
         """
 
         if mask is None:
-            #if not maks is provided, take everything
+            # if no mask is provided, take everything
             mask = np.ones(len(self.time)).astype('bool')
         else:
             if mask.ndim != 1:
@@ -1236,11 +1281,9 @@ class Data(object):
 
         for i in xrange(len(res)):
             res[i,msk] = np.nan
-
-        res = np.ma.array(res,mask=np.isnan(res)) #mask all data that contained no single valid value!
+        res = np.ma.array(res,mask=np.isnan(res))  # mask all data that contained no single valid value!
 
         if return_data:
-            #generate data object
             r = self.copy()
             r.data = res
             r.time = self.date2num(np.asarray([datetime.datetime(year, 1, 1) for year in years]))
@@ -1248,8 +1291,6 @@ class Data(object):
             return r
         else:
             return years, res
-
-
 
 #-----------------------------------------------------------------------
 
@@ -1312,8 +1353,6 @@ class Data(object):
             return r
         else:
             return res
-
-
 
 #-----------------------------------------------------------------------
 
@@ -1492,14 +1531,18 @@ class Data(object):
         calculate climatological mean for a time increment
         specified by self.time_cycle
 
-        Note: one can not assume that the climatology starts from January if you use a time_cycle = 12
-        Instead, the climatology simply starts with the value which corresponds to the first value of the data
+        Note: one can not assume that the climatology starts from
+        January if you use a time_cycle = 12
+        Instead, the climatology simply starts with the value which
+        corresponds to the first value of the data.
 
-        @param return_object: specifies if a C{Data} object shall be returned
-        @type return_object: bool
-
-        @param nmin: specifies the minimum number of datasets used for climatology; else the result is masked
-        @type nmin: bool
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a Data object shall be returned
+        nmin : int
+            specifies the minimum number of datasets used for
+            climatology; else the result is masked
         """
         if hasattr(self, 'time_cycle'):
             pass
@@ -1581,7 +1624,7 @@ class Data(object):
             if hasattr(self,'_climatology_raw'):
                 clim = self._climatology_raw
             else:
-                if hasattr(self,'time_cycle'):
+                if hasattr(self, 'time_cycle'):
                     self._climatology_raw = self.get_climatology()
                     clim = self._climatology_raw
                 else:
@@ -1627,15 +1670,17 @@ class Data(object):
         This routine calculates conditions statistics over the current data. Given a mask M, the routine calculates for
         each unique value in M the mean, stdv, min and max from the current data
 
-        (unittest)
-
         Example
-        =======
+        -------
         > Let us assume you have a data object D and we assign some sample data to it and generate a mask with a few pixels
         > D.data = pl.randn(100,3,1) #some sample data
         > msk = np.asarray([[1,1,3],]).T #(3,1) mask
         > res = D.condstat(msk) #calculate conditional statistics
         > This returns a dictionary with the following keys ['max', 'sum', 'min', 'id', 'mean']
+
+        Test
+        ----
+        unittest implemented
 
         @param M: mask to be used. Needs to be a 2D array of dimension ny x nx
         @type M: Data or numpy array
@@ -1723,9 +1768,7 @@ class Data(object):
                              'max': maxs[:, i]}})
 
         #res = {'id': vals, 'mean': means, 'sum': sums, 'min': mins, 'max': maxs, 'std': stds}
-
         return res
-
 
 #-----------------------------------------------------------------------
 
@@ -1852,7 +1895,7 @@ class Data(object):
             self.data = self.data[i1:i2, :, :]
         elif self.data.ndim == 2:
             if self.squeezed:  # data has already been squeezed and result was 2D (thus without time!)
-                print 'Data was already squeezed: no temporal subsetting is performed!'
+                print('Data was already squeezed: no temporal subsetting is performed!')
             else:
                 self.data = self.data[i1:i2, :]
         elif self.data.ndim == 1:  # single temporal vector assumed
@@ -1875,6 +1918,10 @@ class Data(object):
         base : str
             specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
             a time stepping. Currently supported values: ['month','day']
+
+        Test
+        ----
+        unittest implemented
         """
 
         assert(isinstance(y, Data))
@@ -1980,7 +2027,7 @@ class Data(object):
         if not np.all(np.diff(self.time) > 0):
             raise ValueError, 'Time array of data is not in ascending order! This must not happen! Please ensure ascending order'
 
-        nt0,ny,nx = self.shape  # original dimensions
+        nt0, ny, nx = self.shape  # original dimensions
         nt = len(t)  # target length of time
 
         #/// copy data
@@ -2107,6 +2154,10 @@ class Data(object):
         Returns
         -------
         returns start/stop indices (int)
+
+        Test
+        ----
+        unittest implemented
         """
 
         def _check_timezone(d):
@@ -2158,26 +2209,23 @@ class Data(object):
         """
         get years from timestamp
 
-        @return list of years
+        Test
+        ----
+        unittest implemented
         """
-        d = self.num2date(self.time)
-        years = []
-        for x in d:
-            years.append(x.year)
-        return years
+        return [x.year for x in self.date]
 
 #-----------------------------------------------------------------------
 
     def _get_months(self):
         """
         get months from timestamp
-        @return: returns a list of months
+
+        Test
+        ----
+        unittest implemented
         """
-        d = self.num2date(self.time)
-        months = []
-        for x in d:
-            months.append(x.month)
-        return months
+        return [x.month for x in self.date]
 
 #-----------------------------------------------------------------------
 
@@ -2189,9 +2237,13 @@ class Data(object):
         """
         if (plt.isvector(self.lat)) & (plt.isvector(self.lon)):
             LON,LAT = np.meshgrid(self.lon,self.lat)
-            self.lon = LON; self.lat=LAT
+            self.lon = LON
+            self.lat=LAT
         else:
             pass
+
+
+# TODO HIER WEITER MIT UNITTESTIN etc.
 
 #-----------------------------------------------------------------------
 
