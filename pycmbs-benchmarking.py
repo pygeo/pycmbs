@@ -76,7 +76,6 @@ def create_dummy_configuration():
               models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP', 'path': '/this/is/the/root/path/to/the/model/data/'}, {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST', 'path': '/this/is/the/root/path/to/the/model/data/'}])
 
     os.system('rm -rf ' + odir + '/.svn')
-    print('Initialization of template setup finalized.')
 
 ########################################################################
 
@@ -118,7 +117,10 @@ plot_options = PCFG
 ########################################################################
 # REMOVE previous Data warnings
 ########################################################################
-outdir = '.' + os.sep + 'report_' + CF.options['report'] + os.sep
+outdir = CF.options['outputdir']
+if outdir[-1] != os.sep:
+    outdir += os.sep
+
 os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' + CF.options['report'] + '.log'
 if os.path.exists(os.environ['DATA_WARNING_FILE']):
     os.remove(os.environ['DATA_WARNING_FILE'])
@@ -138,7 +140,7 @@ else:
     f_fast = True
 shift_lon = use_basemap = not f_fast
 
-print 'Using Basemap: ', use_basemap
+#print 'Using Basemap: ', use_basemap
 
 
 ########################################################################
