@@ -21,16 +21,31 @@ from dateutil.rrule import *
 # - _apply_temporal_mask
 # - get_yearsum
 # - partial_correlation
-#- correlate
 #- get_temporal_mask
 #- get_climatology
 #- get_deseasonalized_anomaly
-#- set_time
+#- set_time ???
 #- apply_temporal_subsetting
 # _temporal_subsetting
 # interp_time
 #- _mesh_lat_lon
 #read_netcdf
+#_get_weighting_matrix
+#get_aoi
+#get_aoi_lat_lon
+#cut_bounding_box
+#get_valid_data
+#_apply_mask
+#shift_x
+#__shift3D
+#timeshift
+#_set_valid_range
+#__shift2D
+#_sub_sample
+#detrend
+#pad_timeseries
+#flidpud
+
 
 
 
@@ -63,12 +78,37 @@ class TestData(TestCase):
         i1,i2 = self.D._get_time_indices(d1,d2)
         s1 = str(pl.num2date(self.D.time[i1]))
         s2 = str(pl.num2date(self.D.time[i2]))
-
-        #print s1, i1
-        #print s2, i2
-
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
+
+    def test_is_monthly(self):
+        a = self.D.copy()
+        b = self.D.copy()
+        t=[]
+        x = pl.datestr2num('2001-01-15')
+        for i in xrange(20):
+            t.append(x)
+            x += 30
+        t = np.asarray(t)
+        b.time = t
+        self.assertEqual(a._is_monthly(), False)
+        self.assertEqual(b._is_monthly(), True)
+
+    def test_add(self):
+        x = self.D.copy()
+        y = self.D.copy()
+        y.data += 3.
+        c = x.add(y)
+        self.assertEqual(c.data[0,0,0], x.data[0,0,0]*2.+3.)
+        self.assertEqual(c.data[100,0,0], x.data[100,0,0]*2.+3.)
+
+    def test_sub(self):
+        x = self.D.copy()
+        y = self.D.copy()
+        y.data += 3.
+        c = x.sub(y)
+        self.assertEqual(c.data[0,0,0], -3.)
+        self.assertEqual(c.data[100,0,0], -3.)
 
     def test_addc(self):
         #test with data copy
@@ -83,6 +123,22 @@ class TestData(TestCase):
 #        #print self.D.data
 #        r = self.D.get_percentile(0.5,return_object = False)[0,0]
 #        self.assertAlmostEqual(r,0.,delta = 0.5)
+
+    def test_timn(self):
+        A = self.D.copy()
+        B = self.D.copy()
+
+        me = A.timmean()
+        su = B.timsum()
+
+        an = A.timn()  # ndarray
+        bn = B.timn(return_object=True)  # Data object
+
+        r = su/me
+
+        self.assertEqual(r[0,0], an[0,0])
+        self.assertEqual(r[0,0], bn.data[0,0])
+
 
     def test_correlate1(self):
         #test for correlation calculations
@@ -255,9 +311,21 @@ class TestData(TestCase):
         ME = D.timmean(return_object=True)
         self.assertEquals(me[0],ME.data[0])
 
+        su = D.data.sum(axis=0)
+        SU = D.timsum(return_object=True)
+        self.assertEquals(su[0],SU.data[0])
+
         st = D.data.std(axis=0)
         ST = D.timstd(return_object=True)
         self.assertEquals(st[0],ST.data[0])
+
+        cv = st/me
+        CV = D.timcv(return_object=True)
+        self.assertEquals(cv[0],CV.data[0])
+
+        va = D.data.var(axis=0)
+        VA = D.timvar(return_object=True)
+        self.assertEquals(va[0],VA.data[0])
 
         mi = D.data.min(axis=0)
         MI = D.timmin(return_object=True)
@@ -504,6 +572,12 @@ class TestData(TestCase):
         R = D.divc(2.)
         d = D.data[:,0,0] *0.5
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
+
+    def test_subc(self):
+        D = self.D.copy()
+        R = D.subc(10.)
+        d = D.data - 10.
+        self.assertTrue(np.all(d-R.data) == 0.)
 
     def test_mulc(self):
         D = self.D.copy()
@@ -904,15 +978,7 @@ class TestData(TestCase):
         r = D.areasum()[0]
         self.assertEquals(r,3.)
 
-
-
-
-
-
-
-
-
-    def test__set_timecycle(self):
+    def test_set_timecycle(self):
         D = self.D
 
         #set some monthly timeseries
@@ -1077,8 +1143,10 @@ class TestData(TestCase):
         self.assertEqual(d[3], 29)
         self.assertEqual(d[4], 28)
 
-    def test_smooth(self):
-        """ test smooth routine """
+    def test_temporal_smooth(self):
+        """
+        test smooth routine
+        """
         x = self.D.copy()
 
         #--- TEST for 1D data ---
@@ -1106,12 +1174,6 @@ class TestData(TestCase):
         self.assertAlmostEqual(tmp[10:13,0,0].sum()/3., y3a.data[11,0,0], 8)
         self.assertAlmostEqual(tmp[10:13,1,1].sum()/3., y3a.data[11,1,1], 8)
         self.assertAlmostEqual(tmp[10:13,1,0].sum()/3., y3a.data[11,1,0], 8)
-
-
-
-
-
-
 
 
 
