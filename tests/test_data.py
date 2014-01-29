@@ -1,13 +1,15 @@
 from unittest import TestCase
 import unittest
 
-from pyCMBS.data import *
+import os
 import scipy as sc
 import pylab as pl
 import numpy as np
 from scipy import stats
-from pyCMBS.netcdf import *
-from dateutil.rrule import *
+# from dateutil.rrule import *
+
+# from pycmbs.netcdf import None
+from pycmbs.data import Data
 
 class TestData(TestCase):
 
@@ -38,18 +40,14 @@ class TestData(TestCase):
         i1,i2 = self.D._get_time_indices(d1,d2)
         s1 = str(pl.num2date(self.D.time[i1]))
         s2 = str(pl.num2date(self.D.time[i2]))
-
-        #print s1, i1
-        #print s2, i2
-
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
 
-    def test_addc(self):
-        #test with data copy
+    def testAddcWithDataCopy(self):
         r1 = self.D.addc(5.,copy=True)
         self.assertAlmostEqual(r1.data[4,0,0]-5.,self.D.data[4,0,0], 8)
-        #test without data copy
+
+    def testAddcWithoutDataCopy(self):
         ref = self.D.data[5,0,0]
         self.D.addc(666.,copy=False)
         self.assertEqual(ref+666.,self.D.data[5,0,0])
@@ -987,5 +985,5 @@ class TestData(TestCase):
 
 
 
-#~ if __name__ == '__main__':
-    #~ unittest.main()
+if __name__ == '__main__':
+    unittest.main()
