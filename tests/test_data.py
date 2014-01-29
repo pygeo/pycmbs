@@ -1,18 +1,15 @@
-from unittest import TestCase
 import unittest
 
+from pycmbs.data import Data
 import os
 import scipy as sc
-import pylab as pl
 import numpy as np
 from scipy import stats
 from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
+import pylab as pl
 
-# from pycmbs.netcdf import None
-from pycmbs.data import Data
-
-class TestData(TestCase):
+class TestData(unittest.TestCase):
 
     def setUp(self):
         n=1000  # slows down significantly! constraint is percentile  test
@@ -459,7 +456,6 @@ class TestData(TestCase):
 
             #1) test if scipy functions return similar results
             self.assertAlmostEqual(r_value1,r_value2,places=10)
-            #self.assertAlmostEqual(p_value1,p_value2,places=15) #not used, as BUG in stats.mstats.linregress!
 
             #2) test data.correlate() results
             self.assertAlmostEqual(r.data[0,0],r_value2,places=10) #results from stats.linregress are used, as mstats is BUGGY!!
