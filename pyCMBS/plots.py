@@ -2439,7 +2439,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
              colorbar_orientation='vertical', stat_type='mean',
              cax_rotation=0., cticklabels=None, proj='robin',
              plot_method='colormesh', boundinglat=60.,
-             savefile=None, lon_0=0., lat_0=0., **kwargs):
+             savefile=None, lon_0=0., lat_0=0., savegraphicfile=None, **kwargs):
     """
     produce a nice looking map plot
 
@@ -2901,7 +2901,6 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         ax.set_yticks([])
 
     #set legend aligned with plot (nice looking)
-
     divider = make_axes_locatable(ax)
     caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
     caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
@@ -2943,7 +2942,6 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
             add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
         else:
             print 'WARNING: zonal plot not possible due to invalid latitude configurations'
-
 
     def _add_region_basemap(m, r, color='red', linewidth=1):
         """
@@ -2988,7 +2986,6 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         mapboundary = Polygon(xy, edgecolor=color, linewidth=linewidth, fill=False, linestyle='dashed')
         ax.add_patch(mapboundary)
 
-
     #--- plot regions in the map ---
     if regions_to_plot is not None:
         if use_basemap:
@@ -3011,11 +3008,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     # are the means and std of the temporal mean fields which are weighted
     # appropriately according to the cell area
     if show_stat:
-        #tmp_xm = x.copy()
-        #tmp_xm.data = xm.reshape(1,xm.shape[0],xm.shape[1]) #make a 3D object thus fldmean works appropriately
-        #tmp_xm.cell_area = tmp_xm.cell_area.reshape(xm.shape[0],xm.shape[1]) #reshape cell area, that get_area_weighting() works!
         tmp_xm = x.timmean(return_object=True)  # from temporal mean
-
         if stat_type == 'mean':
             me = tmp_xm.fldmean()
             st = tmp_xm.fldstd()
@@ -3037,8 +3030,6 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     ax.set_title(title + '\n', size=titlefontsize, loc='center')
     ax.set_title(x._get_unit(), size=titlefontsize, loc='right')
 
-
-
     #/// show timeseries? ///
     if show_timeseries:
         ax2.plot(x.num2date(x.time),x.fldmean())
@@ -3047,6 +3038,12 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         ti = ax2.get_yticks(); n=len(ti) / 2
         ax2.set_yticks([ti[0],ti[n],ti[-1]])
         ax2.set_ylabel(x._get_unit())
+
+    if savegraphicfile is not None:
+        # save graphics to file
+        if os.path.exists(savegraphicfile):
+            os.remove(savegraphicfile)
+        fig.savefig(savegraphicfile, bbox_inches='tight', dpi=200)
 
     return fig
 
@@ -3247,68 +3244,85 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 #-----------------------------------------------------------------------
 
 
-def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title=None, cticks=None,
-                   region=None, nclasses=10, cmap_data='jet', cmap_difference = 'RdBu_r', rmin=-1.,
-                   rmax=1., absthres=None, show_stat=True, show_zonal=True, zonal_timmean=False, proj='robin', stat_type='mean', savefile=None, **kwargs):
+def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
+                   ax=None, title=None, cticks=None,
+                   region=None, nclasses=10, cmap_data='jet',
+                   cmap_difference = 'RdBu_r', rmin=-1.,
+                   rmax=1., absthres=None, show_stat=True,
+                   show_zonal=True, zonal_timmean=False,
+                   proj='robin', stat_type='mean', savefile=None,
+                   savegraphics_prefix = None,
+                   **kwargs):
     """
-    Given two datasets, this map generates a map plot of each dataset as
+    Given two datasets, this routine generates a map plot of each dataset as
     well as of the difference of the two datasets
 
-    @param x: first dataset
-    @type x: C{Data} object
+    Parameters
+    ----------
+    x : Data
+        first dataset
+    y : Data
+        second dataset
+    dmin : float
+        minimum value of difference map
+    dmax : float
+        maximum value of difference map
+    use_basemap : float
+        flag if Basemap should be used for plotting
+    ax : axis
+        axis to plot to; if None [default], then new figure is generated
+    title : str
+        title of the plot
+    nclasses : int
+        number of classes for colormap
+    cmap_data : str, colormap
+        colormap for data to be plotted
+    cmap_difference : str, colormap
+        colormap for difference map to be plotted
+    rmin : float
+        minimum value for data plot
+    rmax : float
+        maximum value for data plot
+    absthres : float
+        threshold that will be estimated based on
+        absolute difference and will be applied to
+        relative difference maps
+    show_stat : bool
+        show statistics for each map
+    show_zonal : bool
+        show zonal means in each map
+    zonal_timmean : bool
+        use temporal mean for plotting zonal mean; applied only if
+        show_zonal=True
+    proj : str
+        projection for map plotting
+    stat_type : str
+        type of statistic to be calculated (see map_plot documentation)
+    savefile : str
+        filename for netcdf file output
+    savegraphics_prefix : str
+        path and file prefix to save individual plots to graphic files.
+        If given, the individual plots are saved to files. The
+        filename needs to include already the file extension, as it is
+        used to recognize the file extension.
 
-    @param y: second dataset
-    @type y: C{Data} object
-
-    @param dmin: minimum value of difference map
-    @type dmin: float
-
-    @param dmax: maximum value of difference map
-    @type dmax: float
-
-    @param use_basemap: flag if Basemap should be used for plotting
-    @type use_basemap: bool
-
-    @param ax: axis to plot to; if None, then new figure is generated
-    @type ax: matplotlib axis
-
-    @param title: title of the plot
-    @type title: str
-
-    @param cticks: ticks for the colorbar
-    @type cticks: list of float values
-
-    @param region: region that should be plotted. This is only used in case of Basemap maps
-    @type region: C{Region}
-
-    @param nclasses: number of classes for colormap
-    @type nclasses: int
-
-    @param cmap_data: colormap for data to be plotted
-    @type cmap_data: str
-
-    @param cmap_difference: colormap for difference map to be plotted
-    @type cmap_difference: str
-
-    @param rmin: minimum value for data plot
-    @type rmin: float
-
-    @param rmax: maximum value for data plot
-    @type rmax: float
-
-    @param absthres: threshold that will be estimated based on
-                     absolute difference and will be applied to
-                     relative difference maps
-    @type absthres: float
-
-    @param show_zonal: plot zonal statistic plot
-    @type show_zonal: bool
-
+        Example: savegraphics_prefix = '/my_path/outputfilename.png'
+        will result the in output files:
+           /my_path/outputfilename_X.png
+           /my_path/outputfilename_Y.png
+           /my_path/outputfilename_ADIFF.png
+           /my_path/outputfilename_RDIFF.png
     """
 
     if savefile is not None:
         if '.nc' in savefile:
             savefile = savefile[:-3]
+
+    if savegraphics_prefix is not None:
+        graphic_rootname, extension = os.path.splitext(savegraphics_prefix)
+    else:
+        graphic_rootname = None
+        extension = None
 
     if 'cticks_diff' in kwargs:
         cticks_diff = kwargs.pop('cticks_diff')
@@ -3345,10 +3359,24 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
         tmpoutname=None
     else:
         tmpoutname = savefile + '_xvar'
+
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_X' + extension
+
+    # plot dataset in entire figure
     map_plot(x, use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title, show_stat=show_stat,show_zonal=show_zonal,
              zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
              colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, **kwargs)
+
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(x, use_basemap=use_basemap,cticks=cticks,region=region,nclasses=nclasses,
+                 cmap_data=cmap_data, title=title, show_stat=show_stat,show_zonal=show_zonal,
+                 zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
 
     #- plot second dataset
     if savefile is None:
@@ -3356,10 +3384,24 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_yvar'
 
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_Y' + extension
+
+    # plot dataset in entire figure
     map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
              zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
-             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels,  **kwargs)
+             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, **kwargs)
+
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(y,use_basemap=use_basemap,cticks=cticks,region=region,nclasses=nclasses,
+                 cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
+                 zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
+
 
     #-first minus second dataset
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
@@ -3369,10 +3411,23 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_absdif'
 
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_ADIFF' + extension
+    # entir plot
     map_plot(adif, use_basemap=use_basemap, ax=ax3, vmin=dmin, vmax=dmax,cticks=cticks_diff, region=region,
              nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
              show_stat=show_stat, show_zonal=show_zonal, zonal_timmean=zonal_timmean, proj=proj, stat_type=stat_type, savefile=tmpoutname,
              colorbar_orientation=colorbar_orientation, drawparallels=drawparallels)
+
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(adif, use_basemap=use_basemap, vmin=dmin, vmax=dmax,cticks=cticks_diff, region=region,
+                 nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
+                 show_stat=show_stat, show_zonal=show_zonal, zonal_timmean=zonal_timmean, proj=proj, stat_type=stat_type, savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name)
+
 
     #- relative error
     rdat = adif.div(x) #y.div(x).subc(1.) #relative data
@@ -3385,11 +3440,24 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_reldif'
 
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_RDIFF' + extension
+
     map_plot(rdat, use_basemap=use_basemap, ax=ax4, vmin=rmin, vmax=rmax, title='relative difference',
              cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.], region=region, nclasses=nclasses,
              cmap_data=cmap_difference,show_stat=show_stat, show_zonal=show_zonal,
              zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
              colorbar_orientation=colorbar_orientation, drawparallels=drawparallels)
+
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(rdat, use_basemap=use_basemap, vmin=rmin, vmax=rmax, title='relative difference',
+                 cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.], region=region, nclasses=nclasses,
+                 cmap_data=cmap_difference,show_stat=show_stat, show_zonal=show_zonal,
+                 zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name)
 
 
     return fig
