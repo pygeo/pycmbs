@@ -16,6 +16,8 @@
 # GNU General Public License for more details.
 """
 
+# XXX: Is it necessary to provide author/institute info here?
+
 __name__ = "pycmbs"
 """The project name."""
 
@@ -47,6 +49,7 @@ __docformat__ = "epytext en"
 
 __email__ = "alexander.loew@mpimet.mpg.de"
 
+# TODO: clean up commented lines
 #------------------------------
 #--- Import classes
 #------------------------------
