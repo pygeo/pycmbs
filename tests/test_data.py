@@ -1,8 +1,6 @@
 from unittest import TestCase
 import unittest
 
-__author__ = 'm300028'
-
 from pyCMBS.data import *
 import scipy as sc
 import pylab as pl
