@@ -17,7 +17,7 @@ class Model(Data):
     This class is the main class, specifying a climate model or a particular run
     Sub-classes for particular models or experiments are herited from this class
     """
-    def __init__(self,data_dir,dic_variables,name='',intervals=None,**kwargs):
+    def __init__(self, data_dir, dic_variables, name='', intervals=None, **kwargs):
         """
         constructor for Model class
 
@@ -33,15 +33,15 @@ class Model(Data):
         e.g. 'rainfall','var4'
         """
 
-        #--- check
+        # check
         if intervals is None:
-            raise ValueError, 'Invalid intervals for Model data: needs specification!'
-        #--- set a list with different datasets for different models
-        self.dic_vars  = dic_variables
+            raise ValueError('Invalid intervals for Model data: needs specification!')
+        # set a list with different datasets for different models
+        self.dic_vars = dic_variables
         self.intervals = intervals
 
-        #--- set some metadata
-        self.name     = name
+        # set some metadata
+        self.name = name
         self.data_dir = data_dir
 
         if 'start_time' in kwargs.keys():

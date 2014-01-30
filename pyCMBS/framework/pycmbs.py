@@ -120,6 +120,8 @@ plot_options = PCFG
 outdir = CF.options['outputdir']
 if outdir[-1] != os.sep:
     outdir += os.sep
+os.environ['PYCMBS_OUTPUTDIR'] = CF.options['outputdir']
+os.environ['PYCMBS_OUTPUTFORMAT'] = CF.options['report_format']
 
 os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' + CF.options['report'] + '.log'
 if os.path.exists(os.environ['DATA_WARNING_FILE']):
