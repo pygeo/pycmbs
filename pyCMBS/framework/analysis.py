@@ -23,8 +23,12 @@ matplotlib.rcParams['backend'] = 'Agg'
 
 
 
-def preprocess_seasonal_data(raw_file, interval=None, themask=None, force=False, obs_var=None, label='', shift_lon=None,
-                             start_date=None, stop_date=None, target_grid='t63grid', interpolation_method='remapcon'):
+def preprocess_seasonal_data(raw_file, interval=None, themask=None,
+                             force=False, obs_var=None, label='',
+                             shift_lon=None,
+                             start_date=None, stop_date=None,
+                             target_grid='t63grid',
+                             interpolation_method='remapcon'):
     """
     This subroutine performs pre-processing of some raw data file. It does
 
@@ -69,15 +73,13 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None, force=False,
     if shift_lon is None:
         raise ValueError, 'Lon shift parameter needs to be specified!'
 
-    #--- PREPROCESSING of observational data  ---
+    # PREPROCESSING of observational data  ---
     cdo = Cdo()
 
-    #1) generate monthly mean file projected to T63
+    # 1) generate monthly mean file projected to T63
     obs_mon_file = get_temporary_directory() + os.path.basename(raw_file)
 
-    #obs_monstd_file = obs_mon_file[:-3] + '_monstd.nc'
-
-    #construct string for seldate; it is assumed that it was already chacked before that start_date,stop_date are valid datetime objects!
+    # construct string for seldate; it is assumed that it was already checked before that start_date,stop_date are valid datetime objects!
 
     if (start_date is not None) and (stop_date is not None):
         print 'Temporal subsetting for ' + raw_file + ' will be performed! ', start_date, stop_date
@@ -90,7 +92,7 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None, force=False,
     cdo.monmean(options='-f nc', output=obs_mon_file,
                 input='-' + interpolation_method + ',' + target_grid + seldate_str + ' ' + raw_file, force=force)
 
-    #2) generate monthly mean or seasonal mean climatology as well as standard deviation
+    # 2) generate monthly mean or seasonal mean climatology as well as standard deviation
     if interval == 'monthly':
         obs_ymonmean_file = obs_mon_file[:-3] + '_ymonmean.nc'
         obs_ymonstd_file = obs_mon_file[:-3] + '_ymonstd.nc'
@@ -101,7 +103,6 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None, force=False,
         cdo.ymonstd(options='-f nc -b 32', output=obs_ymonstd_file, input=obs_mon_file, force=force)
         cdo.div(options='-f nc -b 32', output=obs_ymonN_file, input=obs_ymonsum_file + ' ' + obs_ymonmean_file,
                 force=force) #number of samples
-
         time_cycle = 12
     elif interval == 'season':
         obs_ymonmean_file = obs_mon_file[:-3] + '_yseasmean.nc'
@@ -113,32 +114,35 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None, force=False,
         cdo.yseasstd(options='-f nc -b 32', output=obs_ymonstd_file, input=obs_mon_file, force=force)
         cdo.div(options='-f nc -b 32', output=obs_ymonN_file, input=obs_ymonsum_file + ' ' + obs_ymonmean_file,
                 force=force)  # number of samples
-
         time_cycle = 4
-
     else:
         print interval
         raise ValueError('Unknown temporal interval. Can not perform preprocessing! ')
 
 
     #--- READ DATA ---
-    obs = Data(obs_ymonmean_file, obs_var, read=True, label=label, lat_name='lat', lon_name='lon', shift_lon=shift_lon,
+    obs = Data(obs_ymonmean_file, obs_var, read=True, label=label,
+               lat_name='lat', lon_name='lon', shift_lon=shift_lon,
                time_cycle=time_cycle)
-    obs_std = Data(obs_ymonstd_file, obs_var, read=True, label=label + ' std', lat_name='lat', lon_name='lon',
+    obs_std = Data(obs_ymonstd_file, obs_var, read=True,
+                   label=label + ' std', lat_name='lat', lon_name='lon',
                    shift_lon=shift_lon, time_cycle=time_cycle)
     obs.std = obs_std.data.copy()
     del obs_std
-    obs_N = Data(obs_ymonN_file, obs_var, read=True, label=label + ' N', unit='-', lat_name='lat', lon_name='lon',
+    obs_N = Data(obs_ymonN_file, obs_var, read=True,
+                 label=label + ' N', unit='-', lat_name='lat',
+                 lon_name='lon',
                  shift_lon=shift_lon, time_cycle=time_cycle)
     obs.n = obs_N.data.copy()
     del obs_N
 
-    #sort climatology to be sure that it starts always with January
+    # sort climatology to be sure that it starts always with January
     obs.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
     obs.timsort()
 
     #/// read monthly data (needed for global means and hovmoeller plots) ///
-    obs_monthly = Data(obs_mon_file, obs_var, read=True, label=label, lat_name='lat', lon_name='lon',
+    obs_monthly = Data(obs_mon_file, obs_var, read=True, label=label,
+                       lat_name='lat', lon_name='lon',
                        shift_lon=shift_lon) #,mask=ls_mask.data.data)
 
     #try to ensure really monthly increasing time series
@@ -329,7 +333,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     INI file e.g. HOAPS, CMSAF ...
     """
 
-    #---- GENERAL CHECKS -----------------------------------------------------------------------
+    #---- GENERAL CHECKS
     if interval not in ['monthly', 'season']:
         raise ValueError, 'invalid interval in generic_analysis() ' + interval
 
@@ -339,10 +343,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     if report is None:
         raise ReportError("Report option was not enabled")
 
-    #---- PLOT OPTIONS -----------------------------------------------------------------------
+    #---- PLOT OPTIONS
 
     local_plot_options = plot_options.options[
-        obs_type] #gives a dictionary with all the options for the current variable
+        obs_type]  # gives a dictionary with all the options for the current variable
     if 'OPTIONS' not in local_plot_options.keys():
         raise ValueError, 'No OPTIONS specified for analysis of variable ' + obs_type
     if obs_name not in local_plot_options.keys():
@@ -586,7 +590,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 pass
             else:
                 if m_data_org in model.variables.keys():
-                    if model.variables[m_data_org][2] is None: #invalid data for mean_model --> skip
+                    if model.variables[m_data_org][2] is None:  # invalid data for mean_model --> skip
                         pass
                     else:
                         #print model.variables[m_data_org][2].label
@@ -594,7 +598,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                         tmp._apply_mask(actmask)
                         #GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
                         GM.plot(tmp, label=model._unique_name, show_std=False,
-                                group='models') #(time,meandata) replace rain_org with data_org
+                                group='models')  # (time,meandata) replace rain_org with data_org
                         del tmp
 
         if model_data is None:
@@ -602,19 +606,20 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             continue
 
         if model_data.data.shape != obs_orig.data.shape:
-            print 'Inconsistent geometries' # add here parameter name
+            print 'Inconsistent geometries'  # add here parameter name
             print 'Model: ', model_data.data.shape
             print 'Observation: ', obs_orig.data.shape
             raise ValueError("Invalid geometries")
 
         if f_mapdifference == True:
             sys.stdout.write('\n *** Map difference plotting. \n')
-            #--- generate difference map
+            # generate difference map
+            savegraphics_prefix = os.environ['PYCMBS_OUTPUTDIR'] + obs_orig._get_label() + '___' + model_data._get_label() + '.' + os.environ['PYCMBS_OUTPUTFORMAT']
             f_dif = map_difference(model_data, obs_orig, nclasses=nclasses, use_basemap=use_basemap,
                                    show_zonal=True, zonal_timmean=True,
                                    dmin=dmin, dmax=dmax, vmin=vmin, vmax=vmax, cticks=cticks,
                                    proj=projection, stat_type=stat_type, show_stat=True, drawparallels=False,
-                                   colorbar_orientation='horizontal')
+                                   colorbar_orientation='horizontal', savegraphics_prefix=savegraphics_prefix)
             report.figure(f_dif, caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
             pl.close(f_dif.number)
             del f_dif
