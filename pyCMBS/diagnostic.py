@@ -127,7 +127,7 @@ class PatternCorrelation(DiagnosticMaster):
         else:
             raise ValueError('Invalid plot type!')
 
-        self.ax.legend()
+        self.ax.legend(loc='lower left',prop={'size':10})
         self.ax.set_xlabel('timestep #')
         self.ax.set_ylabel('$r_{pears}$')
         self.ax.grid()
