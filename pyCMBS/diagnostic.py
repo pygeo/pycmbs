@@ -129,8 +129,10 @@ class PatternCorrelation(DiagnosticMaster):
             raise ValueError('Invalid plot type!')
 
         self.ax.legend()
-        self.ax.set_xlabel('timestep')
+        self.ax.set_xlabel('timestep #')
         self.ax.set_ylabel('$r_{pears}$')
+        self.ax.grid()
+        self.ax.set_ylim(-1.,1.)
 
     def _draw_polar(self, ax):
         raise ValueError('Polar plot not finally implemented yet!')
