@@ -553,7 +553,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
     if f_mapseasons == True:  #seasonal mean plot
         f_season = map_season(obs_orig, use_basemap=use_basemap, cmap_data='jet',
-                              show_zonal=True, zonal_timmean=True, nclasses=nclasses,
+                              show_zonal=False, zonal_timmean=True, nclasses=nclasses,
                               vmin=vmin, vmax=vmax, cticks=cticks, proj=projection, stat_type=stat_type)
         if len(obs_orig.data) == 4:
             report.figure(f_season, caption='Seasonal mean ' + obs_name)
@@ -673,10 +673,13 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         if f_mapseasons == True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
 
-            #seasonal map
-            f_season = map_season(model_data, use_basemap=use_basemap, cmap_data='jet',
-                                  show_zonal=True, zonal_timmean=True, nclasses=nclasses,
-                                  vmin=vmin, vmax=vmax, cticks=cticks, proj=projection, stat_type=stat_type,
+            # seasonal map
+            f_season = map_season(model_data, use_basemap=use_basemap,
+                                  cmap_data='jet',
+                                  show_zonal=False, zonal_timmean=True,
+                                  nclasses=nclasses,
+                                  vmin=vmin, vmax=vmax, cticks=cticks,
+                                  proj=projection, stat_type=stat_type,
                                   show_stat=True,
                                   drawparallels=False, titlefontsize=10)
             if len(model_data.data) == 4:
@@ -688,10 +691,18 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         if f_mapseason_difference:
             # generate seasonal plot of difference
-            f_season_dif = map_season(model_data.sub(obs_orig), use_basemap=use_basemap, cmap_data='RdBu_r',
-                                      show_zonal=True, zonal_timmean=True, nclasses=nclasses,
-                                      vmin=dmin, vmax=dmax, proj=projection, stat_type=stat_type, show_stat=True,
-                                      drawparallels=False, titlefontsize=10)
+            f_season_dif = map_season(model_data.sub(obs_orig),
+                                      use_basemap=use_basemap,
+                                      cmap_data='RdBu_r',
+                                      show_zonal=False,
+                                      zonal_timmean=True,
+                                      nclasses=nclasses,
+                                      vmin=dmin, vmax=dmax,
+                                      proj=projection,
+                                      stat_type=stat_type,
+                                      show_stat=True,
+                                      drawparallels=False,
+                                      titlefontsize=10)
 
             if len(model_data.data) == 4:
                 report.figure(f_season_dif,
