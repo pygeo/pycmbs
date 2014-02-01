@@ -407,7 +407,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     valid_mask = valid_mask.lower()
 
     #//////////////////////////////////////////////////////////////////
-    #--- plot options which are the same for all datasets
+    #--- plot options which are the same for all observational datasets
     cticks = local_plot_options['OPTIONS']['cticks']
     f_mapdifference = local_plot_options['OPTIONS']['map_difference']
     f_mapseasons = local_plot_options['OPTIONS']['map_seasons']
@@ -418,6 +418,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     f_hovmoeller = local_plot_options['OPTIONS']['hovmoeller_plot']
     f_regional_analysis = local_plot_options['OPTIONS']['regional_analysis']
     f_globalmeanplot = local_plot_options['OPTIONS']['global_mean']
+    f_pattern_correlation = local_plot_options['OPTIONS']['pattern_correlation']
     interpolation_method = local_plot_options['OPTIONS']['interpolation']
     targetgrid = local_plot_options['OPTIONS']['targetgrid']
     projection = local_plot_options['OPTIONS']['projection']
@@ -530,21 +531,25 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     # PLOTS
     #####################################################################
 
-    #--- initialize Reichler plot
+    # initialize Reichler plot
     if f_reichler == True:
-        Rplot = ReichlerPlot() #needed here, as it might include multiple model results
+        Rplot = ReichlerPlot()  # needed here, as it might include multiple model results
+
+    if f_pattern_correlation:  # init plot for PatternCorrelation
+        fig_pc = plt.figure()
+        ax_pc = fig_pc.add_subplot(111)
 
     if f_globalmeanplot:
         if GM is None:
             fG = plt.figure();
             axg = fG.add_subplot(211);
             axg1 = fG.add_subplot(212)
-            GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True) #global mean plot
+            GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True)  # global mean plot
         else:
             if isinstance(GM, GlobalMeanPlot):
                 pass
             else:
-                raise ValueError, 'Global mean variable GM has invalid object type'
+                raise ValueError('Global mean variable GM has invalid object type')
     else:
         GM = None
 
@@ -715,6 +720,13 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             pl.close(f_season_dif.number);
             del f_season_dif
 
+
+        if f_pattern_correlation:
+            # perform pattern correlation
+            PC = PatternCorrelation(obs_orig, model_data, ax=ax_pc)
+            xxx = PC.plot(label=model.name.upper())
+
+
         if f_hovmoeller == True:
             print('    Doing Hovmoeller plot ...')
             f_hov = plt.figure(figsize=(8, 12))
@@ -797,6 +809,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             del REGSTAT
 
+        if f_pattern_correlation:
+            ax_pc.set_title('Pattern correlation: ' + obs_type.upper())
+            report.figure(ax_pc.figure, caption='Pattern correlation for ' + obs_type.upper())
+            report.newpage()
 
         if f_reichler == True:
             sys.stdout.write('\n *** Computing diagnostics (Reichler index). \n')
