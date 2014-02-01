@@ -2907,22 +2907,17 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         ax.set_yticks([])
 
 
-    # Zonal plot
-    if show_zonal:
-        if x._latitudecheckok:
-            add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
-        else:
-            print 'WARNING: zonal plot not possible due to invalid latitude configurations'
-
-
-
-
-
 
     # set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
-    caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
-    caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+    if show_zonal:
+        caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
+        caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+        caxzonaldummy = divider.new_horizontal(size="15%", pad=0.1, axes_class=maxes.Axes, pack_start=True)
+        # this is still not working properly !
+    else:
+        caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
+        caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
     if colorbar_orientation == 'vertical':
         cax = caxv
         caxdummy = caxh
@@ -2931,7 +2926,11 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         caxdummy = caxv
     else:
         raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
+
     ax.figure.add_axes(cax)
+
+
+
     vmin = im1.get_clim()[0]
     vmax = im1.get_clim()[1]
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -2954,6 +2953,13 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     #--- add a histogram below the map plot
     if show_histogram:
         add_histogram(ax,x,bins=bins)
+
+    # Zonal plot
+    if show_zonal:
+        if x._latitudecheckok:
+            add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+        else:
+            print 'WARNING: zonal plot not possible due to invalid latitude configurations'
 
 
 
@@ -3005,7 +3011,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         mapboundary = Polygon(xy, edgecolor=color, linewidth=linewidth, fill=False, linestyle='dashed')
         ax.add_patch(mapboundary)
 
-    #--- plot regions in the map ---
+    # plot regions in the map ---
     if regions_to_plot is not None:
         if use_basemap:
             for region in regions_to_plot:
@@ -3016,8 +3022,8 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 if region.type=='index':
                     _add_region_standard(ax, region, linewidth=regionlinewidth)
 
-    #--- set title
-    if title == None:
+    # set title
+    if title is None:
         title = x._get_label()
     else:
         pass
