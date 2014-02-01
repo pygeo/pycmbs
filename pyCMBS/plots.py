@@ -2345,7 +2345,6 @@ class MapPlotGeneric(object):
         ax.imshow(self.x.timmean(), **kwargs)
         self._draw_title(ax)
 
-
     def _draw_title(self, ax):
         """
         draw title, units and statistics
@@ -2357,7 +2356,6 @@ class MapPlotGeneric(object):
         ax.set_title('testtitle')
         ax.set_title(unit, loc='right')
         ax.set_title(stat, loc='left')
-
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
@@ -2398,7 +2396,7 @@ class SingleMap(MapPlotGeneric):
             Data object with data to plot
         """
         assert(isinstance(x,Data))
-        super(SingleMap,self).__init__(**kwargs)
+        super(SingleMap, self).__init__(**kwargs)
         self.x = x
 
 
@@ -2446,7 +2444,8 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
              colorbar_orientation='vertical', stat_type='mean',
              cax_rotation=0., cticklabels=None, proj='robin',
              plot_method='colormesh', boundinglat=60.,
-             savefile=None, lon_0=0., lat_0=0., savegraphicfile=None, **kwargs):
+             savefile=None, lon_0=0., lat_0=0., savegraphicfile=None,
+             **kwargs):
     """
     produce a nice looking map plot
 
@@ -2611,8 +2610,6 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
         return collection
 
-
-
     if 'vmin' in kwargs.keys():
         vmin = kwargs['vmin']
     else:
@@ -2622,14 +2619,10 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     else:
         vmax = None
 
-
     if plot_method not in ['colormesh','scatter']:
         raise ValueError, 'Invalid plotting option ' + plot_method
 
-
-
-    #--- checks
-
+    # checks
     if proj not in ['robin', 'npstere', 'spstere']:
         raise ValueError('ERROR: projection type not validated for map_plot so far: %s' % proj)
     if proj == 'npstere': #todo: for stereographic projection, scatter is used as method at the moment
@@ -2637,28 +2630,25 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     if proj == 'spstere': #todo: for stereographic projection, scatter is used as method at the moment
         plot_method = 'scatter'
 
-
-
     if overlay is not None:
-
         if x.data.ndim == 2:
             if overlay.shape != x.data.shape:
                 print overlay.shape, x.data.shape
-                raise ValueError, 'Invalid geometry for overlay !'
+                raise ValueError('Invalid geometry for overlay !')
         elif x.data.ndim == 3:
             if overlay.shape != x.data[0,:,:].shape:
                 print overlay.shape, x.data.shape
-                raise ValueError, 'Invalid geometry for overlay !'
+                raise ValueError('Invalid geometry for overlay !')
         else:
-            raise ValueError, 'Overlay for this geometry not supported!'
+            raise ValueError('Overlay for this geometry not supported!')
 
     #--- create new figure
     if ax is None:
         fig = plt.figure()
 
-        #with timeseries plot?
+        # with timeseries plot?
         if show_timeseries:
-            gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
+            gs = gridspec.GridSpec(2, 1, wspace=0.05, hspace=0.05, bottom=0.2, height_ratios = [5,1])
             ax = fig.add_subplot(gs[0])
             ax2 = fig.add_subplot(gs[1])
         else:
@@ -2668,8 +2658,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         if show_timeseries:
             raise ValueError, 'Showing timeseries and providing some prior axis is currently not impelmented!' #todo
 
-
-    #if cmap provided in kwargs, then remove it and set cmap_data
+    # if cmap provided in kwargs, then remove it and set cmap_data
     kwargs1 = kwargs.copy()
     if 'cmap' in kwargs:
         cmap_data = kwargs1.pop('cmap')
@@ -2678,15 +2667,15 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
     #--- create colormap
     if hasattr(cmap_data,'monochrome'):
-        #colormap object was given
+        # colormap object was given
         cmap = cmap_data
     else:
         cmap = plt.cm.get_cmap(cmap_data, nclasses)
 
-    #--- temporal mean fields as data to plot
+    # temporal mean fields as data to plot
     xm = x.timmean() #returns an array
 
-    #--- logscale plot ?
+    # logscale plot ?
     if logplot:
         if logoffset is None:
             if xm.min() < 0.: logoffset = abs(xm.min())*1.01
@@ -2702,7 +2691,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         tmp = x.copy()
         tmp.data = xm*1.
         tmp.time = None
-        tmp.save(savefile,varname='temporal_mean_field')
+        tmp.save(savefile, varname='temporal_mean_field')
         del tmp
 
     #--- set projection parameters
@@ -2718,19 +2707,23 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         lat_0 = lat_0
         boundinglat = -boundinglat
     else:
-        raise ValueError,'Unsupported projection in map_plot (unsupported means, that it was not tested yet)'
+        raise ValueError('Unsupported projection in map_plot (unsupported means, that it was not tested yet)')
 
     #--- plot using basemap
     if use_basemap:
-        llcrnrlon=None; llcrnrlat=None; urcrnrlon=None; urcrnrlat=None
+        llcrnrlon=None
+        llcrnrlat=None
+        urcrnrlon=None
+        urcrnrlat=None
 
         #if a region is specfied, then the plotting boundaries are set
         if region !=None:
-            if not hasattr(region,'lonmin'):
+            if not hasattr(region, 'lonmin'):
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
             else:
-                dlat = (region.latmax-region.latmin)*0.25; dlon = (region.lonmax-region.lonmin)*0.25
-                di = 0. #with 0 it works; for other values problems may occur for negative lon!
+                dlat = (region.latmax-region.latmin)*0.25
+                dlon = (region.lonmax-region.lonmin)*0.25
+                di = 0. # with 0 it works; for other values problems may occur for negative lon!
                 llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
                 proj='tmerc' #use mercator projection at regional scale as robinson does not work!
@@ -2739,7 +2732,8 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         # generate Basemap map
         ############################################
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,
-                   llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
+                   llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                   urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
                    boundinglat=boundinglat)
 
         if bluemarble:
@@ -2750,13 +2744,13 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
             #it assumes that the data object has a list of center coordinates which correspond to the data
             #and vlon/vlat attributes with corresponding vertices corresponding to the center coordinates
 
-            if not hasattr(x,'vlon'):
+            if not hasattr(x, 'vlon'):
                 raise ValueError, 'Plotting for unstructured grid not possible, as VLON attribute missing!'
-            if not hasattr(x,'vlat'):
+            if not hasattr(x, 'vlat'):
                 raise ValueError, 'Plotting for unstructured grid not possible, as VLAT attribute missing!'
 
             #--- generate collection of patches for Basemap plot
-            collection = _get_unstructured_collection(x.vlon,x.vlat,xm,vmin,vmax,basemap_object=m1)
+            collection = _get_unstructured_collection(x.vlon, x.vlat, xm, vmin, vmax, basemap_object=m1)
 
         else: #unstructured gridtype
 
@@ -2774,33 +2768,43 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
             if f_kdtree:
                 #use KDTRee nearest neighbor resampling to avoid stripes in plotting
-                lons = np.unique(x.lon); lats = np.unique(x.lat)
+                lons = np.unique(x.lon)
+                lats = np.unique(x.lat)
                 lons.sort(); lats.sort()
-                TLON,TLAT = np.meshgrid(lons,lats)  #generate target coordinates
+                TLON,TLAT = np.meshgrid(lons, lats)  #generate target coordinates
                 XT,YT = m1(TLON,TLAT)
-                X=XT.copy(); Y=YT.copy()
+                X=XT.copy()
+                Y=YT.copy()
                 shape0 = np.shape(XT)
-                XT.shape = (-1); YT.shape = (-1) #... vectorize them for inertpolation
+                XT.shape = (-1)
+                YT.shape = (-1)  # ... vectorize them for inertpolation
                 tree = KDTree(zip(XT,YT)) #generate tree from TARGET coordinates
 
                 #prepare data and interpolate
                 xmap,ymap = m1(x.lon,x.lat)
-                xmap.shape = (-1); ymap.shape = (-1)
+                xmap.shape = (-1)
+                ymap.shape = (-1)
                 pts  = zip(xmap,ymap) #generate points to interpolate from source data
                 dist,idx = tree.query(pts,k=1)     #perform nearest neighbor interpolation (returns distance and indices)
 
                 #- map data to output matrix for plotting
-                Z = np.ones(shape0)*np.nan; Z.shape = (-1) #generate target vector
-                omask = np.ones(shape0).astype('bool'); omask.shape = (-1)
+                Z = np.ones(shape0)*np.nan
+                Z.shape = (-1) #generate target vector
+                omask = np.ones(shape0).astype('bool')
+                omask.shape = (-1)
 
-                msk1 = xm.mask.copy(); msk1.shape = (-1); omask[idx] = msk1
+                msk1 = xm.mask.copy()
+                msk1.shape = (-1)
+                omask[idx] = msk1
 
                 #~ omask[dist != 0.] = True
 
-                xm1 = xm.copy(); xm1.shape = (-1)
+                xm1 = xm.copy()
+                xm1.shape = (-1)
                 Z[idx]   = xm1 #assign data and reshape it and set generate masked array
                 Z[omask] = np.nan
-                Z = np.reshape(Z,shape0); Z = np.ma.array(Z,mask=np.isnan(Z))
+                Z = np.reshape(Z,shape0)
+                Z = np.ma.array(Z,mask=np.isnan(Z))
 
             else: #f_kdtree --> not kdtree
 
@@ -2814,7 +2818,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                 #    * http://pl.digipedia.org/usenet/thread/15998/16891/
                 if plot_method == 'colormesh':
                     print 'Projection: ', proj
-                    if x._lon360: #if lon 0 ... 360, then shift data
+                    if x._lon360:  # if lon 0 ... 360, then shift data
                         tmp_lon = x._get_unique_lon() #get unique longitudes
                         tmplon1 = tmp_lon.copy()
                         Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
@@ -2832,7 +2836,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                         lat = x.lat
                         Z = xm
                 else:
-                    raise ValueError, 'Invalid option'
+                    raise ValueError('Invalid option')
 
                 X, Y = m1(lon, lat)
 
@@ -2850,12 +2854,12 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                     if 'levels' in kwargs1.keys():
                         levels = kwargs1.pop('levels')
                     else:
-                        raise ValueError, 'When plotting with contours, you need to specify the levels option (see contour documnetation)'
+                        raise ValueError('When plotting with contours, you need to specify the levels option (see contour documnetation)')
                     if contourf:
                         im1=m1.contourf(X, Y, Z,levels, cmap=cmap, **kwargs1)
                     else:
                         im1=m1.contour(X, Y, Z, levels, cmap=cmap, **kwargs1)
-                        ax.clabel(im1, inline=1, fontsize=10) #contour label
+                        ax.clabel(im1, inline=1, fontsize=10)  # contour label
 
                 else:
                     if plot_method == 'colormesh':
@@ -3336,6 +3340,11 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     else:
         cticks_diff = None
 
+    if 'cticks_rdiff' in kwargs:
+        cticks_rdiff = kwargs.pop('cticks_rdiff')
+    else:
+        cticks_rdiff = [-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.]
+
     if 'colorbar_orientation' in kwargs:
         colorbar_orientation = kwargs.pop('colorbar_orientation')
     else:
@@ -3410,7 +3419,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
 
 
-    #-first minus second dataset
+    #-first minus second dataset (absolute difference)
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     if savefile is None:
@@ -3422,7 +3431,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
         graphic_name = None
     else:
         graphic_name = graphic_rootname + '_ADIFF' + extension
-    # entir plot
+    # entire plot
     map_plot(adif, use_basemap=use_basemap, ax=ax3, vmin=dmin, vmax=dmax,cticks=cticks_diff, region=region,
              nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
              show_stat=show_stat, show_zonal=show_zonal, zonal_timmean=zonal_timmean, proj=proj, stat_type=stat_type, savefile=tmpoutname,
@@ -3433,7 +3442,8 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
         map_plot(adif, use_basemap=use_basemap, vmin=dmin, vmax=dmax,cticks=cticks_diff, region=region,
                  nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
                  show_stat=show_stat, show_zonal=show_zonal, zonal_timmean=zonal_timmean, proj=proj, stat_type=stat_type, savefile=tmpoutname,
-                 colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name)
+                 colorbar_orientation=colorbar_orientation,
+                 drawparallels=drawparallels, savegraphicfile=graphic_name)
 
 
     #- relative error
@@ -3453,7 +3463,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
         graphic_name = graphic_rootname + '_RDIFF' + extension
 
     map_plot(rdat, use_basemap=use_basemap, ax=ax4, vmin=rmin, vmax=rmax, title='relative difference',
-             cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.], region=region, nclasses=nclasses,
+             cticks=cticks_rdiff, region=region, nclasses=nclasses,
              cmap_data=cmap_difference,show_stat=show_stat, show_zonal=show_zonal,
              zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
              colorbar_orientation=colorbar_orientation, drawparallels=drawparallels)
@@ -3461,7 +3471,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     # ... do the same plot again but in an own figure!
     if graphic_rootname is not None:
         map_plot(rdat, use_basemap=use_basemap, vmin=rmin, vmax=rmax, title='relative difference',
-                 cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.], region=region, nclasses=nclasses,
+                 cticks=cticks_rdiff, region=region, nclasses=nclasses,
                  cmap_data=cmap_difference,show_stat=show_stat, show_zonal=show_zonal,
                  zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
                  colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name)

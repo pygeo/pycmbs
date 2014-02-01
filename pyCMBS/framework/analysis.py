@@ -449,6 +449,16 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         dmax = local_plot_options['OPTIONS']['dmax']
     else:
         dmax = None
+    if 'cticks_diff' in local_plot_options['OPTIONS'].keys():
+        cticks_diff = local_plot_options['OPTIONS']['cticks_diff']
+    else:
+        cticks_diff = None
+
+    if 'cticks_rdiff' in local_plot_options['OPTIONS'].keys():
+        cticks_rdiff = local_plot_options['OPTIONS']['cticks_rdiff']
+    else:
+        cticks_rdiff = None
+
 
     m_data_org = obs_type + '_org'  # name of original data field
 
@@ -619,7 +629,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                    show_zonal=True, zonal_timmean=True,
                                    dmin=dmin, dmax=dmax, vmin=vmin, vmax=vmax, cticks=cticks,
                                    proj=projection, stat_type=stat_type, show_stat=True, drawparallels=False,
-                                   colorbar_orientation='horizontal', savegraphics_prefix=savegraphics_prefix)
+                                   colorbar_orientation='horizontal', savegraphics_prefix=savegraphics_prefix,cticks_diff=cticks_diff, cticks_rdiff=cticks_rdiff)
             report.figure(f_dif, caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
             pl.close(f_dif.number)
             del f_dif
