@@ -3010,7 +3010,7 @@ y
 
 #-----------------------------------------------------------------------
 
-    def fldstd(self, return_data=False, apply_weights=True, ddof=1):
+    def fldstd(self, return_data=False, apply_weights=True, ddof=0):
         """
         calculate stdv of the spatial field using area weighting
         returns exactly same results as the same CDO function
@@ -3034,6 +3034,11 @@ y
         Test
         ----
         unittest implemented
+
+        Todo
+        ----
+        * proper unittest reference for ddof=1
+        * unittest together with cdo's
         """
 
         if self.data.ndim == 3:
@@ -3067,12 +3072,12 @@ y
                 elif ddof == 1:  # biased estimator
                     V1 = w.sum()
                     V2 = (w*w).sum()
-                    s = V1*(w*(self.data - mu)**2.).sum() / (V1*V1-V2)
+                    print 'V1, V2: ', V1, V2
+                    print 'mu: ', mu
+                    s = V1*np.sum(w*(self.data - mu)**2.) / (V1*V1-V2)
                     tmp = np.sqrt(s)
                 else:
                     raise ValueError('DDOF /= 1 not implemented yet!')
-
-
 
             elif self.data.ndim == 3:
                 nt, ny, nx = self.shape
