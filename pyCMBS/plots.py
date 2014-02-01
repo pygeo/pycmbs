@@ -2399,14 +2399,9 @@ class SingleMap(MapPlotGeneric):
         super(SingleMap, self).__init__(**kwargs)
         self.x = x
 
-
-
-
     def plot(self):
         self.fig = map_plot(self.x, savefile=self.savefile,
                 show_stat=self.show_statistic)
-
-
 
 class MultipleMap(MapPlotGeneric):
     def __init__(self,geometry=None,**kwargs):
@@ -2911,7 +2906,20 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         ax.set_xticks([])
         ax.set_yticks([])
 
-    #set legend aligned with plot (nice looking)
+
+    # Zonal plot
+    if show_zonal:
+        if x._latitudecheckok:
+            add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+        else:
+            print 'WARNING: zonal plot not possible due to invalid latitude configurations'
+
+
+
+
+
+
+    # set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
     caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
     caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
@@ -2928,7 +2936,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     vmax = im1.get_clim()[1]
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
-    #dummy axis to ensure equal spacing in multiple plots
+    # dummy axis to ensure equal spacing in multiple plots
     caxdummy.set_xticks([])
     caxdummy.set_yticks([])
     caxdummy.set_frame_on(False)
@@ -2947,12 +2955,12 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     if show_histogram:
         add_histogram(ax,x,bins=bins)
 
-    #Zonal plot
-    if show_zonal:
-        if x._latitudecheckok:
-            add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
-        else:
-            print 'WARNING: zonal plot not possible due to invalid latitude configurations'
+
+
+
+
+
+
 
     def _add_region_basemap(m, r, color='red', linewidth=1):
         """
@@ -3073,69 +3081,68 @@ def add_histogram(ax,x,bins=10):
 
     divider = make_axes_locatable(ax)
     #zax     = divider.new_vertical("30%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
-    zax = divider.append_axes("bottom","30%",pad=0.1)
+    zax = divider.append_axes("bottom", "30%", pad=0.1)
 
 
-    ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
+    ax.figure.add_axes(zax, axisbg=ax.figure.get_facecolor())
 
-    H = HistogrammPlot(ax=zax,bins=bins)
+    H = HistogrammPlot(ax=zax, bins=bins)
     H.plot(x) #plot options ????
 
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
+def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
     """
-    add a zonal plot to the axis. An area weigting is automaticall performed
+    add a zonal plot to the axis.
+    An area weigting is automaticall performed
 
-    @param ax: axis where zonal plot should be added to
-    @type ax: axis
-
-    @param x: data to plot
-    @type x: C{Data} object
-
-    @param timmean: temporal mean for zonal plot?
-    @type timmean: bool
-
-    @param vmin: minimum value for y-axis
-    @type vmin: float
-
-    @param vmax: maximum value for y-axis
-    @type vmax: float
-
-
+    Parameters
+    ----------
+    ax : axis
+        axis where zonal plot should be added to
+    x : Data
+        data to plot
+    timmean : bool
+        temporal mean for zonal plot [default=True]
+    vmin : float
+        minimum value for zonal plot
+    vmax : float
+        maximum value for zonal plot
     """
 
     divider = make_axes_locatable(ax)
-    zax     = divider.new_horizontal("15%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
-    ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
+    zax = divider.new_horizontal("15%", pad=0.1,
+                                    axes_class=maxes.Axes,
+                                    pack_start=True)
+    ax.figure.add_axes(zax, axisbg=ax.figure.get_facecolor())
 
-    ZP = ZonalPlot(ax=zax,dir='y')
+    ZP = ZonalPlot(ax=zax, dir='y')
 
     if x.data.ndim == 2:
         pass
     elif x.data.ndim == 3:
         nt,ny,nx = x.data.shape
-    ZP.plot(x,timmean=timmean,show_ylabel=False)
+    ZP.plot(x, timmean=timmean, show_ylabel=False)
 
-    #- set limits
-    if ((vmin == None) & (vmax == None)):
+    # set limits
+    if ((vmin is None) & (vmax is None)):
         vmin = zax.get_xlim()[0]
         vmax = zax.get_xlim()[1]
-        #symmetry if neg. and posistive limits
+        # symmetry if neg. and posiitve limits
         if (vmin < 0.) & (vmax>0.):
             val = max(abs(vmin),abs(vmax))
             vmin = -val; vmax = val
 
-    if vmin == None:
+    if vmin is None:
         vmin = zax.get_xlim()[0]
-    if vmax == None:
+    if vmax is None:
         vmax = zax.get_xlim()[1]
-    zax.set_xlim(vmin,vmax)
+    zax.set_xlim(vmin, vmax)
 
     #set only first and last label
-    zax.set_xticks([vmin,vmax])
-    zax.plot([0,0],zax.get_ylim(),linestyle='-',color='grey')
+    zax.set_xticks([vmin, vmax])
+    zax.plot([0,0], zax.get_ylim(), linestyle='-', color='grey')
 
     for tick in zax.xaxis.get_major_ticks():
         tick.label.set_fontsize(8)
@@ -3144,7 +3151,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
 
 #-----------------------------------------------------------------------
 
-def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8,label=None):
+def add_nice_legend(ax, im,cmap, cticks=None, dummy=False, fontsize=8, label=None):
     """
     add a nice looking legend
 
