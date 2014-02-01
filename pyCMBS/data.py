@@ -549,7 +549,7 @@ class Data(object):
                 raise ValueError('File already existing. Please delete \
                                   manually or use DELETE option: \
                                   %s' % filename)
-            # variable name
+        # variable name
         if varname is None:
             if self.varname is None:
                 varname = 'var1'
@@ -567,11 +567,11 @@ class Data(object):
                     raise ValueError('No time variable existing! \
                                       Can not write 3D data!')
                 nt, ny, nx = self.shape
-                File.create_dimension('time', size=nt)
             elif self.data.ndim == 2:
                 ny, nx = self.shape
             else:
                 raise ValueError('Current shape not supported here %s' % self.shape)
+
         else:
             ny, nx = np.shape(self.lat)
 
@@ -582,6 +582,7 @@ class Data(object):
         # Create variables
         if hasattr(self, 'time'):
             if self.time is not None:
+                File.create_dimension('time', size=len(self.time))
                 File.create_variable('time', 'd', ('time',))
                 File.F.variables['time'].units = self.time_str
 
@@ -2906,7 +2907,7 @@ y
             tmp *= self.totalarea #this is the difference to fldmean() !; Here we rescale the result by the total area used for calculating the weights
 
         else:
-            #no area weighting
+            # no area weighting
             if self.data.ndim == 3:
                 tmp = np.reshape(self.data, (len(self.data), -1)).sum(axis=1)
             elif self.data.ndim == 2:
@@ -2964,7 +2965,7 @@ y
         elif self.data.ndim == 2:
             pass
         else:
-            raise ValueError, 'fldmean currently only supported for 2D/3D data'
+            raise ValueError('fldmean currently only supported for 2D/3D data')
 
         if apply_weights:
             # area weighting
@@ -3007,9 +3008,9 @@ y
             return tmp
 
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
-    def fldstd(self, return_data=False, apply_weights=True):
+    def fldstd(self, return_data=False, apply_weights=True, ddof=1):
         """
         calculate stdv of the spatial field using area weighting
         returns exactly same results as the same CDO function
@@ -3018,6 +3019,12 @@ y
         ----------
         return_data : bool
             if True, then a C{Data} object is returned
+        apply_weights : bool
+            specifies if area weighting should be applied
+        ddof : int, optional
+            Means Delta Degrees of Freedom.  The divisor used in calculations
+            is ``N - ddof``, where ``N`` represents the number of elements.
+            By default `ddof` is zero.
 
         Returns
         -------
@@ -3027,7 +3034,6 @@ y
         Test
         ----
         unittest implemented
-
         """
 
         if self.data.ndim == 3:
@@ -3037,6 +3043,9 @@ y
         else:
             raise ValueError('fldstd currently only supported for 3D data')
 
+        if ddof not in [0,1]:
+            raise ValueError('ddof only supported for [0,1] so far!')
+
         if apply_weights:
             #calculate weighted standard deviation.
             #http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
@@ -3044,41 +3053,48 @@ y
 
             #calculate weighting matrix
             w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
+            print w
 
             if self.data.ndim == 2:
-                h2 = self.data * w  # wx
-                h1 = self.data * h2  # w*x**2
-                ny, nx = self.data.shape
+                if ddof == 1:
+                    h2 = self.data * w  # wx
+                    h1 = self.data * h2  # w*x**2
+                    ny, nx = self.data.shape
 
-                s = h1.sum() * w.sum() - h2.sum() ** 2
-                s /= (w.sum() ** 2 - (w * w).sum() )
+                    s = h1.sum() * w.sum() - h2.sum() ** 2
+                    s /= (w.sum() ** 2 - (w * w).sum() )
 
-                tmp = [np.sqrt(s)]
+                    tmp = [np.sqrt(s)]
+                else:
+                    raise ValueError('DDOF /= 1 not implemented yet!')
             elif self.data.ndim == 3:
-                h2 = self.data * w  # wx
-                h1 = self.data * h2  # w*x**2
+                if ddof == 1:
+                    h2 = self.data * w  # wx
+                    h1 = self.data * h2  # w*x**2
 
-                # do calculation
-                nt, ny, nx = self.data.shape
+                    # do calculation
+                    nt, ny, nx = self.data.shape
 
-                s = np.ones(nt) * np.nan  # generate output array (unbiased variance estimator)
-                for i in xrange(nt):
-                    s[i] = h1[i, :, :].sum() * w[i, :, :].sum() - h2[i, :, :].sum() ** 2.
-                    s[i] /= (w[i, :, :].sum() ** 2. - (w[i, :, :] * w[i, :, :]).sum()  )
-                tmp = np.sqrt(s)
+                    s = np.ones(nt) * np.nan  # generate output array (unbiased variance estimator)
+                    for i in xrange(nt):
+                        s[i] = h1[i, :, :].sum() * w[i, :, :].sum() - h2[i, :, :].sum() ** 2.
+                        s[i] /= (w[i, :, :].sum() ** 2. - (w[i, :, :] * w[i, :, :]).sum()  )
+                    tmp = np.sqrt(s)
+                else:
+                    raise ValueError('DDOF /= 1 not implemented yet!')
             else:
                 raise ValueError('Undefined')
 
         else:
             # no area weighting
             if self.data.ndim == 2:
-                tmp = self.data.std()
+                tmp = self.data.std(ddof=ddof)
             elif self.data.ndim == 3:
-                tmp = np.reshape(self.data, (len(self.data), -1)).std(axis=1)
+                tmp = np.reshape(self.data, (len(self.data), -1)).std(axis=1, ddof=ddof)
             else:
-                raise ValueError('Undefined')
+                raise ValueError('Undefined in fldstd()')
 
-        if return_data: #return data object
+        if return_data:  # return data object
             if self.data.ndim == 3:
                 x = np.zeros((len(tmp), 1, 1))
                 x[:, 0, 0] = tmp
