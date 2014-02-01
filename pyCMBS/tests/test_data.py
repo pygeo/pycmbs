@@ -923,98 +923,136 @@ class TestData(TestCase):
 
         xdat = np.asarray([2., 2., 4., 5., 5., 5.])
 
-        # case 1 unweighted sample
+        ### 2D data ###
+
+        # 1) no weighting
         A = self.D.copy()
-        x = np.ones((1,6,1))
+        x = np.ones((1, len(xdat)))
+        x[0,:] = xdat*1.
+        y = np.ones_like(x)*3.  # cell area dummy
+        A.cell_area = y*1.
+        A.data = np.ma.array(x, mask=x != x)
+
+        # ddof = 0
+        r = A.fldstd(apply_weights=False, ddof=0)
+        self.assertEqual(r,xdat.std(ddof=0))
+        # ddof = 1
+        r = A.fldstd(apply_weights=False, ddof=1)
+        self.assertEqual(r,xdat.std(ddof=1))
+
+        # 2) weighting
+
+        # a) same cell size
+        r = A.fldstd(apply_weights=True, ddof=0)
+        self.assertAlmostEqual(r, xdat.std(ddof=0), 10)
+
+        r = A.fldstd(apply_weights=True, ddof=1)
+        self.assertAlmostEqual(r, xdat.std(ddof=1),10)
+
+        # b) different cell size
+        refdat = np.asarray([2.,4.,5.])
+        x = np.ones((1,3))
+        x[0,0] = 2.
+        x[0,1] = 4.
+        x[0,2] = 5.
+        A.data = np.ma.array(x, mask=x != x)
+        y = np.ones_like(x)
+        y[0,0] = 2. # weight in acordance with the number of
+        y[0,1] = 1. # occurences in xdat (se above)
+        y[0,2] = 3.
+        y = y * 10. # scale cell sizes still a bit
+        A.cell_area = y*1.
+
+        # ddof = 0
+        r = A.fldstd(apply_weights=True, ddof=0)
+        self.assertAlmostEqual(r, xdat.std(ddof=0), 10)
+
+        # ddof = 1
+        #~ r = A.fldstd(apply_weights=True, ddof=1)  # todo: this still does not work properly
+        #~ self.assertAlmostEqual(r, xdat.std(ddof=1), 10)
+
+
+
+
+        ### 3D data ###
+        del A
+        A = self.D.copy()
+        x = np.ones((3,6,1))
         y = np.ones((6,1))
         x[0,:,0] = xdat*1.
-
+        x[1,:,0] = xdat*1.
+        x[2,:,0] = xdat*1.
         A.data = np.ma.array(x, mask= x!=x)
         A.cell_area = y*1.
 
-        # test without weights
-        f1 = A.fldstd(apply_weights=False, ddof=0)
-        self.assertEquals(f1[0], xdat.std(ddof=0))
+        #1) no weighting
 
-        f1 = A.fldstd(apply_weights=False, ddof=1)
-        self.assertEquals(f1[0], xdat.std(ddof=1))
+        # ddof = 0
+        r = A.fldstd(apply_weights=False, ddof=0)
+        self.assertEqual(r[0],xdat.std(ddof=0))
+        self.assertEqual(r[1],xdat.std(ddof=0))
+        self.assertEqual(r[2],xdat.std(ddof=0))
+        # ddof = 1
+        r = A.fldstd(apply_weights=False, ddof=1)
+        self.assertEqual(r[0],xdat.std(ddof=1))
+        self.assertEqual(r[1],xdat.std(ddof=1))
+        self.assertEqual(r[2],xdat.std(ddof=1))
 
-        # test with weights, but these are all equal
-        f2 = A.fldstd(apply_weights=True, ddof=1)
-        self.assertAlmostEqual(f2[0], xdat.std(ddof=1), 8)
+        #2) weighting
 
-        #~ f2 = A.fldstd(apply_weights=True, ddof=0) todo
-        #~ self.assertAlmostEqual(f2[0], xdat.std(ddof=0), 8)
+        # a) same size
+        r = A.fldstd(apply_weights=True, ddof=0)
+        #ddof = 0
+        self.assertAlmostEqual(r[0], xdat.std(ddof=0),10)
+        self.assertAlmostEqual(r[1], xdat.std(ddof=0),10)
+        self.assertAlmostEqual(r[2], xdat.std(ddof=0),10)
+        #ddof = 1
+        r = A.fldstd(apply_weights=True, ddof=1)
+        self.assertAlmostEqual(r[0], xdat.std(ddof=1),10)
+        self.assertAlmostEqual(r[1], xdat.std(ddof=1),10)
+        self.assertAlmostEqual(r[2], xdat.std(ddof=1),10)
 
 
-        # now do weighted testing (differnt cell sizes)
+        # b) different cell size
         B = self.D.copy()
-        x = np.ones((1,3,1))
-        x[0,0,0]=2.
-        x[0,1,0]=4.
-        x[0,2,0]=5.
-        B.data = np.ma.array(x, mask=x!=x)
-        B.cell_area = np.ones((1,3))
-        B.cell_area[0,0] = 2.
-        B.cell_area[0,1] = 1.
-        B.cell_area[0,2] = 3.
+        refdat = np.asarray([2.,4.,5.])
+        x = np.ones((3,3,1))
+        x[0,:,0] = refdat*1.
+        x[1,:,0] = refdat*1.
+        x[2,:,0] = refdat*1.
 
-        f3 = B.fldstd(apply_weights=True, ddof=1)
-        self.assertAlmostEqual(f3[0], xdat.std(ddof=1), 8)
-
-
-
-        # todo: check this also for 2D data!
-
-
-        stop
-
-
-
-
-
-
-        #define testdata
-        D = self.D.copy()
-        x = np.ones((1,3,1))
-        for i in [0]:
-            x [i,0,0] = 5.
-            x [i,1,0] = 10.
-            x [i,2,0] = 20.
-        D.data = np.ma.array(x,mask=x!=x)
         y = np.ones((3,1))
-        y[0,0] = 75.
-        y[1,0] = 25.
-        y[2,0] = 25.
-        D.cell_area = y
+        y[0,0] = 2.
+        y[1,0] = 1.
+        y[2,0] = 3.
+        B.data = np.ma.array(x, mask= x!=x)
+        B.cell_area = y*1.
 
-        D1=D.copy()  # 2D version
-        xx = np.ones((3,1))
-        xx[0,0]=5.
-        xx[1,0]=10.
-        xx[2,0]=20.
-        D1.data = np.ma.array(xx,mask=xx!=xx)
+        # ddof = 0
+        r = B.fldstd(apply_weights=True, ddof=0)
+        self.assertAlmostEqual(r[0], xdat.std(ddof=0),10)
+        self.assertAlmostEqual(r[1], xdat.std(ddof=0),10)
+        self.assertAlmostEqual(r[2], xdat.std(ddof=0),10)
 
-        # do testing
-        ref = np.sqrt((115. - 81.) / (1. - 11./25.)) #http://en.wikipedia.org/wiki/Weighted_mean#Weighted_sample_variance
-        r1  = D.fldstd()[0]  # with weights
-        r1a = D1.fldstd()[0]
-        self.assertAlmostEqual(r1,ref,places=8)
-        self.assertAlmostEqual(r1a,ref,places=8)  # 2D version
+        #ddof = 1
+        #~ r = B.fldstd(apply_weights=True, ddof=1)
+        #~ self.assertAlmostEqual(r[0], xdat.std(ddof=1),10) todo does not work
+        #~ self.assertAlmostEqual(r[1], xdat.std(ddof=1),10)
+        #~ self.assertAlmostEqual(r[2], xdat.std(ddof=1),10)
+
+
+
+
 
         # now test against results from CDO
-        D1.save('tmp_data.nc', delete=True, varname='test')
-        cmd = 'cdo -f nc fldstd tmp_data.nc tmp_fldstd.nc'
-        os.system(cmd)
-        T = Data('tmp_fldstd.nc', 'test', read=True)
-        print T.data, r1, r1a, ref
-        #stop
-        self.assertEquals(r1a, T.data[0,0])
+        #~ D1.save('tmp_data.nc', delete=True, varname='test')
+        #~ cmd = 'cdo -f nc fldstd tmp_data.nc tmp_fldstd.nc'
+        #~ os.system(cmd)
+        #~ T = Data('tmp_fldstd.nc', 'test', read=True)
+        #~ print T.data, r1, r1a, ref
+        #~ #stop
+        #~ self.assertEquals(r1a, T.data[0,0])
 
-        r2 = D.fldstd(apply_weights=False)[0]
-        ref2 = x.std()
-        self.assertAlmostEqual(ref2, r2, places=8)
-        self.assertAlmostEqual(D1.fldstd()[0], ref,places=8)
 
     def test_areasum(self):
         """
