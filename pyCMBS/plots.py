@@ -176,6 +176,8 @@ class HovmoellerPlot(object):
                       cmap=cmap)
         if ylim is not None:
             self.ax.set_ylim(ylim)
+        if title is None:
+            self.ax.set_title(self.x.label)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -2190,18 +2192,23 @@ def map_season(x, figsize=(8,6), **kwargs):
     if kwargs contain a 'figure' argument, then this figure fill be used
     for plotting. Otherwise a new figure will be generated
 
-    Note, that it is not checked, if the seasonal mean values were precalculated correctly.
+    Note, that it is not checked, if the seasonal mean values were
+    precalculated correctly.
     It is ASSUMED that the seasonal means are calculated using cdo, which leads to
 
     a) yseasmean --> DJF,MAM,JJA,SON where the timestamp in the file corresponds to the LAST valid data used
     b) ymonmean --> monthly means
 
-    @param x: C{Data} object
-    @type x : C{Data}
+    Parameters
+    ----------
+    x : Data
+        data to be plotted
+    figsize : tuple
+        specifies size of figure (see pyplot documentation)
 
-    @return: returns the figure where plot was done
-    @rtype: C{figure}
-
+    Returns
+    -------
+    returns a figure handler
     """
 
     nvals = len(x.data)
