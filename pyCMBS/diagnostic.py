@@ -39,12 +39,19 @@ class PatternCorrelation(DiagnosticMaster):
     it calculates for each timestep the correlations between the spatial
     fields and allows to vizualize results in different ways
     """
-    def __init__(self, x, y, ax = None, **kwargs):
+    def __init__(self, x, y, ax = None, figsize=(10,5), **kwargs):
         """
         Parameters
         ----------
         x : Data
+            first dataset
         y : Data
+            second dataset
+        ax : axis
+            axis to plot to. If not specified, then a new  figure will
+            be generated
+        figsize : tuple
+            figure size
         """
         super(PatternCorrelation, self).__init__(**kwargs)
         if not isinstance(x, Data):
@@ -57,7 +64,7 @@ class PatternCorrelation(DiagnosticMaster):
             raise ValueError('Invalid geometries!')
 
         if ax is None:
-            f = plt.figure()
+            f = plt.figure(figsize=figsize)
             ax = f.add_subplot(111)
         self.ax = ax
 
@@ -68,7 +75,7 @@ class PatternCorrelation(DiagnosticMaster):
         if self.x.ndim == 2:
             self.t = None
         elif self.x.ndim == 3:
-            self.t = np.arange(self.x.nt)
+            self.t = np.arange(self.x.nt)+1
         else:
             raise ValueError('Invalid geometry')
 

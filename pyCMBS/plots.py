@@ -1449,8 +1449,8 @@ class GlecklerPlot(object):
             elif p == 4:
                 return 'right'
 
-        r1=self._get_model_ranking(p1,var) #ranking for first position
-        r2=self._get_model_ranking(p2,var) #ranking for second position
+        r1=self._get_model_ranking(p1, var)  # ranking for first position
+        r2=self._get_model_ranking(p2, var)  # ranking for second position
 
         if len(r1) == 0:
             return None
@@ -1594,18 +1594,19 @@ class GlecklerPlot(object):
         in case that a certain combination does not exist, the
         corresponding plot is simply not generated.
 
-        @param var: name of variable to analyze
-        @type var: str
+        Parameters
+        ----------
+        var : str
+            name of variable to analyze
 
-        @param show_text: annotate plot using text for models as labels
-        @type show_text: bool
-
+        show_text : bool
+            annotate plot using text for models as labels
         """
 
         tmp=self._get_model_ranking(1,var)
 
         fig = pl.figure()
-        gs = gridspec.GridSpec(1, 2, wspace=0.05,hspace=0.05,bottom=0.2,width_ratios = [3,1])
+        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2 ,width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
 
         # 1 vs. 2
@@ -1622,7 +1623,7 @@ class GlecklerPlot(object):
         self.__draw_ranking_scatter(3,4,var,color='c',marker='h',ax=ax,show_text=show_text)
 
         if ax is not None:
-            ax.legend(prop={'size':8},ncol=1,fancybox=True,loc='upper left')
+            ax.legend(prop={'size':8}, ncol=1,fancybox=True, loc='upper left')
             ax.set_xlabel('rank(observation X)')
             ax.set_ylabel('rank(observation Y)')
             ax.set_ylim(ymin=0,ymax=len(tmp)+1)
@@ -1667,17 +1668,18 @@ class GlecklerPlot(object):
 #-----------------------------------------------------------------------
 
 
-    def _get_model_ranking(self,pos,var):
+    def _get_model_ranking(self, pos, var):
         """
         get ranking of each model for a certain variable and observation
-        NOTE: to obtain a relative model ranking, one needs to normalize the data before, otherwise the absolute values
-              are used!
+        NOTE: to obtain a relative model ranking, one needs to
+        normalize the data before, otherwise the absolute values
+        are used!
         """
         x = []; keys=[]
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
-                keys.append(k[:k.index(var)-1]) #model name
+                keys.append(k[:k.index(var)-1])  # model name
 
         x    = np.asarray(x)
         keys = np.asarray(keys)
@@ -1695,7 +1697,7 @@ class GlecklerPlot(object):
         #print 'keys', keys[idx]
         #print rnk[idx]+1
 
-        return keys[idx] #return list with keys which given ranked sequence
+        return keys[idx] #return list with keys which give ranked sequence
 
 
 #-----------------------------------------------------------------------
