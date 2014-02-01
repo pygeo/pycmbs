@@ -2428,7 +2428,7 @@ class MultipleMap(MapPlotGeneric):
 
 
 
-def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
+def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
              nclasses=10, cmap_data='jet',
              title=None, regions_to_plot=None, logplot=False,
              logoffset=None, show_stat=False,
@@ -2437,7 +2437,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
              zonal_timmean=True, show_timeseries=False,
              scal_timeseries=1., vmin_zonal=None, vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,
-             titlefontsize=14, drawparallels=True,drawcountries=True,
+             titlefontsize=14, drawparallels=True, drawcountries=True,
              show_histogram=False,
              contourf = False, land_color=(0.8,0.8,0.8),
              regionlinewidth=1, bins=10,
@@ -3027,19 +3027,19 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
             assert(len(st) == 1)
             me = me[0]
             st=st[0]
-            atitle = 'mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
-        elif stat_type == 'sum': #area sum
+            atitle = 'mean: $' + str(round(me, 2))  + ' \pm ' + str(round(st,2)) + '$'
+        elif stat_type == 'sum':  # area sum
             me = tmp_xm.areasum()
             assert(len(me) == 1)
             me = me[0]
-            atitle = 'sum: $' + str(round(me,2))  + '$'
+            atitle = 'sum: $' + str(round(me, 2))  + '$'
         else:
             me = np.ma.median(tmp_xm.data)
-            atitle = 'median: $' + str(round(me,2)) + '$'
-        ax.set_title(atitle, size=titlefontsize, loc='left')
+            atitle = 'median: $' + str(round(me, 2)) + '$'
+        ax.set_title(atitle, size=titlefontsize-2, loc='left')
 
     ax.set_title(title + '\n', size=titlefontsize, loc='center')
-    ax.set_title(x._get_unit(), size=titlefontsize, loc='right')
+    ax.set_title(x._get_unit(), size=titlefontsize-2, loc='right')
 
     #/// show timeseries? ///
     if show_timeseries:
