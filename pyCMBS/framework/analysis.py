@@ -625,11 +625,18 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             sys.stdout.write('\n *** Map difference plotting. \n')
             # generate difference map
             savegraphics_prefix = os.environ['PYCMBS_OUTPUTDIR'] + obs_orig._get_label() + '___' + model_data._get_label() + '.' + os.environ['PYCMBS_OUTPUTFORMAT']
-            f_dif = map_difference(model_data, obs_orig, nclasses=nclasses, use_basemap=use_basemap,
-                                   show_zonal=True, zonal_timmean=True,
-                                   dmin=dmin, dmax=dmax, vmin=vmin, vmax=vmax, cticks=cticks,
-                                   proj=projection, stat_type=stat_type, show_stat=True, drawparallels=False,
-                                   colorbar_orientation='horizontal', savegraphics_prefix=savegraphics_prefix,cticks_diff=cticks_diff, cticks_rdiff=cticks_rdiff)
+            f_dif = map_difference(model_data, obs_orig,
+                                   nclasses=nclasses,
+                                   use_basemap=use_basemap,
+                                   show_zonal=False, zonal_timmean=True,
+                                   dmin=dmin, dmax=dmax, vmin=vmin,
+                                   vmax=vmax, cticks=cticks,
+                                   proj=projection, stat_type=stat_type,
+                                   show_stat=True, drawparallels=False,
+                                   colorbar_orientation='horizontal',
+                                   savegraphics_prefix=savegraphics_prefix,
+                                   cticks_diff=cticks_diff,
+                                   cticks_rdiff=cticks_rdiff)
             report.figure(f_dif, caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
             pl.close(f_dif.number)
             del f_dif
