@@ -316,8 +316,8 @@ class Report(object):
         """
         opens a table
         """
-        self.write('\begin[htp]{table}')
-        self.write('    \cetnering')
+        self.write('\\begin[htp]{table}')
+        self.write('    \centering')
 
 #-----------------------------------------------------------------------
 
@@ -327,6 +327,14 @@ class Report(object):
         """
         self.write('    \caption{' + caption + '}')
         self.write('\end{table}')
+
+#-----------------------------------------------------------------------
+
+    def input(self, filename):
+        """ write an input statement """
+        self.write('\\input{' + filename + '}')
+        if not os.path.exists(filename):
+            print('WARNING: output file used in report not yet existing!')
 
 #-----------------------------------------------------------------------
 

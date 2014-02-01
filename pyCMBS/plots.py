@@ -1652,7 +1652,7 @@ class GlecklerPlot(object):
         o = open(filename, 'w')
         if fmt == 'latex':
             o.write('        \\begin{tabular}{lcccc} \n')
-            s = sol + 'obs_top' + sep + 'obs_bott' + sep + 'obs_left' + sep + 'obs_right' + eol
+            s = sol + 'obs-top' + sep + 'obs-bott' + sep + 'obs-left' + sep + 'obs-right' + eol
             o.write(s)
         for m in self.models:
             rnk1 = str(_get_model_rank(m, r1))
@@ -1660,7 +1660,7 @@ class GlecklerPlot(object):
             rnk3 = str(_get_model_rank(m, r3))
             rnk4 = str(_get_model_rank(m, r4))
 
-            s = sol + m + sep + rnk1 + sep + rnk2 + sep + rnk3 + sep + rnk4 + eol
+            s = sol + m.replace('_','-') + sep + rnk1 + sep + rnk2 + sep + rnk3 + sep + rnk4 + eol
             o.write(s)
         if fmt == 'latex':
             o.write('        \end{tabular}')
