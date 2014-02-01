@@ -810,8 +810,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             del REGSTAT
 
         if f_pattern_correlation:
-            ax_pc.set_title('Pattern correlation: ' + obs_type.upper())
-            report.figure(ax_pc.figure, caption='Pattern correlation for ' + obs_type.upper())
+            ax_pc.set_title('Pattern correlation: ' + obs_orig.label.upper()   )
+            report.figure(ax_pc.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
             report.newpage()
 
         if f_reichler == True:
