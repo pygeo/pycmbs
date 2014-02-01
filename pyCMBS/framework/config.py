@@ -354,10 +354,10 @@ class PlotOptions(object):
             #/// destroy parser (important, as otherwise problems)
             del parser
 
-        #convert options to bool/numerical values
+        # convert options to bool/numerical values
         self._convert_options()
 
-        #check options consistency
+        # check options consistency
         self._check()
 
         #reset plotting options if the report should only produce a summary
