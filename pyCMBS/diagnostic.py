@@ -84,7 +84,6 @@ class PatternCorrelation(DiagnosticMaster):
             self.p_value = np.asarray([p_value])
             self.std_err = np.asarray([std_err])
         elif self.x.ndim == 3:
-            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(self.x.data[0,:,:].flatten(),self.y.data[0,:,:].flatten())
             r = np.asarray([stats.mstats.linregress(self.x.data[i,:,:].flatten(),self.y.data[i,:,:].flatten()) for i in xrange(self.x.nt)])
             self.slope = np.asarray(r[:,0])
             self.intercept = np.asarray(r[:,1])

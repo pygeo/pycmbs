@@ -34,30 +34,27 @@ class TestData(TestCase):
         self.D.calendar = 'gregorian'
 
     def test_pattern_correlation(self):
+        """
+        test pattern correlation function
+        """
         x = self.D.copy()
-        y = self.D.copy()
-
-        # perfect correlation (should give r=1)
-        y.mulc(2., return_object=False)
-        P1 = PatternCorrelation(x, y)
-        P1._correlate()
-        self.assertEqual(x.nt,len(P1.r))
-        self.assertEqual(x.nt,len(P1.t))
-
-        for i in xrange(x.nt):
-            self.assertEqual(P1.r[i], 1.)
 
         # correlation with random values
         y = self.D.copy()
-        y = np.random.random(y.shape)
+        tmp = np.random.random(y.shape)
+        y.data = np.ma.array(tmp, mask=tmp != tmp)
         P2 = PatternCorrelation(x, y)
         P2._correlate()
-        self.assertEqual(x.nt,len(P2.r))
+        self.assertEqual(x.nt,len(P2.r_value))
         self.assertEqual(x.nt,len(P2.t))
 
         for i in xrange(x.nt):
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x.data[i,:,:].flatten(),y.data[i,:,:].flatten())
-            self.assertEqual(P2.r[i], r_value)
+            self.assertEqual(P2.r_value[i], r_value)
+            self.assertEqual(P2.p_value[i], p_value)
+            self.assertEqual(P2.slope[i], slope)
+            self.assertEqual(P2.intercept[i], intercept)
+            self.assertEqual(P2.std_err[i], std_err)
 
 
 
