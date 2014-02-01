@@ -3051,34 +3051,47 @@ y
             #http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
             #(adapted from http://stackoverflow.com/questions/2413522/weighted-standard-deviation-in-numpy)
 
-            #calculate weighting matrix
+            # in general it is assumed that the weights are normalized,
+            # thus that sum(w) = 1., but the routine below is coded
+            # in a way that this is not obligatory
+
+            # calculate weighting matrix
             w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
-            print w
 
             if self.data.ndim == 2:
-                if ddof == 1:
-                    h2 = self.data * w  # wx
-                    h1 = self.data * h2  # w*x**2
-                    ny, nx = self.data.shape
-
-                    s = h1.sum() * w.sum() - h2.sum() ** 2
-                    s /= (w.sum() ** 2 - (w * w).sum() )
-
-                    tmp = [np.sqrt(s)]
+                mu = (self.data * w).sum() / w.sum()
+                if ddof == 0:  # unbiased estimator
+                    V1 = w.sum()
+                    s = (w*(self.data - mu)**2.).sum() / V1
+                    tmp = np.sqrt(s)
+                elif ddof == 1:  # biased estimator
+                    V1 = w.sum()
+                    V2 = (w*w).sum()
+                    s = V1*(w*(self.data - mu)**2.).sum() / (V1*V1-V2)
+                    tmp = np.sqrt(s)
                 else:
                     raise ValueError('DDOF /= 1 not implemented yet!')
+
+
+
             elif self.data.ndim == 3:
-                if ddof == 1:
-                    h2 = self.data * w  # wx
-                    h1 = self.data * h2  # w*x**2
+                nt, ny, nx = self.shape
+                s = np.ones(nt) * np.nan
+                if w.ndim != 3:
+                    raise ValueError('need mask for each timestep!')
 
-                    # do calculation
-                    nt, ny, nx = self.data.shape
-
-                    s = np.ones(nt) * np.nan  # generate output array (unbiased variance estimator)
+                if ddof == 0:
                     for i in xrange(nt):
-                        s[i] = h1[i, :, :].sum() * w[i, :, :].sum() - h2[i, :, :].sum() ** 2.
-                        s[i] /= (w[i, :, :].sum() ** 2. - (w[i, :, :] * w[i, :, :]).sum()  )
+                        V1 = w[i,:,:].sum()
+                        mu = (self.data[i,:,:]*w[i,:,:]).sum() / V1
+                        s[i] = (w[i,:,:]*(self.data[i,:,:]-mu)**2.).sum() / V1
+                    tmp = np.sqrt(s)
+                elif ddof == 1:
+                    for i in xrange(nt):
+                        V1 = w[i,:,:].sum()
+                        mu = (self.data[i,:,:]*w[i,:,:]).sum() / V1
+                        V2 = np.sum(w[i,:,:]**2.)
+                        s[i] = V1*(w[i,:,:]*(self.data[i,:,:]-mu)**2.).sum() / (V1*V1-V2)
                     tmp = np.sqrt(s)
                 else:
                     raise ValueError('DDOF /= 1 not implemented yet!')
