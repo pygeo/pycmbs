@@ -622,6 +622,12 @@ for v in global_gleckler.variables:
                datasets: ' + v.upper())
     del tmpfig
 
+    # write a table with model ranking
+    tmp_filename = outdir + 'ranking_table_' + v + '.tex'
+    rep.open_table()
+    global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex')
+    rep.close_table(caption='Model rankings for variable ' + v.upper())
+
     # plot absolute model error
     tmpfig = global_gleckler.plot_model_error(v)
     rep.figure(tmpfig, width='8cm', bbox_inches=None,

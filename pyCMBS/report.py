@@ -312,6 +312,24 @@ class Report(object):
 
 #-----------------------------------------------------------------------
 
+    def open_table(self):
+        """
+        opens a table
+        """
+        self.write('\begin[htp]{table}')
+        self.write('    \cetnering')
+
+#-----------------------------------------------------------------------
+
+    def close_table(self, caption='Put a figure caption here'):
+        """
+        opens a table
+        """
+        self.write('    \caption{' + caption + '}')
+        self.write('\end{table}')
+
+#-----------------------------------------------------------------------
+
     def compile(self):
         """
         compile latex document

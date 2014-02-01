@@ -1231,14 +1231,19 @@ class ZonalPlot(object):
 
 class GlecklerPlot(object):
     """
-    Class to generate a plot that to illustrate multi-model, multi-variable scores
+    Class to generate a Portraet plot to illustrate multi-model,
+    multi-variable scores.
 
     It was introdcued by Gleckler et al (2008)
 
-    REFERENCES:
-    * ﻿Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008. Performance metrics for climate models. Journal of Geophysical Research, 113(D6). Available at: http://www.agu.org/pubs/crossref/2008/2007JD008972.shtml [Accessed February 29, 2012].
+    References
+    ----------
+    [1] ﻿Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008.
+             Performance metrics for climate models. Journal of
+             Geophysical Research, 113(D6).
 
-    EXAMPLE:
+    Example
+    -------
     G = GlecklerPlot()
     #register first models
     G.add_model('echam5'); G.add_model('mpi-esm')
@@ -1289,7 +1294,7 @@ class GlecklerPlot(object):
             cnt += 1
         return seq
 
-    def _model2short_label(self,m):
+    def _model2short_label(self, m):
         """
         given a model key a short label for plotting is returned
         """
@@ -1543,14 +1548,15 @@ class GlecklerPlot(object):
         plots a scatterplot of errors of different models
         for a particular variable
 
-        @param var: variable to be investigated
-        @type var: str
+        Parameters
+        ----------
+        var : str
+            variable to be investigated
         """
 
         fig = pl.figure()
         gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
-
 
         # 1 vs. 2
         self._draw_error_scatter(1, 2, var, color='red', marker='o',ax=ax)
@@ -1585,6 +1591,82 @@ class GlecklerPlot(object):
             ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
         return fig
 
+
+    def write_ranking_table(self, var, filename, fmt='latex'):
+        """
+        write results of model ranking to an ASCII table
+
+        Parameters
+        ----------
+        var : str
+            name of variable to analyze
+        filename : str
+            name of file to write table to
+        fmt : str
+            specifies output format for table ['latex','markdown']
+        """
+
+        if fmt not in ['latex', 'markdown']:
+            raise ValueError('Invalid output format')
+
+        if fmt == 'latex':
+            sep = ' & '
+            eol = ' \\\  \n'
+            sol = '            '
+        elif fmt == 'markdown':
+            sep = ' | '
+            eol = ' | \n'
+            sol = ''
+        else:
+            raise ValueError('Unrecognized output format')
+
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        def _get_model_rank(k, x):
+            """
+            returns rank of model given a key k and an ordered list x
+
+            Rerturns
+            --------
+            rank of key in list; NOTE that this is NOT the index!
+            """
+            if k not in x:
+                if len(x)==0:  # no observational data available
+                    return '-'
+                else:
+                    # here observations are there, but model key is not in
+                    return '-'
+            for i in xrange(len(x)):
+                if x[i] == k:
+                    return i+1
+            raise ValueError('Fatal error: no solution found!')
+
+        # get for each obs. dataset a list of models keys which are ordered
+        r1 = self._get_model_ranking(1, var)  # returns model keys
+        r2 = self._get_model_ranking(2, var)
+        r3 = self._get_model_ranking(3, var)
+        r4 = self._get_model_ranking(4, var)
+
+        # now write a table with different columns for each dataset
+        o = open(filename, 'w')
+        if fmt == 'latex':
+            o.write('        \\begin{tabular}{lcccc} \n')
+            s = sol + 'obs_top' + sep + 'obs_bott' + sep + 'obs_left' + sep + 'obs_right' + eol
+            o.write(s)
+        for m in self.models:
+            rnk1 = str(_get_model_rank(m, r1))
+            rnk2 = str(_get_model_rank(m, r2))
+            rnk3 = str(_get_model_rank(m, r3))
+            rnk4 = str(_get_model_rank(m, r4))
+
+            s = sol + m + sep + rnk1 + sep + rnk2 + sep + rnk3 + sep + rnk4 + eol
+            o.write(s)
+        if fmt == 'latex':
+            o.write('        \end{tabular}')
+        o.close()
+
+
     def plot_model_ranking(self, var, show_text=False):
         """
         plots a model ranking scatterplot, indicating
@@ -1598,15 +1680,14 @@ class GlecklerPlot(object):
         ----------
         var : str
             name of variable to analyze
-
         show_text : bool
             annotate plot using text for models as labels
         """
 
-        tmp=self._get_model_ranking(1,var)
+        tmp=self._get_model_ranking(1, var)
 
         fig = pl.figure()
-        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2 ,width_ratios = [3,1])
+        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
 
         # 1 vs. 2
@@ -1626,11 +1707,11 @@ class GlecklerPlot(object):
             ax.legend(prop={'size':8}, ncol=1,fancybox=True, loc='upper left')
             ax.set_xlabel('rank(observation X)')
             ax.set_ylabel('rank(observation Y)')
-            ax.set_ylim(ymin=0,ymax=len(tmp)+1)
-            ax.set_xlim(xmin=0,xmax=len(tmp)+1)
+            ax.set_ylim(ymin=0, ymax=len(tmp)+1)
+            ax.set_xlim(xmin=0, xmax=len(tmp)+1)
             ax.grid()
             ax.set_title('Comparison of model ranking: ' + var.upper())
-            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
+            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--')  # 1:1 line
 
         ax2 = fig.add_subplot(gs[1])
 
@@ -1675,7 +1756,8 @@ class GlecklerPlot(object):
         normalize the data before, otherwise the absolute values
         are used!
         """
-        x = []; keys=[]
+        x = []
+        keys=[]
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
@@ -1685,17 +1767,6 @@ class GlecklerPlot(object):
         keys = np.asarray(keys)
         idx  = x.argsort()
         rnk  = np.arange(len(x))
-
-        #print 'original'
-        #print 'x   ', x
-        #print 'keys', keys
-        #print 'rnk', rnk
-
-        #print ''
-        #print 'sorted'
-        #print 'x   ', x[idx]
-        #print 'keys', keys[idx]
-        #print rnk[idx]+1
 
         return keys[idx] #return list with keys which give ranked sequence
 
@@ -1739,10 +1810,12 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,
-             normalize=True,size=10,method='median',title=None,show_value=False,
-             logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,
-             colorbar_boundaries=None,show_colorbar=True,autoscale=True):
+    def plot(self, cmap_name='RdBu_r', vmin=-1.0, vmax=1.0, nclasses=15,
+             normalize=True, size=10, method='median', title=None,
+             show_value=False, logscale=False, labelcolor='black',
+             labelthreshold=None, cmap=None, norm=None,
+             colorbar_boundaries=None, show_colorbar=True,
+             autoscale=True):
         """
         plot Gleckler diagram
 

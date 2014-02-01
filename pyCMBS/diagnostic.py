@@ -39,7 +39,7 @@ class PatternCorrelation(DiagnosticMaster):
     it calculates for each timestep the correlations between the spatial
     fields and allows to vizualize results in different ways
     """
-    def __init__(self, x, y, ax = None, figsize=(10,5), **kwargs):
+    def __init__(self, x, y, ax = None, figsize=(10,3), **kwargs):
         """
         Parameters
         ----------
