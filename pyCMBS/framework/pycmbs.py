@@ -626,6 +626,7 @@ for v in global_gleckler.variables:
     tmp_filename = outdir + 'ranking_table_' + v + '.tex'
     rep.open_table()
     global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex')
+    rep.input(tmp_filename)
     rep.close_table(caption='Model rankings for variable ' + v.upper())
 
     # plot absolute model error
