@@ -45,6 +45,8 @@ from dateutil.rrule import *
 #_get_date_from_month
 #_convert_monthly_timeseries
 
+#fldmean() fldstd() fldsum() --> verify with CDO'!; sample data to netCDF file!
+
 
 
 
@@ -834,29 +836,35 @@ class TestData(TestCase):
         @return:
         """
 
-        #define testdata
+        # define testdata
         D = self.D
         x = np.ones((1,3,1))
         for i in [0]:
-            x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
+            x [i,0,0] = 5.
+            x [i,1,0] = 10.
+            x [i,2,0] = 20.
         D.data = np.ma.array(x,mask=x!=x)
         y = np.ones((3,1))
-        y[0,0] = 75.; y[1,0] = 25.; y[2,0] = 25.
+        y[0,0] = 75.
+        y[1,0] = 25.
+        y[2,0] = 25.
         D.cell_area = y
 
-        D1=D.copy() #2D version
+        D1=D.copy()  # 2D version
         xx = np.ones((3,1))
-        xx[0,0]=5.; xx[1,0]=10.; xx[2,0]=20.
+        xx[0,0]=5.
+        xx[1,0]=10.
+        xx[2,0]=20.
         D1.data = np.ma.array(xx,mask=xx!=xx)
 
-        #do test
-        r1 = D.fldmean()[0] #with weights
+        # do test
+        r1 = D.fldmean()[0]  # with weights
         r1a = D1.fldmean()[0]
 
         self.assertEqual(r1, 9.)
         self.assertEqual(r1a, 9.)
 
-        r2 = D.fldmean(apply_weights=False) #without weights
+        r2 = D.fldmean(apply_weights=False)  # without weights
         r2a = D1.fldmean(apply_weights=False)
         self.assertEqual(r2[0],x.mean())
         self.assertEqual(r2a[0],xx.mean())
@@ -864,15 +872,24 @@ class TestData(TestCase):
         # 2D case
         D=self.D.copy()
         x=np.ones((1,4))
-        x[0,1]=1.; x[0,2] = 5.
+        x[0,1] = 1.
+        x[0,2] = 5.
         D.data = np.ma.array(x,mask=x==0.)
         ny,nx = x.shape
         ca = np.ones((ny,nx))
         D.cell_area = np.ma.array(ca,mask=ca < 0.)
         r = D.fldmean()[0]
-        self.assertEquals(r,2.)
+        self.assertEquals(r, 2.)
 
-        #testcase where some of data is not valid and different weighting approaches are applied
+        # now test against results from CDO
+        D.save('tmp_data.nc', delete=True, varname='test')
+        cmd = 'cdo -f nc fldmean tmp_data.nc tmp_fldmean.nc'
+        os.system(cmd)
+        T = Data('tmp_fldmean.nc', 'test', read=True)
+        self.assertEquals(r, T.data[0,0])
+        self.assertEquals(2., T.data[0,0])
+
+        # testcase where some of data is not valid and different weighting approaches are applied
         D = self.D.copy()
 
         x=np.ones((1,1,4))
@@ -887,48 +904,117 @@ class TestData(TestCase):
         x[:,0,0] = np.nan
         D.data = np.ma.array(x,mask=np.isnan(x))
         r = D.fldmean()[0]
-        self.assertEquals(r,1.)
+        self.assertEquals(r, 1.)
 
         #... now check what happens if normalization factor is for ALL pixels and not only the valid ones! --> should give 0.75
         D.weighting_type='all'
         r = D.fldmean()[0]
-        self.assertEquals(r,0.75)
+        self.assertEquals(r, 0.75)
 
 
     def test_fldstd(self):
+
+        # define testcase described under http://en.wikipedia.org/wiki/Weighted_mean#Weighted_sample_variance
+        # For example, if values \{2, 2, 4, 5, 5, 5\} are drawn from
+        # the same distribution, then we can treat this set as an
+        # unweighted sample, or we can treat it as the weighted
+        # sample \{2, 4, 5\} with corresponding weights
+        # \{2, 1, 3\}, and we should get the same results
+
+        xdat = np.asarray([2., 2., 4., 5., 5., 5.])
+
+        # case 1 unweighted sample
+        A = self.D.copy()
+        x = np.ones((1,6,1))
+        y = np.ones((6,1))
+        x[0,:,0] = xdat*1.
+
+        A.data = np.ma.array(x, mask= x!=x)
+        A.cell_area = y*1.
+
+        # test without weights
+        f1 = A.fldstd(apply_weights=False, ddof=0)
+        self.assertEquals(f1[0], xdat.std(ddof=0))
+
+        f1 = A.fldstd(apply_weights=False, ddof=1)
+        self.assertEquals(f1[0], xdat.std(ddof=1))
+
+        # test with weights, but these are all equal
+        f2 = A.fldstd(apply_weights=True, ddof=1)
+        self.assertAlmostEqual(f2[0], xdat.std(ddof=1), 8)
+
+        #~ f2 = A.fldstd(apply_weights=True, ddof=0) todo
+        #~ self.assertAlmostEqual(f2[0], xdat.std(ddof=0), 8)
+
+
+        # now do weighted testing (differnt cell sizes)
+        B = self.D.copy()
+        x = np.ones((1,3,1))
+        x[0,0,0]=2.
+        x[0,1,0]=4.
+        x[0,2,0]=5.
+        B.data = np.ma.array(x, mask=x!=x)
+        B.cell_area = np.ones((1,3))
+        B.cell_area[0,0] = 2.
+        B.cell_area[0,1] = 1.
+        B.cell_area[0,2] = 3.
+
+        f3 = B.fldstd(apply_weights=True, ddof=1)
+        self.assertAlmostEqual(f3[0], xdat.std(ddof=1), 8)
+
+
+
+        # todo: check this also for 2D data!
+
+
+        stop
+
+
+
+
+
+
         #define testdata
-        D = self.D
+        D = self.D.copy()
         x = np.ones((1,3,1))
         for i in [0]:
-            x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
+            x [i,0,0] = 5.
+            x [i,1,0] = 10.
+            x [i,2,0] = 20.
         D.data = np.ma.array(x,mask=x!=x)
         y = np.ones((3,1))
-        y[0,0] = 75.; y[1,0] = 25.; y[2,0] = 25.
+        y[0,0] = 75.
+        y[1,0] = 25.
+        y[2,0] = 25.
         D.cell_area = y
 
-        D1=D.copy() #2D version
+        D1=D.copy()  # 2D version
         xx = np.ones((3,1))
-        xx[0,0]=5.; xx[1,0]=10.; xx[2,0]=20.
+        xx[0,0]=5.
+        xx[1,0]=10.
+        xx[2,0]=20.
         D1.data = np.ma.array(xx,mask=xx!=xx)
 
-        #print D1.data
-        #print D1.cell_area
-        #print D1.data.shape
-        #print D1.cell_area.shape
-
-
-
-        #do testing
+        # do testing
         ref = np.sqrt((115. - 81.) / (1. - 11./25.)) #http://en.wikipedia.org/wiki/Weighted_mean#Weighted_sample_variance
-        r1  = D.fldstd()[0] #with weights
+        r1  = D.fldstd()[0]  # with weights
         r1a = D1.fldstd()[0]
         self.assertAlmostEqual(r1,ref,places=8)
-        self.assertAlmostEqual(r1a,ref,places=8) #2D version
+        self.assertAlmostEqual(r1a,ref,places=8)  # 2D version
+
+        # now test against results from CDO
+        D1.save('tmp_data.nc', delete=True, varname='test')
+        cmd = 'cdo -f nc fldstd tmp_data.nc tmp_fldstd.nc'
+        os.system(cmd)
+        T = Data('tmp_fldstd.nc', 'test', read=True)
+        print T.data, r1, r1a, ref
+        #stop
+        self.assertEquals(r1a, T.data[0,0])
 
         r2 = D.fldstd(apply_weights=False)[0]
         ref2 = x.std()
-        self.assertAlmostEqual(ref2,r2,places=8)
-        self.assertAlmostEqual(D1.fldstd()[0],ref,places=8)
+        self.assertAlmostEqual(ref2, r2, places=8)
+        self.assertAlmostEqual(D1.fldstd()[0], ref,places=8)
 
     def test_areasum(self):
         """

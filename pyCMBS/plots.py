@@ -1585,13 +1585,14 @@ class GlecklerPlot(object):
             ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
         return fig
 
-    def plot_model_ranking(self,var,show_text=False):
+    def plot_model_ranking(self, var, show_text=False):
         """
         plots a model ranking scatterplot, indicating
-        if models have similar ranks between different observational datasets
+        if models have similar ranks between different observational
+        datasets
 
-        in case that a certain combination does not exist, the corresponding
-        plot is simply not generated.
+        in case that a certain combination does not exist, the
+        corresponding plot is simply not generated.
 
         @param var: name of variable to analyze
         @type var: str

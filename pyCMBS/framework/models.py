@@ -149,6 +149,7 @@ class MedianModel(Model):
                 else: #mean model!
                     msk_below = M.variables[k].data <= self.variables[k].data
                     raise ValueError('Implementation of median model has not yet been finished!')
+                    #could get_percentiles be used for that in some sense???
                     stop
 
 
