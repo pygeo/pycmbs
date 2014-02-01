@@ -39,7 +39,7 @@ class PatternCorrelation(DiagnosticMaster):
     it calculates for each timestep the correlations between the spatial
     fields and allows to vizualize results in different ways
     """
-    def __init__(self, x, y, **kwargs):
+    def __init__(self, x, y, ax = None, **kwargs):
         """
         Parameters
         ----------
@@ -55,6 +55,11 @@ class PatternCorrelation(DiagnosticMaster):
             print(x.shape)
             print(y.shape)
             raise ValueError('Invalid geometries!')
+
+        if ax is None:
+            f = plt.figure()
+            ax = f.add_subplot(111)
+        self.ax = ax
 
         self.x = x
         self.y = y
@@ -114,17 +119,11 @@ class PatternCorrelation(DiagnosticMaster):
         if not self._calculated:
             self._correlate()
 
-        if ax is None:
-            f = plt.figure()
-            ax = f.add_subplot(111)
-
-        self.ax = ax
-
         # here we have already correlations calculated
         if plot == 'polar':
-            self._draw_polar(ax)
+            self._draw_polar()
         elif plot == 'line':
-            self._draw_line(ax, **kwargs)
+            self._draw_line(**kwargs)
         else:
             raise ValueError('Invalid plot type!')
 
@@ -134,14 +133,16 @@ class PatternCorrelation(DiagnosticMaster):
         self.ax.grid()
         self.ax.set_ylim(-1.,1.)
 
-    def _draw_polar(self, ax):
+        return self.ax.figure
+
+    def _draw_polar(self):
         raise ValueError('Polar plot not finally implemented yet!')
         # todo how to deal with negative correlations !!!
         t = 2. * np.pi * self.t / float(len(self.t))
         ax.scatter(t, self.r)
 
-    def _draw_line(self, ax, **kwargs):
-        ax.plot(self.t, self.r_value, **kwargs)
+    def _draw_line(self, **kwargs):
+        self.ax.plot(self.t, self.r_value, **kwargs)
 
 
 
