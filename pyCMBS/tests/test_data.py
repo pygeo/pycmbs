@@ -968,8 +968,8 @@ class TestData(TestCase):
         self.assertAlmostEqual(r, xdat.std(ddof=0), 10)
 
         # ddof = 1
-        #~ r = A.fldstd(apply_weights=True, ddof=1)  # todo: this still does not work properly
-        #~ self.assertAlmostEqual(r, xdat.std(ddof=1), 10)
+        r = A.fldstd(apply_weights=True, ddof=1)
+        self.assertAlmostEqual(r, xdat.std(ddof=1), 10)
 
 
 
