@@ -2403,6 +2403,8 @@ class MapPlotGeneric(object):
         self.show_statistic = show_statistic
         self.stat_type = stat_type
         self._dummy_axes=[]
+        self.cticks = None
+        self.cticklabels = None
 
         if figure is None:
             self.figure = plt.figure()
@@ -2509,9 +2511,6 @@ class MapPlotGeneric(object):
         if self.cticklabels is not None:
             cb.set_ticklabels(self.cticklabels)
 
-
-
-
     def _set_axis_invisible(self, ax, frame=True):
         """
         set axis parameteres in a way that it is invisible
@@ -2521,17 +2520,6 @@ class MapPlotGeneric(object):
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_frame_on(frame)
-
-
-
-
-
-
-
-
-
-
-
 
 class SingleMap(MapPlotGeneric):
     """
@@ -2556,14 +2544,13 @@ class SingleMap(MapPlotGeneric):
 
         self.cmap = 'jet'
 
-
-
     def _plot_zonal(self):
         if self.show_zonal:
             if self.x._latitudecheckok:
                 self._draw_zonal_plot(self)
             else:
                 print('WARNING: zonal plot not possible due to invalid latitude configurations')
+
 
     def _set_cmap(self, nclasses):
         """
@@ -2586,6 +2573,15 @@ class SingleMap(MapPlotGeneric):
     def _draw_title(self, title=None, fontsize=14):
         """
         draw title, units and statistics
+
+        Parameters
+        ----------
+        title : str
+            title for figure. If not specified, then the label
+            of the data will be used
+        fontsize : int
+            fontsize for the title
+
         """
         stat = self._get_statistics_str()
         if title is None:
@@ -2688,9 +2684,15 @@ class SingleMap(MapPlotGeneric):
         self.show_timeseries=show_timeseries
         self.show_colorbar=show_colorbar
         self.cticks = cticks
-        self.cticklabels = None
+        self.cticklabels = cticklabels
         self.vmin = vmin
         self.vmax = vmax
+
+        if self.cticklabels is not None:
+            if self.cticks is None:
+                raise ValueError('If CTICKLABELS are specified, then CTICKS need to be as well!')
+            if len(self.cticklabels) != len(self.cticks):
+                raise ValueError('CTICKLABELS need to have the same size as CTICKS')
 
         # set colormap and ensure to have a colormap object
         self.cmap = cmap
