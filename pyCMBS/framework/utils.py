@@ -44,15 +44,18 @@ def get_data_pool_directory():
 
 def get_temporary_directory():
     """
-    @return: path of temporary directory
-    @rtype: str
+    returns temporary directory
+
+    Returns
+    -------
+    r : str
     """
     if 'CDOTEMPDIR' in os.environ.keys():
         tempdir = os.environ['CDOTEMPDIR']
     else:
-        tempdir = './'
-    if tempdir[-1] != '/':
-        tempdir += '/'
+        tempdir = '.' + os.sep
+    if tempdir[-1] != os.sep:
+        tempdir += os.sep
     return tempdir
 
 
@@ -140,7 +143,6 @@ def get_generic_landseamask(shift_lon, mask_antarctica=True,
     #/// mask Antarctica if desired ///
     if mask_antarctica:
         ls_mask.data[ls_mask.lat < -60.] = False
-
     return ls_mask
 
 

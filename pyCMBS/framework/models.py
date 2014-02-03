@@ -69,7 +69,7 @@ class Model(Data):
             interval = self.intervals[k]
             cmd = 'dat = self.' + routine
 
-            if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
+            if hasattr(self, routine[0:routine.index('(')]): #check if routine name is there
                 exec(cmd)
 
                 #--- if a tuple is returned, then it is the data + a tuple for the original global mean field
@@ -284,7 +284,7 @@ class CMIP5Data(Model):
         @param kwargs: other keyword arguments
         @return:
         """
-        super(CMIP5Data, self).__init__(data_dir,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+        super(CMIP5Data, self).__init__(data_dir, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 
         self.model      = model
         self.experiment = experiment
@@ -564,7 +564,7 @@ class CMIP5Data(Model):
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
             filename1 = self.data_dir + 'rsds/' +  self.experiment + '/raw/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
             if not os.path.exists(filename1):
-                self._preprocess_ensembles(filename1)  # do preprocessing of ensemble means
+                filename1 = self._preprocess_ensembles(filename1)  # do preprocessing of ensemble means and get name of resulting file
         else:
             raise ValueError('Unknown type! not supported here!')
 
@@ -573,9 +573,9 @@ class CMIP5Data(Model):
         force_calc = False
 
         if self.start_time is None:
-            raise ValueError, 'Start time needs to be specified'
+            raise ValueError('Start time needs to be specified')
         if self.stop_time is None:
-            raise ValueError, 'Stop time needs to be specified'
+            raise ValueError('Stop time needs to be specified')
 
         #/// PREPROCESSING ///
         cdo = Cdo()
@@ -831,39 +831,44 @@ class CMIP5RAWData(CMIP5Data):
         self.type = 'CMIP5RAW'
         self._unique_name = self._get_unique_name()
 
-    def _preprocess_ensembles(self, filename, delete=True):
+    def _preprocess_ensembles(self, filename, delete=False):
         """
         do preprocessing of the CMIP5 rawdata based on the individual
-        model ensemble members
+        model ensemble members. Output is written to the processing
+        directory, sepcified by get_temporary_directory()
 
         Parameters
         ----------
         filename : str
             output filename of ensemble mean file. The input data is
-            searched in the same directory and you need to have
-            write access to this directory as well as results will be
-            written there.
+            searched in the same directory.
         delete : bool
             delete output file without asking
         """
-        if os.path.exists(filename):
-            if delete:
-                os.remove(filename)
-            else:
-                raise ValueError('Output file already existing: either delete manually or specify DELETE option.')
+
 
         # calculate ensemble mean
         root = filename.split('_ensmean')[0]
         print 'Rootname: ', root
 
+        # write output to processing directory!
+        outputfile = get_temporary_directory() + os.path.basename(filename)
+        if os.path.exists(outputfile):
+            if delete:
+                os.remove(outputfile)
+            else:
+                raise ValueError('Output file already existing: either delete manually or specify DELETE option.')
+
         files = glob.glob(root + '_r*.nc')  # all ensemble members
         fstr = ''
         for f in files:
             fstr += f + ' '
-        cmd1 = 'cdo -f nc ensmean ' + fstr + ' ' + filename
-        cmd2 = 'cdo -f nc ensstd ' + fstr + ' ' + filename.replace('_ensmean.nc','_ensstd.nc')
+        cmd1 = 'cdo -f nc ensmean ' + fstr + ' ' + outputfile
+        cmd2 = 'cdo -f nc ensstd ' + fstr + ' ' + outputfile.replace('_ensmean.nc','_ensstd.nc')
         os.system(cmd1)
         os.system(cmd2)
+
+        return outputfile
 
 
 
