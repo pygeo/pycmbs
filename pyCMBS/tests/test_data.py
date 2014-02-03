@@ -11,6 +11,11 @@ from scipy import stats
 from pyCMBS.netcdf import *
 from dateutil.rrule import *
 
+#todo: check test_cut_bounding_box (right border!)
+
+
+
+
 #unittests needed for
 # - get_zonal_mean
 # - _set_cell_area
@@ -41,7 +46,7 @@ from dateutil.rrule import *
 #_set_valid_range
 #__shift2D
 #_sub_sample
-#detrend
+
 #pad_timeseries
 #_convert_monthly_timeseries
 
@@ -149,6 +154,32 @@ class TestData(TestCase):
         b.time = t
         self.assertEqual(a._is_monthly(), False)
         self.assertEqual(b._is_monthly(), True)
+
+    def test_cut_bounding_box(self):
+        x = self.D.copy()
+        # sample data with invalid boundaries
+        t = np.random.random((6,6,5))
+        #... left border 1 pix
+        t[:,:,0] = np.nan
+        #... top border 2pix
+        t[:,0,:] = np.nan
+        t[:,1,:] = np.nan
+        #... right border only some pixels invalid
+        t[:,0:4,-1] = np.nan
+
+        x.data = np.ma.array(t, mask = np.isnan(t))
+        y = x.cut_bounding_box(return_object=True)
+
+        # left border
+        self.assertEqual(y.data[0,0,0], x.data[0,2,1])
+        self.assertEqual(y.data[2,0,0], x.data[2,2,1])
+
+        # right border
+        #todo
+        #~ print x.data[0,2,:]
+        #~ print y.data[0,0,:]
+        #~ self.assertEqual(y.data[0,0,-2], x.data[0,2,-2])
+
 
     def test_add(self):
         x = self.D.copy()
@@ -800,7 +831,6 @@ class TestData(TestCase):
         r,p = x.correlate(y, detrend=True)
         self.assertEquals(r.data[0,0], 0.)
 
-
     def test_detrend(self):
         x = self.D.copy()
         t = np.arange(len(x.time))
@@ -809,13 +839,20 @@ class TestData(TestCase):
         x.data[:,0,0] = np.ma.array(y, mask=y!=y)
 
         # return object
-        xd = x.detrend()  # should give something like random component
-        d = dx.data[:,0,0] / r
-        print d
-        stop
+        xd = x.detrend()
+        slope, intercept, r_value, p_value, std_err = stats.linregress(t,y)
+        ref = y - (slope*t+intercept)
+        d = np.abs(1.-xd.data[:,0,0]/ref)
+        self.assertTrue(np.all(d < 1.E-10))
 
-
-
+        # no object
+        x = self.D.copy()
+        x.data[:,0,0] = np.ma.array(y, mask=y!=y)
+        x.detrend(return_object=False)
+        slope, intercept, r_value, p_value, std_err = stats.linregress(t,y)
+        ref = y - (slope*t+intercept)
+        d = np.abs(1.-x.data[:,0,0]/ref)
+        self.assertTrue(np.all(d < 1.E-10))
 
     def test_normalize(self):
         x = self.D.copy()
