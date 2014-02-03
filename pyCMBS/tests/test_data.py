@@ -21,7 +21,7 @@ from dateutil.rrule import *
 
 # - partial_correlation
 #- get_temporal_mask
-#- get_climatology
+
 #- get_deseasonalized_anomaly
 #- set_time ???
 # _temporal_subsetting
@@ -101,8 +101,38 @@ class TestData(TestCase):
         self.assertEqual(d1.month,5)
         self.assertEqual(d1.day,22)
 
+    def test_get_climatology(self):
+        x = self.D.copy()
 
+        # timecycle = 1
+        x.time_cycle = 1
+        r = x.data.mean(axis=0)
+        c = x.get_climatology()
+        d = np.abs(1.-r/c)
+        self.assertTrue(np.all(d < 1.E-6))
 
+        # ... same, but with object returned
+        c = x.get_climatology(return_object=True)
+        d = np.abs(1.-r/c.data)
+        self.assertTrue(np.all(d < 1.E-6))
+
+        # varying timecycles
+        for time_cycle in [1,5,12,23]:
+            x.time_cycle=time_cycle
+            c = x.get_climatology()
+            nt,ny,nx = x.shape
+            r = np.zeros((time_cycle,ny,nx))
+            n = np.zeros((time_cycle,ny,nx))
+            cnt = 0
+            for i in xrange(nt):
+                if cnt % time_cycle == 0:
+                    cnt = 0
+                r[cnt,:,:] = r[cnt,:,:] + x.data[i,:,:]
+                n[cnt,:,:] = n[cnt,:,:] + (~x.data.mask[i,:,:]).astype('int')
+                cnt +=1
+            res = r / n  # reference mean
+            d = np.abs(1.-res/c)
+            self.assertTrue(np.all(d < 1.E-6))
 
     def test_is_monthly(self):
         a = self.D.copy()
