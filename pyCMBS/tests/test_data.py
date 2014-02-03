@@ -28,7 +28,6 @@ from dateutil.rrule import *
 # interp_time
 #- _mesh_lat_lon
 #read_netcdf
-#_get_weighting_matrix
 #get_aoi
 #get_aoi_lat_lon
 #cut_bounding_box
@@ -101,6 +100,7 @@ class TestData(TestCase):
         self.assertEqual(d1.year,1988)
         self.assertEqual(d1.month,5)
         self.assertEqual(d1.day,22)
+
 
 
 
@@ -286,19 +286,19 @@ class TestData(TestCase):
 #        stop
 
     def test_weighting_matrix(self):
-        D = self.D.copy() #single pixel
+        D = self.D.copy()  # single pixel
 
         x = np.ones((10,2,1))
         D.data=np.ma.array(x,mask=x == 0.)
 
-        #case 1: valid data for all timestep
+        # case 1: valid data for all timestep
         D.cell_area = np.ones(D.data[0,:,:].shape)
         D.cell_area[0,0] = 75.; D.cell_area[1,0] = 25. #3/4 ; 1/4
         r = D._get_weighting_matrix()
         self.assertFalse(np.any(r[:,0,0] != 0.75))
         self.assertFalse(np.any(r[:,1,0] != 0.25))
 
-        #case 2: invalid data for some timesteps
+        # case 2: invalid data for some timesteps
         D.data.mask[0,0,0] = True #mask one data as invalid
         r = D._get_weighting_matrix()
         self.assertFalse(np.any(r[1:,0,0] != 0.75))

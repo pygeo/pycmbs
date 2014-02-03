@@ -2792,17 +2792,22 @@ y
 
     def _get_weighting_matrix(self):
         """
-        (unittest)
-
         get matrix for area weighting of grid cells. For each timestep
-        the weights are calculated as a function of either the  number of valid
-        grid cells or all grid cells.
+        the weights are calculated as a function of either the  number
+        of valid grid cells or all grid cells. Which one of the two
+        approaches is used depends on self.weighting_type
 
         The returned array contains weights for each timestep. The sum
         of these weights is equal to one for each timestep.
 
-        @return weighting matrix in same geometry as original data
-        @rtype numpy array
+        Returns
+        -------
+        w : ndarray
+            weighting matrix in same geometry as original data
+
+        Test
+        ----
+        unittest implemented
         """
 
         normtype = self.weighting_type
@@ -2810,7 +2815,7 @@ y
         if normtype in ['valid', 'all']:
             pass
         else:
-            raise ValueError, 'Invalid option for normtype: ' + normtype
+            raise ValueError('Invalid option for normtype: %s' % normtype)
 
         w = np.zeros(self.data.shape)
 
@@ -2829,7 +2834,7 @@ y
         elif self.data.ndim == 3:
             nt = len(self.data)
 
-            #1) repeat cell area nt-times
+            # 1) repeat cell area nt-times
             cell_area = self.cell_area.copy()
             s = np.shape(cell_area)
             cell_area.shape = (-1)
@@ -2862,7 +2867,6 @@ y
                 self.totalarea = self.cell_area.sum()
                 w /= self.totalarea  # normalization by total area. This does NOT result in sum(w) == 1 for each timestep!
             return w
-
         else:  # dimension
             raise ValueError('weighting matrix not supported for this data shape')
 
