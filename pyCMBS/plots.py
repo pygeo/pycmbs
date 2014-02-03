@@ -2473,13 +2473,13 @@ class MapPlotGeneric(object):
             raise ValueError('Fatal Error: no axis for plotting specified')
         # set dummy axes invisible
         for ax in self._dummy_axes:
-            self._set_axis_invisible(ax)
+            self._set_axis_invisible(ax, frame=False)
         if self.pax is not None:
-            self._set_axis_invisible(self.pax)
+            self._set_axis_invisible(self.pax, frame=True)
         if self.cax is not None:
-            self._set_axis_invisible(self.cax)
+            self._set_axis_invisible(self.cax, frame=True)
         if self.zax is not None:
-            self._set_axis_invisible(self.zax)
+            self._set_axis_invisible(self.zax, frame=True)
 
         # do plotting
         self.im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
@@ -2512,7 +2512,7 @@ class MapPlotGeneric(object):
 
 
 
-    def _set_axis_invisible(self, ax):
+    def _set_axis_invisible(self, ax, frame=True):
         """
         set axis parameteres in a way that it is invisible
         """
@@ -2520,7 +2520,10 @@ class MapPlotGeneric(object):
         ax.set_yticks([])
         ax.set_xticklabels([])
         ax.set_yticklabels([])
-        #~ ax.set_frame_on(False)
+        ax.set_frame_on(frame)
+
+
+
 
 
 
@@ -2702,7 +2705,7 @@ class SingleMap(MapPlotGeneric):
         self._draw_title(title=title)
 
         # adjust plots to minimize spaces between subplots
-        #~ self._adjust_figure()
+        self._adjust_figure()
 
         # save data if required
         self.save()
@@ -2711,28 +2714,31 @@ class SingleMap(MapPlotGeneric):
         """
         adjust subplot sizes
         """
-        if self.colorbar_orientation == 'vertical':
-            # pos = [left, bottom, width, height]
+        # ensure that full space is covered by data
+        self.pax.set_aspect('auto', adjustable='datalim')
 
+        #~ if self.colorbar_orientation == 'vertical':
+            #~ # pos = [left, bottom, width, height]
+#~
             #~ cleft, cbottom, cright, ctop
-            res = self.cax.get_position().get_points()
-            cleft = res[0,0]
-            cbottom = res[0,1]
-            cright = res[1,0]
-            ctop = res[1,1]
-            cax_width = cright-cleft
-
-            print cleft, cbottom, cright, ctop
-
-            res = self.pax.get_position().get_points()
-            pleft = res[0,0]
-            pbottom = res[0,1]
-            pright = res[1,0]
-            ptop = res[1,1]
-            pheight = ptop-pbottom
-            pos = [cleft, pbottom, cax_width, pheight]
-            print 'pos: ', pos
-            self.cax.set_position(pos)
+            #~ res = self.cax.get_position().get_points()
+            #~ cleft = res[0,0]
+            #~ cbottom = res[0,1]
+            #~ cright = res[1,0]
+            #~ ctop = res[1,1]
+            #~ cax_width = cright-cleft
+#~
+            #~ print cleft, cbottom, cright, ctop
+#~
+            #~ res = self.pax.get_position().get_points()
+            #~ pleft = res[0,0]
+            #~ pbottom = res[0,1]
+            #~ pright = res[1,0]
+            #~ ptop = res[1,1]
+            #~ pheight = ptop-pbottom
+            #~ pos = [cleft, pbottom, cax_width, pheight]
+            #~ print 'pos: ', pos
+            #~ self.cax.set_position(pos)
         #~ self.figure.tight_layout(w_pad=0., h_pad=0.)
 
 
@@ -2758,6 +2764,8 @@ class SingleMap(MapPlotGeneric):
             raise ValueError('Layout without colorbar not supported yet')
 
 
+
+
     def _set_layout1(self):
         """
         setlayout with only colorbar. This might be oriented either
@@ -2779,7 +2787,7 @@ class SingleMap(MapPlotGeneric):
 
         """
 
-        wspace=0.0
+        wspace=0.05
 
         if not self.show_colorbar:
             raise ValueError('This routine was called by fault!')
