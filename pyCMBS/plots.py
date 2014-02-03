@@ -2403,8 +2403,6 @@ class MapPlotGeneric(object):
         self.show_statistic = show_statistic
         self.stat_type = stat_type
         self._dummy_axes=[]
-        self.cticks = None
-        self.cticklabels = None
 
         if figure is None:
             self.figure = plt.figure()
@@ -2491,6 +2489,27 @@ class MapPlotGeneric(object):
             self._set_colorbar(self.im)
 
 
+    def _get_cticks(self):
+        """ get cticks from dictionary if available """
+        if self.ctick_prop is None:
+            return None
+        if 'ticks' in self.ctick_prop.keys():
+            return self.ctick_prop['ticks']
+
+    def _get_cticklabels(self):
+        if self.ctick_prop is None:
+            return None
+        if 'labels' in self.ctick_prop.keys():
+            l = self.ctick_prop['labels']
+            if len(l) != len(self._get_cticks()):
+                raise ValueError('CTICKS and CTICKLABELS need to have the same length!')
+            return l
+        else:
+            return None
+
+
+
+
     def _set_colorbar(self, im):
         """
         create colorbar and return colorbar object
@@ -2507,9 +2526,9 @@ class MapPlotGeneric(object):
         vmax = im.get_clim()[1]
         self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
-        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self.cticks, orientation=self.colorbar_orientation)
-        if self.cticklabels is not None:
-            cb.set_ticklabels(self.cticklabels)
+        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self._get_cticks(), orientation=self.colorbar_orientation)
+        if self.ctick_prop is not None:
+            cb.set_ticklabels(self._get_cticklabels())
 
     def _set_axis_invisible(self, ax, frame=True):
         """
@@ -2665,14 +2684,30 @@ class SingleMap(MapPlotGeneric):
 
     def plot(self, show_zonal=False, show_histogram=False,
             show_timeseries=False, show_colorbar=True,
-            colorbar_orientation='vertical', cmap='jet', cticks=None,
-            cticklabels=None, vmin=None, vmax=None, nclasses=10,
+            colorbar_orientation='vertical', cmap='jet', ctick_prop=None,
+            vmin=None, vmax=None, nclasses=10,
             title=None):
         """
         routine to plot a single map
 
         Parameters
         ----------
+
+
+        ctick_prop : dict
+            dictionary that specifies the properties for the colorbar
+            ticks. Currently the following keys are supported:
+
+            'ticks' : float list : specifies locations of ticks
+            'labels' : str list : user defined label list; needs to
+                                  have same length as 'ticks'
+
+             Example:
+                ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C']
+
+
+
+
         """
 
         if colorbar_orientation not in ['vertical','horizontal']:
@@ -2683,16 +2718,10 @@ class SingleMap(MapPlotGeneric):
         self.show_histogram=show_histogram
         self.show_timeseries=show_timeseries
         self.show_colorbar=show_colorbar
-        self.cticks = cticks
-        self.cticklabels = cticklabels
+        self.ctick_prop = ctick_prop  #dictionary
         self.vmin = vmin
         self.vmax = vmax
 
-        if self.cticklabels is not None:
-            if self.cticks is None:
-                raise ValueError('If CTICKLABELS are specified, then CTICKS need to be as well!')
-            if len(self.cticklabels) != len(self.cticks):
-                raise ValueError('CTICKLABELS need to have the same size as CTICKS')
 
         # set colormap and ensure to have a colormap object
         self.cmap = cmap
