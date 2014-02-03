@@ -2395,7 +2395,7 @@ class MapPlotGeneric(object):
     Generic class to produce map plots
     """
 
-    def __init__(self,backend=None, format='png', savefile=None,
+    def __init__(self,backend='imshow', format='png', savefile=None,
                     show_statistic = True, stat_type='mean', figure=None):
         self.backend = backend
         self.format = format
@@ -2409,11 +2409,21 @@ class MapPlotGeneric(object):
         else:
             self.figure = figure
 
+        # consistency checks
         self._check()
+
+        # set plotting backend routine
+        if self.backend == 'imshow':
+            self._draw = self._draw_imshow
+        else:
+            raise ValueError('Unknown backend!')
 
     def _check(self):
         if self.stat_type not in ['mean', 'median', 'sum']:
             raise ValueError('Invalid statistic type: %s' % self.stat_type)
+        if self.backend not in ['imshow']:
+            raise ValueError('Invalid plotting nackend: %s' % self.backend)
+
 
     def plot(self):
         raise ValueError('This routine shall be overwritten by herited class')
@@ -2435,42 +2445,38 @@ class MapPlotGeneric(object):
             self._set_axis_invisible(self.zax)
 
         # do plotting
-        im = self.pax.imshow(self.x.timmean(), **kwargs)
+        im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
 
         # colorbar
-        vmin = im.get_clim()[0]
-        vmax = im.get_clim()[1]
-        self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         if self.show_colorbar:
-            self._set_colorbar()
+            self._set_colorbar(im)
 
         # labels and title
         #~ self._draw_title()
 
 
-    def _set_colorbar(self):
+    def _set_colorbar(self, im):
         """
         create colorbar and return colorbar object
+
+        Parameters
+        ----------
+        im : plot
+            results from e.g. an imshow command
         """
         if not self.show_colorbar:
             raise ValueError('Colorbar can not be generated when not requested')
+
+        vmin = im.get_clim()[0]
+        vmax = im.get_clim()[1]
+        self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
         cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self.cticks, orientation=self.colorbar_orientation)
         if self.cticklabels is not None:
             cb.set_ticklabels(self.cticklabels)
 
 
-    def _draw_title(self):
-        """
-        draw title, units and statistics
-        """
-        stat = self._get_statistics_str()
-        #tit = self._get_title_str()
-        unit = self.x._get_unit()
 
-        self.pax.set_title('testtitle')
-        self.pax.set_title(unit, loc='right')
-        self.pax.set_title(stat, loc='left')
 
     def _set_axis_invisible(self, ax):
         """
@@ -2478,30 +2484,12 @@ class MapPlotGeneric(object):
         """
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_frame_on(False)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        #~ ax.set_frame_on(False)
 
 
-    def _get_statistics_str(self):
-        tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
-        s = ''
-        if self.show_statistic:
-            if self.stat_type == 'mean':
-                me = tmp_xm.fldmean()
-                st = tmp_xm.fldstd()
-                assert(len(me) == 1)
-                assert(len(st) == 1)
-                me = me[0]
-                st=st[0]
-                s ='weighted mean:\n$' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
-            elif stat_type == 'sum': #area sum
-                me = tmp_xm.areasum()
-                assert(len(me) == 1)
-                me = me[0]
-                s = 'weighted sum:\n$' + str(round(me,2))  + '$'
-            else:
-                me = np.ma.median(tmp_xm.data)
-                s = 'median:\n$' + str(round(me,2)) + '$'
-        return s
+
 
 
 
@@ -2528,6 +2516,99 @@ class SingleMap(MapPlotGeneric):
         self.tax = None  # axis for timeseries
         self.hax = None  # axis for histogram
         self.zax = None  # axis for zonal plot
+
+
+
+    def _plot_zonal(self):
+        if self.show_zonal:
+            if self.x._latitudecheckok:
+                self._draw_zonal_plot(self)
+            else:
+                print('WARNING: zonal plot not possible due to invalid latitude configurations')
+
+
+    def _draw_title(self, fontsize=14):
+        """
+        draw title, units and statistics
+        """
+        stat = self._get_statistics_str()
+        tit = self.x._get_label()
+        unit = self.x._get_unit()
+
+        self.pax.set_title(tit + '\n', size=fontsize)
+        self.pax.set_title(unit, loc='right', size=fontsize-2)
+        self.pax.set_title(stat, loc='left', size=fontsize-2)
+
+    def _get_statistics_str(self):
+        tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
+        s = ''
+        if self.show_statistic:
+            if self.stat_type == 'mean':
+                me = tmp_xm.fldmean()
+                st = tmp_xm.fldstd()
+                assert(len(me) == 1)
+                assert(len(st) == 1)
+                me = me[0]
+                st=st[0]
+                s ='mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
+            elif stat_type == 'sum': #area sum
+                me = tmp_xm.areasum()
+                assert(len(me) == 1)
+                me = me[0]
+                s = 'sum: $' + str(round(me,2))  + '$'
+            else:
+                me = np.ma.median(tmp_xm.data)
+                s = 'median: $' + str(round(me,2)) + '$'
+        return s
+
+
+    def _draw_zonal_plot(self, timmean=True, vmin=None, vmax=None, fontsize=8):
+        """
+        calculate zonal statistics and add to zonal axis
+
+        Parameters
+        ----------
+        timmean : bool
+            temporal mean for zonal plot [default=True]
+        vmin : float
+            minimum value for zonal plot
+        vmax : float
+            maximum value for zonal plot
+        """
+
+        ZP = ZonalPlot(ax=self.zax, dir='y')
+
+        if self.x.ndim == 2:
+            pass
+        elif self.x.ndim == 3:
+            nt,ny,nx = self.x.shape
+
+        ZP.plot(self.x, timmean=timmean, show_ylabel=False)
+
+        # set limits
+        if ((vmin is None) & (vmax is None)):
+            vmin = self.zax.get_xlim()[0]
+            vmax = self.zax.get_xlim()[1]
+            # symmetry if neg. and positive limits
+            if (vmin < 0.) & (vmax > 0.):
+                val = max(abs(vmin) ,abs(vmax))
+                vmin = -val
+                vmax = val
+
+        if vmin is None:
+            vmin = self.zax.get_xlim()[0]
+        if vmax is None:
+            vmax = self.zax.get_xlim()[1]
+        self.zax.set_xlim(vmin, vmax)
+
+        # set only first and last label
+        self.zax.set_xticks([vmin, vmax])
+        self.zax.plot([0,0], self.zax.get_ylim(), linestyle='-', color='grey')
+
+        for tick in self.zax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(fontsize)
+
+
 
     def plot(self, show_zonal=False, show_histogram=False,
             show_timeseries=False, show_colorbar=True,
@@ -2556,8 +2637,10 @@ class SingleMap(MapPlotGeneric):
         # set axes layout
         self._set_layout()
 
-        # do plot
-        self._draw_imshow()
+        # do plot using current backend
+        self._draw()
+        self._plot_zonal()
+        self._draw_title()
 
     def _set_layout(self):
         """
@@ -2569,20 +2652,14 @@ class SingleMap(MapPlotGeneric):
 
         if self.show_colorbar:
             # timeseries or histogram require an additional lower axis
-            if self.show_timeseries:
+            if (self.show_timeseries or self.show_histogram):
                 raise ValueError('Combination with timeseries not supported yet!')
             else:
                 if self.show_zonal:
                     self._set_layout2()  # layout with colorbar and zonal plot
                 else:
                     self._set_layout1()  # layout with only colorbar
-            if self.show_histogram:
-                raise ValueError('Combination with histogram not supported yet!')
-            else:
-                if self.show_zonal:
-                    self._set_layout2()  # layout with colorbar and zonal plot
-                else:
-                    self._set_layout1()  # layout with only colorbar
+
         else:
             raise ValueError('Layout without colorbar not supported yet')
 
@@ -2817,9 +2894,10 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 vmsk[i] = False
                 continue
             if basemap_object is None:
-                xv=vlon[i,:]; yv=vlat[i,:]
+                xv=vlon[i,:]
+                yv=vlat[i,:]
             else:
-                xv,yv = basemap_object(vlon[i,:],vlat[i,:])    #todo: how to properly deal with boundary problem ????
+                xv,yv = basemap_object(vlon[i,:], vlat[i,:])    #todo: how to properly deal with boundary problem ????
             if (vlon[i,:].min() < -100.) & (vlon[i,:].max() > 100.): #todo
                 #... triangles across the boundaries of the projection are a problem
                 # ... solution: generate two triangles ! TODO
@@ -3202,7 +3280,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         if x._latitudecheckok:
             add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
         else:
-            print 'WARNING: zonal plot not possible due to invalid latitude configurations'
+            print('WARNING: zonal plot not possible due to invalid latitude configurations')
 
 
 

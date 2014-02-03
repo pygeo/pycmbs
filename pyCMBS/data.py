@@ -1827,8 +1827,9 @@ y
 
     def _get_date_from_month(self, nmonths):
         """
-        calculate a datetime object for a time given in 'months since' a basedate
-        The routine increments itteratively the number of months and returns a datetime object
+        calculate a datetime object for a time given in 'months since'
+        a basedate. The routine increments itteratively the number of
+        months and returns a datetime object.
 
         This is done for a *single* timestep!
 
@@ -1841,11 +1842,15 @@ y
         -------
         d : datetime
             datetime object with actual date
+
+        Tests
+        -----
+        unittest implemented
         """
 
         if not 'months since' in self.time_str:
-            print self.time_str
-            raise ValueError, 'This routine is only for conversion of monthly data!'
+            print(self.time_str)
+            raise ValueError('This routine is only for conversion of monthly data!')
 
         basedate = self.time_str.split('since')[1].lstrip()
 
@@ -1855,7 +1860,8 @@ y
 
         for i in xrange(int(nmonths)):  # increment months
             d = pl.num2date(act_date)
-            ndays = monthrange(d.year, d.month)[1]  # number of days in current month
+            # number of days in current month
+            ndays = monthrange(d.year, d.month)[1]
             act_date += ndays
 
         return pl.num2date(act_date)
@@ -3050,6 +3056,8 @@ y
 
         if ddof not in [0,1]:
             raise ValueError('ddof only supported for [0,1] so far!')
+        if ddof == 1:
+            raise ValueError('Sorry, but for DDOF=1 there are still problems for weighted samples. Please check unittests first.')
 
         if apply_weights:
             #calculate weighted standard deviation.
@@ -3068,14 +3076,14 @@ y
                 if ddof == 0:  # unbiased estimator
                     V1 = w.sum()
                     s = (w*(self.data - mu)**2.).sum() / V1
-                    tmp = np.sqrt(s)
+                    tmp = [np.sqrt(s)]
                 elif ddof == 1:  # biased estimator
                     V1 = w.sum()
                     V2 = (w*w).sum()
                     print 'V1, V2: ', V1, V2
                     print 'mu: ', mu
                     s = V1*np.sum(w*(self.data - mu)**2.) / (V1*V1-V2)
-                    tmp = np.sqrt(s)
+                    tmp = [np.sqrt(s)]
                 else:
                     raise ValueError('DDOF /= 1 not implemented yet!')
 
