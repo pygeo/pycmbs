@@ -325,7 +325,7 @@ class Report(object):
         """
         opens a table
         """
-        self.write('    \caption{' + caption + '}')
+        #~ self.write('    \caption{' + caption + '}')
         self.write('\end{table}')
 
 #-----------------------------------------------------------------------
