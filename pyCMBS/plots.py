@@ -2424,6 +2424,8 @@ class MapPlotGeneric(object):
         if self.backend not in ['imshow']:
             raise ValueError('Invalid plotting nackend: %s' % self.backend)
 
+
+
     def _draw_imshow(self, **kwargs):
         """
         draw data using imshow command
@@ -2441,7 +2443,7 @@ class MapPlotGeneric(object):
             self._set_axis_invisible(self.zax)
 
         # do plotting
-        im = self.pax.imshow(self.x.timmean(), interpolation='nearest', vmin=self.vmin, vmax=self.vmax, **kwargs)
+        im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
 
         # colorbar
         if self.show_colorbar:
@@ -2513,6 +2515,8 @@ class SingleMap(MapPlotGeneric):
         self.hax = None  # axis for histogram
         self.zax = None  # axis for zonal plot
 
+        self.cmap = 'jet'
+
 
 
     def _plot_zonal(self):
@@ -2521,6 +2525,23 @@ class SingleMap(MapPlotGeneric):
                 self._draw_zonal_plot(self)
             else:
                 print('WARNING: zonal plot not possible due to invalid latitude configurations')
+
+    def _set_cmap(self, nclasses):
+        """
+        generate a colormap. If self.cmap is already a colormap
+        object, then nothing happens. Otherwise a new colormap object
+        is created which has nclasses
+
+        Parameters
+        ----------
+        nclasses : int
+            number of classes for colormap
+        """
+        if hasattr(self.cmap,'monochrome'):
+            # colormap object was given
+            self.cmap = cmap_data
+        else:
+            self.cmap = plt.cm.get_cmap(self.cmap, nclasses)
 
 
     def _draw_title(self, fontsize=14):
@@ -2609,7 +2630,8 @@ class SingleMap(MapPlotGeneric):
     def plot(self, show_zonal=False, show_histogram=False,
             show_timeseries=False, show_colorbar=True,
             colorbar_orientation='vertical', cmap='jet', cticks=None,
-            cticklabels=None, vmin=None, vmax=None, **kwargs):
+            cticklabels=None, vmin=None, vmax=None, nclasses=10,
+             **kwargs):
         """
         routine to plot a single map
 
@@ -2630,13 +2652,15 @@ class SingleMap(MapPlotGeneric):
         self.vmin = vmin
         self.vmax = vmax
 
+        # set colormap and ensure to have a colormap object
         self.cmap = cmap
+        self._set_cmap(nclasses)
 
         # set axes layout
         self._set_layout()
 
         # do plot using current backend
-        self._draw()
+        self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
         self._plot_zonal()
         self._draw_title()
 
