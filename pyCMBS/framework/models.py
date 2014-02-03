@@ -11,6 +11,7 @@ from cdo import *
 import tempfile as tempfile
 import copy
 import pickle
+import glob
 
 class Model(Data):
     """
@@ -73,10 +74,10 @@ class Model(Data):
 
                 #--- if a tuple is returned, then it is the data + a tuple for the original global mean field
                 if 'tuple' in str(type(dat)):
-                    self.variables.update({ k : dat[0] }) #update field with data
-                    self.variables.update({ k + '_org' : dat[1]}) #(time, meanfield, originalfield)
+                    self.variables.update({ k : dat[0] })  # update field with data
+                    self.variables.update({ k + '_org' : dat[1]})  # (time, meanfield, originalfield)
                 else:
-                    self.variables.update({ k : dat }) #update field with data
+                    self.variables.update({ k : dat })  # update field with data
 
             else:
                 print 'WARNING: unknown function to read data (skip!), variable: ', k
@@ -268,9 +269,6 @@ class MeanModel(Model):
 #------------------------------------------------------------------------------
 
 
-
-
-
 class CMIP5Data(Model):
     """
     Class for CMIP5 model simulations. This class is derived from C{Model}.
@@ -286,7 +284,7 @@ class CMIP5Data(Model):
         @param kwargs: other keyword arguments
         @return:
         """
-        super(CMIP5Data,self).__init__(data_dir,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+        super(CMIP5Data, self).__init__(data_dir,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
 
         self.model      = model
         self.experiment = experiment
@@ -307,14 +305,11 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------------------------------------
-
-    def get_model_data_generic(self,interval='season', **kwargs):
+    def get_model_data_generic(self, interval='season', **kwargs):
         """
         unique parameters are:
             filename - file basename
             variable - name of the variable as the short_name in the netcdf file
-
 
             kwargs is a dictionary with keys for each model. Then a dictionary with properties follows
 
@@ -352,20 +347,22 @@ class CMIP5Data(Model):
             if self.type == 'CMIP5':
                 filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
                         (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
+            if self.type == 'CMIP5RAW':
+                filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
+                        (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
             elif self.type == 'CMIP3':
                 filename1 = ("%s/%s_%s_%s_%s.%s" %
                         (custom_path, self.experiment, self.model, varname,  model_suffix, file_format))
             else:
                 print self.type
-                raise ValueError, 'Can not generate filename: invalid model type!'
-
+                raise ValueError('Can not generate filename: invalid model type!')
 
         force_calc = False
 
         if self.start_time is None:
-            raise ValueError, 'Start time needs to be specified'
+            raise ValueError('Start time needs to be specified')
         if self.stop_time is None:
-            raise ValueError, 'Stop time needs to be specified'
+            raise ValueError('Stop time needs to be specified')
 
         #/// PREPROCESSING ///
         cdo = Cdo()
@@ -389,10 +386,8 @@ class CMIP5Data(Model):
 
         cdo.monmean(options='-f nc',output=file_monthly,input = '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
 
-
         sys.stdout.write('\n *** Reading model data... \n')
         sys.stdout.write('     Interval: ' + interval + '\n')
-
 
         #2) calculate monthly or seasonal climatology
         if interval == 'monthly':
@@ -414,7 +409,7 @@ class CMIP5Data(Model):
             cdo.yseasstd(options='-f nc -b 32',output = mdata_clim_std_file,input=file_monthly, force=force_calc)
             cdo.div(options='-f nc -b 32',output = mdata_N_file,input=mdata_sum_file + ' ' + mdata_clim_file, force=force_calc) #number of samples
         else:
-            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+            raise ValueError('Unknown temporal interval. Can not perform preprocessing!')
 
         if not os.path.exists(mdata_clim_file):
             return None
@@ -433,8 +428,8 @@ class CMIP5Data(Model):
         mdata_N = Data(mdata_N_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel)
         mdata.n = mdata_N.data.copy(); del mdata_N
 
-        #ensure that climatology always starts with J  anuary, therefore set date and then sort
-        mdata.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        #ensure that climatology always starts with January, therefore set date and then sort
+        mdata.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
         mdata.timsort()
 
         #4) read monthly data
@@ -469,7 +464,7 @@ class CMIP5Data(Model):
         del mdata_all
 
 
-        return mdata,retval
+        return mdata, retval
 
 
 #-----------------------------------------------------------------------
@@ -553,9 +548,7 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-
-
-    def get_surface_shortwave_radiation_down(self,interval = 'season',**kwargs):
+    def get_surface_shortwave_radiation_down(self, interval = 'season', **kwargs):
 
         """
         return data object of
@@ -563,24 +556,25 @@ class CMIP5Data(Model):
         b) global mean timeseries for SIS at original temporal resolution
         """
 
-        #original data
-        #filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-
         locdict = kwargs[self.type]
-        valid_mask    = locdict.pop('valid_mask')
+        valid_mask = locdict.pop('valid_mask')
 
-        filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        if self.type == 'CMIP5':
+            filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
+            filename1 = self.data_dir + 'rsds/' +  self.experiment + '/raw/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            if not os.path.exists(filename1):
+                self._preprocess_ensembles(filename1)  # do preprocessing of ensemble means
+        else:
+            raise ValueError('Unknown type! not supported here!')
 
         print 'File downward!: ', filename1
 
-
-
         force_calc = False
 
-        if self.start_time == None:
+        if self.start_time is None:
             raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
+        if self.stop_time is None:
             raise ValueError, 'Stop time needs to be specified'
 
         #/// PREPROCESSING ///
@@ -588,13 +582,9 @@ class CMIP5Data(Model):
         s_start_time = str(self.start_time)[0:10]
         s_stop_time  = str(self.stop_time)[0:10]
 
-
-
-
         #1) select timeperiod and generatget_she monthly mean file
         file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
-
 
         print file_monthly
 
@@ -603,7 +593,6 @@ class CMIP5Data(Model):
 
         sys.stdout.write('\n *** Reading model data... \n')
         sys.stdout.write('     Interval: ' + interval + '\n')
-
 
         #2) calculate monthly or seasonal climatology
         if interval == 'monthly':
@@ -667,7 +656,7 @@ class CMIP5Data(Model):
         #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
         sis.data = np.ma.array(sis.data,mask=sis.data < 1.)
 
-        return sis,retval
+        return sis, retval
 
 #-----------------------------------------------------------------------
 
@@ -826,8 +815,59 @@ class CMIP5Data(Model):
 
 
 
+class CMIP5RAWData(CMIP5Data):
+    """
+    This class is supposed to use CMIP5 data in RAW format.
+    This means that it builds on the CMORIZED CMIP5 data, but
+    performs all necessary preprocessing step like e.g. calculation
+    of ensemble means
+    """
+    def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
+        super(CMIP5RAWData, self).__init__(data_dir, model, experiment, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
+        self.model = model
+        self.experiment = experiment
+        self.data_dir = data_dir
+        self.shift_lon = shift_lon
+        self.type = 'CMIP5RAW'
+        self._unique_name = self._get_unique_name()
 
-#####################################################
+    def _preprocess_ensembles(self, filename, delete=True):
+        """
+        do preprocessing of the CMIP5 rawdata based on the individual
+        model ensemble members
+
+        Parameters
+        ----------
+        filename : str
+            output filename of ensemble mean file. The input data is
+            searched in the same directory and you need to have
+            write access to this directory as well as results will be
+            written there.
+        delete : bool
+            delete output file without asking
+        """
+        if os.path.exists(filename):
+            if delete:
+                os.remove(filename)
+            else:
+                raise ValueError('Output file already existing: either delete manually or specify DELETE option.')
+
+        # calculate ensemble mean
+        root = filename.split('_ensmean')[0]
+        print 'Rootname: ', root
+
+        files = glob.glob(root + '_r*.nc')  # all ensemble members
+        fstr = ''
+        for f in files:
+            fstr += f + ' '
+        cmd1 = 'cdo -f nc ensmean ' + fstr + ' ' + filename
+        cmd2 = 'cdo -f nc ensstd ' + fstr + ' ' + filename.replace('_ensmean.nc','_ensstd.nc')
+        os.system(cmd1)
+        os.system(cmd2)
+
+
+
+########################################################################
 
 
 
@@ -835,8 +875,6 @@ class CMIP5Data(Model):
 class JSBACH_BOT(Model):
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
-
-        #Model.__init__(self,filename,dic_variables,name=name,**kwargs)
         super(JSBACH_BOT,self).__init__(filename,dic_variables,name=name,**kwargs)
 
         self.experiment = experiment
