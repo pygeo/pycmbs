@@ -37,13 +37,13 @@ from dateutil.rrule import *
 #read_netcdf
 #get_aoi
 #get_aoi_lat_lon
-#cut_bounding_box
+
 #get_valid_data
 #_apply_mask
 #shift_x
 #__shift3D
 #timeshift
-#_set_valid_range
+
 #__shift2D
 #_sub_sample
 
@@ -142,6 +142,19 @@ class TestData(TestCase):
             d = np.abs(1.-res/c)
             self.assertTrue(np.all(d < 1.E-6))
 
+
+    def test_set_valid_range(self):
+        x = self.D.copy()
+        tmp = np.random.random((100,200,300)) * 10. - 5.
+        x.data = np.ma.array(tmp, mask=tmp != tmp)
+        x._set_valid_range(-2., 2.)
+        self.assertTrue(np.all(x.data >=-2.))
+        self.assertTrue(np.all(x.data <=2.))
+
+        x._set_valid_range(-0.5, 1.)
+        self.assertTrue(np.all(x.data >=-0.5))
+        self.assertTrue(np.all(x.data <=1.))
+
     def test_is_monthly(self):
         a = self.D.copy()
         b = self.D.copy()
@@ -195,7 +208,7 @@ class TestData(TestCase):
         y.data += 3.
         c = x.sub(y)
         self.assertEqual(c.data[0,0,0], -3.)
-        self.assertEqual(c.data[100,0,0], -3.)
+        self.assertTrue(1.-c.data[100,0,0]/-3. < 1.E-6)
 
     def test_addc(self):
         r1 = self.D.addc(5.,copy=True)
