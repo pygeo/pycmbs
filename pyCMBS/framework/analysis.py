@@ -556,10 +556,14 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     if GM is not None:
         GM.plot(obs_monthly, linestyle='--', show_std=False, group='observations', stat_type=stat_type)
 
-    if f_mapseasons == True:  #seasonal mean plot
+    if f_mapseasons == True:  # seasonal mean plot for observations
         f_season = map_season(obs_orig, use_basemap=use_basemap, cmap_data='jet',
-                              show_zonal=False, zonal_timmean=True, nclasses=nclasses,
-                              vmin=vmin, vmax=vmax, cticks=cticks, proj=projection, stat_type=stat_type)
+                              show_zonal=False, zonal_timmean=True,
+                              nclasses=nclasses,
+                              vmin=vmin, vmax=vmax, cticks=cticks,
+                              proj=projection, stat_type=stat_type,
+                              show_stat=True, drawparallels=False,
+                              titlefontsize=8)
         if len(obs_orig.data) == 4:
             report.figure(f_season, caption='Seasonal mean ' + obs_name)
         else:
@@ -672,7 +676,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             fig_comp_time = time_series_regional_analysis(model_data, obs_orig, themask)
             report.figure(fig_comp_time, caption='Here your user defined caption ... Have fun')
-            pl.close(fig_comp_time.number);
+            pl.close(fig_comp_time.number)
+
             del fig_comp_time
 
         if f_mapseasons == True:
@@ -686,7 +691,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                   vmin=vmin, vmax=vmax, cticks=cticks,
                                   proj=projection, stat_type=stat_type,
                                   show_stat=True,
-                                  drawparallels=False, titlefontsize=10)
+                                  drawparallels=False, titlefontsize=8)
             if len(model_data.data) == 4:
                 report.figure(f_season, caption='Seasonal mean climatology for ' + model.name)
             else:
@@ -707,6 +712,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                       stat_type=stat_type,
                                       show_stat=True,
                                       drawparallels=False,
+                                      cticks=[cticks_diff[0],cticks_diff[-1]],
                                       titlefontsize=10)
 
             if len(model_data.data) == 4:
@@ -720,12 +726,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             pl.close(f_season_dif.number);
             del f_season_dif
 
-
         if f_pattern_correlation:
             # perform pattern correlation
             PC = PatternCorrelation(obs_orig, model_data, ax=ax_pc)
             xxx = PC.plot(label=model.name.upper())
-
 
         if f_hovmoeller == True:
             print('    Doing Hovmoeller plot ...')
@@ -987,8 +991,6 @@ def tree_fraction_analysis(model_list, pft='tree'):
             np.linspace(90. - 0.25, -90. + 0.25, t.shape[0])) #todo: center coordinates or corner coordinates?
         lon.assign_value(np.linspace(-180. + 0.25, 180. - 0.25, t.shape[1]))
 
-        #todo: lon 0 ... 360 ****
-
         F.close()
 
         return outname
@@ -997,41 +999,44 @@ def tree_fraction_analysis(model_list, pft='tree'):
     #//// load tree fraction observations ////
     #1) convert to netCDF
     fraction_file = fraction2netcdf(pft)
+
     #2) remap to T63
-    y1 = '2001-01-01';
+    y1 = '2001-01-01'
     y2 = '2001-12-31'
     cdo = pyCDO(fraction_file, y1, y2)
     t63_file = cdo.remap(method='remapcon')
 
     #3) load data
     ls_mask = get_T63_landseamask()
-    hansen = Data(t63_file, pft + '_fraction', read=True, label='MODIS VCF ' + pft + ' fraction', unit='-',
-                  lat_name='lat', lon_name='lon', shift_lon=shift_lon, mask=ls_mask.data.data)
-
-    #~ todo now remap to T63 grid; which remapping is the most useful ???
+    hansen = Data(t63_file, pft + '_fraction', read=True,
+                  label='MODIS VCF ' + pft + ' fraction', unit='-',
+                  lat_name='lat', lon_name='lon', shift_lon=shift_lon,
+                  mask=ls_mask.data.data)
 
 
     #//// PERFORM ANALYSIS ///
-    vmin = 0.;
+    vmin = 0.
     vmax = 1.
     for model in model_list:
 
         model_data = model.variables[pft]
 
         if model_data.data.shape != hansen.data.shape:
-            print 'WARNING Inconsistent geometries for GPCP'
-            print model_data.data.shape;
+            print('WARNING Inconsistent geometries for GPCP')
+            print model_data.data.shape
             print hansen.data.shape
 
-        dmin = -1;
+        dmin = -1.
         dmax = 1.
         dif = map_difference(model_data, hansen, vmin=vmin, vmax=vmax,
-                             dmin=dmin, dmax=dmax, use_basemap=use_basemap, cticks=[0., 0.25, 0.5, 0.75, 1.])
+                             dmin=dmin, dmax=dmax,
+                             use_basemap=use_basemap,
+                             cticks=[0., 0.25, 0.5, 0.75, 1.])
 
         #/// ZONAL STATISTICS
         #--- append zonal plot to difference map
-        ax1 = dif.get_axes()[0];
-        ax2 = dif.get_axes()[1];
+        ax1 = dif.get_axes()[0]
+        ax2 = dif.get_axes()[1]
         ax3 = dif.get_axes()[2]
 
         #create net axis for zonal plot
@@ -1093,21 +1098,36 @@ def surface_upward_flux_analysis(model_list, interval='season', GP=None,
 # ALBEDO -- begin
 #=======================================================================
 
-
-
-def albedo_analysis_vis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
+def albedo_analysis_vis(model_list, interval='season', GP=None,
+                        shift_lon=False, use_basemap=False,
+                        report=None,
                         plot_options=None, regions=None):
-    main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
+    main_analysis(model_list, interval=interval, GP=GP,
+                  shift_lon=shift_lon, use_basemap=use_basemap,
+                  report=report,
                   plot_options=plot_options, actvar='albedo_vis', regions=regions)
 
-
-def albedo_analysis_nir(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
+def albedo_analysis_nir(model_list, interval='season', GP=None,
+                        shift_lon=False, use_basemap=False,
+                        report=None,
                         plot_options=None, regions=None):
-    main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
-                  plot_options=plot_options, actvar='albedo_nir', regions=regions)
+    main_analysis(model_list, interval=interval, GP=GP,
+                  shift_lon=shift_lon, use_basemap=use_basemap,
+                  report=report,
+                  plot_options=plot_options, actvar='albedo_nir',
+                  regions=regions)
+
+def albedo_analysis(model_list, interval='season', GP=None,
+                    shift_lon=False, use_basemap=False, report=None,
+                    plot_options=None, regions=None):
+    main_analysis(model_list, interval=interval, GP=GP,
+                  shift_lon=shift_lon, use_basemap=use_basemap,
+                  report=report, plot_options=plot_options,
+                  actvar='albedo', regions=regions)
 
 
-def albedo_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report=None, interval='season',
+
+def xxxxxalbedo_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report=None, interval='season',
                     plot_options=None, regions=None):
     if shift_lon is None:
         raise ValueError('You need to specify shift_lon option!')
