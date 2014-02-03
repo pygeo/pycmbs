@@ -548,7 +548,7 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_down(self, interval = 'season', force_calc = False, **kwargs):
+    def get_surface_shortwave_radiation_down(self, interval='season', force_calc=False, **kwargs):
 
         """
         return data object of
@@ -613,7 +613,7 @@ class CMIP5Data(Model):
             cdo.div(options='-f nc -b 32',output = sis_N_file,input=sis_sum_file + ' ' + sis_clim_file, force=force_calc) #number of samples
         else:
             print interval
-            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+            raise ValueError('Unknown temporal interval. Can not perform preprocessing!')
 
         if not os.path.exists(sis_clim_file):
             return None
@@ -621,18 +621,20 @@ class CMIP5Data(Model):
         #3) read data
         sis = Data(sis_clim_file,'rsds',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
         sis_std = Data(sis_clim_std_file,'rsds',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sis.std = sis_std.data.copy(); del sis_std
+        sis.std = sis_std.data.copy()
+        del sis_std
         sis_N = Data(sis_N_file,'rsds',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sis.n = sis_N.data.copy(); del sis_N
+        sis.n = sis_N.data.copy()
+        del sis_N
 
         #ensure that climatology always starts with January, therefore set date and then sort
-        sis.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        sis.adjust_time(year=1700, day=15) #set arbitrary time for climatology
         sis.timsort()
 
         #4) read monthly data
         sisall = Data(file_monthly,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False)
-        if sisall.time_cycle != 12:
-            raise ValueError, 'Timecycle of 12 expected here!'
+        if not sisall._is_monthly():
+            raise ValueError('Timecycle of 12 expected here!')
         sisall.adjust_time(day=15)
 
         # land/sea masking ...
@@ -645,11 +647,10 @@ class CMIP5Data(Model):
 
         sis._apply_mask(get_T63_landseamask(False,mask_antarctica=mask_antarctica,area=valid_mask))
         sisall._apply_mask(get_T63_landseamask(False,mask_antarctica=mask_antarctica,area=valid_mask))
-
         sismean = sisall.fldmean()
 
         # return data as a tuple list
-        retval = (sisall.time,sismean,sisall)
+        retval = (sisall.time, sismean,sisall)
         del sisall
 
         # mask areas without radiation (set to invalid): all data < 1 W/m**2
