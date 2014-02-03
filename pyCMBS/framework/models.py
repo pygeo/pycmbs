@@ -635,7 +635,7 @@ class CMIP5Data(Model):
             raise ValueError, 'Timecycle of 12 expected here!'
         sisall.adjust_time(day=15)
 
-        #/// land/sea masking ...
+        # land/sea masking ...
         if valid_mask == 'land':
             mask_antarctica=True
         elif valid_mask == 'ocean':
@@ -648,11 +648,11 @@ class CMIP5Data(Model):
 
         sismean = sisall.fldmean()
 
-        #/// return data as a tuple list
+        # return data as a tuple list
         retval = (sisall.time,sismean,sisall); del sisall
 
-        #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
-        sis.data = np.ma.array(sis.data,mask=sis.data < 1.)
+        # mask areas without radiation (set to invalid): all data < 1 W/m**2
+        sis.data = np.ma.array(sis.data, mask=sis.data < 1.)
 
         return sis, retval
 
@@ -674,7 +674,7 @@ class CMIP5Data(Model):
         if self.stop_time == None:
             raise ValueError('Stop time needs to be specified')
 
-        #/// PREPROCESSING ///
+        # PREPROCESSING
         cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
         s_stop_time  = str(self.stop_time)[0:10]
@@ -708,12 +708,9 @@ class CMIP5Data(Model):
             print interval
             raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
 
-
-
         if not os.path.exists(sup_clim_file):
             print 'File not existing (sup_clim_file): ' + sup_clim_file
             return None
-
 
         #3) read data
         sup = Data(sup_clim_file,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
@@ -738,13 +735,13 @@ class CMIP5Data(Model):
         #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
         #sup.data = np.ma.array(sis.data,mask=sis.data < 1.)
 
-        return sup,retval
+        return sup, retval
 
 
 #-------------------------------------------------------------------------------------------------------------
 
 
-    def get_albedo_data(self,interval='season'):
+    def get_albedo_data(self, interval='season'):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
@@ -769,7 +766,7 @@ class CMIP5Data(Model):
         else:
             Fu_i = Fu[0]
         lab = Fu_i.label
-        Fd = self.get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}}) #todo: take routine name from the configuration setup in JSON file !!!!
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}, 'CMIP5RAW':{'valid_mask':'land'}}) #todo: take routine name from the configuration setup in JSON file !!!!
         if Fd == None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None
@@ -799,18 +796,11 @@ class CMIP5Data(Model):
         #/// return data as a tuple list
         retval = (Fu_m.time,Fu_m.fldmean(),Fu_m)
 
-
-
         #downward geht nur bis Jahr 2000: warum ????
         #und upward bis 2008 ???? warum ????
 
 
         return Fu_i, retval
-
-
-
-
-
 
 class CMIP5RAWData(CMIP5Data):
     """

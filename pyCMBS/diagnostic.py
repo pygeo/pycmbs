@@ -122,7 +122,7 @@ class PatternCorrelation(DiagnosticMaster):
         * implement plotting in Taylor diagram
         """
         if plot not in ['polar', 'line']:
-            raise ValueError('Invalid plot type!')
+            raise ValueError('Invalid plot type.')
         if not self._calculated:
             self._correlate()
 
