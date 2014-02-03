@@ -18,22 +18,22 @@ from dateutil.rrule import *
 
 #unittests needed for
 # - get_zonal_mean
-# - _set_cell_area
+
 # - get_percentile
 # - _shift_lon
 # - _shift_lon_360
 # - _apply_temporal_mask
 
 # - partial_correlation
-#- get_temporal_mask
+
 
 #- get_deseasonalized_anomaly
 
 
-#- set_time ???
+
 # _temporal_subsetting
 # interp_time
-#- _mesh_lat_lon
+
 #read_netcdf
 #get_aoi
 #get_aoi_lat_lon
@@ -87,6 +87,26 @@ class TestData(TestCase):
         s2 = str(pl.num2date(self.D.time[i2]))
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
+
+
+    def test_get_temporal_mask(self):
+        x = self.D.copy()
+
+        # test monthly mask
+        mm = x.get_temporal_mask([1,5,11],mtype='monthly')
+        d = x.date[mm]
+        for t in d:
+            self.assertTrue(t.month in [1,5,11])
+
+        # yearly mask
+        ym = x.get_temporal_mask([2002],mtype='yearly')
+        d = x.date[ym]
+        for t in d:
+            self.assertTrue(t.year in [2002])
+        ym = x.get_temporal_mask([2003],mtype='yearly')
+        d = x.date[ym]
+        for t in d:
+            self.assertTrue(t.year in [2003])
 
     def test__get_date_from_month(self):
         x = self.D.copy()
