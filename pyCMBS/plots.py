@@ -2482,14 +2482,11 @@ class MapPlotGeneric(object):
             self._set_axis_invisible(self.zax)
 
         # do plotting
-        im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
+        self.im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
 
         # colorbar
         if self.show_colorbar:
-            self._set_colorbar(im)
-
-        # labels and title
-        #~ self._draw_title()
+            self._set_colorbar(self.im)
 
 
     def _set_colorbar(self, im):
@@ -2704,8 +2701,39 @@ class SingleMap(MapPlotGeneric):
         self._plot_zonal()
         self._draw_title(title=title)
 
+        # adjust plots to minimize spaces between subplots
+        #~ self._adjust_figure()
+
         # save data if required
         self.save()
+
+    def _adjust_figure(self):
+        """
+        adjust subplot sizes
+        """
+        if self.colorbar_orientation == 'vertical':
+            # pos = [left, bottom, width, height]
+
+            #~ cleft, cbottom, cright, ctop
+            res = self.cax.get_position().get_points()
+            cleft = res[0,0]
+            cbottom = res[0,1]
+            cright = res[1,0]
+            ctop = res[1,1]
+            cax_width = cright-cleft
+
+            print cleft, cbottom, cright, ctop
+
+            res = self.pax.get_position().get_points()
+            pleft = res[0,0]
+            pbottom = res[0,1]
+            pright = res[1,0]
+            ptop = res[1,1]
+            pheight = ptop-pbottom
+            pos = [cleft, pbottom, cax_width, pheight]
+            print 'pos: ', pos
+            self.cax.set_position(pos)
+        #~ self.figure.tight_layout(w_pad=0., h_pad=0.)
 
 
     def _set_layout(self):
@@ -2750,12 +2778,15 @@ class SingleMap(MapPlotGeneric):
         -----------
 
         """
+
+        wspace=0.0
+
         if not self.show_colorbar:
             raise ValueError('This routine was called by fault!')
         if self.colorbar_orientation == 'horizontal':
-            self.gs = grd.GridSpec(2, 1, height_ratios=[95,5], wspace=0.05)
+            self.gs = grd.GridSpec(2, 1, height_ratios=[95,5], wspace=wspace)
         elif self.colorbar_orientation == 'vertical':
-            self.gs = grd.GridSpec(1, 2, width_ratios=[95,5], wspace=0.05)
+            self.gs = grd.GridSpec(1, 2, width_ratios=[95,5], wspace=wspace)
         else:
             raise ValueError('Invalid option')
         self.pax = self.figure.add_subplot(self.gs[0])
