@@ -12,8 +12,8 @@ from pyCMBS.netcdf import *
 from dateutil.rrule import *
 
 #todo: check test_cut_bounding_box (right border!)
-
-
+#_apply_mask
+#_sub_sample --> needs still implementation for check of values!
 
 
 #unittests needed for
@@ -26,10 +26,7 @@ from dateutil.rrule import *
 
 # - partial_correlation
 
-
 #- get_deseasonalized_anomaly
-
-
 
 # _temporal_subsetting
 # interp_time
@@ -39,13 +36,13 @@ from dateutil.rrule import *
 #get_aoi_lat_lon
 
 #get_valid_data
-#_apply_mask
+
 #shift_x
 #__shift3D
 #timeshift
 
 #__shift2D
-#_sub_sample
+
 
 #pad_timeseries
 #_convert_monthly_timeseries
@@ -62,11 +59,11 @@ class TestData(TestCase):
         # init Data object for testing
         n=1000  # slows down significantly! constraint is percentile  test
         x = sc.randn(n)*100.  # generate dummy data
-        self.D = Data(None,None)
-        d=np.ones((n,1,1))
+        self.D = Data(None, None)
+        d=np.ones((n, 1, 1))
         self.D.data = d
         self.D.data[:,0,0]=x
-        self.D.data = np.ma.array(self.D.data,mask=self.D.data != self.D.data)
+        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
         self.D.verbose = True
         self.D.unit = 'myunit'
         self.D.label = 'testlabel'
@@ -87,6 +84,39 @@ class TestData(TestCase):
         s2 = str(pl.num2date(self.D.time[i2]))
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
+
+    def test_sub_sample(self):
+        x = self.D.copy()
+
+        # 3D data
+        nt_org = self.D.nt
+        tmp = np.random.random((nt_org, 50, 80))
+        x.data = np.ma.array(tmp, mask=tmp != tmp)
+        x._sub_sample(10)
+        nt,ny,nx = x.shape
+        # check geometry of results first
+        self.assertEqual(nt, nt_org)
+        self.assertEqual(ny, 5)
+        self.assertEqual(nx, 8)
+        # now check values
+        self.assertEqual(x.data[0,0,0], tmp[0,0,0])
+        self.assertEqual(x.data[172,0,0], tmp[172,0,0])
+
+        #todo continue here with checks of values!
+        #~ print x.data[10,0,0]
+        #~ print tmp[10,8:12,8:12]
+        #~ self.assertEqual(x.data[10,0,0], tmp[10,11,11])
+
+        # 2D
+        tmp = np.random.random((73, 92))
+        x.data = np.ma.array(tmp, mask=tmp != tmp)
+        x._sub_sample(5)
+        # check geometry of results first
+        ny,nx = x.shape
+        self.assertEqual(ny, 14+1)
+        self.assertEqual(nx, 18+1)
+
+
 
 
     def test_get_temporal_mask(self):
