@@ -321,7 +321,7 @@ class Report(object):
 
     def close_table(self, caption='Put a figure caption here'):
         """ closes a table """
-        self.write('    \caption{' + caption + '}')
+        self.write('    \caption{' + caption.replace('_','-') + '}')
         self.write('\end{table}')
 
 #-----------------------------------------------------------------------

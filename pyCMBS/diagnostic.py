@@ -138,7 +138,7 @@ class PatternCorrelation(DiagnosticMaster):
         self.ax.set_xlabel('timestep #')
         self.ax.set_ylabel('$r_{pears}$')
         self.ax.grid()
-        self.ax.set_ylim(-1.,1.)
+        self.ax.set_ylim(0.5, 1.)
 
         return self.ax.figure
 

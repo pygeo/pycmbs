@@ -548,7 +548,7 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_down(self, interval = 'season', **kwargs):
+    def get_surface_shortwave_radiation_down(self, interval = 'season', force_calc = False, **kwargs):
 
         """
         return data object of
@@ -559,18 +559,16 @@ class CMIP5Data(Model):
         locdict = kwargs[self.type]
         valid_mask = locdict.pop('valid_mask')
 
+
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
             filename1 = self.data_dir + 'rsds/' +  self.experiment + '/raw/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
             if not os.path.exists(filename1):
-                filename1 = self._preprocess_ensembles(filename1)  # do preprocessing of ensemble means and get name of resulting file
+                filename1 = self._preprocess_ensembles(filename1, delete=force_calc)  # do preprocessing of ensemble means and get name of resulting file
         else:
             raise ValueError('Unknown type! not supported here!')
 
-        print 'File downward!: ', filename1
-
-        force_calc = False
 
         if self.start_time is None:
             raise ValueError('Start time needs to be specified')
@@ -660,22 +658,21 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_up(self,interval='season'):
+    def get_surface_shortwave_radiation_up(self, interval='season', force_calc = False):
 
-        #original data
-        filename1 = self.data_dir + 'rsus/' +  self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-
-
-        print 'READING SURFACE UPWARD file: ', filename1
-
-
-        force_calc = False
+        if self.type == 'CMIP5':
+            filename1 = self.data_dir + 'rsus/' +  self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
+            filename1 = self.data_dir + 'rsus/' +  self.experiment + '/raw/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            if not os.path.exists(filename1):
+                filename1 = self._preprocess_ensembles(filename1, delete=force_calc)  # do preprocessing of ensemble means and get name of resulting file
+        else:
+            raise ValueError('Unknown type! not supported here!')
 
         if self.start_time == None:
-            raise ValueError, 'Start time needs to be specified'
+            raise ValueError('Start time needs to be specified')
         if self.stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
+            raise ValueError('Stop time needs to be specified')
 
         #/// PREPROCESSING ///
         cdo = Cdo()
@@ -846,7 +843,6 @@ class CMIP5RAWData(CMIP5Data):
             delete output file without asking
         """
 
-
         # calculate ensemble mean
         root = filename.split('_ensmean')[0]
         print 'Rootname: ', root
@@ -857,7 +853,9 @@ class CMIP5RAWData(CMIP5Data):
             if delete:
                 os.remove(outputfile)
             else:
-                raise ValueError('Output file already existing: either delete manually or specify DELETE option.')
+                print outputfile
+                print('Using already existing ensemble mean file ...')
+                return outputfile
 
         files = glob.glob(root + '_r*.nc')  # all ensemble members
         fstr = ''
@@ -869,7 +867,6 @@ class CMIP5RAWData(CMIP5Data):
         os.system(cmd2)
 
         return outputfile
-
 
 
 ########################################################################
