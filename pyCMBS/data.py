@@ -3231,7 +3231,7 @@ class Data(object):
         o = []
         for t in self.time:
             d = self.num2date(t)
-            s = str(d) #convert to a string
+            s = str(d)  # convert to a string
             if day is not None:
                 s = s[0:8] + str(day).zfill(2) + s[10:]  # replace day
             if month is not None:
