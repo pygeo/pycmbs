@@ -2418,20 +2418,29 @@ class MapPlotGeneric(object):
         else:
             raise ValueError('Unknown backend!')
 
-    def _save_data_to_file(self, mean=True):
+    def _save_data_to_file(self, timmean=True):
+        """
+        save data to file. The filename is automatically generated
+        depednend on self.savefile and the option timmean
 
+        Parameters
+        ----------
+        timmean : bool
+            if True, then the temporal mean field (like in the plot) is
+            stored. Otherwise the entire dataset which was available for
+            plotting will be stored
+        """
         if mean:
             tok = '_timmean'
         else:
             tok = '_all'
-
         if self.savefile is None:
             return
         if self.savefile[:-3] != '.nc':
             self.savefile +=  tok + '.nc'
         else:
             self.savefile = self.savefile[:-3] + tok +  '.nc'
-        self.x.save(self.savefile, mean=mean, delete=True)
+        self.x.save(self.savefile, timmean=timmean, delete=True, mean=False)
 
     def save(self, save_mean=True, save_all=False):
         """
@@ -2446,17 +2455,15 @@ class MapPlotGeneric(object):
             to file
         """
         if save_mean:
-            self._save_data_to_file(mean=True)
+            self._save_data_to_file(timmean=True)
         if save_all:
-            self._save_data_to_file(mean=False)
+            self._save_data_to_file(timmean=False)
 
     def _check(self):
         if self.stat_type not in ['mean', 'median', 'sum']:
             raise ValueError('Invalid statistic type: %s' % self.stat_type)
         if self.backend not in ['imshow']:
-            raise ValueError('Invalid plotting nackend: %s' % self.backend)
-
-
+            raise ValueError('Invalid plotting backend: %s' % self.backend)
 
     def _draw_imshow(self, **kwargs):
         """
