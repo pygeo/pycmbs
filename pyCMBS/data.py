@@ -3299,78 +3299,7 @@ class Data(object):
         if return_object:
             return x
 
-        #-----------------------------------------------------------------------
-
-    def __xxxxxxxxx_set_date(self, basedate, unit='hour'):
-        """
-        set C{Data} object time variable
-
-        @param basedate: basis date used for the data;
-        @type basedate: str, datestring that can be interpreted by datestr2num()
-
-        @param unit: specify time unit of the time (hour or day)
-        @type unit: str
-        """
-
-        #explicit conversion of datestr, instead of using datestr2num(), as datestr2num can NOT
-        #handle appropriate basedates like 0001-01-01 00:00:00, as its interpretation is that this
-        #corresponds to a date of 01/01/2001 !!!
-        from datetime import datetime
-
-        try: #check if the date is in the format YYYYDDMM HH:MM:SS, this is needed to avoid that string like YMMDD cause an error
-            b = basedate.split(' ')
-            c = b[0].split('-')
-            d = b[1].split(':')
-            basedate = c[0].zfill(4) + '-' + c[1].zfill(2) + '-' + c[2].zfill(2) + ' ' + d[0].zfill(2) + ':' + d[
-                1].zfill(2) + ':' + d[2].zfill(2)
-            bdate = datetime.strptime(basedate, '%Y-%m-%d %H:%M:%S')
-        except:
-            raise ValueError, 'basedate is formatted in an unexpected way: ' + basedate
-
-        if unit == 'hour':
-            scal = 24.
-            self.time = (self.time / scal + plt.date2num(bdate) )
-        elif unit == 'day':
-            scal = 1.
-            self.time = (self.time / scal + plt.date2num(bdate) )
-            if self.verbose:
-                print 'print set_time: time', self.time
-                print 'Basedate: ', basedate, bdate
-        elif unit == 'month':
-            #months since basedate
-            from dateutil.rrule import rrule, MONTHLY
-            from datetime import datetime
-
-            bdate = self.num2date(plt.datestr2num(basedate))
-            sdate = [d for d in rrule(MONTHLY, dtstart=datetime(bdate.year, bdate.month, bdate.day),
-                                      count=self.time[0] + 1)] #calculate date of first dataset
-            sdate = sdate[-1] #last date as start date
-
-            interval = np.diff(self.time)
-            msk = interval == interval[0]
-            interval = map(int, interval)
-
-            if ~all(msk):
-                #--- the months are not equally spaced, therefore generate a list manually
-                ###from datetime import date
-                from dateutil.relativedelta import relativedelta
-
-                x = []
-                bdate0 = datetime(bdate.year, bdate.month, bdate.day)
-                print bdate0
-                for t in self.time:
-                    x.append(bdate0 + relativedelta(months=int(t)))
-                self.time = plt.date2num(x)
-            else:
-                #--- monthly timeseries for equidistant data
-                x = [d for d in rrule(MONTHLY,
-                                      dtstart=datetime(sdate.year, sdate.month, sdate.day),
-                                      count=len(self.time), interval=interval[0])]
-                self.time = plt.date2num(x)
-        else:
-            raise ValueError, 'Unsupported unit value'
-
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_aoi(self, region):
         """
