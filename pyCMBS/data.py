@@ -714,10 +714,9 @@ class Data(object):
         Test
         ----
         unittest implemented
-
-        @return:
         """
 
+        # return mask where all timesteps are valid!
         msk = self.get_valid_mask()  # gives a 2D mask
 
         # estimate boundary box indices
@@ -3444,19 +3443,29 @@ y
         msk = msk_lat & msk_lon & msk_region  # valid area
         self._apply_mask(msk)
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def cut_bounding_box(self, return_object=False):
         """
-        estimate bounding box of data and subset dataset such that only valid data
-        is contained in the bounding box
+        estimate bounding box of data and subset dataset such that
+        only valid data is contained in the bounding box.
 
-        @param return_object: return data object, otherwise the modifications are applied to current object
-        @type return_object: bool
+        In the current setup, only the part of the grid is returned
+        where *all* timesteps are valid
+
+        Parameters
+        ----------
+        return_object : bool
+            return data object, otherwise the modifications are
+            applied to current object
         """
 
+        if self.ndim !=3:
+            raise ValueError('Cutting of bounding box not implemented for data other than 3D!')
+
         # get bounding box
-        # note that the indices can not be used directly for array slicing. One tyipically needs to add '1' to the alst index
+        # note that the indices can not be used directly for array
+        # slicing. One tyipically needs to add '1' to the last index
         i1, i2, j1, j2 = self.get_bounding_box()
 
         if return_object:
@@ -3465,16 +3474,18 @@ y
             D = self
         D.data = D.data[:, i1:i2 + 1, j1:j2 + 1]
         if hasattr(self, 'lat'):
-            D.lat = D.lat[i1:i2 + 1, j1:j2 + 1]
+            if D.lat is not None:
+                D.lat = D.lat[i1:i2 + 1, j1:j2 + 1]
         if hasattr(self, 'lon'):
-            D.lon = D.lon[i1:i2 + 1, j1:j2 + 1]
+            if D.lon is not None:
+                D.lon = D.lon[i1:i2 + 1, j1:j2 + 1]
 
         if return_object:
             return D
         else:
             return None
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_valid_mask(self, frac=1., return_frac=False):
         """
@@ -3537,7 +3548,7 @@ y
         else:
             raise ValueError('Unsupported dimension!')
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_valid_data(self, return_mask=False, mode='all'):
         """
@@ -3547,10 +3558,15 @@ y
 
         valid means that ALL timestamps need to be valid!
 
-        @param return_mask: specifies if the mask applied to the original data should be returned as well
-        @type return_mask: bool
-
-        @param mode: analysis mode: 'all'=all timestamps need to be valid, 'one'=at least a single dataset needs to be valid
+        Parameters
+        ----------
+        return_mask : bool
+            specifies if the mask applied to the original data should
+            be returned as well
+        mode : str
+            analysis mode ['all','one']
+            'all': all timestamps need to be valid
+            'one': at least a single dataset needs to be valid
         """
 
         n = len(self.time)
@@ -3572,13 +3588,16 @@ y
             lat = None
 
         data = self.data.reshape(n, -1)
-        data.mask[np.isnan(data.data)] = True  # set pixels with NaN to invalid
+        # set pixels with NaN to invalid
+        data.mask[np.isnan(data.data)] = True
 
         # extract only valid (not masked data)
         if mode == 'all':
-            msk = np.sum(~data.mask, axis=0) == n  # identify all ngrid cells where all timesteps are valid
+            # identify all ngrid cells where all timesteps are valid
+            msk = np.sum(~data.mask, axis=0) == n
         elif mode == 'one':
-            msk = np.sum(~data.mask, axis=0) > 0  # identify ONE grid cell where all timesteps are valid
+            # identify ONE grid cell where all timesteps are valid
+            msk = np.sum(~data.mask, axis=0) > 0
         else:
             raise ValueError('Invalid option in get_valid_data() %s' % mode)
 
@@ -3592,7 +3611,7 @@ y
         else:
             return lon, lat, data
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _apply_mask(self, msk1, keep_mask=True):
         """
@@ -4364,6 +4383,15 @@ y
         ----------
         return_object : bool
             specifies if C{Data} object will be returned (default=True)
+
+        Returns
+        -------
+        if specified the routine returns a Data object. Otherwise, the
+        current Data object is modified.
+
+        Tests
+        -----
+        unittests implemented
         """
 
         print('Detrending data ...')
@@ -4378,7 +4406,7 @@ y
         #correlate and get slope and intercept
         Rout, Sout, Iout, Pout, Cout = self.corr_single(x)
 
-        #calculate regression field
+        # calculate regression field
         reg = Data(None, None)
         reg.data = np.zeros(self.data.shape) * np.nan
         reg.label = 'trend line'
