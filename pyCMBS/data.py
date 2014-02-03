@@ -218,7 +218,6 @@ class Data(object):
 
     def _get_shape(self):
         return self.data.shape
-
     shape = property(_get_shape)
 
     def _get_date(self):
@@ -246,12 +245,10 @@ class Data(object):
 
     def _get_ndim(self):
         return self.data.ndim
-
     ndim = property(_get_ndim)
 
     def _get_nt(self):
         return len(self.time)
-
     nt = property(_get_nt)
 
     def _get_mindate(self, base=None):
@@ -352,7 +349,7 @@ class Data(object):
         f.write(filename + '\t' + s + '\n')
         f.close()
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def __oldtimeoffset(self):
         """
@@ -404,7 +401,7 @@ class Data(object):
             return netcdftime.num2date(t + offset, self.time_str,
                                        calendar=self.calendar)
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def date2num(self, t):
         """
@@ -657,7 +654,6 @@ class Data(object):
         Test
         ----
         unittest implemented
-
         """
         if self.lon.ndim == 1:
             return True
@@ -671,7 +667,7 @@ class Data(object):
         else:
             raise ValueError('Unsupported geometry for longitude')
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_unique_lon(self):
         """
@@ -702,7 +698,7 @@ class Data(object):
         else:
             raise ValueError('Data dimension for longitudes not supported yet!')
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_bounding_box(self):
         """
@@ -759,7 +755,7 @@ class Data(object):
                 i2 = i
         return i1, i2, j1, j2
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _squeeze(self):
         """
@@ -919,7 +915,7 @@ class Data(object):
             res = r
         return res
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_percentile(self, p, return_object=True):
 
@@ -965,7 +961,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_unit(self):
         """
@@ -977,7 +973,7 @@ class Data(object):
             u = '[' + self.unit + ']'
         return u
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _shift_lon(self):
         """
@@ -1000,7 +996,7 @@ class Data(object):
         self._lon360 = True
         print('Longitudes were shifted to 0 ... 360!')
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _apply_temporal_mask(self, mask):
         """
@@ -1031,7 +1027,7 @@ class Data(object):
             if mask[i]:
                 self.data.mask[i, :, :] = True
 
-            #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def read(self, shift_lon, start_time=None, stop_time=None,
              time_var='time', checklat=True):
@@ -1175,8 +1171,7 @@ class Data(object):
             else:
                 self._set_timecycle()
 
-
-            #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_yearmean(self, mask=None, return_data=False):
         """
@@ -1246,7 +1241,7 @@ class Data(object):
         else:
             return years, res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_yearsum(self, mask=None, return_data=False):
         """
@@ -1307,7 +1302,7 @@ class Data(object):
         else:
             return years, res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def partial_correlation(self, Y, Z, ZY=None, pthres=1.01, return_object=True):
         """
@@ -1370,7 +1365,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def correlate(self, Y, pthres=1.01, spearman=False, detrend=False):
         """
@@ -1873,7 +1868,7 @@ class Data(object):
 
         return pl.num2date(act_date)
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _convert_monthly_timeseries(self):
         """
@@ -1889,7 +1884,7 @@ class Data(object):
         self.time_str = 'days since 0001-01-01 00:00:00'
         self.time = pl.date2num(newtime) + 1.  # plus one because of the num2date() basedate definition
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def apply_temporal_subsetting(self, start_date, stop_date):
         """
@@ -1909,7 +1904,7 @@ class Data(object):
         i1, i2 = self._get_time_indices(start_date, stop_date)
         self._temporal_subsetting(i1, i2)
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _temporal_subsetting(self, i1, i2):
         """
@@ -1947,7 +1942,7 @@ class Data(object):
         else:
             sys.exit('Error temporal subsetting: invalid dimension!')
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def align(self, y, base=None):
         """
@@ -2035,7 +2030,7 @@ class Data(object):
 
         return x, y
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def interp_time(self, t, method='linear'):
         """
@@ -2392,7 +2387,7 @@ class Data(object):
 
         return data
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def temporal_trend(self, return_object=False, pthres=1.01):
         """
@@ -2427,7 +2422,7 @@ class Data(object):
         else:
             return R.data, S.data, I.data, P.data
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timmean(self, return_object=False):
         """
@@ -2457,7 +2452,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timmin(self, return_object=False):
         """
@@ -2488,7 +2483,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timmax(self, return_object=False):
         """
@@ -2519,7 +2514,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timcv(self, return_object=True):
         """
@@ -2547,7 +2542,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def normalize(self, return_object=True):
         """
@@ -2581,7 +2576,7 @@ class Data(object):
         else:
             return None
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timstd(self, return_object=False):
         """
@@ -2615,7 +2610,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timvar(self, return_object=False):
         """
@@ -2648,7 +2643,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timsum(self, return_object=False):
         """
@@ -2681,7 +2676,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timn(self, return_object=False):
         """
@@ -2708,7 +2703,7 @@ class Data(object):
         else:
             return res
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def hp_filter(self, lam, return_object=True):
         """
@@ -2792,7 +2787,7 @@ class Data(object):
         else:
             return y
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_weighting_matrix(self):
         """
@@ -2874,7 +2869,7 @@ class Data(object):
         else:  # dimension
             raise ValueError('weighting matrix not supported for this data shape')
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def areasum(self, return_data=False, apply_weights=True):
         """
@@ -2958,15 +2953,18 @@ class Data(object):
         results are exactly the same as one would obtain with the similar
         cdo function
 
-        @param return_data: if True, then a C{Data} object is returned
-        @type return_data: bool
+        Parameters
+        ----------
+        return_data : bool
+            if True, then a C{Data} object is returned
 
-        @param apply_weights: apply weights when calculating area weights
-        @type apply_weights: bool
+        apply_weights : bool
+            apply weights when calculating area weights
 
-        @return: vector of spatial mean array[time]
-        @rtype: C{Data} object or numpy array
-
+        Returns
+        -------
+        r : ndarray or Data
+            vector of spatial mean array[time]
 
         Test
         ----
@@ -3149,7 +3147,7 @@ class Data(object):
         else:  # return numpy array
             return tmp
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_label(self):
         """
@@ -3161,7 +3159,7 @@ class Data(object):
             self.label = ''
         return self.label
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _convert_time(self):
         """
@@ -3206,7 +3204,7 @@ class Data(object):
         #convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def adjust_time(self, day=None, month=None, year=None):
         """
@@ -3248,7 +3246,7 @@ class Data(object):
         o = np.asarray(o)
         self.time = o.copy()
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timsort(self, return_object=False):
         """
@@ -3311,8 +3309,6 @@ class Data(object):
     def get_aoi(self, region):
         """
         region of class Region
-
-        @todo: documentation
         """
 
         # copy self
@@ -3639,7 +3635,7 @@ class Data(object):
         self.lat = self.__shift2D(self.lat, nx)
         self.lon = self.__shift2D(self.lon, nx)
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def __shift3D(self, x, n):
         """
@@ -3658,7 +3654,7 @@ class Data(object):
         y[:, :, n:] = tmp[:, :, 0:-n]
         return y
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def timeshift(self, n, return_data=False):
         """
@@ -3906,7 +3902,7 @@ class Data(object):
 
         return d
 
-    #-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 
     def subc(self, x, copy=True):
         """
@@ -3934,7 +3930,7 @@ class Data(object):
             raise ValueError, 'Invalid geometry in detrend()'
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def addc(self, x, copy=True):
         """
@@ -3960,7 +3956,7 @@ class Data(object):
         d.data += x
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def mulc(self, x, copy=True):
         """
@@ -3986,7 +3982,7 @@ class Data(object):
         d.data *= x
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def divc(self, x, copy=True):
         """
@@ -4012,7 +4008,7 @@ class Data(object):
         d.data /= x
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def div(self, x, copy=True):
         """
@@ -4067,7 +4063,7 @@ class Data(object):
 
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def mul(self, x, copy=True):
         """
@@ -4310,7 +4306,7 @@ class Data(object):
 
         return Rout, Sout, Iout, Pout, Cout
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def detrend(self, return_object=True):
         """
@@ -4366,7 +4362,7 @@ class Data(object):
             self.detrended = True
             return None
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _is_daily(self):
         """
@@ -4382,7 +4378,7 @@ class Data(object):
         else:
             return False
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _is_monthly(self):
         """
@@ -4420,7 +4416,7 @@ class Data(object):
         else:
             return False
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _pad_timeseries(self, fill_value=-99.):
 
@@ -4479,13 +4475,12 @@ class Data(object):
         else:
             self._log_warning('WARNING: timecycle can not be set automatically!')
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _flipud(self):
         """
         flip dataset up down
         """
-
         if self.data.ndim == 3:
             self.data = self.data[:, ::-1, :]
         elif self.data.ndim == 2:
@@ -4499,7 +4494,7 @@ class Data(object):
             if self.lat is not None:
                 self.lat = self.lat[::-1, :]
 
-            #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _is_sorted(self):
         """
@@ -4511,7 +4506,7 @@ class Data(object):
         """
         return np.all(np.diff(self.time) >= 0.)
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def temporal_smooth(self, N, return_object=True, frac=1.):
         """
