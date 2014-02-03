@@ -809,10 +809,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             del REGSTAT
 
-        if f_pattern_correlation:
-            ax_pc.set_title('Pattern correlation: ' + obs_orig.label.upper()   )
-            report.figure(ax_pc.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
-            report.newpage()
+
 
         if f_reichler == True:
             sys.stdout.write('\n *** Computing diagnostics (Reichler index). \n')
@@ -824,6 +821,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             sys.stdout.write('\n *** Glecker plot. \n')
             e2a = GP.calc_index(obs_orig, model_data, model, obs_type)
             GP.add_data(obs_type, model._unique_name, e2a, pos=gleckler_pos)
+
+    if f_pattern_correlation:
+        ax_pc.set_title('Pattern correlation: ' + obs_orig.label.upper()   )
+        report.figure(ax_pc.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
+        report.newpage()
 
     del obs_monthly
 
