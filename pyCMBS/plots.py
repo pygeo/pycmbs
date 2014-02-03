@@ -2544,15 +2544,16 @@ class SingleMap(MapPlotGeneric):
             self.cmap = plt.cm.get_cmap(self.cmap, nclasses)
 
 
-    def _draw_title(self, fontsize=14):
+    def _draw_title(self, title=None, fontsize=14):
         """
         draw title, units and statistics
         """
         stat = self._get_statistics_str()
-        tit = self.x._get_label()
+        if title is None:
+            title = self.x._get_label()
         unit = self.x._get_unit()
 
-        self.pax.set_title(tit + '\n', size=fontsize)
+        self.pax.set_title(title + '\n', size=fontsize)
         self.pax.set_title(unit, loc='right', size=fontsize-2)
         self.pax.set_title(stat, loc='left', size=fontsize-2)
 
@@ -2631,7 +2632,7 @@ class SingleMap(MapPlotGeneric):
             show_timeseries=False, show_colorbar=True,
             colorbar_orientation='vertical', cmap='jet', cticks=None,
             cticklabels=None, vmin=None, vmax=None, nclasses=10,
-             **kwargs):
+            title=None):
         """
         routine to plot a single map
 
@@ -2662,7 +2663,7 @@ class SingleMap(MapPlotGeneric):
         # do plot using current backend
         self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
         self._plot_zonal()
-        self._draw_title()
+        self._draw_title(title=title)
 
     def _set_layout(self):
         """
