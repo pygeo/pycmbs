@@ -23,6 +23,8 @@ from dateutil.rrule import *
 #- get_temporal_mask
 
 #- get_deseasonalized_anomaly
+
+
 #- set_time ???
 # _temporal_subsetting
 # interp_time
@@ -100,6 +102,7 @@ class TestData(TestCase):
         self.assertEqual(d1.year,1988)
         self.assertEqual(d1.month,5)
         self.assertEqual(d1.day,22)
+
 
     def test_get_climatology(self):
         x = self.D.copy()
@@ -796,6 +799,22 @@ class TestData(TestCase):
         #--- detrending ---
         r,p = x.correlate(y, detrend=True)
         self.assertEquals(r.data[0,0], 0.)
+
+
+    def test_detrend(self):
+        x = self.D.copy()
+        t = np.arange(len(x.time))
+        r = np.random.random(len(x.time))
+        y = t * 10.73 + 5.39 + r
+        x.data[:,0,0] = np.ma.array(y, mask=y!=y)
+
+        # return object
+        xd = x.detrend()  # should give something like random component
+        d = dx.data[:,0,0] / r
+        print d
+        stop
+
+
 
 
     def test_normalize(self):

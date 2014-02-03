@@ -4366,10 +4366,10 @@ y
             specifies if C{Data} object will be returned (default=True)
         """
 
-        print 'Detrending data ...'
+        print('Detrending data ...')
 
         if self.data.ndim != 3:
-            raise ValueError, 'Can not detrend data other than 3D!'
+            raise ValueError('Can not detrend data other than 3D!')
 
         #generate dummy vector for linear correlation (assumes equally spaced data!!!!!) todo: generate unittest for this
         x = np.arange(len(self.time)) #@todo: replace this by using actual timestamp for regression calcuclation
