@@ -1,7 +1,7 @@
 from unittest import TestCase
 import unittest
 
-__author__ = 'm300028'
+__author__ = 'Alexander Loew'
 
 from pyCMBS.data import *
 import scipy as sc
@@ -14,6 +14,7 @@ from dateutil.rrule import *
 #todo: check test_cut_bounding_box (right border!)
 #_apply_mask
 #_sub_sample --> needs still implementation for check of values!
+# fldstd()
 
 
 #unittests needed for
@@ -42,7 +43,6 @@ from dateutil.rrule import *
 #timeshift
 
 #__shift2D
-
 
 #pad_timeseries
 #_convert_monthly_timeseries
