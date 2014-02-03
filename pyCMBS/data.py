@@ -1547,7 +1547,7 @@ class Data(object):
         calculate climatological mean for a time increment
         specified by self.time_cycle
 
-        Note: one can not assume that the climatology starts from
+        *Note*: one can not assume that the climatology starts from
         January if you use a time_cycle = 12
         Instead, the climatology simply starts with the value which
         corresponds to the first value of the data.
@@ -1559,13 +1559,17 @@ class Data(object):
         nmin : int
             specifies the minimum number of datasets used for
             climatology; else the result is masked
+
+        Tests
+        -----
+        unittest implemented
         """
         if hasattr(self, 'time_cycle'):
             pass
         else:
             raise ValueError('Climatology can not be calculated without a valid time_cycle')
 
-        #generate output fields
+        # generate output fields
         if self.data.ndim > 1:
             clim = np.ones(np.shape(self.data[0:self.time_cycle, :])) * np.nan
             slim = np.ones(np.shape(self.data[0:self.time_cycle, :])) * np.nan
@@ -1606,7 +1610,6 @@ class Data(object):
                 print len(r.time)
                 print len(r.data)
                 raise ValueError('Data and time are inconsistent in get_climatology()')
-
             return r
         else:
             return clim
