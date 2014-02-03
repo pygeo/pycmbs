@@ -1075,8 +1075,10 @@ def tree_fraction_analysis(model_list, pft='tree'):
 #=======================================================================
 def surface_upward_flux_analysis(model_list, interval='season', GP=None,
                                  shift_lon=False, use_basemap=False,
-                                 report=None, plot_options=None, regions=None):
-    main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon,
+                                 report=None, plot_options=None,
+                                 regions=None):
+    main_analysis(model_list, interval=interval, GP=GP,
+                  shift_lon=shift_lon,
                   use_basemap=use_basemap, report=report,
                   plot_options=plot_options,
                   actvar='surface_upward_flux', regions=regions)
@@ -1149,21 +1151,7 @@ def albedo_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, repo
                      use_basemap=use_basemap, shift_lon=shift_lon,
                      interval=interval, regions=regions)
 
-    #- CERES surface albedo from all sky fluxes
-    #~ report.subsection('CERES albedo')
-    #~ report.write('The CERES surface albedo is calculated as the ratio of the upward and downward surface all sky shortwave radiation fluxes based on CERES EBAF v2.6.' )
-    #~ generic_analysis(plot_options, model_list, 'albedo', 'CERES',
-    #~ GP = GP, GM = GM, report = report,
-    #~ use_basemap=use_basemap, shift_lon = shift_lon,
-    #~ interval=interval, regions=regions)
-
-    #~ albedo_analysis_plots(model_list, GP=GP, shift_lon=shift_lon,
-    #~ use_basemap=use_basemap, report=report,
-    #~ interval=interval, obs_type='CERES', GM=GM,
-    #~ regions=regions)
-
-
-    #climatological means
+    # climatological means
     fGa = GM.plot_mean_result(dt=5.,
                               colors={'observations': 'blue', 'models': 'red'})
     fGb = GM.plot_mean_result(dt=0.1,
@@ -1304,9 +1292,11 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
 def sis_analysis(model_list, interval='season', GP=None,
                  shift_lon=None, use_basemap=None, report=None,
                  plot_options=None, regions=None):
-    main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon,
+    main_analysis(model_list, interval=interval, GP=GP,
+                  shift_lon=shift_lon,
                   use_basemap=use_basemap, report=report,
-                  plot_options=plot_options, actvar='sis', regions=regions)
+                  plot_options=plot_options, actvar='sis',
+                  regions=regions)
 
 #=======================================================================
 # SIS -- end
