@@ -447,6 +447,13 @@ for i in range(len(CF.models)):
                              start_time=start_time,
                              stop_time=stop_time,
                              shift_lon=shift_lon)
+    elif CF.dtypes[i].upper() == 'CMIP5RAW':
+        themodel = CMIP5RAWData(data_dir, model, experiment, varmethods,
+                             intervals=CF.intervals, lat_name='lat',
+                             lon_name='lon', label=model,
+                             start_time=start_time,
+                             stop_time=stop_time,
+                             shift_lon=shift_lon)
     elif CF.dtypes[i].upper() == 'JSBACH_BOT':
         themodel = JSBACH_BOT(data_dir, varmethods, experiment,
                               intervals=CF.intervals,
