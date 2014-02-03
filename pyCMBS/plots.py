@@ -1569,29 +1569,28 @@ class GlecklerPlot(object):
         self._draw_error_scatter(1, 4, var, color='blue', marker='^',ax=ax)
 
         # 2 vs. 3
-        self._draw_error_scatter(2, 3, var, color='grey', marker='x',ax=ax)
+        self._draw_error_scatter(2, 3, var, color='grey', marker='x', ax=ax)
 
         # 2 vs 4
-        self._draw_error_scatter(2,4,var,color='m',marker='+',ax=ax)
+        self._draw_error_scatter(2, 4, var, color='m', marker='+', ax=ax)
 
         # 3 vs 4
-        self._draw_error_scatter(3,4,var,color='c',marker='h',ax=ax)
+        self._draw_error_scatter(3, 4, var, color='c', marker='h', ax=ax)
 
         if ax is not None:
-            ax.legend(prop={'size':8},ncol=1,fancybox=True,loc='upper left')
+            ax.legend(prop={'size':8}, ncol=1, fancybox=True, loc='upper left')
             ax.set_xlabel('$\epsilon$ (observation X)')
             ax.set_ylabel('$\epsilon$ (observation Y)')
 
             xmi,xma = ax.get_xlim()
             ymi,yma = ax.get_ylim()
 
-            ax.set_ylim(min(xmi,ymi),max(xma,yma))
-            ax.set_xlim(min(xmi,ymi),max(xma,yma))
+            ax.set_ylim(min(xmi, ymi),max(xma, yma))
+            ax.set_xlim(min(xmi, ymi),max(xma, yma))
             ax.grid()
             ax.set_title('Comparison of model errors: ' + var.upper())
             ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
         return fig
-
 
     def write_ranking_table(self, var, filename, fmt='latex'):
         """
@@ -1624,11 +1623,17 @@ class GlecklerPlot(object):
         if os.path.exists(filename):
             os.remove(filename)
 
+        def _rnk2str(r):
+            if r < 3:
+                return '{\\bf ' + str(r) + '}'
+            else:
+                return str(r)
+
         def _get_model_rank(k, x):
             """
             returns rank of model given a key k and an ordered list x
 
-            Rerturns
+            Returns
             --------
             rank of key in list; NOTE that this is NOT the index!
             """
@@ -1653,20 +1658,27 @@ class GlecklerPlot(object):
         o = open(filename, 'w')
         if fmt == 'latex':
             o.write('        \\begin{tabular}{lcccc} \n')
-            s = sol + 'obs-top' + sep + 'obs-bott' + sep + 'obs-left' + sep + 'obs-right' + eol
+            o.write(sol + '\\hline \n')
+            s = sol + 'model' + sep + 'obs-top' + sep + 'obs-bott' + sep + 'obs-left' + sep + 'obs-right' + eol
             o.write(s)
+            o.write(sol + '\\hline \n')
         for m in self.models:
-            rnk1 = str(_get_model_rank(m, r1))
-            rnk2 = str(_get_model_rank(m, r2))
-            rnk3 = str(_get_model_rank(m, r3))
-            rnk4 = str(_get_model_rank(m, r4))
+            rnk1 = _get_model_rank(m, r1)
+            rnk2 = _get_model_rank(m, r2)
+            rnk3 = _get_model_rank(m, r3)
+            rnk4 = _get_model_rank(m, r4)
+
+            rnk1 = _rnk2str(rnk1)
+            rnk2 = _rnk2str(rnk2)
+            rnk3 = _rnk2str(rnk3)
+            rnk4 = _rnk2str(rnk4)
 
             s = sol + m.replace('_','-') + sep + rnk1 + sep + rnk2 + sep + rnk3 + sep + rnk4 + eol
             o.write(s)
         if fmt == 'latex':
+            o.write(sol + '\\hline \n')
             o.write('        \end{tabular}')
         o.close()
-
 
     def plot_model_ranking(self, var, show_text=False):
         """
@@ -1712,16 +1724,16 @@ class GlecklerPlot(object):
             ax.set_xlim(xmin=0, xmax=len(tmp)+1)
             ax.grid()
             ax.set_title('Comparison of model ranking: ' + var.upper())
-            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--')  # 1:1 line
+            ax.plot(ax.get_xlim(), ax.get_xlim(), 'k--')  # 1:1 line
 
         ax2 = fig.add_subplot(gs[1])
 
         dy = 0.1
         yoff = dy
         for k in tmp:
-            ax2.text(0.1,yoff,self._model2short_label(k) + ': ' + k)
+            ax2.text(0.1, yoff, self._model2short_label(k) + ': ' + k)
             yoff += dy
-        ax2.set_ylim(0.,yoff)
+        ax2.set_ylim(0., yoff)
         ax2.set_xticks([])
         ax2.set_yticks([])
 
@@ -1744,7 +1756,7 @@ class GlecklerPlot(object):
         x    = np.asarray(x)
         keys = np.asarray(keys)
 
-        return dict(zip(keys,x))
+        return dict(zip(keys, x))
 
 
 #-----------------------------------------------------------------------
@@ -1794,8 +1806,6 @@ class GlecklerPlot(object):
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
         x = np.asarray(x)
-        #~ if pos == 2:
-            #~ print 'X in get_mean(): ', x
 
         if method == 'median':
             return np.median(x)   #todo unittest for this!
