@@ -473,7 +473,7 @@ class Data(object):
         if mean and timmean:
             raise ValueError('Only the MEAN or the TIMMEAN option can be given, but not together!')
 
-        #/// either store full field or just spatial mean field ///
+        # either store full field or just spatial mean field
         if mean:
             print('Saving MEAN FIELD of object in file %s' % filename)
             tmp = self.fldmean(return_data=True)
@@ -483,7 +483,7 @@ class Data(object):
             print('Saving object in file %s' % filename)
             tmp = self
 
-        #/// store data now ... ///
+        # store data now ...
         if format == 'nc':
             tmp._save_netcdf(filename, varname=varname, delete=delete)
         elif format == 'ascii':
