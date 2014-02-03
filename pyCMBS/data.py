@@ -769,7 +769,7 @@ class Data(object):
         if self.verbose:
             print 'AFTER SQUEEZING data ... ', self.data.ndim, self.data.shape
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _set_cell_area(self):
         """
@@ -788,7 +788,7 @@ class Data(object):
 
         """
 
-        if not self.cell_area is None:
+        if self.cell_area is not None:
             return
 
         if (self.lat is None) or (self.lon is None):
@@ -801,7 +801,7 @@ class Data(object):
                 raise ValueError('Invalid geometry!')
             return
 
-        #--- calculate cell area from coordinates ---
+        # calculate cell area from coordinates
         cell_file = self.filename[:-3] + '_cell_area.nc'
 
         if not os.path.exists(cell_file):  # calculate grid area using CDO's
@@ -842,7 +842,6 @@ class Data(object):
             elif self.data.ndim == 3:
                 if self.cell_area.shape != self.data[0, :, :].shape:
                     raise ValueError('Invalid cell_area file: delete it manually and check again!')
-
         else:
             # no cell area calculation possible!!!
             # logger.warning('Can not estimate cell area! (setting all equal) ' + cell_file)
@@ -858,8 +857,7 @@ class Data(object):
                 print 'actual geometry:  ', self.data.ndim, self.data.shape
                 raise ValueError, 'Invalid geometry!'
 
-
-            #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_zonal_mean(self, return_object=False):
         """
@@ -1498,23 +1496,29 @@ class Data(object):
 
         return RO, PO
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_temporal_mask(self, v, mtype='monthly'):
         """
-        return a temporal mask
+        returns a temporal mask which marks specific months or years
+        that match the desired mask
 
-        @param v: list of values to be analyzed
-        @type v : list of numerical values
+        v : list
+            list of values to be analyzed, e.g. [1,2,3] for JAN/FEB/MAR
 
-        @param mtype: specifies which mask should be applied (valid values: ['monthly','yearly'])
-        @type mtype : str
+        mtype : str
+            specifies which mask should be applied
+            valid values: ['monthly','yearly']
 
-        Example:
-        get_temporal_mask([1,2,3],mtype='monthly')
+        Example
+        -------
+        >>> self.get_temporal_mask([1,2,3], mtype='monthly')
         will return a mask, where the months of Jan-Mar are set to True
         this can be used e.g. further with the routine get_yearmean()
 
+        Test
+        ----
+        unittest implemented
         """
 
         valid_types = ['monthly', 'yearly']
@@ -1523,7 +1527,7 @@ class Data(object):
         else:
             raise ValueError('Invalid type for mask generation %s' % mtype)
 
-        #--- get months
+        # get months or years
         if mtype == 'monthly':
             vals = pl.asarray(self._get_months())
         elif mtype == 'yearly':
@@ -1531,7 +1535,7 @@ class Data(object):
         else:
             raise ValueError('Invalid type for mask generation %s ' % mtype)
 
-        #--- generate mask with all months
+        # generate mask with all months
         mask = pl.zeros(self.nt).astype('bool')
 
         for m in v:
@@ -1539,7 +1543,7 @@ class Data(object):
             mask[hlp] = True
         return pl.asarray(mask)
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_climatology(self, return_object=False, nmin=1):
         """
@@ -1613,7 +1617,7 @@ class Data(object):
         else:
             return clim
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def get_deseasonalized_anomaly(self, base=None):
         """
@@ -1654,7 +1658,6 @@ class Data(object):
             pass
         else:
             raise ValueError('Anomalies can not be calculated without a valid time_cycle')
-
         ret = np.ones_like(self.data) * np.nan
 
         if ret.ndim == 1:
@@ -1668,18 +1671,16 @@ class Data(object):
                 ret[i::self.time_cycle, :, :] = self.data[i::self.time_cycle, :, :] - clim[i, :, :]
         else:
             raise ValueError('Invalid dimension when calculating anomalies')
-
         ret = np.ma.array(ret, mask=(np.isnan(ret) | self.data.mask))
 
-        #--- return a data object
+        # return a data object
         res = self.copy()
         res.data = ret.copy()
         res.label = self.label + ' anomaly'
 
         return res
 
-
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def condstat(self, M):
         """
@@ -1711,8 +1712,6 @@ class Data(object):
         Test
         ----
         unittest implemented
-
-y
 
         @return: dictionary with results where each entry has shape (nt,nvals) with nvals beeing the number of unique ID values in the mask
         @rtype: dict
@@ -1799,20 +1798,19 @@ y
         #res = {'id': vals, 'mean': means, 'sum': sums, 'min': mins, 'max': maxs, 'std': stds}
         return res
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def set_time(self):
-
         #--- check ---
         if self.time_str is None:
-            raise ValueError, 'ERROR: time can not be determined, as units for time not available!'
+            raise ValueError('ERROR: time can not be determined, as units for time not available!')
         if not hasattr(self, 'calendar'):
-            raise ValueError, 'ERROR: no calendar specified!'
+            raise ValueError('ERROR: no calendar specified!')
         if not hasattr(self, 'time'):
-            raise ValueError, 'ERROR: no time specified!'
+            raise ValueError('ERROR: no time specified!')
 
         if self.time_str == 'day as %Y%m%d.%f':
-            #in case of YYYYMMDD, convert to other time with basedate 0001-01-01 00:00:00
+            # in case of YYYYMMDD, convert to other time with basedate 0001-01-01 00:00:00
             self._convert_time()
         elif self.time_str == 'month as %Y%m.%f':
             self._convert_timeYYYYMM()
@@ -1825,7 +1823,7 @@ y
             # be handled by self.num2date() in all subsequent subroutines
             # to properly handle difference in different calendars.
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_date_from_month(self, nmonths):
         """
@@ -2172,7 +2170,7 @@ y
 
         return res
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_time_indices(self, start, stop):
         """
@@ -2238,7 +2236,7 @@ y
             sys.exit('Something went wrong _get_time_indices')
         return m1, m2
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_years(self):
         """
@@ -2250,7 +2248,7 @@ y
         """
         return [x.year for x in self.date]
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _get_months(self):
         """
@@ -2262,7 +2260,7 @@ y
         """
         return [x.month for x in self.date]
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _mesh_lat_lon(self):
         """
@@ -2277,10 +2275,7 @@ y
         else:
             pass
 
-
-
-
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def read_netcdf(self, varname):
         """
@@ -3768,7 +3763,7 @@ y
             self.data[-n:, :, :] = tmp[0:n, :, :]
             return None
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _set_valid_range(self, vmin, vmax):
         """
@@ -3781,10 +3776,14 @@ y
             minimum valid value
         vmax : float
             maximum valid value
+
+        Tests
+        -----
+        unittest implemented
         """
         self.data = np.ma.array(self.data, mask=((self.data < vmin) | (self.data > vmax)))
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def __shift2D(self, x, n):
         """
@@ -3804,7 +3803,7 @@ y
         y[:, n:] = tmp[:, 0:-n]
         return y
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def copy(self):
         """
@@ -3823,7 +3822,7 @@ y
                 exec cmd
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def add(self, x, copy=True):
         """
@@ -3853,7 +3852,7 @@ y
         d.label = self.label + ' + ' + x.label
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def sub(self, x, copy=True):
         """
@@ -3894,7 +3893,7 @@ y
         d.label = self.label + ' - ' + x.label
         return d
 
-    #-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def diff(self, x, axis=0, equal_var=True, mask_data=False,
              pthres=0.05):
