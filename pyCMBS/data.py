@@ -3540,11 +3540,15 @@ class Data(object):
     def _apply_mask(self, msk1, keep_mask=True):
         """
         apply a mask to C{Data}. All data where mask==True
-        will be masked. Former data and mask will be stored
+        will be masked. Former data and mask will be stored.
 
-
-        @param keep_mask: keep old masked
-        @type keep_mask : boolean
+        Parameters
+        ----------
+        msk1 : ndarray
+            mask to be applied to data. Needs to have same geometry as
+            data.
+        keep_mask : bool
+            keep old mask
         """
 
         if isinstance(msk1, Data):
@@ -3556,7 +3560,7 @@ class Data(object):
         self.__olddata = self.data.data.copy()
         if hasattr(self, 'std'):
             if self.data.shape != self.std.shape:
-                raise ValueError, 'Standard deviation has different geometry than data!'
+                raise ValueError('Standard deviation has different geometry than data!')
             self.__oldstd = self.std.data.copy()
 
         if self.data.ndim == 2:
@@ -3569,7 +3573,6 @@ class Data(object):
             if keep_mask:
                 if self.__oldmask.ndim > 0:
                     tmp1[self.__oldmask] = np.nan
-
                     if hasattr(self, 'std'):
                         tmps[self.__oldmask] = np.nan
 
@@ -3577,7 +3580,6 @@ class Data(object):
             if hasattr(self, 'std'):
                 self.std = np.ma.array(tmps, mask=np.isnan(tmps))
                 del tmps
-
             del tmp1
 
         elif self.data.ndim == 3:
@@ -3614,8 +3616,7 @@ class Data(object):
                 self._climatology_raw[i, :, :] = tmp[:, :]
                 del tmp
 
-
-            #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def shift_x(self, nx):
         """
@@ -4108,16 +4109,16 @@ class Data(object):
             for i in xrange(len(self.time)):
                 d.data[i, :, :] = d.data[i, :, :] * x.data
         else:
-            raise ValueError, 'Can not handle this geometry in div()'
+            raise ValueError('Can not handle this geometry in div()')
 
         d.label = self.label + ' * ' + x.label
         return d
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _sub_sample(self, step):
         """
-        subsample data of current C{Data} object
+        perform spatial subsampling of data
 
         Parameters
         ----------
@@ -4130,10 +4131,14 @@ class Data(object):
             self.data = self.data[::step, ::step]
         else:
             raise ValueError('Data Dimension not supported!')
-        self.lat = self.lat[::step, ::step]
-        self.lon = self.lon[::step, ::step]
+        if hasattr(self, 'lat'):
+            if self.lat is not None:
+                self.lat = self.lat[::step, ::step]
+        if hasattr(self, 'lon'):
+            if self.lon is not None:
+                self.lon = self.lon[::step, ::step]
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def corr_single(self, x, pthres=1.01, mask=None, method='pearson'):
         """
@@ -4143,13 +4148,14 @@ class Data(object):
         Example
         -------
         >> d = Data(None, None)
-            >> x = np.random(100)
-        >> rpears, slope, intercept, p, covar =  d.corr_single(x, pthres=0.05)
+        >> x = np.random(100)
+        >> rpears,slope,intercept,p,covar= d.corr_single(x, pthres=0.05)
 
         Parameters
         ----------
         x : ndarray
-            the data vector correlations should be calculated with,numpy array [time]
+            the data vector correlations should be calculated with,
+            numpy array [time]
         method : str
             correlation method to be used ['spearman','pearson']
         pthres : float
@@ -4165,7 +4171,6 @@ class Data(object):
 
         if method not in ['pearson', 'spearman']:
             raise ValueError('Only pearson or spearman rank correlation supported so far.')
-
         if self.ndim != 3:
             raise ValueError('Invalid geometry!')
 
