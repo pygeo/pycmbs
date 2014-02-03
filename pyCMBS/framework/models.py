@@ -649,7 +649,8 @@ class CMIP5Data(Model):
         sismean = sisall.fldmean()
 
         # return data as a tuple list
-        retval = (sisall.time,sismean,sisall); del sisall
+        retval = (sisall.time,sismean,sisall)
+        del sisall
 
         # mask areas without radiation (set to invalid): all data < 1 W/m**2
         sis.data = np.ma.array(sis.data, mask=sis.data < 1.)
@@ -706,7 +707,7 @@ class CMIP5Data(Model):
             cdo.div(options='-f nc -b 32',output = sup_N_file,input=sup_sum_file + ' ' + sup_clim_file, force=force_calc) #number of samples
         else:
             print interval
-            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+            raise ValueError('Unknown temporal interval. Can not perform preprocessing! ')
 
         if not os.path.exists(sup_clim_file):
             print 'File not existing (sup_clim_file): ' + sup_clim_file
@@ -715,31 +716,33 @@ class CMIP5Data(Model):
         #3) read data
         sup = Data(sup_clim_file,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
         sup_std = Data(sup_clim_std_file,'rsus',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sup.std = sup_std.data.copy(); del sup_std
+        sup.std = sup_std.data.copy()
+        del sup_std
         sup_N = Data(sup_N_file,'rsus',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sup.n = sup_N.data.copy(); del sup_N
+        sup.n = sup_N.data.copy()
+        del sup_N
 
-        #ensure that climatology always starts with January, therefore set date and then sort
-        sup.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        # ensure that climatology always starts with January, therefore set date and then sort
+        sup.adjust_time(year=1700,day=15)  # set arbitrary time for climatology
         sup.timsort()
 
         #4) read monthly data
         supall = Data(file_monthly,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
-        if supall.time_cycle != 12:
-            raise ValueError, 'Monthly timecycle expected here!'
+        supall.adjust_time(day=15)
+        if not supall._is_monthly():
+            raise ValueError('Monthly timecycle expected here!')
         supmean = supall.fldmean()
 
         #/// return data as a tuple list
-        retval = (supall.time,supmean,supall); del supall
+        retval = (supall.time,supmean,supall)
+        del supall
 
         #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
         #sup.data = np.ma.array(sis.data,mask=sis.data < 1.)
 
         return sup, retval
 
-
 #-------------------------------------------------------------------------------------------------------------
-
 
     def get_albedo_data(self, interval='season'):
         """
@@ -749,16 +752,15 @@ class CMIP5Data(Model):
 
         force_calc = False
 
-        #--- read land-sea mask
+        # read land-sea mask
         ls_mask = get_T63_landseamask(self.shift_lon)
 
-        if self.start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
+        if self.start_time is None:
+            raise ValueError('Start time needs to be specified')
+        if self.stop_time is None:
+            raise ValueError('Stop time needs to be specified')
 
-
-        #--- get fluxes
+        # get fluxes
         Fu = self.get_surface_shortwave_radiation_up(interval=interval)
         if Fu == None:
             print 'File not existing for UPWARD flux!: ', self.name
@@ -774,31 +776,31 @@ class CMIP5Data(Model):
             Fd_i = Fd[0]
 
         #albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
-        Fu_i.div(Fd_i,copy=False); del Fd_i #Fu contains now the albedo
+        Fu_i.div(Fd_i,copy=False)
+        del Fd_i  # Fu contains now the albedo
         Fu_i._apply_mask(ls_mask.data)
 
         #albedo for monthly data (needed for global mean plots )
-        Fu_m = Fu[1][2]; del Fu
-        Fd_m = Fd[1][2]; del Fd
+        Fu_m = Fu[1][2]
+        del Fu
+        Fd_m = Fd[1][2]
+        del Fd
 
-        Fu_m.div(Fd_m,copy=False); del Fd_m
+        Fu_m.div(Fd_m,copy=False)
+        del Fd_m
         Fu_m._apply_mask(ls_mask.data)
-        Fu_m._set_valid_range(0.,1.)
+        Fu_m._set_valid_range(0., 1.)
         Fu_m.label = lab + ' albedo'
         Fu_i.label = lab + ' albedo'
         Fu_m.unit = '-'
         Fu_i.unit = '-'
 
-        #/// center dates of months
+        # center dates of months
         Fu_m.adjust_time(day=15)
         Fu_i.adjust_time(day=15)
 
-        #/// return data as a tuple list
-        retval = (Fu_m.time,Fu_m.fldmean(),Fu_m)
-
-        #downward geht nur bis Jahr 2000: warum ????
-        #und upward bis 2008 ???? warum ????
-
+        # return data as a tuple list
+        retval = (Fu_m.time,Fu_m.fldmean(), Fu_m)
 
         return Fu_i, retval
 

@@ -2343,7 +2343,6 @@ def map_season(x, figsize=(8,6), **kwargs):
     else:
         savefile = None
 
-
     # plot
     if year:
         labels=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
@@ -2394,7 +2393,10 @@ def map_season(x, figsize=(8,6), **kwargs):
         else:
             tmpoutname = None
 
-        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal',drawparallels=drawparallels, **kwargs); del d
+        map_plot(d, ax=ax, show_colorbar=show_colorbar, overlay=overlay,
+                 savefile=tmpoutname, colorbar_orientation='horizontal',
+                 drawparallels=drawparallels, **kwargs)
+        del d
     f.suptitle(tit,size=16)
     return f
 
@@ -3891,8 +3893,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
                  colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
 
-
-    #-first minus second dataset (absolute difference)
+    # first minus second dataset (absolute difference)
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     if savefile is None:
@@ -3918,9 +3919,8 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  colorbar_orientation=colorbar_orientation,
                  drawparallels=drawparallels, savegraphicfile=graphic_name)
 
-
-    #- relative error
-    rdat = adif.div(x) #y.div(x).subc(1.) #relative data
+    # relative error
+    rdat = adif.div(x)
     if absthres is not None:
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
