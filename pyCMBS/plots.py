@@ -2424,10 +2424,6 @@ class MapPlotGeneric(object):
         if self.backend not in ['imshow']:
             raise ValueError('Invalid plotting nackend: %s' % self.backend)
 
-
-    def plot(self):
-        raise ValueError('This routine shall be overwritten by herited class')
-
     def _draw_imshow(self, **kwargs):
         """
         draw data using imshow command
@@ -2445,7 +2441,7 @@ class MapPlotGeneric(object):
             self._set_axis_invisible(self.zax)
 
         # do plotting
-        im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
+        im = self.pax.imshow(self.x.timmean(), interpolation='nearest', vmin=self.vmin, vmax=self.vmax, **kwargs)
 
         # colorbar
         if self.show_colorbar:
@@ -2613,7 +2609,7 @@ class SingleMap(MapPlotGeneric):
     def plot(self, show_zonal=False, show_histogram=False,
             show_timeseries=False, show_colorbar=True,
             colorbar_orientation='vertical', cmap='jet', cticks=None,
-            cticklabels=None, **kwargs):
+            cticklabels=None, vmin=None, vmax=None, **kwargs):
         """
         routine to plot a single map
 
@@ -2631,6 +2627,8 @@ class SingleMap(MapPlotGeneric):
         self.show_colorbar=show_colorbar
         self.cticks = cticks
         self.cticklabels = None
+        self.vmin = vmin
+        self.vmax = vmax
 
         self.cmap = cmap
 
@@ -3281,13 +3279,6 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
         else:
             print('WARNING: zonal plot not possible due to invalid latitude configurations')
-
-
-
-
-
-
-
 
     def _add_region_basemap(m, r, color='red', linewidth=1):
         """
