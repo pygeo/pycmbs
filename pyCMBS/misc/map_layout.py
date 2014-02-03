@@ -53,7 +53,7 @@ m2.plot(colorbar_orientation='horizontal', show_zonal=True, nclasses=4)
 
 
 m3 = SingleMap(d, savefile='mym3')
-m3.plot(colorbar_orientation='vertical', show_zonal=True, cmap='RdBu', nclasses=7, title='Mytest', cticks=[-15,0,10], cticklabels=['A','NIX', 'C'])
+m3.plot(colorbar_orientation='vertical', show_zonal=True, cmap='RdBu', nclasses=7, title='Mytest', ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C'] })
 #~ m3.pax.imshow(x)
 #~ m3.cax.imshow(x)
 
