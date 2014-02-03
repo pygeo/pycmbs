@@ -45,7 +45,7 @@ from dateutil.rrule import *
 #_get_date_from_month
 #_convert_monthly_timeseries
 
-#fldmean() fldstd() fldsum() --> verify with CDO'!; sample data to netCDF file!
+
 
 
 

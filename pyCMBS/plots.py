@@ -30,6 +30,7 @@ from mpl_toolkits.basemap import Basemap,shiftgrid
 from scipy import stats
 
 import numpy as np
+import matplotlib.gridspec as grd
 
 from matplotlib.patches import Circle
 import matplotlib.patches as mpatches
@@ -2395,12 +2396,18 @@ class MapPlotGeneric(object):
     """
 
     def __init__(self,backend=None, format='png', savefile=None,
-                    show_statistic = True, stat_type='mean'):
+                    show_statistic = True, stat_type='mean', figure=None):
         self.backend = backend
         self.format = format
         self.savefile = savefile
         self.show_statistic = show_statistic
         self.stat_type = stat_type
+        self._dummy_axes=[]
+
+        if figure is None:
+            self.figure = plt.figure()
+        else:
+            self.figure = figure
 
         self._check()
 
@@ -2411,17 +2418,49 @@ class MapPlotGeneric(object):
     def plot(self):
         raise ValueError('This routine shall be overwritten by herited class')
 
-    def _draw_imshow(self, ax, **kwargs):
+    def _draw_imshow(self, **kwargs):
         """
         draw data using imshow command
-
-        ax : axis
-            axis to plot to
         """
-        ax.imshow(self.x.timmean(), **kwargs)
-        self._draw_title(ax)
+        if self.pax is None:
+            raise ValueError('Fatal Error: no axis for plotting specified')
+        # set dummy axes invisible
+        for ax in self._dummy_axes:
+            self._set_axis_invisible(ax)
+        if self.pax is not None:
+            self._set_axis_invisible(self.pax)
+        if self.cax is not None:
+            self._set_axis_invisible(self.cax)
+        if self.zax is not None:
+            self._set_axis_invisible(self.zax)
 
-    def _draw_title(self, ax):
+        # do plotting
+        im = self.pax.imshow(self.x.timmean(), **kwargs)
+
+        # colorbar
+        vmin = im.get_clim()[0]
+        vmax = im.get_clim()[1]
+        self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        if self.show_colorbar:
+            self._set_colorbar()
+
+        # labels and title
+        #~ self._draw_title()
+
+
+    def _set_colorbar(self):
+        """
+        create colorbar and return colorbar object
+        """
+        if not self.show_colorbar:
+            raise ValueError('Colorbar can not be generated when not requested')
+
+        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self.cticks, orientation=self.colorbar_orientation)
+        if self.cticklabels is not None:
+            cb.set_ticklabels(self.cticklabels)
+
+
+    def _draw_title(self):
         """
         draw title, units and statistics
         """
@@ -2429,9 +2468,18 @@ class MapPlotGeneric(object):
         #tit = self._get_title_str()
         unit = self.x._get_unit()
 
-        ax.set_title('testtitle')
-        ax.set_title(unit, loc='right')
-        ax.set_title(stat, loc='left')
+        self.pax.set_title('testtitle')
+        self.pax.set_title(unit, loc='right')
+        self.pax.set_title(stat, loc='left')
+
+    def _set_axis_invisible(self, ax):
+        """
+        set axis parameteres in a way that it is invisible
+        """
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_frame_on(False)
+
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
@@ -2464,7 +2512,7 @@ class SingleMap(MapPlotGeneric):
     """
     A class to generate a plot with a single figure
     """
-    def __init__(self,x,**kwargs):
+    def __init__(self, x, **kwargs):
         """
         Parameters
         ----------
@@ -2475,9 +2523,128 @@ class SingleMap(MapPlotGeneric):
         super(SingleMap, self).__init__(**kwargs)
         self.x = x
 
-    def plot(self):
-        self.fig = map_plot(self.x, savefile=self.savefile,
-                show_stat=self.show_statistic)
+        self.pax = None  # axis for plot
+        self.cax = None  # axis for colorbar
+        self.tax = None  # axis for timeseries
+        self.hax = None  # axis for histogram
+        self.zax = None  # axis for zonal plot
+
+    def plot(self, show_zonal=False, show_histogram=False,
+            show_timeseries=False, show_colorbar=True,
+            colorbar_orientation='vertical', cmap='jet', cticks=None,
+            cticklabels=None, **kwargs):
+        """
+        routine to plot a single map
+
+        Parameters
+        ----------
+        """
+
+        if colorbar_orientation not in ['vertical','horizontal']:
+            raise ValueError('Invalid colorbar orientation')
+
+        self.show_zonal=show_zonal
+        self.colorbar_orientation=colorbar_orientation
+        self.show_histogram=show_histogram
+        self.show_timeseries=show_timeseries
+        self.show_colorbar=show_colorbar
+        self.cticks = cticks
+        self.cticklabels = None
+
+        self.cmap = cmap
+
+        # set axes layout
+        self._set_layout()
+
+        # do plot
+        self._draw_imshow()
+
+    def _set_layout(self):
+        """
+        routine specifies layout of different axes
+        """
+        # check if option combinations are possible
+        if self.show_timeseries and self.show_histogram:
+            raise ValueError('Combination of histogram and timeseries not supported')
+
+        if self.show_colorbar:
+            # timeseries or histogram require an additional lower axis
+            if self.show_timeseries:
+                raise ValueError('Combination with timeseries not supported yet!')
+            else:
+                if self.show_zonal:
+                    self._set_layout2()  # layout with colorbar and zonal plot
+                else:
+                    self._set_layout1()  # layout with only colorbar
+            if self.show_histogram:
+                raise ValueError('Combination with histogram not supported yet!')
+            else:
+                if self.show_zonal:
+                    self._set_layout2()  # layout with colorbar and zonal plot
+                else:
+                    self._set_layout1()  # layout with only colorbar
+        else:
+            raise ValueError('Layout without colorbar not supported yet')
+
+
+    def _set_layout1(self):
+        """
+        setlayout with only colorbar. This might be oriented either
+        vertically or horizontally
+
+        vertical
+        ----------- +-+
+        |  pax      |c|
+        ----------- +-+
+
+        horizontal
+        -----------
+        |  pax    |
+        |         |
+        -----------
+        -----------
+        |  cax    |
+        -----------
+
+        """
+        if not self.show_colorbar:
+            raise ValueError('This routine was called by fault!')
+        if self.colorbar_orientation == 'horizontal':
+            self.gs = grd.GridSpec(2, 1, height_ratios=[95,5], wspace=0.05)
+        elif self.colorbar_orientation == 'vertical':
+            self.gs = grd.GridSpec(1, 2, width_ratios=[95,5], wspace=0.05)
+        else:
+            raise ValueError('Invalid option')
+        self.pax = self.figure.add_subplot(self.gs[0])
+        self.cax = self.figure.add_subplot(self.gs[1])
+
+
+    def _set_layout2(self):
+        """
+        layout with zonal mean and colorbar
+        """
+        if not self.show_zonal:
+            raise ValueError('Only WITH zonal mean supported here!')
+        if not self.show_colorbar:
+            raise ValueError('Only WITH colorbar supported here!')
+
+        if self.colorbar_orientation == 'horizontal':
+            self.gs = grd.GridSpec(2, 2, height_ratios=[95,5], width_ratios = [15, 85], wspace=0.05)
+            self.zax = self.figure.add_subplot(self.gs[0])
+            self.pax = self.figure.add_subplot(self.gs[1])
+            self.cax = self.figure.add_subplot(self.gs[3])
+            self._dummy_axes.append(self.figure.add_subplot(self.gs[2]))
+        elif self.colorbar_orientation == 'vertical':
+            self.gs = grd.GridSpec(1, 3, width_ratios = [15, 80, 5], wspace=0.05)
+            self.zax = self.figure.add_subplot(self.gs[0])
+            self.pax = self.figure.add_subplot(self.gs[1])
+            self.cax = self.figure.add_subplot(self.gs[2])
+        else:
+            raise ValueError('Invalid colorbar option')
+
+
+
+
 
 class MultipleMap(MapPlotGeneric):
     def __init__(self,geometry=None,**kwargs):
