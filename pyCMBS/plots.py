@@ -2395,7 +2395,7 @@ class MapPlotGeneric(object):
     Generic class to produce map plots
     """
 
-    def __init__(self,backend='imshow', format='png', savefile=None,
+    def __init__(self, backend='imshow', format='png', savefile=None,
                     show_statistic = True, stat_type='mean', figure=None):
         self.backend = backend
         self.format = format
@@ -2417,6 +2417,38 @@ class MapPlotGeneric(object):
             self._draw = self._draw_imshow
         else:
             raise ValueError('Unknown backend!')
+
+    def _save_data_to_file(self, mean=True):
+
+        if mean:
+            tok = '_timmean'
+        else:
+            tok = '_all'
+
+        if self.savefile is None:
+            return
+        if self.savefile[:-3] != '.nc':
+            self.savefile +=  tok + '.nc'
+        else:
+            self.savefile = self.savefile[:-3] + tok +  '.nc'
+        self.x.save(self.savefile, mean=mean, delete=True)
+
+    def save(self, save_mean=True, save_all=False):
+        """
+        save data to file
+
+        Parameters
+        ----------
+        save_mean : bool
+            save temporal mean field to file
+        save_all : bool
+            save entire field which was available for plotting
+            to file
+        """
+        if save_mean:
+            self._save_data_to_file(mean=True)
+        if save_all:
+            self._save_data_to_file(mean=False)
 
     def _check(self):
         if self.stat_type not in ['mean', 'median', 'sum']:
@@ -2664,6 +2696,10 @@ class SingleMap(MapPlotGeneric):
         self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
         self._plot_zonal()
         self._draw_title(title=title)
+
+        # save data if required
+        self.save()
+
 
     def _set_layout(self):
         """

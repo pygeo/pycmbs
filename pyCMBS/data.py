@@ -437,7 +437,7 @@ class Data(object):
             return netcdftime.date2num(t, self.time_str,
                                        calendar=self.calendar) - offset
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def __set_sample_data(self, a, b, c):
         """
@@ -445,10 +445,10 @@ class Data(object):
         """
         self.data = plt.rand(a, b, c)
 
-    #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def save(self, filename, varname=None, format='nc',
-             delete=False, mean=False):
+             delete=False, mean=False, timmean=False):
         """
         saves the data object to a file
 
@@ -466,12 +466,19 @@ class Data(object):
             file is existing already, then an error is raised
         mean : bool
             save spatial mean field only instead of the full field
+        timmean : bool
+            save temporal mean field
         """
+
+        if mean and timmean:
+            raise ValueError('Only the MEAN or the TIMMEAN option can be given, but not together!')
 
         #/// either store full field or just spatial mean field ///
         if mean:
             print('Saving MEAN FIELD of object in file %s' % filename)
             tmp = self.fldmean(return_data=True)
+        elif timmean:
+            tmp = self.timmean(return_object=True)
         else:
             print('Saving object in file %s' % filename)
             tmp = self
@@ -484,7 +491,7 @@ class Data(object):
         else:
             raise ValueError('This output format is not defined yet!')
 
-        #-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
     def _save_ascii(self, filename, varname=None, delete=False):
         """

@@ -126,6 +126,9 @@ class NetCDFHandler(object):
         if self.type.lower() == 'nio':
             self.F.variables[varname].assign_value(value)
         else:
+            print varname
+            print self.F.variables[varname].shape
+            print value.shape
             self.F.variables[varname][:] = value[:]
 
     def create_dimension(self, dimname, size=None):
