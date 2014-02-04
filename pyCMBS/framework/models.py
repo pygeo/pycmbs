@@ -847,7 +847,7 @@ class CMIP5RAWData(CMIP5Data):
             delete output file without asking
         """
 
-        self._preprocess_times(filename, delete=delete)
+        #~ self._preprocess_times(filename, delete=delete)
 
 
         # calculate ensemble mean

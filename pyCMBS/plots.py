@@ -1800,7 +1800,7 @@ class GlecklerPlot(object):
              show_value=False, logscale=False, labelcolor='black',
              labelthreshold=None, cmap=None, norm=None,
              colorbar_boundaries=None, show_colorbar=True,
-             autoscale=True):
+             autoscale=True, ticks=None):
         """
         plot Gleckler diagram
 
@@ -1925,7 +1925,7 @@ class GlecklerPlot(object):
         c=1.
         width=(right-left)*c
         if show_colorbar:
-            self._draw_colorbar(left,width,logscale=logscale)
+            self._draw_colorbar(left,width,logscale=logscale,ticks=ticks)
 
         if title is not None:
             self.fig.suptitle(title)
@@ -2079,7 +2079,7 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def _draw_colorbar(self, left, width, logscale=False):
+    def _draw_colorbar(self, left, width, logscale=False, ticks=None):
         """
         draw legend for Glecker plot. Requires information on
         the positioning of the colormap axis which can be obtained from
@@ -2109,7 +2109,7 @@ class GlecklerPlot(object):
                                    norm=self.norm,
                                    orientation='horizontal',
                                    format=l_f,boundaries=self.bounds,
-                                   extend=extend)
+                                   extend=extend, ticks=ticks)
 
     def _draw_legend(self, labels, title=None):
         """
