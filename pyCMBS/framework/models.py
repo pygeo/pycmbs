@@ -821,6 +821,17 @@ class CMIP5RAWData(CMIP5Data):
         self.type = 'CMIP5RAW'
         self._unique_name = self._get_unique_name()
 
+    def _preprocess_times(self, filename, delete=False):
+        """
+        preprocess different files for a single ensemble member
+        """
+        root = filename.split('_ensmean')[0]
+        print root
+        stop
+
+
+
+
     def _preprocess_ensembles(self, filename, delete=False):
         """
         do preprocessing of the CMIP5 rawdata based on the individual
@@ -836,9 +847,12 @@ class CMIP5RAWData(CMIP5Data):
             delete output file without asking
         """
 
+        self._preprocess_times(filename, delete=delete)
+
+
         # calculate ensemble mean
         root = filename.split('_ensmean')[0]
-        print 'Rootname: ', root
+        #~ print 'Rootname: ', root
 
         # write output to processing directory!
         outputfile = get_temporary_directory() + os.path.basename(filename)
