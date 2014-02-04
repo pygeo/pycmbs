@@ -233,7 +233,7 @@ class ConfigFile(object):
 
         for k in self.dtypes:
             if k.upper() not in ['CMIP5', 'JSBACH_BOT', 'JSBACH_RAW',
-                                 'CMIP3', 'JSBACH_RAW2']:
+                                 'CMIP3', 'JSBACH_RAW2', 'CMIP5RAW']:
                 raise ValueError('Unknown model type: %s' % k)
         sys.stdout.write(" *** Done reading config file. \n")
 
@@ -354,10 +354,10 @@ class PlotOptions(object):
             #/// destroy parser (important, as otherwise problems)
             del parser
 
-        #convert options to bool/numerical values
+        # convert options to bool/numerical values
         self._convert_options()
 
-        #check options consistency
+        # check options consistency
         self._check()
 
         #reset plotting options if the report should only produce a summary

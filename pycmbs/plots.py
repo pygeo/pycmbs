@@ -30,6 +30,7 @@ from mpl_toolkits.basemap import Basemap,shiftgrid
 from scipy import stats
 
 import numpy as np
+import matplotlib.gridspec as grd
 
 from matplotlib.patches import Circle
 import matplotlib.patches as mpatches
@@ -176,6 +177,8 @@ class HovmoellerPlot(object):
                       cmap=cmap)
         if ylim is not None:
             self.ax.set_ylim(ylim)
+        if title is None:
+            self.ax.set_title(self.x.label)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -1229,14 +1232,19 @@ class ZonalPlot(object):
 
 class GlecklerPlot(object):
     """
-    Class to generate a plot that to illustrate multi-model, multi-variable scores
+    Class to generate a Portraet plot to illustrate multi-model,
+    multi-variable scores.
 
     It was introdcued by Gleckler et al (2008)
 
-    REFERENCES:
-    * ﻿Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008. Performance metrics for climate models. Journal of Geophysical Research, 113(D6). Available at: http://www.agu.org/pubs/crossref/2008/2007JD008972.shtml [Accessed February 29, 2012].
+    References
+    ----------
+    [1] ﻿Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008.
+             Performance metrics for climate models. Journal of
+             Geophysical Research, 113(D6).
 
-    EXAMPLE:
+    Example
+    -------
     G = GlecklerPlot()
     #register first models
     G.add_model('echam5'); G.add_model('mpi-esm')
@@ -1287,7 +1295,7 @@ class GlecklerPlot(object):
             cnt += 1
         return seq
 
-    def _model2short_label(self,m):
+    def _model2short_label(self, m):
         """
         given a model key a short label for plotting is returned
         """
@@ -1447,8 +1455,8 @@ class GlecklerPlot(object):
             elif p == 4:
                 return 'right'
 
-        r1=self._get_model_ranking(p1,var) #ranking for first position
-        r2=self._get_model_ranking(p2,var) #ranking for second position
+        r1=self._get_model_ranking(p1, var)  # ranking for first position
+        r2=self._get_model_ranking(p2, var)  # ranking for second position
 
         if len(r1) == 0:
             return None
@@ -1541,14 +1549,15 @@ class GlecklerPlot(object):
         plots a scatterplot of errors of different models
         for a particular variable
 
-        @param var: variable to be investigated
-        @type var: str
+        Parameters
+        ----------
+        var : str
+            variable to be investigated
         """
 
         fig = pl.figure()
         gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
-
 
         # 1 vs. 2
         self._draw_error_scatter(1, 2, var, color='red', marker='o',ax=ax)
@@ -1560,49 +1569,138 @@ class GlecklerPlot(object):
         self._draw_error_scatter(1, 4, var, color='blue', marker='^',ax=ax)
 
         # 2 vs. 3
-        self._draw_error_scatter(2, 3, var, color='grey', marker='x',ax=ax)
+        self._draw_error_scatter(2, 3, var, color='grey', marker='x', ax=ax)
 
         # 2 vs 4
-        self._draw_error_scatter(2,4,var,color='m',marker='+',ax=ax)
+        self._draw_error_scatter(2, 4, var, color='m', marker='+', ax=ax)
 
         # 3 vs 4
-        self._draw_error_scatter(3,4,var,color='c',marker='h',ax=ax)
+        self._draw_error_scatter(3, 4, var, color='c', marker='h', ax=ax)
 
         if ax is not None:
-            ax.legend(prop={'size':8},ncol=1,fancybox=True,loc='upper left')
+            ax.legend(prop={'size':8}, ncol=1, fancybox=True, loc='upper left')
             ax.set_xlabel('$\epsilon$ (observation X)')
             ax.set_ylabel('$\epsilon$ (observation Y)')
 
             xmi,xma = ax.get_xlim()
             ymi,yma = ax.get_ylim()
 
-            ax.set_ylim(min(xmi,ymi),max(xma,yma))
-            ax.set_xlim(min(xmi,ymi),max(xma,yma))
+            ax.set_ylim(min(xmi, ymi),max(xma, yma))
+            ax.set_xlim(min(xmi, ymi),max(xma, yma))
             ax.grid()
             ax.set_title('Comparison of model errors: ' + var.upper())
             ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
         return fig
 
-    def plot_model_ranking(self,var,show_text=False):
+    def write_ranking_table(self, var, filename, fmt='latex'):
+        """
+        write results of model ranking to an ASCII table
+
+        Parameters
+        ----------
+        var : str
+            name of variable to analyze
+        filename : str
+            name of file to write table to
+        fmt : str
+            specifies output format for table ['latex','markdown']
+        """
+
+        if fmt not in ['latex', 'markdown']:
+            raise ValueError('Invalid output format')
+
+        if fmt == 'latex':
+            sep = ' & '
+            eol = ' \\\  \n'
+            sol = '            '
+        elif fmt == 'markdown':
+            sep = ' | '
+            eol = ' | \n'
+            sol = ''
+        else:
+            raise ValueError('Unrecognized output format')
+
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        def _rnk2str(r):
+            if r < 3:
+                return '{\\bf ' + str(r) + '}'
+            else:
+                return str(r)
+
+        def _get_model_rank(k, x):
+            """
+            returns rank of model given a key k and an ordered list x
+
+            Returns
+            --------
+            rank of key in list; NOTE that this is NOT the index!
+            """
+            if k not in x:
+                if len(x)==0:  # no observational data available
+                    return '-'
+                else:
+                    # here observations are there, but model key is not in
+                    return '-'
+            for i in xrange(len(x)):
+                if x[i] == k:
+                    return i+1
+            raise ValueError('Fatal error: no solution found!')
+
+        # get for each obs. dataset a list of models keys which are ordered
+        r1 = self._get_model_ranking(1, var)  # returns model keys
+        r2 = self._get_model_ranking(2, var)
+        r3 = self._get_model_ranking(3, var)
+        r4 = self._get_model_ranking(4, var)
+
+        # now write a table with different columns for each dataset
+        o = open(filename, 'w')
+        if fmt == 'latex':
+            o.write('        \\begin{tabular}{lcccc} \n')
+            o.write(sol + '\\hline \n')
+            s = sol + 'model' + sep + 'obs-top' + sep + 'obs-bott' + sep + 'obs-left' + sep + 'obs-right' + eol
+            o.write(s)
+            o.write(sol + '\\hline \n')
+        for m in self.models:
+            rnk1 = _get_model_rank(m, r1)
+            rnk2 = _get_model_rank(m, r2)
+            rnk3 = _get_model_rank(m, r3)
+            rnk4 = _get_model_rank(m, r4)
+
+            rnk1 = _rnk2str(rnk1)
+            rnk2 = _rnk2str(rnk2)
+            rnk3 = _rnk2str(rnk3)
+            rnk4 = _rnk2str(rnk4)
+
+            s = sol + m.replace('_','-') + sep + rnk1 + sep + rnk2 + sep + rnk3 + sep + rnk4 + eol
+            o.write(s)
+        if fmt == 'latex':
+            o.write(sol + '\\hline \n')
+            o.write('        \end{tabular}')
+        o.close()
+
+    def plot_model_ranking(self, var, show_text=False):
         """
         plots a model ranking scatterplot, indicating
-        if models have similar ranks between different observational datasets
+        if models have similar ranks between different observational
+        datasets
 
-        in case that a certain combination does not exist, the corresponding
-        plot is simply not generated.
+        in case that a certain combination does not exist, the
+        corresponding plot is simply not generated.
 
-        @param var: name of variable to analyze
-        @type var: str
-
-        @param show_text: annotate plot using text for models as labels
-        @type show_text: bool
-
+        Parameters
+        ----------
+        var : str
+            name of variable to analyze
+        show_text : bool
+            annotate plot using text for models as labels
         """
 
-        tmp=self._get_model_ranking(1,var)
+        tmp=self._get_model_ranking(1, var)
 
         fig = pl.figure()
-        gs = gridspec.GridSpec(1, 2, wspace=0.05,hspace=0.05,bottom=0.2,width_ratios = [3,1])
+        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
 
         # 1 vs. 2
@@ -1619,23 +1717,23 @@ class GlecklerPlot(object):
         self.__draw_ranking_scatter(3,4,var,color='c',marker='h',ax=ax,show_text=show_text)
 
         if ax is not None:
-            ax.legend(prop={'size':8},ncol=1,fancybox=True,loc='upper left')
+            ax.legend(prop={'size':8}, ncol=1,fancybox=True, loc='upper left')
             ax.set_xlabel('rank(observation X)')
             ax.set_ylabel('rank(observation Y)')
-            ax.set_ylim(ymin=0,ymax=len(tmp)+1)
-            ax.set_xlim(xmin=0,xmax=len(tmp)+1)
+            ax.set_ylim(ymin=0, ymax=len(tmp)+1)
+            ax.set_xlim(xmin=0, xmax=len(tmp)+1)
             ax.grid()
             ax.set_title('Comparison of model ranking: ' + var.upper())
-            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
+            ax.plot(ax.get_xlim(), ax.get_xlim(), 'k--')  # 1:1 line
 
         ax2 = fig.add_subplot(gs[1])
 
         dy = 0.1
         yoff = dy
         for k in tmp:
-            ax2.text(0.1,yoff,self._model2short_label(k) + ': ' + k)
+            ax2.text(0.1, yoff, self._model2short_label(k) + ': ' + k)
             yoff += dy
-        ax2.set_ylim(0.,yoff)
+        ax2.set_ylim(0., yoff)
         ax2.set_xticks([])
         ax2.set_yticks([])
 
@@ -1658,41 +1756,32 @@ class GlecklerPlot(object):
         x    = np.asarray(x)
         keys = np.asarray(keys)
 
-        return dict(zip(keys,x))
+        return dict(zip(keys, x))
 
 
 #-----------------------------------------------------------------------
 
 
-    def _get_model_ranking(self,pos,var):
+    def _get_model_ranking(self, pos, var):
         """
         get ranking of each model for a certain variable and observation
-        NOTE: to obtain a relative model ranking, one needs to normalize the data before, otherwise the absolute values
-              are used!
+        NOTE: to obtain a relative model ranking, one needs to
+        normalize the data before, otherwise the absolute values
+        are used!
         """
-        x = []; keys=[]
+        x = []
+        keys=[]
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
-                keys.append(k[:k.index(var)-1]) #model name
+                keys.append(k[:k.index(var)-1])  # model name
 
         x    = np.asarray(x)
         keys = np.asarray(keys)
         idx  = x.argsort()
         rnk  = np.arange(len(x))
 
-        #print 'original'
-        #print 'x   ', x
-        #print 'keys', keys
-        #print 'rnk', rnk
-
-        #print ''
-        #print 'sorted'
-        #print 'x   ', x[idx]
-        #print 'keys', keys[idx]
-        #print rnk[idx]+1
-
-        return keys[idx] #return list with keys which given ranked sequence
+        return keys[idx] #return list with keys which give ranked sequence
 
 
 #-----------------------------------------------------------------------
@@ -1717,8 +1806,6 @@ class GlecklerPlot(object):
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
         x = np.asarray(x)
-        #~ if pos == 2:
-            #~ print 'X in get_mean(): ', x
 
         if method == 'median':
             return np.median(x)   #todo unittest for this!
@@ -1734,10 +1821,12 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def plot(self,cmap_name='RdBu_r',vmin=-1.0,vmax=1.0,nclasses=15,
-             normalize=True,size=10,method='median',title=None,show_value=False,
-             logscale=False,labelcolor='black',labelthreshold=None,cmap=None,norm=None,
-             colorbar_boundaries=None,show_colorbar=True,autoscale=True):
+    def plot(self, cmap_name='RdBu_r', vmin=-1.0, vmax=1.0, nclasses=15,
+             normalize=True, size=10, method='median', title=None,
+             show_value=False, logscale=False, labelcolor='black',
+             labelthreshold=None, cmap=None, norm=None,
+             colorbar_boundaries=None, show_colorbar=True,
+             autoscale=True):
         """
         plot Gleckler diagram
 
@@ -2190,18 +2279,23 @@ def map_season(x, figsize=(8,6), **kwargs):
     if kwargs contain a 'figure' argument, then this figure fill be used
     for plotting. Otherwise a new figure will be generated
 
-    Note, that it is not checked, if the seasonal mean values were precalculated correctly.
+    Note, that it is not checked, if the seasonal mean values were
+    precalculated correctly.
     It is ASSUMED that the seasonal means are calculated using cdo, which leads to
 
     a) yseasmean --> DJF,MAM,JJA,SON where the timestamp in the file corresponds to the LAST valid data used
     b) ymonmean --> monthly means
 
-    @param x: C{Data} object
-    @type x : C{Data}
+    Parameters
+    ----------
+    x : Data
+        data to be plotted
+    figsize : tuple
+        specifies size of figure (see pyplot documentation)
 
-    @return: returns the figure where plot was done
-    @rtype: C{figure}
-
+    Returns
+    -------
+    returns a figure handler
     """
 
     nvals = len(x.data)
@@ -2248,7 +2342,6 @@ def map_season(x, figsize=(8,6), **kwargs):
             savefile=savefile[:-3]
     else:
         savefile = None
-
 
     # plot
     if year:
@@ -2300,7 +2393,10 @@ def map_season(x, figsize=(8,6), **kwargs):
         else:
             tmpoutname = None
 
-        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal',drawparallels=drawparallels, **kwargs); del d
+        map_plot(d, ax=ax, show_colorbar=show_colorbar, overlay=overlay,
+                 savefile=tmpoutname, colorbar_orientation='horizontal',
+                 drawparallels=drawparallels, **kwargs)
+        del d
     f.suptitle(tit,size=16)
     return f
 
@@ -2311,46 +2407,221 @@ class MapPlotGeneric(object):
     Generic class to produce map plots
     """
 
-    def __init__(self,backend=None, format='png', savefile=None,
-                    show_statistic = True, stat_type='mean'):
+    def __init__(self, backend='imshow', format='png', savefile=None,
+                    show_statistic = True, stat_type='mean', figure=None):
         self.backend = backend
         self.format = format
         self.savefile = savefile
         self.show_statistic = show_statistic
         self.stat_type = stat_type
+        self._dummy_axes=[]
 
+        if figure is None:
+            self.figure = plt.figure()
+        else:
+            self.figure = figure
+
+        # consistency checks
         self._check()
+
+        # set plotting backend routine
+        if self.backend == 'imshow':
+            self._draw = self._draw_imshow
+        else:
+            raise ValueError('Unknown backend!')
+
+    def _save_data_to_file(self, timmean=True):
+        """
+        save data to file. The filename is automatically generated
+        depednend on self.savefile and the option timmean
+
+        Parameters
+        ----------
+        timmean : bool
+            if True, then the temporal mean field (like in the plot) is
+            stored. Otherwise the entire dataset which was available for
+            plotting will be stored
+        """
+        if mean:
+            tok = '_timmean'
+        else:
+            tok = '_all'
+        if self.savefile is None:
+            return
+        if self.savefile[:-3] != '.nc':
+            self.savefile +=  tok + '.nc'
+        else:
+            self.savefile = self.savefile[:-3] + tok +  '.nc'
+        self.x.save(self.savefile, timmean=timmean, delete=True, mean=False)
+
+    def save(self, save_mean=True, save_all=False):
+        """
+        save data to file
+
+        Parameters
+        ----------
+        save_mean : bool
+            save temporal mean field to file
+        save_all : bool
+            save entire field which was available for plotting
+            to file
+        """
+        if save_mean:
+            self._save_data_to_file(timmean=True)
+        if save_all:
+            self._save_data_to_file(timmean=False)
 
     def _check(self):
         if self.stat_type not in ['mean', 'median', 'sum']:
             raise ValueError('Invalid statistic type: %s' % self.stat_type)
+        if self.backend not in ['imshow']:
+            raise ValueError('Invalid plotting backend: %s' % self.backend)
 
-    def plot(self):
-        raise ValueError('This routine shall be overwritten by herited class')
-
-    def _draw_imshow(self, ax, **kwargs):
+    def _draw_imshow(self, **kwargs):
         """
         draw data using imshow command
-
-        ax : axis
-            axis to plot to
         """
-        ax.imshow(self.x.timmean(), **kwargs)
-        self._draw_title(ax)
+        if self.pax is None:
+            raise ValueError('Fatal Error: no axis for plotting specified')
+        # set dummy axes invisible
+        for ax in self._dummy_axes:
+            self._set_axis_invisible(ax, frame=False)
+        if self.pax is not None:
+            self._set_axis_invisible(self.pax, frame=True)
+        if self.cax is not None:
+            self._set_axis_invisible(self.cax, frame=True)
+        if self.zax is not None:
+            self._set_axis_invisible(self.zax, frame=True)
+
+        # do plotting
+        self.im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
+
+        # colorbar
+        if self.show_colorbar:
+            self._set_colorbar(self.im)
 
 
-    def _draw_title(self, ax):
+    def _get_cticks(self):
+        """ get cticks from dictionary if available """
+        if self.ctick_prop is None:
+            return None
+        if 'ticks' in self.ctick_prop.keys():
+            return self.ctick_prop['ticks']
+
+    def _get_cticklabels(self):
+        if self.ctick_prop is None:
+            return None
+        if 'labels' in self.ctick_prop.keys():
+            l = self.ctick_prop['labels']
+            if len(l) != len(self._get_cticks()):
+                raise ValueError('CTICKS and CTICKLABELS need to have the same length!')
+            return l
+        else:
+            return None
+
+
+
+
+    def _set_colorbar(self, im):
+        """
+        create colorbar and return colorbar object
+
+        Parameters
+        ----------
+        im : plot
+            results from e.g. an imshow command
+        """
+        if not self.show_colorbar:
+            raise ValueError('Colorbar can not be generated when not requested')
+
+        vmin = im.get_clim()[0]
+        vmax = im.get_clim()[1]
+        self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+
+        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self._get_cticks(), orientation=self.colorbar_orientation)
+        if self.ctick_prop is not None:
+            cb.set_ticklabels(self._get_cticklabels())
+
+    def _set_axis_invisible(self, ax, frame=True):
+        """
+        set axis parameteres in a way that it is invisible
+        """
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_frame_on(frame)
+
+class SingleMap(MapPlotGeneric):
+    """
+    A class to generate a plot with a single figure
+    """
+    def __init__(self, x, **kwargs):
+        """
+        Parameters
+        ----------
+        X : Data
+            Data object with data to plot
+        """
+        assert(isinstance(x,Data))
+        super(SingleMap, self).__init__(**kwargs)
+        self.x = x
+
+        self.pax = None  # axis for plot
+        self.cax = None  # axis for colorbar
+        self.tax = None  # axis for timeseries
+        self.hax = None  # axis for histogram
+        self.zax = None  # axis for zonal plot
+
+        self.cmap = 'jet'
+
+    def _plot_zonal(self):
+        if self.show_zonal:
+            if self.x._latitudecheckok:
+                self._draw_zonal_plot(self)
+            else:
+                print('WARNING: zonal plot not possible due to invalid latitude configurations')
+
+
+    def _set_cmap(self, nclasses):
+        """
+        generate a colormap. If self.cmap is already a colormap
+        object, then nothing happens. Otherwise a new colormap object
+        is created which has nclasses
+
+        Parameters
+        ----------
+        nclasses : int
+            number of classes for colormap
+        """
+        if hasattr(self.cmap,'monochrome'):
+            # colormap object was given
+            self.cmap = cmap_data
+        else:
+            self.cmap = plt.cm.get_cmap(self.cmap, nclasses)
+
+
+    def _draw_title(self, title=None, fontsize=14):
         """
         draw title, units and statistics
+
+        Parameters
+        ----------
+        title : str
+            title for figure. If not specified, then the label
+            of the data will be used
+        fontsize : int
+            fontsize for the title
+
         """
         stat = self._get_statistics_str()
-        #tit = self._get_title_str()
+        if title is None:
+            title = self.x._get_label()
         unit = self.x._get_unit()
 
-        ax.set_title('testtitle')
-        ax.set_title(unit, loc='right')
-        ax.set_title(stat, loc='left')
-
+        self.pax.set_title(title + '\n', size=fontsize)
+        self.pax.set_title(unit, loc='right', size=fontsize-2)
+        self.pax.set_title(stat, loc='left', size=fontsize-2)
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
@@ -2363,43 +2634,240 @@ class MapPlotGeneric(object):
                 assert(len(st) == 1)
                 me = me[0]
                 st=st[0]
-                s ='weighted mean:\n$' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
+                s ='mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
             elif stat_type == 'sum': #area sum
                 me = tmp_xm.areasum()
                 assert(len(me) == 1)
                 me = me[0]
-                s = 'weighted sum:\n$' + str(round(me,2))  + '$'
+                s = 'sum: $' + str(round(me,2))  + '$'
             else:
                 me = np.ma.median(tmp_xm.data)
-                s = 'median:\n$' + str(round(me,2)) + '$'
+                s = 'median: $' + str(round(me,2)) + '$'
         return s
 
 
-
-
-
-
-class SingleMap(MapPlotGeneric):
-    """
-    A class to generate a plot with a single figure
-    """
-    def __init__(self,x,**kwargs):
+    def _draw_zonal_plot(self, timmean=True, vmin=None, vmax=None, fontsize=8):
         """
+        calculate zonal statistics and add to zonal axis
+
         Parameters
         ----------
-        X : Data
-            Data object with data to plot
+        timmean : bool
+            temporal mean for zonal plot [default=True]
+        vmin : float
+            minimum value for zonal plot
+        vmax : float
+            maximum value for zonal plot
         """
-        assert(isinstance(x,Data))
-        super(SingleMap,self).__init__(**kwargs)
-        self.x = x
+
+        ZP = ZonalPlot(ax=self.zax, dir='y')
+
+        if self.x.ndim == 2:
+            pass
+        elif self.x.ndim == 3:
+            nt,ny,nx = self.x.shape
+
+        ZP.plot(self.x, timmean=timmean, show_ylabel=False)
+
+        # set limits
+        if ((vmin is None) & (vmax is None)):
+            vmin = self.zax.get_xlim()[0]
+            vmax = self.zax.get_xlim()[1]
+            # symmetry if neg. and positive limits
+            if (vmin < 0.) & (vmax > 0.):
+                val = max(abs(vmin) ,abs(vmax))
+                vmin = -val
+                vmax = val
+
+        if vmin is None:
+            vmin = self.zax.get_xlim()[0]
+        if vmax is None:
+            vmax = self.zax.get_xlim()[1]
+        self.zax.set_xlim(vmin, vmax)
+
+        # set only first and last label
+        self.zax.set_xticks([vmin, vmax])
+        self.zax.plot([0,0], self.zax.get_ylim(), linestyle='-', color='grey')
+
+        for tick in self.zax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(fontsize)
+
+
+
+    def plot(self, show_zonal=False, show_histogram=False,
+            show_timeseries=False, show_colorbar=True,
+            colorbar_orientation='vertical', cmap='jet', ctick_prop=None,
+            vmin=None, vmax=None, nclasses=10,
+            title=None):
+        """
+        routine to plot a single map
+
+        Parameters
+        ----------
+
+
+        ctick_prop : dict
+            dictionary that specifies the properties for the colorbar
+            ticks. Currently the following keys are supported:
+
+            'ticks' : float list : specifies locations of ticks
+            'labels' : str list : user defined label list; needs to
+                                  have same length as 'ticks'
+
+             Example:
+                ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C']
 
 
 
 
-    def plot(self):
-        self.fig = map_plot(self.x, savefile=self.savefile,
-                show_stat=self.show_statistic)
+        """
+
+        if colorbar_orientation not in ['vertical','horizontal']:
+            raise ValueError('Invalid colorbar orientation')
+
+        self.show_zonal=show_zonal
+        self.colorbar_orientation=colorbar_orientation
+        self.show_histogram=show_histogram
+        self.show_timeseries=show_timeseries
+        self.show_colorbar=show_colorbar
+        self.ctick_prop = ctick_prop  #dictionary
+        self.vmin = vmin
+        self.vmax = vmax
+
+
+        # set colormap and ensure to have a colormap object
+        self.cmap = cmap
+        self._set_cmap(nclasses)
+
+        # set axes layout
+        self._set_layout()
+
+        # do plot using current backend
+        self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
+        self._plot_zonal()
+        self._draw_title(title=title)
+
+        # adjust plots to minimize spaces between subplots
+        self._adjust_figure()
+
+        # save data if required
+        self.save()
+
+    def _adjust_figure(self):
+        """
+        adjust subplot sizes
+        """
+        # ensure that full space is covered by data
+        self.pax.set_aspect('auto', adjustable='datalim')
+
+        #~ if self.colorbar_orientation == 'vertical':
+            #~ # pos = [left, bottom, width, height]
+#~
+            #~ cleft, cbottom, cright, ctop
+            #~ res = self.cax.get_position().get_points()
+            #~ cleft = res[0,0]
+            #~ cbottom = res[0,1]
+            #~ cright = res[1,0]
+            #~ ctop = res[1,1]
+            #~ cax_width = cright-cleft
+#~
+            #~ print cleft, cbottom, cright, ctop
+#~
+            #~ res = self.pax.get_position().get_points()
+            #~ pleft = res[0,0]
+            #~ pbottom = res[0,1]
+            #~ pright = res[1,0]
+            #~ ptop = res[1,1]
+            #~ pheight = ptop-pbottom
+            #~ pos = [cleft, pbottom, cax_width, pheight]
+            #~ print 'pos: ', pos
+            #~ self.cax.set_position(pos)
+        #~ self.figure.tight_layout(w_pad=0., h_pad=0.)
+
+
+    def _set_layout(self):
+        """
+        routine specifies layout of different axes
+        """
+        # check if option combinations are possible
+        if self.show_timeseries and self.show_histogram:
+            raise ValueError('Combination of histogram and timeseries not supported')
+
+        if self.show_colorbar:
+            # timeseries or histogram require an additional lower axis
+            if (self.show_timeseries or self.show_histogram):
+                raise ValueError('Combination with timeseries not supported yet!')
+            else:
+                if self.show_zonal:
+                    self._set_layout2()  # layout with colorbar and zonal plot
+                else:
+                    self._set_layout1()  # layout with only colorbar
+
+        else:
+            raise ValueError('Layout without colorbar not supported yet')
+
+
+
+
+    def _set_layout1(self):
+        """
+        setlayout with only colorbar. This might be oriented either
+        vertically or horizontally
+
+        vertical
+        ----------- +-+
+        |  pax      |c|
+        ----------- +-+
+
+        horizontal
+        -----------
+        |  pax    |
+        |         |
+        -----------
+        -----------
+        |  cax    |
+        -----------
+
+        """
+
+        wspace=0.05
+
+        if not self.show_colorbar:
+            raise ValueError('This routine was called by fault!')
+        if self.colorbar_orientation == 'horizontal':
+            self.gs = grd.GridSpec(2, 1, height_ratios=[95,5], wspace=wspace)
+        elif self.colorbar_orientation == 'vertical':
+            self.gs = grd.GridSpec(1, 2, width_ratios=[95,5], wspace=wspace)
+        else:
+            raise ValueError('Invalid option')
+        self.pax = self.figure.add_subplot(self.gs[0])
+        self.cax = self.figure.add_subplot(self.gs[1])
+
+
+    def _set_layout2(self):
+        """
+        layout with zonal mean and colorbar
+        """
+        if not self.show_zonal:
+            raise ValueError('Only WITH zonal mean supported here!')
+        if not self.show_colorbar:
+            raise ValueError('Only WITH colorbar supported here!')
+
+        if self.colorbar_orientation == 'horizontal':
+            self.gs = grd.GridSpec(2, 2, height_ratios=[95,5], width_ratios = [15, 85], wspace=0.05)
+            self.zax = self.figure.add_subplot(self.gs[0])
+            self.pax = self.figure.add_subplot(self.gs[1])
+            self.cax = self.figure.add_subplot(self.gs[3])
+            self._dummy_axes.append(self.figure.add_subplot(self.gs[2]))
+        elif self.colorbar_orientation == 'vertical':
+            self.gs = grd.GridSpec(1, 3, width_ratios = [15, 80, 5], wspace=0.05)
+            self.zax = self.figure.add_subplot(self.gs[0])
+            self.pax = self.figure.add_subplot(self.gs[1])
+            self.cax = self.figure.add_subplot(self.gs[2])
+        else:
+            raise ValueError('Invalid colorbar option')
+
+
 
 
 
@@ -2423,7 +2891,7 @@ class MultipleMap(MapPlotGeneric):
 
 
 
-def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
+def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
              nclasses=10, cmap_data='jet',
              title=None, regions_to_plot=None, logplot=False,
              logoffset=None, show_stat=False,
@@ -2432,14 +2900,15 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
              zonal_timmean=True, show_timeseries=False,
              scal_timeseries=1., vmin_zonal=None, vmax_zonal=None,
              bluemarble = False, contours=False, overlay=None,
-             titlefontsize=14, drawparallels=True,drawcountries=True,
+             titlefontsize=14, drawparallels=True, drawcountries=True,
              show_histogram=False,
              contourf = False, land_color=(0.8,0.8,0.8),
              regionlinewidth=1, bins=10,
              colorbar_orientation='vertical', stat_type='mean',
              cax_rotation=0., cticklabels=None, proj='robin',
              plot_method='colormesh', boundinglat=60.,
-             savefile=None, lon_0=0., lat_0=0., **kwargs):
+             savefile=None, lon_0=0., lat_0=0., savegraphicfile=None,
+             **kwargs):
     """
     produce a nice looking map plot
 
@@ -2573,9 +3042,10 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                 vmsk[i] = False
                 continue
             if basemap_object is None:
-                xv=vlon[i,:]; yv=vlat[i,:]
+                xv=vlon[i,:]
+                yv=vlat[i,:]
             else:
-                xv,yv = basemap_object(vlon[i,:],vlat[i,:])    #todo: how to properly deal with boundary problem ????
+                xv,yv = basemap_object(vlon[i,:], vlat[i,:])    #todo: how to properly deal with boundary problem ????
             if (vlon[i,:].min() < -100.) & (vlon[i,:].max() > 100.): #todo
                 #... triangles across the boundaries of the projection are a problem
                 # ... solution: generate two triangles ! TODO
@@ -2604,8 +3074,6 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
         return collection
 
-
-
     if 'vmin' in kwargs.keys():
         vmin = kwargs['vmin']
     else:
@@ -2615,14 +3083,10 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     else:
         vmax = None
 
-
     if plot_method not in ['colormesh','scatter']:
         raise ValueError, 'Invalid plotting option ' + plot_method
 
-
-
-    #--- checks
-
+    # checks
     if proj not in ['robin', 'npstere', 'spstere']:
         raise ValueError('ERROR: projection type not validated for map_plot so far: %s' % proj)
     if proj == 'npstere': #todo: for stereographic projection, scatter is used as method at the moment
@@ -2630,28 +3094,25 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     if proj == 'spstere': #todo: for stereographic projection, scatter is used as method at the moment
         plot_method = 'scatter'
 
-
-
     if overlay is not None:
-
         if x.data.ndim == 2:
             if overlay.shape != x.data.shape:
                 print overlay.shape, x.data.shape
-                raise ValueError, 'Invalid geometry for overlay !'
+                raise ValueError('Invalid geometry for overlay !')
         elif x.data.ndim == 3:
             if overlay.shape != x.data[0,:,:].shape:
                 print overlay.shape, x.data.shape
-                raise ValueError, 'Invalid geometry for overlay !'
+                raise ValueError('Invalid geometry for overlay !')
         else:
-            raise ValueError, 'Overlay for this geometry not supported!'
+            raise ValueError('Overlay for this geometry not supported!')
 
     #--- create new figure
     if ax is None:
         fig = plt.figure()
 
-        #with timeseries plot?
+        # with timeseries plot?
         if show_timeseries:
-            gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
+            gs = gridspec.GridSpec(2, 1, wspace=0.05, hspace=0.05, bottom=0.2, height_ratios = [5,1])
             ax = fig.add_subplot(gs[0])
             ax2 = fig.add_subplot(gs[1])
         else:
@@ -2661,8 +3122,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         if show_timeseries:
             raise ValueError, 'Showing timeseries and providing some prior axis is currently not impelmented!' #todo
 
-
-    #if cmap provided in kwargs, then remove it and set cmap_data
+    # if cmap provided in kwargs, then remove it and set cmap_data
     kwargs1 = kwargs.copy()
     if 'cmap' in kwargs:
         cmap_data = kwargs1.pop('cmap')
@@ -2671,15 +3131,15 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
     #--- create colormap
     if hasattr(cmap_data,'monochrome'):
-        #colormap object was given
+        # colormap object was given
         cmap = cmap_data
     else:
         cmap = plt.cm.get_cmap(cmap_data, nclasses)
 
-    #--- temporal mean fields as data to plot
+    # temporal mean fields as data to plot
     xm = x.timmean() #returns an array
 
-    #--- logscale plot ?
+    # logscale plot ?
     if logplot:
         if logoffset is None:
             if xm.min() < 0.: logoffset = abs(xm.min())*1.01
@@ -2695,7 +3155,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         tmp = x.copy()
         tmp.data = xm*1.
         tmp.time = None
-        tmp.save(savefile,varname='temporal_mean_field')
+        tmp.save(savefile, varname='temporal_mean_field')
         del tmp
 
     #--- set projection parameters
@@ -2711,19 +3171,23 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         lat_0 = lat_0
         boundinglat = -boundinglat
     else:
-        raise ValueError,'Unsupported projection in map_plot (unsupported means, that it was not tested yet)'
+        raise ValueError('Unsupported projection in map_plot (unsupported means, that it was not tested yet)')
 
     #--- plot using basemap
     if use_basemap:
-        llcrnrlon=None; llcrnrlat=None; urcrnrlon=None; urcrnrlat=None
+        llcrnrlon=None
+        llcrnrlat=None
+        urcrnrlon=None
+        urcrnrlat=None
 
         #if a region is specfied, then the plotting boundaries are set
         if region !=None:
-            if not hasattr(region,'lonmin'):
+            if not hasattr(region, 'lonmin'):
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
             else:
-                dlat = (region.latmax-region.latmin)*0.25; dlon = (region.lonmax-region.lonmin)*0.25
-                di = 0. #with 0 it works; for other values problems may occur for negative lon!
+                dlat = (region.latmax-region.latmin)*0.25
+                dlon = (region.lonmax-region.lonmin)*0.25
+                di = 0. # with 0 it works; for other values problems may occur for negative lon!
                 llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
                 urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
                 proj='tmerc' #use mercator projection at regional scale as robinson does not work!
@@ -2732,7 +3196,8 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         # generate Basemap map
         ############################################
         m1=Basemap(projection=proj,lon_0=lon_0,lat_0=lat_0,ax=ax,
-                   llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat, urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
+                   llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                   urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
                    boundinglat=boundinglat)
 
         if bluemarble:
@@ -2743,13 +3208,13 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
             #it assumes that the data object has a list of center coordinates which correspond to the data
             #and vlon/vlat attributes with corresponding vertices corresponding to the center coordinates
 
-            if not hasattr(x,'vlon'):
+            if not hasattr(x, 'vlon'):
                 raise ValueError, 'Plotting for unstructured grid not possible, as VLON attribute missing!'
-            if not hasattr(x,'vlat'):
+            if not hasattr(x, 'vlat'):
                 raise ValueError, 'Plotting for unstructured grid not possible, as VLAT attribute missing!'
 
             #--- generate collection of patches for Basemap plot
-            collection = _get_unstructured_collection(x.vlon,x.vlat,xm,vmin,vmax,basemap_object=m1)
+            collection = _get_unstructured_collection(x.vlon, x.vlat, xm, vmin, vmax, basemap_object=m1)
 
         else: #unstructured gridtype
 
@@ -2767,33 +3232,43 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
 
             if f_kdtree:
                 #use KDTRee nearest neighbor resampling to avoid stripes in plotting
-                lons = np.unique(x.lon); lats = np.unique(x.lat)
+                lons = np.unique(x.lon)
+                lats = np.unique(x.lat)
                 lons.sort(); lats.sort()
-                TLON,TLAT = np.meshgrid(lons,lats)  #generate target coordinates
+                TLON,TLAT = np.meshgrid(lons, lats)  #generate target coordinates
                 XT,YT = m1(TLON,TLAT)
-                X=XT.copy(); Y=YT.copy()
+                X=XT.copy()
+                Y=YT.copy()
                 shape0 = np.shape(XT)
-                XT.shape = (-1); YT.shape = (-1) #... vectorize them for inertpolation
+                XT.shape = (-1)
+                YT.shape = (-1)  # ... vectorize them for inertpolation
                 tree = KDTree(zip(XT,YT)) #generate tree from TARGET coordinates
 
                 #prepare data and interpolate
                 xmap,ymap = m1(x.lon,x.lat)
-                xmap.shape = (-1); ymap.shape = (-1)
+                xmap.shape = (-1)
+                ymap.shape = (-1)
                 pts  = zip(xmap,ymap) #generate points to interpolate from source data
                 dist,idx = tree.query(pts,k=1)     #perform nearest neighbor interpolation (returns distance and indices)
 
                 #- map data to output matrix for plotting
-                Z = np.ones(shape0)*np.nan; Z.shape = (-1) #generate target vector
-                omask = np.ones(shape0).astype('bool'); omask.shape = (-1)
+                Z = np.ones(shape0)*np.nan
+                Z.shape = (-1) #generate target vector
+                omask = np.ones(shape0).astype('bool')
+                omask.shape = (-1)
 
-                msk1 = xm.mask.copy(); msk1.shape = (-1); omask[idx] = msk1
+                msk1 = xm.mask.copy()
+                msk1.shape = (-1)
+                omask[idx] = msk1
 
                 #~ omask[dist != 0.] = True
 
-                xm1 = xm.copy(); xm1.shape = (-1)
+                xm1 = xm.copy()
+                xm1.shape = (-1)
                 Z[idx]   = xm1 #assign data and reshape it and set generate masked array
                 Z[omask] = np.nan
-                Z = np.reshape(Z,shape0); Z = np.ma.array(Z,mask=np.isnan(Z))
+                Z = np.reshape(Z,shape0)
+                Z = np.ma.array(Z,mask=np.isnan(Z))
 
             else: #f_kdtree --> not kdtree
 
@@ -2807,7 +3282,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                 #    * http://pl.digipedia.org/usenet/thread/15998/16891/
                 if plot_method == 'colormesh':
                     print 'Projection: ', proj
-                    if x._lon360: #if lon 0 ... 360, then shift data
+                    if x._lon360:  # if lon 0 ... 360, then shift data
                         tmp_lon = x._get_unique_lon() #get unique longitudes
                         tmplon1 = tmp_lon.copy()
                         Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
@@ -2825,7 +3300,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                         lat = x.lat
                         Z = xm
                 else:
-                    raise ValueError, 'Invalid option'
+                    raise ValueError('Invalid option')
 
                 X, Y = m1(lon, lat)
 
@@ -2843,12 +3318,12 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                     if 'levels' in kwargs1.keys():
                         levels = kwargs1.pop('levels')
                     else:
-                        raise ValueError, 'When plotting with contours, you need to specify the levels option (see contour documnetation)'
+                        raise ValueError('When plotting with contours, you need to specify the levels option (see contour documnetation)')
                     if contourf:
                         im1=m1.contourf(X, Y, Z,levels, cmap=cmap, **kwargs1)
                     else:
                         im1=m1.contour(X, Y, Z, levels, cmap=cmap, **kwargs1)
-                        ax.clabel(im1, inline=1, fontsize=10) #contour label
+                        ax.clabel(im1, inline=1, fontsize=10)  # contour label
 
                 else:
                     if plot_method == 'colormesh':
@@ -2900,11 +3375,18 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         ax.set_xticks([])
         ax.set_yticks([])
 
-    #set legend aligned with plot (nice looking)
 
+
+    # set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
-    caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
-    caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+    if show_zonal:
+        caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
+        caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
+        caxzonaldummy = divider.new_horizontal(size="15%", pad=0.1, axes_class=maxes.Axes, pack_start=True)
+        # this is still not working properly !
+    else:
+        caxv = divider.new_horizontal(size="3%", pad=0.1, axes_class=maxes.Axes)
+        caxh = divider.new_vertical(size="5%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
     if colorbar_orientation == 'vertical':
         cax = caxv
         caxdummy = caxh
@@ -2913,12 +3395,16 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         caxdummy = caxv
     else:
         raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
+
     ax.figure.add_axes(cax)
+
+
+
     vmin = im1.get_clim()[0]
     vmax = im1.get_clim()[1]
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
-    #dummy axis to ensure equal spacing in multiple plots
+    # dummy axis to ensure equal spacing in multiple plots
     caxdummy.set_xticks([])
     caxdummy.set_yticks([])
     caxdummy.set_frame_on(False)
@@ -2937,13 +3423,12 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     if show_histogram:
         add_histogram(ax,x,bins=bins)
 
-    #Zonal plot
+    # Zonal plot
     if show_zonal:
         if x._latitudecheckok:
             add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
         else:
-            print 'WARNING: zonal plot not possible due to invalid latitude configurations'
-
+            print('WARNING: zonal plot not possible due to invalid latitude configurations')
 
     def _add_region_basemap(m, r, color='red', linewidth=1):
         """
@@ -2988,8 +3473,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         mapboundary = Polygon(xy, edgecolor=color, linewidth=linewidth, fill=False, linestyle='dashed')
         ax.add_patch(mapboundary)
 
-
-    #--- plot regions in the map ---
+    # plot regions in the map ---
     if regions_to_plot is not None:
         if use_basemap:
             for region in regions_to_plot:
@@ -3000,8 +3484,8 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
                 if region.type=='index':
                     _add_region_standard(ax, region, linewidth=regionlinewidth)
 
-    #--- set title
-    if title == None:
+    # set title
+    if title is None:
         title = x._get_label()
     else:
         pass
@@ -3011,11 +3495,7 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
     # are the means and std of the temporal mean fields which are weighted
     # appropriately according to the cell area
     if show_stat:
-        #tmp_xm = x.copy()
-        #tmp_xm.data = xm.reshape(1,xm.shape[0],xm.shape[1]) #make a 3D object thus fldmean works appropriately
-        #tmp_xm.cell_area = tmp_xm.cell_area.reshape(xm.shape[0],xm.shape[1]) #reshape cell area, that get_area_weighting() works!
         tmp_xm = x.timmean(return_object=True)  # from temporal mean
-
         if stat_type == 'mean':
             me = tmp_xm.fldmean()
             st = tmp_xm.fldstd()
@@ -3023,21 +3503,19 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
             assert(len(st) == 1)
             me = me[0]
             st=st[0]
-            atitle = 'mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
-        elif stat_type == 'sum': #area sum
+            atitle = 'mean: $' + str(round(me, 2))  + ' \pm ' + str(round(st,2)) + '$'
+        elif stat_type == 'sum':  # area sum
             me = tmp_xm.areasum()
             assert(len(me) == 1)
             me = me[0]
-            atitle = 'sum: $' + str(round(me,2))  + '$'
+            atitle = 'sum: $' + str(round(me, 2))  + '$'
         else:
             me = np.ma.median(tmp_xm.data)
-            atitle = 'median: $' + str(round(me,2)) + '$'
-        ax.set_title(atitle, size=titlefontsize, loc='left')
+            atitle = 'median: $' + str(round(me, 2)) + '$'
+        ax.set_title(atitle, size=titlefontsize-2, loc='left')
 
     ax.set_title(title + '\n', size=titlefontsize, loc='center')
-    ax.set_title(x._get_unit(), size=titlefontsize, loc='right')
-
-
+    ax.set_title(x._get_unit(), size=titlefontsize-2, loc='right')
 
     #/// show timeseries? ///
     if show_timeseries:
@@ -3047,6 +3525,12 @@ def map_plot(x,use_basemap=False, ax=None, cticks=None, region=None,
         ti = ax2.get_yticks(); n=len(ti) / 2
         ax2.set_yticks([ti[0],ti[n],ti[-1]])
         ax2.set_ylabel(x._get_unit())
+
+    if savegraphicfile is not None:
+        # save graphics to file
+        if os.path.exists(savegraphicfile):
+            os.remove(savegraphicfile)
+        fig.savefig(savegraphicfile, bbox_inches='tight', dpi=200)
 
     return fig
 
@@ -3065,69 +3549,68 @@ def add_histogram(ax,x,bins=10):
 
     divider = make_axes_locatable(ax)
     #zax     = divider.new_vertical("30%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
-    zax = divider.append_axes("bottom","30%",pad=0.1)
+    zax = divider.append_axes("bottom", "30%", pad=0.1)
 
 
-    ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
+    ax.figure.add_axes(zax, axisbg=ax.figure.get_facecolor())
 
-    H = HistogrammPlot(ax=zax,bins=bins)
+    H = HistogrammPlot(ax=zax, bins=bins)
     H.plot(x) #plot options ????
 
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
+def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
     """
-    add a zonal plot to the axis. An area weigting is automaticall performed
+    add a zonal plot to the axis.
+    An area weigting is automaticall performed
 
-    @param ax: axis where zonal plot should be added to
-    @type ax: axis
-
-    @param x: data to plot
-    @type x: C{Data} object
-
-    @param timmean: temporal mean for zonal plot?
-    @type timmean: bool
-
-    @param vmin: minimum value for y-axis
-    @type vmin: float
-
-    @param vmax: maximum value for y-axis
-    @type vmax: float
-
-
+    Parameters
+    ----------
+    ax : axis
+        axis where zonal plot should be added to
+    x : Data
+        data to plot
+    timmean : bool
+        temporal mean for zonal plot [default=True]
+    vmin : float
+        minimum value for zonal plot
+    vmax : float
+        maximum value for zonal plot
     """
 
     divider = make_axes_locatable(ax)
-    zax     = divider.new_horizontal("15%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
-    ax.figure.add_axes(zax,axisbg=ax.figure.get_facecolor())
+    zax = divider.new_horizontal("15%", pad=0.1,
+                                    axes_class=maxes.Axes,
+                                    pack_start=True)
+    ax.figure.add_axes(zax, axisbg=ax.figure.get_facecolor())
 
-    ZP = ZonalPlot(ax=zax,dir='y')
+    ZP = ZonalPlot(ax=zax, dir='y')
 
     if x.data.ndim == 2:
         pass
     elif x.data.ndim == 3:
         nt,ny,nx = x.data.shape
-    ZP.plot(x,timmean=timmean,show_ylabel=False)
+    ZP.plot(x, timmean=timmean, show_ylabel=False)
 
-    #- set limits
-    if ((vmin == None) & (vmax == None)):
+    # set limits
+    if ((vmin is None) & (vmax is None)):
         vmin = zax.get_xlim()[0]
         vmax = zax.get_xlim()[1]
-        #symmetry if neg. and posistive limits
+        # symmetry if neg. and posiitve limits
         if (vmin < 0.) & (vmax>0.):
             val = max(abs(vmin),abs(vmax))
             vmin = -val; vmax = val
 
-    if vmin == None:
+    if vmin is None:
         vmin = zax.get_xlim()[0]
-    if vmax == None:
+    if vmax is None:
         vmax = zax.get_xlim()[1]
-    zax.set_xlim(vmin,vmax)
+    zax.set_xlim(vmin, vmax)
 
     #set only first and last label
-    zax.set_xticks([vmin,vmax])
-    zax.plot([0,0],zax.get_ylim(),linestyle='-',color='grey')
+    zax.set_xticks([vmin, vmax])
+    zax.plot([0,0], zax.get_ylim(), linestyle='-', color='grey')
 
     for tick in zax.xaxis.get_major_ticks():
         tick.label.set_fontsize(8)
@@ -3136,7 +3619,7 @@ def add_zonal_plot(ax,x,timmean=True,vmin=None,vmax=None):
 
 #-----------------------------------------------------------------------
 
-def add_nice_legend(ax,im,cmap,cticks=None,dummy=False,fontsize=8,label=None):
+def add_nice_legend(ax, im,cmap, cticks=None, dummy=False, fontsize=8, label=None):
     """
     add a nice looking legend
 
@@ -3247,73 +3730,95 @@ def hov_difference(x,y,climits=None,dlimits=None,data_cmap='jet',nclasses=15,cti
 #-----------------------------------------------------------------------
 
 
-def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title=None, cticks=None,
-                   region=None, nclasses=10, cmap_data='jet', cmap_difference = 'RdBu_r', rmin=-1.,
-                   rmax=1., absthres=None, show_stat=True, show_zonal=True, zonal_timmean=False, proj='robin', stat_type='mean', savefile=None, **kwargs):
+def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
+                   ax=None, title=None, cticks=None,
+                   region=None, nclasses=10, cmap_data='jet',
+                   cmap_difference = 'RdBu_r', rmin=-1.,
+                   rmax=1., absthres=None, show_stat=True,
+                   show_zonal=True, zonal_timmean=False,
+                   proj='robin', stat_type='mean', savefile=None,
+                   savegraphics_prefix = None,
+                   **kwargs):
     """
-    Given two datasets, this map generates a map plot of each dataset as
+    Given two datasets, this routine generates a map plot of each dataset as
     well as of the difference of the two datasets
 
-    @param x: first dataset
-    @type x: C{Data} object
+    Parameters
+    ----------
+    x : Data
+        first dataset
+    y : Data
+        second dataset
+    dmin : float
+        minimum value of difference map
+    dmax : float
+        maximum value of difference map
+    use_basemap : float
+        flag if Basemap should be used for plotting
+    ax : axis
+        axis to plot to; if None [default], then new figure is generated
+    title : str
+        title of the plot
+    nclasses : int
+        number of classes for colormap
+    cmap_data : str, colormap
+        colormap for data to be plotted
+    cmap_difference : str, colormap
+        colormap for difference map to be plotted
+    rmin : float
+        minimum value for data plot
+    rmax : float
+        maximum value for data plot
+    absthres : float
+        threshold that will be estimated based on
+        absolute difference and will be applied to
+        relative difference maps
+    show_stat : bool
+        show statistics for each map
+    show_zonal : bool
+        show zonal means in each map
+    zonal_timmean : bool
+        use temporal mean for plotting zonal mean; applied only if
+        show_zonal=True
+    proj : str
+        projection for map plotting
+    stat_type : str
+        type of statistic to be calculated (see map_plot documentation)
+    savefile : str
+        filename for netcdf file output
+    savegraphics_prefix : str
+        path and file prefix to save individual plots to graphic files.
+        If given, the individual plots are saved to files. The
+        filename needs to include already the file extension, as it is
+        used to recognize the file extension.
 
-    @param y: second dataset
-    @type y: C{Data} object
-
-    @param dmin: minimum value of difference map
-    @type dmin: float
-
-    @param dmax: maximum value of difference map
-    @type dmax: float
-
-    @param use_basemap: flag if Basemap should be used for plotting
-    @type use_basemap: bool
-
-    @param ax: axis to plot to; if None, then new figure is generated
-    @type ax: matplotlib axis
-
-    @param title: title of the plot
-    @type title: str
-
-    @param cticks: ticks for the colorbar
-    @type cticks: list of float values
-
-    @param region: region that should be plotted. This is only used in case of Basemap maps
-    @type region: C{Region}
-
-    @param nclasses: number of classes for colormap
-    @type nclasses: int
-
-    @param cmap_data: colormap for data to be plotted
-    @type cmap_data: str
-
-    @param cmap_difference: colormap for difference map to be plotted
-    @type cmap_difference: str
-
-    @param rmin: minimum value for data plot
-    @type rmin: float
-
-    @param rmax: maximum value for data plot
-    @type rmax: float
-
-    @param absthres: threshold that will be estimated based on
-                     absolute difference and will be applied to
-                     relative difference maps
-    @type absthres: float
-
-    @param show_zonal: plot zonal statistic plot
-    @type show_zonal: bool
-
+        Example: savegraphics_prefix = '/my_path/outputfilename.png'
+        will result the in output files:
+           /my_path/outputfilename_X.png
+           /my_path/outputfilename_Y.png
+           /my_path/outputfilename_ADIFF.png
+           /my_path/outputfilename_RDIFF.png
     """
 
     if savefile is not None:
         if '.nc' in savefile:
             savefile = savefile[:-3]
 
+    if savegraphics_prefix is not None:
+        graphic_rootname, extension = os.path.splitext(savegraphics_prefix)
+    else:
+        graphic_rootname = None
+        extension = None
+
     if 'cticks_diff' in kwargs:
         cticks_diff = kwargs.pop('cticks_diff')
     else:
         cticks_diff = None
+
+    if 'cticks_rdiff' in kwargs:
+        cticks_rdiff = kwargs.pop('cticks_rdiff')
+    else:
+        cticks_rdiff = [-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.]
 
     if 'colorbar_orientation' in kwargs:
         colorbar_orientation = kwargs.pop('colorbar_orientation')
@@ -3345,10 +3850,24 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
         tmpoutname=None
     else:
         tmpoutname = savefile + '_xvar'
-    map_plot(x,use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
-             cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
+
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_X' + extension
+
+    # plot dataset in entire figure
+    map_plot(x, use_basemap=use_basemap,ax=ax1,cticks=cticks,region=region,nclasses=nclasses,
+             cmap_data=cmap_data, title=title, show_stat=show_stat,show_zonal=show_zonal,
              zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
              colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, **kwargs)
+
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(x, use_basemap=use_basemap,cticks=cticks,region=region,nclasses=nclasses,
+                 cmap_data=cmap_data, title=title, show_stat=show_stat,show_zonal=show_zonal,
+                 zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
 
     #- plot second dataset
     if savefile is None:
@@ -3356,12 +3875,25 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_yvar'
 
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_Y' + extension
+
+    # plot dataset in entire figure
     map_plot(y,use_basemap=use_basemap,ax=ax2,cticks=cticks,region=region,nclasses=nclasses,
              cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
              zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
-             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels,  **kwargs)
+             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, **kwargs)
 
-    #-first minus second dataset
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(y,use_basemap=use_basemap,cticks=cticks,region=region,nclasses=nclasses,
+                 cmap_data=cmap_data, title=title,show_stat=show_stat,show_zonal=show_zonal,
+                 zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
+
+    # first minus second dataset (absolute difference)
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     if savefile is None:
@@ -3369,13 +3901,26 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_absdif'
 
-    map_plot(adif,use_basemap=use_basemap,ax=ax3,vmin=dmin,vmax=dmax,cticks=cticks_diff,region=region,
-             nclasses=nclasses,cmap_data=cmap_difference, title='absolute difference [' + x.unit + ']',
-             show_stat=show_stat,show_zonal=show_zonal,zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
-             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels)
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_ADIFF' + extension
+    # entire plot
+    map_plot(adif, use_basemap=use_basemap, ax=ax3, vmin=dmin, vmax=dmax,cticks=cticks_diff, region=region,
+             nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
+             show_stat=show_stat, show_zonal=show_zonal, zonal_timmean=zonal_timmean, proj=proj, stat_type=stat_type, savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation, drawparallels=drawparallels)
 
-    #- relative error
-    rdat = adif.div(x) #y.div(x).subc(1.) #relative data
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(adif, use_basemap=use_basemap, vmin=dmin, vmax=dmax,cticks=cticks_diff, region=region,
+                 nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
+                 show_stat=show_stat, show_zonal=show_zonal, zonal_timmean=zonal_timmean, proj=proj, stat_type=stat_type, savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation,
+                 drawparallels=drawparallels, savegraphicfile=graphic_name)
+
+    # relative error
+    rdat = adif.div(x)
     if absthres is not None:
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
@@ -3385,11 +3930,24 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False, ax=None, title
     else:
         tmpoutname = savefile + '_reldif'
 
-    map_plot(rdat,use_basemap=use_basemap,ax=ax4,vmin=rmin,vmax=rmax,title='relative difference',
-             cticks=[-1.,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.],region=region ,nclasses=nclasses,
-             cmap_data=cmap_difference,show_stat=show_stat,show_zonal=show_zonal,
-             zonal_timmean=zonal_timmean,stat_type='median',proj=proj,savefile=tmpoutname,
-             colorbar_orientation=colorbar_orientation,drawparallels=drawparallels)
+    if graphic_rootname is None:
+        graphic_name = None
+    else:
+        graphic_name = graphic_rootname + '_RDIFF' + extension
+
+    map_plot(rdat, use_basemap=use_basemap, ax=ax4, vmin=rmin, vmax=rmax, title='relative difference',
+             cticks=cticks_rdiff, region=region, nclasses=nclasses,
+             cmap_data=cmap_difference,show_stat=show_stat, show_zonal=show_zonal,
+             zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
+             colorbar_orientation=colorbar_orientation, drawparallels=drawparallels)
+
+    # ... do the same plot again but in an own figure!
+    if graphic_rootname is not None:
+        map_plot(rdat, use_basemap=use_basemap, vmin=rmin, vmax=rmax, title='relative difference',
+                 cticks=cticks_rdiff, region=region, nclasses=nclasses,
+                 cmap_data=cmap_difference,show_stat=show_stat, show_zonal=show_zonal,
+                 zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
+                 colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name)
 
 
     return fig

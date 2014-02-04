@@ -153,9 +153,7 @@ class Report(object):
 #-----------------------------------------------------------------------
 
     def _write_footer(self):
-        """
-        write document footer
-        """
+        """ write document footer """
         self._write_separator()
         self.write('\end{document}')
 
@@ -217,8 +215,8 @@ class Report(object):
         """
         write section header
 
-        @param s: title of section
-        @type s: str
+        s : str
+            title of section
         """
         self.clearpage()
         self.write('\section{' + s.replace('_', ' ') + '}')
@@ -229,8 +227,8 @@ class Report(object):
         """
         write subsection header
 
-        @param s: title of subsection
-        @type s: str
+        s : str
+            title of subsection
         """
         #self.write('\clearpage')
         self.barrier()
@@ -242,8 +240,10 @@ class Report(object):
         """
         write subsection header
 
-        @param s: title of subsection
-        @type s: str
+        Parameters
+        ----------
+        s : str
+            title of subsection
         """
         self.barrier()
         self.write('\subsubsection{' + s.replace('_', ' ') + '}')
@@ -265,9 +265,7 @@ class Report(object):
 #-----------------------------------------------------------------------
 
     def newpage(self):
-        """
-        create a new page
-        """
+        """ create a new page """
         self.clearpage()
         self.write('\\newpage')
 
@@ -303,8 +301,10 @@ class Report(object):
         """
         write a string to the file
 
-        @param s: string to be written to the file
-        @type: str
+        Parameters
+        ----------
+        s : str
+            string to be written to the file
         """
         self.file.write(s.replace('\f', '\\f').replace('\n', '\\n')
                         .replace('\t', '\\t')
@@ -312,20 +312,39 @@ class Report(object):
 
 #-----------------------------------------------------------------------
 
+    def open_table(self):
+        """ opens a table """
+        self.write('\\begin{table}[htp]')
+        self.write('    \centering')
+
+#-----------------------------------------------------------------------
+
+    def close_table(self, caption='Put a figure caption here'):
+        """ closes a table """
+        self.write('    \caption{' + caption.replace('_','-') + '}')
+        self.write('\end{table}')
+
+#-----------------------------------------------------------------------
+
+    def input(self, filename):
+        """ write an input statement """
+        self.write('\\input{' + filename + '}')
+        if not os.path.exists(filename):
+            print('WARNING: output file used in report not yet existing!')
+
+#-----------------------------------------------------------------------
+
     def compile(self):
         """
         compile latex document
         """
-
         curdir = os.getcwd()
 
         pdfdir = os.path.dirname(self.filename)
         texfile = os.path.basename(self.filename)
-
         os.chdir(pdfdir)
 
         #--- compile report twice
         os.system('pdflatex ' + texfile)
         os.system('pdflatex ' + texfile)
-
         os.chdir(curdir)
