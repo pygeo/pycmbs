@@ -25,6 +25,7 @@ dist : clean
 	python setup.py sdist
 
 pep8 :
+	$(PEP) ./pyCMBS/mapping.py
 	#$(PEP) ./pyCMBS/netcdf.py
 	#$(PEP) ./pyCMBS/icon.py
 	#$(PEP) ./pyCMBS/grid.py
@@ -37,7 +38,7 @@ pep8 :
 	#$(PEP) ./pyCMBS/framework/config.py
 	#$(PEP) ./pyCMBS/framework/pycmbs.py
 	#$(PEP) ./pyCMBS/framework/models.py
-	$(PEP) ./pyCMBS/data.py
+	#$(PEP) ./pyCMBS/data.py
 	#data.py models.py analysis.py pycmbs.py
 
 
