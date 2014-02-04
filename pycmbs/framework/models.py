@@ -11,13 +11,14 @@ from cdo import *
 import tempfile as tempfile
 import copy
 import pickle
+import glob
 
 class Model(Data):
     """
     This class is the main class, specifying a climate model or a particular run
     Sub-classes for particular models or experiments are herited from this class
     """
-    def __init__(self,data_dir,dic_variables,name='',intervals=None,**kwargs):
+    def __init__(self, data_dir, dic_variables, name='', intervals=None, **kwargs):
         """
         constructor for Model class
 
@@ -33,15 +34,15 @@ class Model(Data):
         e.g. 'rainfall','var4'
         """
 
-        #--- check
+        # check
         if intervals is None:
-            raise ValueError, 'Invalid intervals for Model data: needs specification!'
-        #--- set a list with different datasets for different models
-        self.dic_vars  = dic_variables
+            raise ValueError('Invalid intervals for Model data: needs specification!')
+        # set a list with different datasets for different models
+        self.dic_vars = dic_variables
         self.intervals = intervals
 
-        #--- set some metadata
-        self.name     = name
+        # set some metadata
+        self.name = name
         self.data_dir = data_dir
 
         if 'start_time' in kwargs.keys():
@@ -68,15 +69,15 @@ class Model(Data):
             interval = self.intervals[k]
             cmd = 'dat = self.' + routine
 
-            if hasattr(self,routine[0:routine.index('(')]): #check if routine name is there
+            if hasattr(self, routine[0:routine.index('(')]): #check if routine name is there
                 exec(cmd)
 
                 #--- if a tuple is returned, then it is the data + a tuple for the original global mean field
                 if 'tuple' in str(type(dat)):
-                    self.variables.update({ k : dat[0] }) #update field with data
-                    self.variables.update({ k + '_org' : dat[1]}) #(time, meanfield, originalfield)
+                    self.variables.update({ k : dat[0] })  # update field with data
+                    self.variables.update({ k + '_org' : dat[1]})  # (time, meanfield, originalfield)
                 else:
-                    self.variables.update({ k : dat }) #update field with data
+                    self.variables.update({ k : dat })  # update field with data
 
             else:
                 print 'WARNING: unknown function to read data (skip!), variable: ', k
@@ -149,6 +150,7 @@ class MedianModel(Model):
                 else: #mean model!
                     msk_below = M.variables[k].data <= self.variables[k].data
                     raise ValueError('Implementation of median model has not yet been finished!')
+                    #could get_percentiles be used for that in some sense???
                     stop
 
 
@@ -267,9 +269,6 @@ class MeanModel(Model):
 #------------------------------------------------------------------------------
 
 
-
-
-
 class CMIP5Data(Model):
     """
     Class for CMIP5 model simulations. This class is derived from C{Model}.
@@ -285,7 +284,7 @@ class CMIP5Data(Model):
         @param kwargs: other keyword arguments
         @return:
         """
-        super(CMIP5Data,self).__init__(data_dir,dic_variables,name=model,shift_lon=shift_lon,**kwargs)
+        super(CMIP5Data, self).__init__(data_dir, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 
         self.model      = model
         self.experiment = experiment
@@ -306,14 +305,11 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------------------------------------
-
-    def get_model_data_generic(self,interval='season', **kwargs):
+    def get_model_data_generic(self, interval='season', **kwargs):
         """
         unique parameters are:
             filename - file basename
             variable - name of the variable as the short_name in the netcdf file
-
 
             kwargs is a dictionary with keys for each model. Then a dictionary with properties follows
 
@@ -351,20 +347,22 @@ class CMIP5Data(Model):
             if self.type == 'CMIP5':
                 filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
                         (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
+            if self.type == 'CMIP5RAW':
+                filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
+                        (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
             elif self.type == 'CMIP3':
                 filename1 = ("%s/%s_%s_%s_%s.%s" %
                         (custom_path, self.experiment, self.model, varname,  model_suffix, file_format))
             else:
                 print self.type
-                raise ValueError, 'Can not generate filename: invalid model type!'
-
+                raise ValueError('Can not generate filename: invalid model type!')
 
         force_calc = False
 
         if self.start_time is None:
-            raise ValueError, 'Start time needs to be specified'
+            raise ValueError('Start time needs to be specified')
         if self.stop_time is None:
-            raise ValueError, 'Stop time needs to be specified'
+            raise ValueError('Stop time needs to be specified')
 
         #/// PREPROCESSING ///
         cdo = Cdo()
@@ -388,10 +386,8 @@ class CMIP5Data(Model):
 
         cdo.monmean(options='-f nc',output=file_monthly,input = '-' + interpolation + ',' + target_grid + ' -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
 
-
         sys.stdout.write('\n *** Reading model data... \n')
         sys.stdout.write('     Interval: ' + interval + '\n')
-
 
         #2) calculate monthly or seasonal climatology
         if interval == 'monthly':
@@ -413,7 +409,7 @@ class CMIP5Data(Model):
             cdo.yseasstd(options='-f nc -b 32',output = mdata_clim_std_file,input=file_monthly, force=force_calc)
             cdo.div(options='-f nc -b 32',output = mdata_N_file,input=mdata_sum_file + ' ' + mdata_clim_file, force=force_calc) #number of samples
         else:
-            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+            raise ValueError('Unknown temporal interval. Can not perform preprocessing!')
 
         if not os.path.exists(mdata_clim_file):
             return None
@@ -432,8 +428,8 @@ class CMIP5Data(Model):
         mdata_N = Data(mdata_N_file,varname,read=True,label=self.model+ ' std',unit='-',lat_name=lat_name,lon_name=lon_name,shift_lon=False, scale_factor=scf,level=thelevel)
         mdata.n = mdata_N.data.copy(); del mdata_N
 
-        #ensure that climatology always starts with J  anuary, therefore set date and then sort
-        mdata.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        #ensure that climatology always starts with January, therefore set date and then sort
+        mdata.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
         mdata.timsort()
 
         #4) read monthly data
@@ -468,7 +464,7 @@ class CMIP5Data(Model):
         del mdata_all
 
 
-        return mdata,retval
+        return mdata, retval
 
 
 #-----------------------------------------------------------------------
@@ -552,9 +548,7 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-
-
-    def get_surface_shortwave_radiation_down(self,interval = 'season',**kwargs):
+    def get_surface_shortwave_radiation_down(self, interval='season', force_calc=False, **kwargs):
 
         """
         return data object of
@@ -562,38 +556,33 @@ class CMIP5Data(Model):
         b) global mean timeseries for SIS at original temporal resolution
         """
 
-        #original data
-        #filename1 = self.data_dir + 'rsds/' +  self.model + '/' + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-
         locdict = kwargs[self.type]
-        valid_mask    = locdict.pop('valid_mask')
-
-        filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-        print 'File downward!: ', filename1
+        valid_mask = locdict.pop('valid_mask')
 
 
+        if self.type == 'CMIP5':
+            filename1 = self.data_dir + 'rsds/' +  self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
+            filename1 = self.data_dir + 'rsds/' +  self.experiment + '/raw/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            if not os.path.exists(filename1):
+                filename1 = self._preprocess_ensembles(filename1, delete=force_calc)  # do preprocessing of ensemble means and get name of resulting file
+        else:
+            raise ValueError('Unknown type! not supported here!')
 
-        force_calc = False
 
-        if self.start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
+        if self.start_time is None:
+            raise ValueError('Start time needs to be specified')
+        if self.stop_time is None:
+            raise ValueError('Stop time needs to be specified')
 
         #/// PREPROCESSING ///
         cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
         s_stop_time  = str(self.stop_time)[0:10]
 
-
-
-
         #1) select timeperiod and generatget_she monthly mean file
         file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
-
 
         print file_monthly
 
@@ -602,7 +591,6 @@ class CMIP5Data(Model):
 
         sys.stdout.write('\n *** Reading model data... \n')
         sys.stdout.write('     Interval: ' + interval + '\n')
-
 
         #2) calculate monthly or seasonal climatology
         if interval == 'monthly':
@@ -625,7 +613,7 @@ class CMIP5Data(Model):
             cdo.div(options='-f nc -b 32',output = sis_N_file,input=sis_sum_file + ' ' + sis_clim_file, force=force_calc) #number of samples
         else:
             print interval
-            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
+            raise ValueError('Unknown temporal interval. Can not perform preprocessing!')
 
         if not os.path.exists(sis_clim_file):
             return None
@@ -633,21 +621,23 @@ class CMIP5Data(Model):
         #3) read data
         sis = Data(sis_clim_file,'rsds',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
         sis_std = Data(sis_clim_std_file,'rsds',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sis.std = sis_std.data.copy(); del sis_std
+        sis.std = sis_std.data.copy()
+        del sis_std
         sis_N = Data(sis_N_file,'rsds',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sis.n = sis_N.data.copy(); del sis_N
+        sis.n = sis_N.data.copy()
+        del sis_N
 
         #ensure that climatology always starts with January, therefore set date and then sort
-        sis.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        sis.adjust_time(year=1700, day=15) #set arbitrary time for climatology
         sis.timsort()
 
         #4) read monthly data
         sisall = Data(file_monthly,'rsds',read=True,label=self.model,unit='W m^{-2}',lat_name='lat',lon_name='lon',shift_lon=False)
-        if sisall.time_cycle != 12:
-            raise ValueError, 'Timecycle of 12 expected here!'
+        if not sisall._is_monthly():
+            raise ValueError('Timecycle of 12 expected here!')
         sisall.adjust_time(day=15)
 
-        #/// land/sea masking ...
+        # land/sea masking ...
         if valid_mask == 'land':
             mask_antarctica=True
         elif valid_mask == 'ocean':
@@ -657,37 +647,36 @@ class CMIP5Data(Model):
 
         sis._apply_mask(get_T63_landseamask(False,mask_antarctica=mask_antarctica,area=valid_mask))
         sisall._apply_mask(get_T63_landseamask(False,mask_antarctica=mask_antarctica,area=valid_mask))
-
         sismean = sisall.fldmean()
 
-        #/// return data as a tuple list
-        retval = (sisall.time,sismean,sisall); del sisall
+        # return data as a tuple list
+        retval = (sisall.time, sismean,sisall)
+        del sisall
 
-        #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
-        sis.data = np.ma.array(sis.data,mask=sis.data < 1.)
+        # mask areas without radiation (set to invalid): all data < 1 W/m**2
+        sis.data = np.ma.array(sis.data, mask=sis.data < 1.)
 
-        return sis,retval
+        return sis, retval
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_up(self,interval='season'):
+    def get_surface_shortwave_radiation_up(self, interval='season', force_calc = False):
 
-        #original data
-        filename1 = self.data_dir + 'rsus/' +  self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-
-
-        print 'READING SURFACE UPWARD file: ', filename1
-
-
-        force_calc = False
+        if self.type == 'CMIP5':
+            filename1 = self.data_dir + 'rsus/' +  self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
+            filename1 = self.data_dir + 'rsus/' +  self.experiment + '/raw/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            if not os.path.exists(filename1):
+                filename1 = self._preprocess_ensembles(filename1, delete=force_calc)  # do preprocessing of ensemble means and get name of resulting file
+        else:
+            raise ValueError('Unknown type! not supported here!')
 
         if self.start_time == None:
-            raise ValueError, 'Start time needs to be specified'
+            raise ValueError('Start time needs to be specified')
         if self.stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
+            raise ValueError('Stop time needs to be specified')
 
-        #/// PREPROCESSING ///
+        # PREPROCESSING
         cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
         s_stop_time  = str(self.stop_time)[0:10]
@@ -719,45 +708,44 @@ class CMIP5Data(Model):
             cdo.div(options='-f nc -b 32',output = sup_N_file,input=sup_sum_file + ' ' + sup_clim_file, force=force_calc) #number of samples
         else:
             print interval
-            raise ValueError, 'Unknown temporal interval. Can not perform preprocessing! '
-
-
+            raise ValueError('Unknown temporal interval. Can not perform preprocessing! ')
 
         if not os.path.exists(sup_clim_file):
             print 'File not existing (sup_clim_file): ' + sup_clim_file
             return None
 
-
         #3) read data
         sup = Data(sup_clim_file,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
         sup_std = Data(sup_clim_std_file,'rsus',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sup.std = sup_std.data.copy(); del sup_std
+        sup.std = sup_std.data.copy()
+        del sup_std
         sup_N = Data(sup_N_file,'rsus',read=True,label=self.model+ ' std',unit='-',lat_name='lat',lon_name='lon',shift_lon=False)
-        sup.n = sup_N.data.copy(); del sup_N
+        sup.n = sup_N.data.copy()
+        del sup_N
 
-        #ensure that climatology always starts with January, therefore set date and then sort
-        sup.adjust_time(year=1700,day=15) #set arbitrary time for climatology
+        # ensure that climatology always starts with January, therefore set date and then sort
+        sup.adjust_time(year=1700,day=15)  # set arbitrary time for climatology
         sup.timsort()
 
         #4) read monthly data
         supall = Data(file_monthly,'rsus',read=True,label=self.model,unit='$W m^{-2}$',lat_name='lat',lon_name='lon',shift_lon=False)
-        if supall.time_cycle != 12:
-            raise ValueError, 'Monthly timecycle expected here!'
+        supall.adjust_time(day=15)
+        if not supall._is_monthly():
+            raise ValueError('Monthly timecycle expected here!')
         supmean = supall.fldmean()
 
         #/// return data as a tuple list
-        retval = (supall.time,supmean,supall); del supall
+        retval = (supall.time,supmean,supall)
+        del supall
 
         #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
         #sup.data = np.ma.array(sis.data,mask=sis.data < 1.)
 
-        return sup,retval
-
+        return sup, retval
 
 #-------------------------------------------------------------------------------------------------------------
 
-
-    def get_albedo_data(self,interval='season'):
+    def get_albedo_data(self, interval='season'):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
@@ -765,16 +753,15 @@ class CMIP5Data(Model):
 
         force_calc = False
 
-        #--- read land-sea mask
+        # read land-sea mask
         ls_mask = get_T63_landseamask(self.shift_lon)
 
-        if self.start_time == None:
-            raise ValueError, 'Start time needs to be specified'
-        if self.stop_time == None:
-            raise ValueError, 'Stop time needs to be specified'
+        if self.start_time is None:
+            raise ValueError('Start time needs to be specified')
+        if self.stop_time is None:
+            raise ValueError('Stop time needs to be specified')
 
-
-        #--- get fluxes
+        # get fluxes
         Fu = self.get_surface_shortwave_radiation_up(interval=interval)
         if Fu == None:
             print 'File not existing for UPWARD flux!: ', self.name
@@ -782,7 +769,7 @@ class CMIP5Data(Model):
         else:
             Fu_i = Fu[0]
         lab = Fu_i.label
-        Fd = self.get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}}) #todo: take routine name from the configuration setup in JSON file !!!!
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}, 'CMIP5RAW':{'valid_mask':'land'}}) #todo: take routine name from the configuration setup in JSON file !!!!
         if Fd == None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None
@@ -790,43 +777,92 @@ class CMIP5Data(Model):
             Fd_i = Fd[0]
 
         #albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
-        Fu_i.div(Fd_i,copy=False); del Fd_i #Fu contains now the albedo
+        Fu_i.div(Fd_i,copy=False)
+        del Fd_i  # Fu contains now the albedo
         Fu_i._apply_mask(ls_mask.data)
 
         #albedo for monthly data (needed for global mean plots )
-        Fu_m = Fu[1][2]; del Fu
-        Fd_m = Fd[1][2]; del Fd
+        Fu_m = Fu[1][2]
+        del Fu
+        Fd_m = Fd[1][2]
+        del Fd
 
-        Fu_m.div(Fd_m,copy=False); del Fd_m
+        Fu_m.div(Fd_m,copy=False)
+        del Fd_m
         Fu_m._apply_mask(ls_mask.data)
-        Fu_m._set_valid_range(0.,1.)
+        Fu_m._set_valid_range(0., 1.)
         Fu_m.label = lab + ' albedo'
         Fu_i.label = lab + ' albedo'
         Fu_m.unit = '-'
         Fu_i.unit = '-'
 
-        #/// center dates of months
+        # center dates of months
         Fu_m.adjust_time(day=15)
         Fu_i.adjust_time(day=15)
 
-        #/// return data as a tuple list
-        retval = (Fu_m.time,Fu_m.fldmean(),Fu_m)
-
-
-
-        #downward geht nur bis Jahr 2000: warum ????
-        #und upward bis 2008 ???? warum ????
-
+        # return data as a tuple list
+        retval = (Fu_m.time,Fu_m.fldmean(), Fu_m)
 
         return Fu_i, retval
 
+class CMIP5RAWData(CMIP5Data):
+    """
+    This class is supposed to use CMIP5 data in RAW format.
+    This means that it builds on the CMORIZED CMIP5 data, but
+    performs all necessary preprocessing step like e.g. calculation
+    of ensemble means
+    """
+    def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
+        super(CMIP5RAWData, self).__init__(data_dir, model, experiment, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
+        self.model = model
+        self.experiment = experiment
+        self.data_dir = data_dir
+        self.shift_lon = shift_lon
+        self.type = 'CMIP5RAW'
+        self._unique_name = self._get_unique_name()
+
+    def _preprocess_ensembles(self, filename, delete=False):
+        """
+        do preprocessing of the CMIP5 rawdata based on the individual
+        model ensemble members. Output is written to the processing
+        directory, sepcified by get_temporary_directory()
+
+        Parameters
+        ----------
+        filename : str
+            output filename of ensemble mean file. The input data is
+            searched in the same directory.
+        delete : bool
+            delete output file without asking
+        """
+
+        # calculate ensemble mean
+        root = filename.split('_ensmean')[0]
+        print 'Rootname: ', root
+
+        # write output to processing directory!
+        outputfile = get_temporary_directory() + os.path.basename(filename)
+        if os.path.exists(outputfile):
+            if delete:
+                os.remove(outputfile)
+            else:
+                print outputfile
+                print('Using already existing ensemble mean file ...')
+                return outputfile
+
+        files = glob.glob(root + '_r*.nc')  # all ensemble members
+        fstr = ''
+        for f in files:
+            fstr += f + ' '
+        cmd1 = 'cdo -f nc ensmean ' + fstr + ' ' + outputfile
+        cmd2 = 'cdo -f nc ensstd ' + fstr + ' ' + outputfile.replace('_ensmean.nc','_ensstd.nc')
+        os.system(cmd1)
+        os.system(cmd2)
+
+        return outputfile
 
 
-
-
-
-
-#####################################################
+########################################################################
 
 
 
@@ -834,8 +870,6 @@ class CMIP5Data(Model):
 class JSBACH_BOT(Model):
 
     def __init__(self,filename,dic_variables,experiment,name='',shift_lon=False,**kwargs):
-
-        #Model.__init__(self,filename,dic_variables,name=name,**kwargs)
         super(JSBACH_BOT,self).__init__(filename,dic_variables,name=name,**kwargs)
 
         self.experiment = experiment

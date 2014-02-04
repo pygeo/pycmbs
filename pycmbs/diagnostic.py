@@ -26,6 +26,134 @@ from pylab import *
 import pickle
 
 
+class DiagnosticMaster(object):
+    """
+    a master class for diganostics
+    """
+    def __init__(self, **kwargs):
+        pass
+
+class PatternCorrelation(DiagnosticMaster):
+    """
+    a class to perform pattern correlation diagnostics
+    it calculates for each timestep the correlations between the spatial
+    fields and allows to vizualize results in different ways
+    """
+    def __init__(self, x, y, ax = None, figsize=(10,3), **kwargs):
+        """
+        Parameters
+        ----------
+        x : Data
+            first dataset
+        y : Data
+            second dataset
+        ax : axis
+            axis to plot to. If not specified, then a new  figure will
+            be generated
+        figsize : tuple
+            figure size
+        """
+        super(PatternCorrelation, self).__init__(**kwargs)
+        if not isinstance(x, Data):
+            raise ValueError('Variable X is not a Data object')
+        if not isinstance(y, Data):
+            raise ValueError('Variable X is not a Data object')
+        if x.shape != y.shape:
+            print(x.shape)
+            print(y.shape)
+            raise ValueError('Invalid geometries!')
+
+        if ax is None:
+            f = plt.figure(figsize=figsize)
+            ax = f.add_subplot(111)
+        self.ax = ax
+
+        self.x = x
+        self.y = y
+        self._calculated = False
+
+        if self.x.ndim == 2:
+            self.t = None
+        elif self.x.ndim == 3:
+            self.t = np.arange(self.x.nt)+1
+        else:
+            raise ValueError('Invalid geometry')
+
+    def _correlate(self):
+        """
+        perform correlation analysis for each timestep
+
+        Todo
+        ----
+        * calculate here all information needed to draw results also
+          in Taylor diagram
+        """
+        if self.x.ndim == 2:
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(self.x.data[:,:].flatten(),self.y.data[:,:].flatten())
+            self.slope = np.asarray([slope])
+            self.r_value = np.asarray([r_value])
+            self.intercept = np.asarray([intercept])
+            self.p_value = np.asarray([p_value])
+            self.std_err = np.asarray([std_err])
+        elif self.x.ndim == 3:
+            r = np.asarray([stats.mstats.linregress(self.x.data[i,:,:].flatten(),self.y.data[i,:,:].flatten()) for i in xrange(self.x.nt)])
+            self.slope = np.asarray(r[:,0])
+            self.intercept = np.asarray(r[:,1])
+            self.r_value = np.asarray(r[:,2])
+            self.p_value = np.asarray(r[:,3])
+            self.std_err = np.asarray(r[:,4])
+        else:
+            raise ValueError('Unsupported geometry')
+
+        self._calculated = True
+
+    def plot(self, ax=None, plot='line', **kwargs):
+        """
+        generate correlation plot
+
+        Parameters
+        ----------
+        ax : axis
+            axis to plot to. If not specified, a new figure
+            will be generated
+
+        Todo
+        ----
+        * implement plotting in Taylor diagram
+        """
+        if plot not in ['polar', 'line']:
+            raise ValueError('Invalid plot type.')
+        if not self._calculated:
+            self._correlate()
+
+        # here we have already correlations calculated
+        if plot == 'polar':
+            self._draw_polar()
+        elif plot == 'line':
+            self._draw_line(**kwargs)
+        else:
+            raise ValueError('Invalid plot type!')
+
+        self.ax.legend(loc='lower left',prop={'size':10})
+        self.ax.set_xlabel('timestep #')
+        self.ax.set_ylabel('$r_{pears}$')
+        self.ax.grid()
+        self.ax.set_ylim(0.5, 1.)
+
+        return self.ax.figure
+
+    def _draw_polar(self):
+        raise ValueError('Polar plot not finally implemented yet!')
+        # todo how to deal with negative correlations !!!
+        t = 2. * np.pi * self.t / float(len(self.t))
+        ax.scatter(t, self.r)
+
+    def _draw_line(self, **kwargs):
+        self.ax.plot(self.t, self.r_value, **kwargs)
+
+
+
+
 #-----------------------------------------------------------------------
 
 class RegionalAnalysis(object):
