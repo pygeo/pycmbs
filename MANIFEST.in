@@ -1,0 +1,27 @@
+include README
+include CHANGES
+global-include LICENSE
+global-include *.rst
+global-include INSTALL*
+global-include *.py
+global-include *.ini
+global-include Phytonlogo5.pdf
+global-include pyCMBS_template.cfg
+graft tests
+graft logo
+graft configuration
+graft docsrc
+prune build
+prune test_eof
+prune dirk
+prune misc
+prune example
+exclude test_hov.py
+exclude anova_test.py
+exclude ansamp.py
+exclude debug_albedo.py
+prune dist
+recursive-exclude tests testfile.nc devdirs
+graft doc
+include COPYING
+include COPYING_netCDF4
