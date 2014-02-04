@@ -69,6 +69,8 @@ import sys
 
 import logging
 
+
+
 #- classes specific to pyCMBS
 from statistic import *
 from data   import *
@@ -81,6 +83,8 @@ from grid import *
 from data4D import *
 
 from taylor import *
+
+from mapping import MultipleMap, SingleMap
 
 from hov import *
 from region import *
