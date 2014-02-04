@@ -12,7 +12,7 @@ This module implements generic map plotting capabilities
 import matplotlib as mpl
 mpl.use('agg')
 import os
-from mpl_toolkits.basemap import Basemap,shiftgrid
+from mpl_toolkits.basemap import Basemap, shiftgrid
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -21,13 +21,14 @@ import matplotlib.gridspec as grd
 from . data import Data
 from . plots import ZonalPlot
 
+
 class MapPlotGeneric(object):
     """
     Generic class to produce map plots
     """
 
     def __init__(self, backend='imshow', format='png', savefile=None,
-                    show_statistic = True, stat_type='mean', figure=None):
+                 show_statistic=True, stat_type='mean', figure=None):
 
         """
         Parameters
@@ -44,7 +45,7 @@ class MapPlotGeneric(object):
         self.savefile = savefile
         self.show_statistic = show_statistic
         self.stat_type = stat_type
-        self._dummy_axes=[]
+        self._dummy_axes = []
 
         if figure is None:
             self.figure = plt.figure()
@@ -81,9 +82,9 @@ class MapPlotGeneric(object):
         if self.savefile is None:
             return
         if self.savefile[:-3] != '.nc':
-            self.savefile +=  tok + '.nc'
+            self.savefile += tok + '.nc'
         else:
-            self.savefile = self.savefile[:-3] + tok +  '.nc'
+            self.savefile = self.savefile[:-3] + tok + '.nc'
         self.x.save(self.savefile, timmean=timmean, delete=True, mean=False)
 
     def save(self, save_mean=True, save_all=False):
@@ -106,7 +107,7 @@ class MapPlotGeneric(object):
     def _check(self):
         if self.stat_type not in ['mean', 'median', 'sum']:
             raise ValueError('Invalid statistic type: %s' % self.stat_type)
-        if self.backend not in ['imshow','basemap']:
+        if self.backend not in ['imshow', 'basemap']:
             raise ValueError('Invalid plotting backend: %s' % self.backend)
 
     def _draw_basemap(self, proj_prop=None, **kwargs):
@@ -125,7 +126,6 @@ class MapPlotGeneric(object):
 
         self.__basemap_ancillary(the_map)
 
-
     def __basemap_ancillary(self, m, latvalues=None, lonvalues=None, drawparallels=True, drawcountries=True, land_color=0.8):
         """
         routine to plot ancillary data like coastlines
@@ -141,21 +141,20 @@ class MapPlotGeneric(object):
 
         lonvalues : ndarray
             longitude values for drawing grid (optional)
-
         """
 
         if latvalues is None:
-            latvalues=np.arange(-90., 120., 30.)
+            latvalues = np.arange(-90., 120., 30.)
         if lonvalues is None:
-            lonvalues= np.arange(-180., 180., 90.)
+            lonvalues = np.arange(-180., 180., 90.)
         if drawcountries:
             m.drawcountries()
         m.drawcoastlines()
         #~ m.drawlsmask(lakes=True,land_color=land_color)
-        m.drawmapboundary() # draw a line around the map region
+        m.drawmapboundary()  # draw a line around the map region
         if drawparallels:
-            m.drawparallels(latvalues,labels=[0, 0, 0, 0])
-            m.drawmeridians(lonvalues,labels=[0, 0, 0, 0])
+            m.drawparallels(latvalues, labels=[0, 0, 0, 0])
+            m.drawmeridians(lonvalues, labels=[0, 0, 0, 0])
 
     def _draw_imshow(self, **kwargs):
         """
@@ -194,9 +193,6 @@ class MapPlotGeneric(object):
         else:
             return None
 
-
-
-
     def _set_colorbar(self, im):
         """
         create colorbar and return colorbar object
@@ -213,7 +209,7 @@ class MapPlotGeneric(object):
         vmax = im.get_clim()[1]
         self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
-        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self._get_cticks(), orientation=self.colorbar_orientation)
+        cb = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self._get_cticks(), orientation=self.colorbar_orientation)
         if self.ctick_prop is not None:
             cb.set_ticklabels(self._get_cticklabels())
 
@@ -228,9 +224,6 @@ class MapPlotGeneric(object):
         ax.set_frame_on(frame)
 
 
-
-
-
 class SingleMap(MapPlotGeneric):
     """
     A class to generate a plot with a single figure
@@ -242,7 +235,7 @@ class SingleMap(MapPlotGeneric):
         X : Data
             Data object with data to plot
         """
-        assert(isinstance(x,Data))
+        assert(isinstance(x, Data))
         super(SingleMap, self).__init__(**kwargs)
         self.x = x
 
@@ -261,7 +254,6 @@ class SingleMap(MapPlotGeneric):
             else:
                 print('WARNING: zonal plot not possible due to invalid latitude configurations')
 
-
     def _set_cmap(self, nclasses):
         """
         generate a colormap. If self.cmap is already a colormap
@@ -273,12 +265,11 @@ class SingleMap(MapPlotGeneric):
         nclasses : int
             number of classes for colormap
         """
-        if hasattr(self.cmap,'monochrome'):
+        if hasattr(self.cmap, 'monochrome'):
             # colormap object was given
             self.cmap = cmap_data
         else:
             self.cmap = plt.cm.get_cmap(self.cmap, nclasses)
-
 
     def _draw_title(self, title=None, fontsize=14):
         """
@@ -312,18 +303,17 @@ class SingleMap(MapPlotGeneric):
                 assert(len(me) == 1)
                 assert(len(st) == 1)
                 me = me[0]
-                st=st[0]
-                s ='mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
-            elif stat_type == 'sum': #area sum
+                st = st[0]
+                s = 'mean: $' + str(round(me, 2)) + ' \pm ' + str(round(st, 2)) + '$'
+            elif stat_type == 'sum':  # area sum
                 me = tmp_xm.areasum()
                 assert(len(me) == 1)
                 me = me[0]
-                s = 'sum: $' + str(round(me,2))  + '$'
+                s = 'sum: $' + str(round(me, 2)) + '$'
             else:
                 me = np.ma.median(tmp_xm.data)
-                s = 'median: $' + str(round(me,2)) + '$'
+                s = 'median: $' + str(round(me, 2)) + '$'
         return s
-
 
     def _draw_zonal_plot(self, timmean=True, vmin=None, vmax=None, fontsize=8):
         """
@@ -344,7 +334,7 @@ class SingleMap(MapPlotGeneric):
         if self.x.ndim == 2:
             pass
         elif self.x.ndim == 3:
-            nt,ny,nx = self.x.shape
+            nt, ny, nx = self.x.shape
 
         ZP.plot(self.x, timmean=timmean, show_ylabel=False)
 
@@ -354,7 +344,7 @@ class SingleMap(MapPlotGeneric):
             vmax = self.zax.get_xlim()[1]
             # symmetry if neg. and positive limits
             if (vmin < 0.) & (vmax > 0.):
-                val = max(abs(vmin) ,abs(vmax))
+                val = max(abs(vmin), abs(vmax))
                 vmin = -val
                 vmax = val
 
@@ -366,12 +356,10 @@ class SingleMap(MapPlotGeneric):
 
         # set only first and last label
         self.zax.set_xticks([vmin, vmax])
-        self.zax.plot([0,0], self.zax.get_ylim(), linestyle='-', color='grey')
+        self.zax.plot([0, 0], self.zax.get_ylim(), linestyle='-', color='grey')
 
         for tick in self.zax.xaxis.get_major_ticks():
             tick.label.set_fontsize(fontsize)
-
-
 
     def plot(self, show_zonal=False, show_histogram=False,
             show_timeseries=False, show_colorbar=True,
@@ -402,18 +390,17 @@ class SingleMap(MapPlotGeneric):
                 ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C']
         """
 
-        if colorbar_orientation not in ['vertical','horizontal']:
+        if colorbar_orientation not in ['vertical', 'horizontal']:
             raise ValueError('Invalid colorbar orientation')
 
-        self.show_zonal=show_zonal
-        self.colorbar_orientation=colorbar_orientation
-        self.show_histogram=show_histogram
-        self.show_timeseries=show_timeseries
-        self.show_colorbar=show_colorbar
+        self.show_zonal = show_zonal
+        self.colorbar_orientation = colorbar_orientation
+        self.show_histogram = show_histogram
+        self.show_timeseries = show_timeseries
+        self.show_colorbar = show_colorbar
         self.ctick_prop = ctick_prop  # dictionary
         self.vmin = vmin
         self.vmax = vmax
-
 
         # set colormap and ensure to have a colormap object
         self.cmap = cmap
@@ -471,7 +458,6 @@ class SingleMap(MapPlotGeneric):
             #~ self.cax.set_position(pos)
         #~ self.figure.tight_layout(w_pad=0., h_pad=0.)
 
-
     def _set_layout(self):
         """
         routine specifies layout of different axes
@@ -493,9 +479,6 @@ class SingleMap(MapPlotGeneric):
         else:
             raise ValueError('Layout without colorbar not supported yet')
 
-
-
-
     def _set_layout1(self):
         """
         setlayout with only colorbar. This might be oriented either
@@ -514,22 +497,20 @@ class SingleMap(MapPlotGeneric):
         -----------
         |  cax    |
         -----------
-
         """
 
-        wspace=0.05
+        wspace = 0.05
 
         if not self.show_colorbar:
             raise ValueError('This routine was called by fault!')
         if self.colorbar_orientation == 'horizontal':
-            self.gs = grd.GridSpec(2, 1, height_ratios=[95,5], wspace=wspace)
+            self.gs = grd.GridSpec(2, 1, height_ratios=[95, 5], wspace=wspace)
         elif self.colorbar_orientation == 'vertical':
-            self.gs = grd.GridSpec(1, 2, width_ratios=[95,5], wspace=wspace)
+            self.gs = grd.GridSpec(1, 2, width_ratios=[95, 5], wspace=wspace)
         else:
             raise ValueError('Invalid option')
         self.pax = self.figure.add_subplot(self.gs[0])
         self.cax = self.figure.add_subplot(self.gs[1])
-
 
     def _set_layout2(self):
         """
@@ -541,13 +522,13 @@ class SingleMap(MapPlotGeneric):
             raise ValueError('Only WITH colorbar supported here!')
 
         if self.colorbar_orientation == 'horizontal':
-            self.gs = grd.GridSpec(2, 2, height_ratios=[95,5], width_ratios = [15, 85], wspace=0.05)
+            self.gs = grd.GridSpec(2, 2, height_ratios=[95, 5], width_ratios=[15, 85], wspace=0.05)
             self.zax = self.figure.add_subplot(self.gs[0])
             self.pax = self.figure.add_subplot(self.gs[1])
             self.cax = self.figure.add_subplot(self.gs[3])
             self._dummy_axes.append(self.figure.add_subplot(self.gs[2]))
         elif self.colorbar_orientation == 'vertical':
-            self.gs = grd.GridSpec(1, 3, width_ratios = [15, 80, 5], wspace=0.05)
+            self.gs = grd.GridSpec(1, 3, width_ratios=[15, 80, 5], wspace=0.05)
             self.zax = self.figure.add_subplot(self.gs[0])
             self.pax = self.figure.add_subplot(self.gs[1])
             self.cax = self.figure.add_subplot(self.gs[2])
@@ -555,11 +536,8 @@ class SingleMap(MapPlotGeneric):
             raise ValueError('Invalid colorbar option')
 
 
-
-
-
 class MultipleMap(MapPlotGeneric):
-    def __init__(self,geometry=None,**kwargs):
+    def __init__(self, geometry=None, **kwargs):
         """
         Parameters
         ----------
@@ -567,10 +545,10 @@ class MultipleMap(MapPlotGeneric):
             specifies number of subplots (nrows,mcols); e.g. geometry=(2,3)
             give a plot with 2 rows and 3 cols.
         """
-        assert(isinstance(geometry,tuple))
+        assert(isinstance(geometry, tuple))
         self.n = geometry[0]
         self.m = geometry[1]
-        super(MultipleMap,self).__init__(**kwargs)
+        super(MultipleMap, self).__init__(**kwargs)
         self.fig = plt.figure()
         stop
         #todo: define axes here !
