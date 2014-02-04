@@ -16,6 +16,7 @@
   * do `git svn rebase`
   * merge it with master branch
 
+good link: {http://ivanz.com/2009/01/15/selective-import-of-svn-branches-into-a-gitgit-svn-repository/}
 
 current git config
 
