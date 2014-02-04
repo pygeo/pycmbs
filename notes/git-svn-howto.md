@@ -10,6 +10,12 @@
  * Check for changes in SVN repository: `git svn rebase`
  * If no new changes, push them into assembla space: `git push -f origin master`
 
+ * or add after cloning assembla git repo edit the .git/config file
+  * add there svn remote entry 
+  * do `git svn fetch svn` (svn is a svn-remote name, can be what ever)
+  * do `git svn rebase`
+  * merge it with master branch
+
 
 current git config
 
