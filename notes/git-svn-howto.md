@@ -39,3 +39,19 @@ current git config
                 [alias]
                         br = branch
                         co = checkout
+
+excellent link about adding a particular svn branch to existing git repo:
+[http://stackoverflow.com/questions/3239759/checkout-remote-branch-using-git-svn]
+
+steps:
+    * `git clone git@git.assembla.com:pycmbs.git`
+    * `cd pycmbs`
+    * edit `.git/config`, add there necessary svn-remote information:
+        [svn-remote "svn-mybranch"]
+        url = http://svn.zmaw.de/svn/pycmbs/trunk
+        fetch = :refs/remotes/trunk
+    * `git svn fetch --fetch-all`
+    * `git checkout -b pycmbs-trunk remotes/trunk`
+    * `git svn rebase`
+    * `git checkout master`
+    * `git merge pycmbs-trunk`
