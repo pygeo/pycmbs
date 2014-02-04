@@ -1569,29 +1569,28 @@ class GlecklerPlot(object):
         self._draw_error_scatter(1, 4, var, color='blue', marker='^',ax=ax)
 
         # 2 vs. 3
-        self._draw_error_scatter(2, 3, var, color='grey', marker='x',ax=ax)
+        self._draw_error_scatter(2, 3, var, color='grey', marker='x', ax=ax)
 
         # 2 vs 4
-        self._draw_error_scatter(2,4,var,color='m',marker='+',ax=ax)
+        self._draw_error_scatter(2, 4, var, color='m', marker='+', ax=ax)
 
         # 3 vs 4
-        self._draw_error_scatter(3,4,var,color='c',marker='h',ax=ax)
+        self._draw_error_scatter(3, 4, var, color='c', marker='h', ax=ax)
 
         if ax is not None:
-            ax.legend(prop={'size':8},ncol=1,fancybox=True,loc='upper left')
+            ax.legend(prop={'size':8}, ncol=1, fancybox=True, loc='upper left')
             ax.set_xlabel('$\epsilon$ (observation X)')
             ax.set_ylabel('$\epsilon$ (observation Y)')
 
             xmi,xma = ax.get_xlim()
             ymi,yma = ax.get_ylim()
 
-            ax.set_ylim(min(xmi,ymi),max(xma,yma))
-            ax.set_xlim(min(xmi,ymi),max(xma,yma))
+            ax.set_ylim(min(xmi, ymi),max(xma, yma))
+            ax.set_xlim(min(xmi, ymi),max(xma, yma))
             ax.grid()
             ax.set_title('Comparison of model errors: ' + var.upper())
             ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
         return fig
-
 
     def write_ranking_table(self, var, filename, fmt='latex'):
         """
@@ -1624,11 +1623,17 @@ class GlecklerPlot(object):
         if os.path.exists(filename):
             os.remove(filename)
 
+        def _rnk2str(r):
+            if r < 3:
+                return '{\\bf ' + str(r) + '}'
+            else:
+                return str(r)
+
         def _get_model_rank(k, x):
             """
             returns rank of model given a key k and an ordered list x
 
-            Rerturns
+            Returns
             --------
             rank of key in list; NOTE that this is NOT the index!
             """
@@ -1653,20 +1658,27 @@ class GlecklerPlot(object):
         o = open(filename, 'w')
         if fmt == 'latex':
             o.write('        \\begin{tabular}{lcccc} \n')
-            s = sol + 'obs-top' + sep + 'obs-bott' + sep + 'obs-left' + sep + 'obs-right' + eol
+            o.write(sol + '\\hline \n')
+            s = sol + 'model' + sep + 'obs-top' + sep + 'obs-bott' + sep + 'obs-left' + sep + 'obs-right' + eol
             o.write(s)
+            o.write(sol + '\\hline \n')
         for m in self.models:
-            rnk1 = str(_get_model_rank(m, r1))
-            rnk2 = str(_get_model_rank(m, r2))
-            rnk3 = str(_get_model_rank(m, r3))
-            rnk4 = str(_get_model_rank(m, r4))
+            rnk1 = _get_model_rank(m, r1)
+            rnk2 = _get_model_rank(m, r2)
+            rnk3 = _get_model_rank(m, r3)
+            rnk4 = _get_model_rank(m, r4)
+
+            rnk1 = _rnk2str(rnk1)
+            rnk2 = _rnk2str(rnk2)
+            rnk3 = _rnk2str(rnk3)
+            rnk4 = _rnk2str(rnk4)
 
             s = sol + m.replace('_','-') + sep + rnk1 + sep + rnk2 + sep + rnk3 + sep + rnk4 + eol
             o.write(s)
         if fmt == 'latex':
+            o.write(sol + '\\hline \n')
             o.write('        \end{tabular}')
         o.close()
-
 
     def plot_model_ranking(self, var, show_text=False):
         """
@@ -1712,16 +1724,16 @@ class GlecklerPlot(object):
             ax.set_xlim(xmin=0, xmax=len(tmp)+1)
             ax.grid()
             ax.set_title('Comparison of model ranking: ' + var.upper())
-            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--')  # 1:1 line
+            ax.plot(ax.get_xlim(), ax.get_xlim(), 'k--')  # 1:1 line
 
         ax2 = fig.add_subplot(gs[1])
 
         dy = 0.1
         yoff = dy
         for k in tmp:
-            ax2.text(0.1,yoff,self._model2short_label(k) + ': ' + k)
+            ax2.text(0.1, yoff, self._model2short_label(k) + ': ' + k)
             yoff += dy
-        ax2.set_ylim(0.,yoff)
+        ax2.set_ylim(0., yoff)
         ax2.set_xticks([])
         ax2.set_yticks([])
 
@@ -1744,7 +1756,7 @@ class GlecklerPlot(object):
         x    = np.asarray(x)
         keys = np.asarray(keys)
 
-        return dict(zip(keys,x))
+        return dict(zip(keys, x))
 
 
 #-----------------------------------------------------------------------
@@ -1794,8 +1806,6 @@ class GlecklerPlot(object):
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
         x = np.asarray(x)
-        #~ if pos == 2:
-            #~ print 'X in get_mean(): ', x
 
         if method == 'median':
             return np.median(x)   #todo unittest for this!
@@ -2333,7 +2343,6 @@ def map_season(x, figsize=(8,6), **kwargs):
     else:
         savefile = None
 
-
     # plot
     if year:
         labels=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
@@ -2384,7 +2393,10 @@ def map_season(x, figsize=(8,6), **kwargs):
         else:
             tmpoutname = None
 
-        map_plot(d,ax=ax,show_colorbar=show_colorbar,overlay = overlay,savefile=tmpoutname,colorbar_orientation='horizontal',drawparallels=drawparallels, **kwargs); del d
+        map_plot(d, ax=ax, show_colorbar=show_colorbar, overlay=overlay,
+                 savefile=tmpoutname, colorbar_orientation='horizontal',
+                 drawparallels=drawparallels, **kwargs)
+        del d
     f.suptitle(tit,size=16)
     return f
 
@@ -2473,13 +2485,13 @@ class MapPlotGeneric(object):
             raise ValueError('Fatal Error: no axis for plotting specified')
         # set dummy axes invisible
         for ax in self._dummy_axes:
-            self._set_axis_invisible(ax)
+            self._set_axis_invisible(ax, frame=False)
         if self.pax is not None:
-            self._set_axis_invisible(self.pax)
+            self._set_axis_invisible(self.pax, frame=True)
         if self.cax is not None:
-            self._set_axis_invisible(self.cax)
+            self._set_axis_invisible(self.cax, frame=True)
         if self.zax is not None:
-            self._set_axis_invisible(self.zax)
+            self._set_axis_invisible(self.zax, frame=True)
 
         # do plotting
         self.im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
@@ -2487,6 +2499,27 @@ class MapPlotGeneric(object):
         # colorbar
         if self.show_colorbar:
             self._set_colorbar(self.im)
+
+
+    def _get_cticks(self):
+        """ get cticks from dictionary if available """
+        if self.ctick_prop is None:
+            return None
+        if 'ticks' in self.ctick_prop.keys():
+            return self.ctick_prop['ticks']
+
+    def _get_cticklabels(self):
+        if self.ctick_prop is None:
+            return None
+        if 'labels' in self.ctick_prop.keys():
+            l = self.ctick_prop['labels']
+            if len(l) != len(self._get_cticks()):
+                raise ValueError('CTICKS and CTICKLABELS need to have the same length!')
+            return l
+        else:
+            return None
+
+
 
 
     def _set_colorbar(self, im):
@@ -2505,14 +2538,11 @@ class MapPlotGeneric(object):
         vmax = im.get_clim()[1]
         self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
-        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self.cticks, orientation=self.colorbar_orientation)
-        if self.cticklabels is not None:
-            cb.set_ticklabels(self.cticklabels)
+        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self._get_cticks(), orientation=self.colorbar_orientation)
+        if self.ctick_prop is not None:
+            cb.set_ticklabels(self._get_cticklabels())
 
-
-
-
-    def _set_axis_invisible(self, ax):
+    def _set_axis_invisible(self, ax, frame=True):
         """
         set axis parameteres in a way that it is invisible
         """
@@ -2520,15 +2550,7 @@ class MapPlotGeneric(object):
         ax.set_yticks([])
         ax.set_xticklabels([])
         ax.set_yticklabels([])
-        #~ ax.set_frame_on(False)
-
-
-
-
-
-
-
-
+        ax.set_frame_on(frame)
 
 class SingleMap(MapPlotGeneric):
     """
@@ -2553,14 +2575,13 @@ class SingleMap(MapPlotGeneric):
 
         self.cmap = 'jet'
 
-
-
     def _plot_zonal(self):
         if self.show_zonal:
             if self.x._latitudecheckok:
                 self._draw_zonal_plot(self)
             else:
                 print('WARNING: zonal plot not possible due to invalid latitude configurations')
+
 
     def _set_cmap(self, nclasses):
         """
@@ -2583,6 +2604,15 @@ class SingleMap(MapPlotGeneric):
     def _draw_title(self, title=None, fontsize=14):
         """
         draw title, units and statistics
+
+        Parameters
+        ----------
+        title : str
+            title for figure. If not specified, then the label
+            of the data will be used
+        fontsize : int
+            fontsize for the title
+
         """
         stat = self._get_statistics_str()
         if title is None:
@@ -2666,14 +2696,30 @@ class SingleMap(MapPlotGeneric):
 
     def plot(self, show_zonal=False, show_histogram=False,
             show_timeseries=False, show_colorbar=True,
-            colorbar_orientation='vertical', cmap='jet', cticks=None,
-            cticklabels=None, vmin=None, vmax=None, nclasses=10,
+            colorbar_orientation='vertical', cmap='jet', ctick_prop=None,
+            vmin=None, vmax=None, nclasses=10,
             title=None):
         """
         routine to plot a single map
 
         Parameters
         ----------
+
+
+        ctick_prop : dict
+            dictionary that specifies the properties for the colorbar
+            ticks. Currently the following keys are supported:
+
+            'ticks' : float list : specifies locations of ticks
+            'labels' : str list : user defined label list; needs to
+                                  have same length as 'ticks'
+
+             Example:
+                ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C']
+
+
+
+
         """
 
         if colorbar_orientation not in ['vertical','horizontal']:
@@ -2684,10 +2730,10 @@ class SingleMap(MapPlotGeneric):
         self.show_histogram=show_histogram
         self.show_timeseries=show_timeseries
         self.show_colorbar=show_colorbar
-        self.cticks = cticks
-        self.cticklabels = None
+        self.ctick_prop = ctick_prop  #dictionary
         self.vmin = vmin
         self.vmax = vmax
+
 
         # set colormap and ensure to have a colormap object
         self.cmap = cmap
@@ -2702,7 +2748,7 @@ class SingleMap(MapPlotGeneric):
         self._draw_title(title=title)
 
         # adjust plots to minimize spaces between subplots
-        #~ self._adjust_figure()
+        self._adjust_figure()
 
         # save data if required
         self.save()
@@ -2711,28 +2757,31 @@ class SingleMap(MapPlotGeneric):
         """
         adjust subplot sizes
         """
-        if self.colorbar_orientation == 'vertical':
-            # pos = [left, bottom, width, height]
+        # ensure that full space is covered by data
+        self.pax.set_aspect('auto', adjustable='datalim')
 
+        #~ if self.colorbar_orientation == 'vertical':
+            #~ # pos = [left, bottom, width, height]
+#~
             #~ cleft, cbottom, cright, ctop
-            res = self.cax.get_position().get_points()
-            cleft = res[0,0]
-            cbottom = res[0,1]
-            cright = res[1,0]
-            ctop = res[1,1]
-            cax_width = cright-cleft
-
-            print cleft, cbottom, cright, ctop
-
-            res = self.pax.get_position().get_points()
-            pleft = res[0,0]
-            pbottom = res[0,1]
-            pright = res[1,0]
-            ptop = res[1,1]
-            pheight = ptop-pbottom
-            pos = [cleft, pbottom, cax_width, pheight]
-            print 'pos: ', pos
-            self.cax.set_position(pos)
+            #~ res = self.cax.get_position().get_points()
+            #~ cleft = res[0,0]
+            #~ cbottom = res[0,1]
+            #~ cright = res[1,0]
+            #~ ctop = res[1,1]
+            #~ cax_width = cright-cleft
+#~
+            #~ print cleft, cbottom, cright, ctop
+#~
+            #~ res = self.pax.get_position().get_points()
+            #~ pleft = res[0,0]
+            #~ pbottom = res[0,1]
+            #~ pright = res[1,0]
+            #~ ptop = res[1,1]
+            #~ pheight = ptop-pbottom
+            #~ pos = [cleft, pbottom, cax_width, pheight]
+            #~ print 'pos: ', pos
+            #~ self.cax.set_position(pos)
         #~ self.figure.tight_layout(w_pad=0., h_pad=0.)
 
 
@@ -2758,6 +2807,8 @@ class SingleMap(MapPlotGeneric):
             raise ValueError('Layout without colorbar not supported yet')
 
 
+
+
     def _set_layout1(self):
         """
         setlayout with only colorbar. This might be oriented either
@@ -2779,7 +2830,7 @@ class SingleMap(MapPlotGeneric):
 
         """
 
-        wspace=0.0
+        wspace=0.05
 
         if not self.show_colorbar:
             raise ValueError('This routine was called by fault!')
@@ -3842,8 +3893,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  zonal_timmean=zonal_timmean,proj=proj,stat_type=stat_type,savefile=tmpoutname,
                  colorbar_orientation=colorbar_orientation,drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
 
-
-    #-first minus second dataset (absolute difference)
+    # first minus second dataset (absolute difference)
     adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     if savefile is None:
@@ -3869,9 +3919,8 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  colorbar_orientation=colorbar_orientation,
                  drawparallels=drawparallels, savegraphicfile=graphic_name)
 
-
-    #- relative error
-    rdat = adif.div(x) #y.div(x).subc(1.) #relative data
+    # relative error
+    rdat = adif.div(x)
     if absthres is not None:
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
