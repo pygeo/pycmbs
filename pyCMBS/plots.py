@@ -1598,7 +1598,7 @@ class GlecklerPlot(object):
             os.remove(filename)
 
         def _rnk2str(r):
-            if r < 3:
+            if r <= 3:
                 return '{\\bf ' + str(r) + '}'
             else:
                 return str(r)
