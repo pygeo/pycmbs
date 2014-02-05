@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 """
 
-__name__ = "pyCMBS"
+__name__ = "pycmbs"
 """The project name."""
 
 __author__ = "$Author: $"
