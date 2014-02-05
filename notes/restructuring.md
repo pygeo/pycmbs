@@ -11,6 +11,7 @@
 
 # QUESTIONS
  * shall `benchmarking` be a part of pycmbs or a standalone project?
+ * shall `colormaps` be a regular pycmbs submodule?
 
 # SUGGESTIONS
  * increase test coverage (only four submodules are test covered, also incompletely)
