@@ -15,3 +15,11 @@
 
 # SUGGESTIONS
  * increase test coverage (only four submodules are test covered, also incompletely)
+
+# ROADMAP?
+
+# FEATURE FREEZE?
+
+# TESTS, TESTS, TESTS
+
+# Github, PIP?
