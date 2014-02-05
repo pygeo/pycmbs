@@ -4,8 +4,11 @@ import unittest
 from pycmbs.data import Data
 import os
 import scipy as sc
+import pylab as pl
 import numpy as np
 from scipy import stats
+# XXX: implicit import statements
+# from pycmbs.netcdf import NetCDF
 from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
 import pylab as pl
@@ -821,6 +824,28 @@ class TestData(unittest.TestCase):
         r,p = x.correlate(y, detrend=True)
         self.assertEquals(r.data[0,0], 0.)
 
+    def test_detrend(self):
+        x = self.D.copy()
+        t = np.arange(len(x.time))
+        r = np.random.random(len(x.time))
+        y = t * 10.73 + 5.39 + r
+        x.data[:,0,0] = np.ma.array(y, mask=y!=y)
+
+        # return object
+        xd = x.detrend()
+        slope, intercept, r_value, p_value, std_err = stats.linregress(t,y)
+        ref = y - (slope*t+intercept)
+        d = np.abs(1.-xd.data[:,0,0]/ref)
+        self.assertTrue(np.all(d < 1.E-10))
+
+        # no object
+        x = self.D.copy()
+        x.data[:,0,0] = np.ma.array(y, mask=y!=y)
+        x.detrend(return_object=False)
+        slope, intercept, r_value, p_value, std_err = stats.linregress(t,y)
+        ref = y - (slope*t+intercept)
+        d = np.abs(1.-x.data[:,0,0]/ref)
+        self.assertTrue(np.all(d < 1.E-10))
 
     def test_normalize(self):
         x = self.D.copy()
