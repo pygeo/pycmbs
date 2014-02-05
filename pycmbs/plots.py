@@ -1098,7 +1098,7 @@ class HistogrammPlot(object):
 
 
 class ZonalPlot(object):
-    def __init__(self,ax=None,dir='y'):
+    def __init__(self, ax=None, dir='y'):
         """
         @todo: still needs to take into account appropriately area weighting
 
@@ -1110,25 +1110,24 @@ class ZonalPlot(object):
         in a way that all lon/lat are on the same row/col
         """
 
-        #--- directionalities
-        if dir == 'y': #zonal plot
+        # directionalities
+        if dir == 'y': # zonal plot
             self.dir = 'y'
         elif dir == 'x':
             self.dir = 'x'
         else:
-            raise ValueError, 'Invalid value for agregation direction (ZonalPlot): ', dir
+            raise ValueError('Invalid value for agregation direction (ZonalPlot): ' % dir)
 
-        #--- set axis
+        # set axis
         if ax is None:
             f = plt.figure()
             self.ax = f.add_subplot(111)
-
         else:
             self.ax = ax
 
 #-----------------------------------------------------------------------
 
-    def plot(self,x,xlim=None,timmean = False,show_ylabel=True,label=''):
+    def plot(self, x, xlim=None, timmean=False, show_ylabel=True, label=''):
         """
         plot zonal plot
 
@@ -1144,20 +1143,19 @@ class ZonalPlot(object):
         """
 
         if not x._latitudecheckok:
-            print 'WARNING: can not do zonal plot as not regular latitudes!'
+            print('WARNING: can not do zonal plot as not regular latitudes!')
             return
 
-        #check if all latitudes are the same
+        # check if all latitudes are the same
         lu = x.lat.mean(axis=1)
-        if any( abs(lu - x.lat[:,0]) > 1.E-5):
+        if any( abs(lu - x.lat[:, 0]) > 1.E-5):
             print 'WARNING: latitudes are not unique!!!'
             print lu.shape,x.lat.shape
             print lu
 
-            print x.lat[:,0]
-            print x.lat[:,0] - lu
-
-            raise ValueError, 'Cannot work with NOT unique latitude values!'
+            print x.lat[:, 0]
+            print x.lat[:, 0] - lu
+            raise ValueError('Cannot work with NOT unique latitude values!')
 
         if timmean:
             thex = x.timmean(return_object=True)
@@ -1179,15 +1177,15 @@ class ZonalPlot(object):
                 print x.lat.shape
                 sys.exit()
 
-        #--- plot zonal statistics
+        # plot zonal statistics
         if dat.ndim == 1:
-            self.ax.plot(dat,x.lat[:,0],label=label)
+            self.ax.plot(dat,x.lat[:,0], label=label)
         elif dat.ndim == 2:
             for i in range(len(dat)):
-                self.ax.plot(dat[i,:],x.lat[:,0],label='time='+str(i))
+                self.ax.plot(dat[i,:], x.lat[:,0], label='time='+str(i))
                 self.ax.grid(b='on')
 
-        self.ax.set_ylim(-90.,90.)
+        self.ax.set_ylim(-90., 90.)
 
         if show_ylabel:
             self.ax.set_ylabel('latitude [deg]')

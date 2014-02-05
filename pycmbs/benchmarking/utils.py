@@ -5,12 +5,8 @@ For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
 
-# XXX: implicit imports
-# from pyCMBS import *
 import os
 from pycmbs.data import Data
-# from cdo import *
-
 
 def get_data_pool_directory():
     """
