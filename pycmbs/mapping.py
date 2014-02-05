@@ -16,8 +16,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import matplotlib.gridspec as grd
 
-from . data import Data
-from . plots import ZonalPlot
+from pycmbs.data import Data
+from pycmbs.plots import ZonalPlot
 
 
 class MapPlotGeneric(object):
