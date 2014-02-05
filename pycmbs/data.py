@@ -8,15 +8,15 @@ the pyCMBS licensing details.
 import os
 import sys
 
-from netcdf import *
 import numpy as np
 from matplotlib import pylab as plt
-from statistic import get_significance, ttest_ind
 import matplotlib.pylab as pl
 from scipy import stats
-import netcdftime as netcdftime
+import pycmbs.netcdftime as netcdftime
+from pycmbs.statistic import get_significance, ttest_ind
+#from pycmbs.netcdf import *
 from calendar import monthrange
-from cdo import *
+from cdo import Cdo
 import datetime
 import pytz
 import pickle
