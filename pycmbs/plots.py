@@ -369,7 +369,7 @@ class ScatterPlot(object):
     """
     Class for generation of scatterplots
     """
-    def __init__(self, x, ax=None, ticksize=10, normalize_data=False, show_xlabel=True):
+    def __init__(self, x, ax=None, ticksize=10, normalize_data=False, show_xlabel=True, figsize=None):
         """
         constructor of class C{ScatterPlot}
 
@@ -389,7 +389,7 @@ class ScatterPlot(object):
         self.show_xlabel = show_xlabel
 
         if ax is None:
-            f = plt.figure()
+            f = plt.figure(figsize=figsize)
             self.ax = f.add_subplot(111)
         else:
             self.ax = ax
@@ -411,7 +411,7 @@ class ScatterPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def plot(self,y,regress=True,fldmean=True,hexbin=False,**kwargs):
+    def plot(self, y, regress=True, fldmean=True, hexbin=False, **kwargs):
         """
         add a dataset to the scatterplot and plot
         it. It also allows to perform a regression analysis
@@ -432,22 +432,24 @@ class ScatterPlot(object):
             label=y.label
 
         if fldmean:
-            xdat = self.x.fldmean(); ydat = y.fldmean()
+            xdat = self.x.fldmean()
+            ydat = y.fldmean()
         else:
             if self.x.data.shape != y.data.shape:
                 print self.x.data.shape
                 print self.y.data.shape
                 raise ValueError, 'Invalid geometry between X and Y. fldmean=True option therefore not possible!'
             else:
-                xdat = self.x.data.flatten(); ydat = y.data.flatten()
+                xdat = self.x.data.flatten()
+                ydat = y.data.flatten()
 
         assert(isinstance(xdat,np.ma.core.MaskedArray))
         assert(isinstance(ydat,np.ma.core.MaskedArray))
 
         #--- mask invalid data
         msk = np.isnan(xdat) | np.isnan(ydat)
-        xdat = np.ma.masked_where(msk,xdat)
-        ydat = np.ma.masked_where(msk,ydat)
+        xdat = np.ma.masked_where(msk, xdat)
+        ydat = np.ma.masked_where(msk, ydat)
 
         if self.normalize:
             xdat = self.__normalize_data(xdat)
@@ -455,48 +457,34 @@ class ScatterPlot(object):
 
         #- calculate linear regression
         if regress:
-            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat,ydat)
-            nval = (~(xdat-ydat).mask).sum() #number of valid datasets used for comparison
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat, ydat)
+            #~ print 'r_value: ', r_value
+            #~ print xdat
+            #~ print ydat
+            nval = (~(xdat-ydat).mask).sum()  # number of valid datasets used for comparison
 
             assert(isinstance(xdat,np.ma.core.MaskedArray))
             assert(isinstance(ydat,np.ma.core.MaskedArray))
-
-
-            #~ xdat = np.random.random(100) #this woks !!!
-            #~ ydat = np.random.random(100)
 
             rms_error = calc_rms_error(xdat,ydat)
             bias,c_rms = calc_centered_rms_error(xdat,ydat)
             std_error = np.std(xdat-ydat)
 
-            #centered rms error (see Taylor, 2001 eq. (2))
-            #c_rms = np.sqrt( np.ma.mean(  (    (xdat - np.ma.mean(xdat) ) - (ydat - np.ma.mean(ydat)))**2.)    )
-            #bias = np.ma.mean(xdat) - np.ma.mean(ydat)
-
-            #control, should be equal to rms**2
-            #~ print 'E**2', rms_error**2.
-            #~ print 'bias ', bias
-            #~ print 'c_rms ', c_rms
-            #~ print 'Ebias**2 + anom**2 ', bias**2. + c_rms**2.
-#~
-            #~ pickle.dump(xdat,open('xdat.pkl','w'))
-            #~ pickle.dump(ydat,open('ydat.pkl','w'))
-            #~ stop
-
             if p_value < 0.01:
                 spvalue = 'p < 0.01'
             else:
                 spvalue = 'p=' + str(round(p_value,2))
+
             if r_value is None:
                 label = ''
             else:
                 label = '\n' + label + '\nr=' + str(round(r_value,2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
 
-        #- actual plot
+        # actual plot
         if hexbin:
             l = self.ax.hexbin(xdat, ydat,**kwargs)
         else:
-            l = self.ax.plot(xdat,ydat,'.', label=label, **kwargs)[0]
+            l = self.ax.plot(xdat, ydat,'.', label=label, **kwargs)[0]
 
         if hexbin:
             pass
@@ -508,7 +496,7 @@ class ScatterPlot(object):
                 if hexbin:
                     self.ax.plot(xdat,xdat*slope+intercept,'--')
                 else:
-                    self.ax.plot(xdat,xdat*slope+intercept,'--',color=l.get_color())
+                    self.ax.plot(xdat,xdat*slope+intercept,'--', color=l.get_color())
 
         if self.show_xlabel:
             self.ax.set_xlabel(self.x._get_label(),size=self.ticksize )
@@ -770,9 +758,7 @@ class GlobalMeanPlot(object):
         @return:returns figure handle
         """
 
-
-
-        def coregister(x,x1,y1,d):
+        def coregister(x, x1, y1, d):
             """
             This routine provides the functionality to coregister two timeseries of data
             x : reference x vector
@@ -790,45 +776,37 @@ class GlobalMeanPlot(object):
                     o.append(mean(y1[m]))
                 else:
                     o.append(nan)
-
             o=asarray(o)
             return o
-
-
 
         if hasattr(self,'pdata'):
             pass
         else:
-            raise ValueError, 'Can not plot mean results for GlobalMeanPlot! Missing data!'
+            raise ValueError('Can not plot mean results for GlobalMeanPlot! Missing data!')
 
-
-        f = pl.figure(); ax = f.add_subplot(111)
-
+        f = pl.figure()
+        ax = f.add_subplot(111)
         if plot_clim:
             pdata = self.pdata_clim
             print 'GlobalMeanPlot climdata: ', pdata
         else:
             pdata = self.pdata
 
-
         groups = pdata.keys()
-
         for g in groups:
             dat = pdata[g] #this gives a list, where each entry is a dictionary of ['time','data','unit']
-
             n = 0
             for i in xrange(len(dat)):
-
                 if i == 0:
                     if plot_clim:
-                        tref = dat[i]['time'] #climatology 1...12
+                        tref = dat[i]['time']  # climatology 1...12
                     else:
-                        tref = pl.date2num(dat[i]['time']) #reference time vector
-                    y    = dat[i]['data']*1.
-                    ys   = y*y
-                    n    = np.ones(len(y))*1.
+                        tref = pl.date2num(dat[i]['time'])  # reference time vector
+                    y = dat[i]['data']*1.
+                    ys = y*y
+                    n = np.ones(len(y))*1.
                 else:
-                    #interpolate results to reference time period
+                    # interpolate results to reference time period
                     if plot_clim:
                         t1 = dat[i]['time']
                     else:
@@ -844,12 +822,9 @@ class GlobalMeanPlot(object):
 
                     if plot_clim:
                         pass
-                        #print 'coregister mask: ', m
-                        #print 'data: ', y,y[m]
-
                     del m
 
-            print 'n: ', n
+
             if len(n) > 0:
                 n = map(float,n)
                 ym = y / n
@@ -1333,7 +1308,7 @@ class GlecklerPlot(object):
             r =  self.cmap(self.norm(v))
         return r.flatten()
 
-    def __plot_triangle(self,ax,value,pos='top'):
+    def __plot_triangle(self, ax, value, pos='top'):
         """
         Plot a triangle and fill its color in accordance
         with the value given. Information on colormap
@@ -1353,14 +1328,13 @@ class GlecklerPlot(object):
             return
 
         color = self.__value2color(value)
-
-        pmax = max(self.pos.values())
+        pmax = int(max(self.pos.values()))
 
         if pmax > 4:
-            raise ValueError, 'Only up to 4 observations supported!'
+            raise ValueError('Only up to 4 observations supported!')
 
         if pmax > 2:
-            #plot 4 triangles
+            # plot 4 triangles
             if pos == 'top':
                 x = [0.,1.,0.5]
                 y = [1.,1.,0.5]
@@ -1379,10 +1353,9 @@ class GlecklerPlot(object):
                 tpos = (0.75,0.5)
             else:
                 print pos
-                raise ValueError, 'Invalid position for plot'
-
+                raise ValueError('Invalid position for plot')
         else:
-            #- plot only two triangles (diagonal)
+            # plot only two triangles (diagonal)
             if pos == 'top':
                 x = [0.,0.,1.]
                 y = [0.,1.,1.]
@@ -1390,8 +1363,9 @@ class GlecklerPlot(object):
             elif pos == 'bottom':
                 x = [1.,1.,0.]
                 y = [1.,0.,0.]
-                tpos = (0.75,0.25)
+                tpos = (0.75, 0.25)
             else:
+                print 'Positions: ', self.pos.values()
                 raise ValueError, 'Invalid position for plot: ' + str(pos) + ' pmax: ' + str(pmax)
 
         xy = list(zip(x,y))
@@ -1471,7 +1445,7 @@ class GlecklerPlot(object):
                 if r1[i] == r2[j]:
                     y[i] = j+1
 
-        #Spearman correlation coefficient based on ranks
+        # Spearman correlation coefficient based on ranks
         spear = np.corrcoef(np.asarray(x), np.asarray(y))[0][1]
 
         #--- generate plot ---
@@ -1624,7 +1598,7 @@ class GlecklerPlot(object):
             os.remove(filename)
 
         def _rnk2str(r):
-            if r < 3:
+            if r <= 3:
                 return '{\\bf ' + str(r) + '}'
             else:
                 return str(r)
@@ -1826,7 +1800,7 @@ class GlecklerPlot(object):
              show_value=False, logscale=False, labelcolor='black',
              labelthreshold=None, cmap=None, norm=None,
              colorbar_boundaries=None, show_colorbar=True,
-             autoscale=True):
+             autoscale=True, ticks=None):
         """
         plot Gleckler diagram
 
@@ -1906,67 +1880,70 @@ class GlecklerPlot(object):
 
         gs = gridspec.GridSpec(nm, nv, wspace=0.05,hspace=0.05,bottom=0.2) #generate grid for subplots
 
-        cnt = 0; cnt_m = 0
+        cnt = 0
+        cnt_m = 0
 
 #        model_list = self.models.sort()
 
         for model in self.models:
-            cnt_m += 1; cnt_v  = 0
+            cnt_m += 1
+            cnt_v = 0
             for variable in self.variables:
-                ax = self.fig.add_subplot(gs[cnt],frameon=True,aspect='equal',axisbg='grey')
+                ax = self.fig.add_subplot(gs[cnt], frameon=True, aspect='equal', axisbg='grey')
                 self.__set_ax_prop(ax)
 
-                #labels
+                # labels
                 if cnt_v == 0:
                     ax.set_ylabel(model,size=size,rotation='horizontal',horizontalalignment='right') #set labels for models
                 if cnt_m == nm:
                     ax.set_xlabel(variable,size=size)
 
-                self.__plot_triangle(ax,self.get_data(variable,model,1),pos='top')    #upper triangle
-                self.__plot_triangle(ax,self.get_data(variable,model,2),pos='bottom') #lower triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,1), pos='top')    # upper triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,2), pos='bottom') # lower triangle
                 #~ if variable == 'albedo':
                     #~ print 'POS 2: ', self.get_data(variable,model,2)
-                self.__plot_triangle(ax,self.get_data(variable,model,3),pos='left')   #left triangle
-                self.__plot_triangle(ax,self.get_data(variable,model,4),pos='right')  #right triangle
-                cnt += 1; cnt_v += 1
+                self.__plot_triangle(ax,self.get_data(variable,model,3), pos='left')   # left triangle
+                self.__plot_triangle(ax,self.get_data(variable,model,4), pos='right')  # right triangle
+                cnt += 1
+                cnt_v += 1
 
         #--- legend
         #- get positions of subplots to determine optimal position for legend
         def get_subplot_boundaries(g,f):
             x = g.get_grid_positions(f)
-            b = x[0]; t = x[1]; l = x[2]; r = x[3]
+            b = x[0]
+            t = x[1]
+            l = x[2]
+            r = x[3]
             return l[0], r[-1], b[-1], t[0]
 
         if autoscale:
             self.fig.set_size_inches(3.+0.5*nv,4.+0.5*nm) #important to have this *before* drawring the colorbar
 
-
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
-        #draw legend
+        # draw legend
         c=1.
         width=(right-left)*c
         if show_colorbar:
-            self._draw_colorbar(left,width,logscale=logscale)
+            self._draw_colorbar(left,width,logscale=logscale,ticks=ticks)
 
-        if title != None:
+        if title is not None:
             self.fig.suptitle(title)
 
         return self.fig
 
 #-----------------------------------------------------------------------
 
-    def get_data(self,v,m,p):
+    def get_data(self, v, m, p):
         """
         return data for a particular model and variable
 
-        @param v: name of variable
-        @type v: str
-
-        @param m: model name
-        @type m: str
-
-        @param p: position
-        @type p: int
+        v : str
+            name of variable
+        m : str
+            model name
+        p : int
+            position
         """
         r = None
         k = self.__gen_key(m,v,p)
@@ -2010,41 +1987,31 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def add_data(self,v,m,x,pos=1):
+    def add_data(self, v, m, x, pos=1):
         """
         add a data for plotting
 
-        @param v: name of variable
-        @type v: str
-
-        @param m: model name
-        @type m: str
-
-        @param x: value to be plotted in Gleckler plot
-        @type x: float
-
-        @param pos: position where to plot data 1=top triangle, 2=lower triangle
-        @type pos: int
+        Parameters
+        ----------
+        v : str
+            name of variable
+        m : str
+            model name
+        x : float
+            value to be plotted in Gleckler plot
+        pos : int
+            position where to plot data 1=top triangle, 2=lower triangle
         """
-
-
-        if x != None:
-            #- only use valid data
-
+        if x is not None:
             if v in self.variables:
-
                 if m in self.models:
-
-                    self.data.update({ self.__gen_key(m,v,pos) :x})
+                    self.data.update({ self.__gen_key(m,v,pos) : x})
                     self.pos.update({ self.__gen_key(m,v,pos) : pos})
                 else:
-                    #print 'NO UPDATE2'
                     pass
             else:
-                #print 'NU UPDATE3'
                 pass
         else:
-            #print 'NOUPDATE 1'
             pass
 
 #-----------------------------------------------------------------------
@@ -2093,7 +2060,8 @@ class GlecklerPlot(object):
         # reichler performance index
         # (might return a list if multiple times analyzed)
         e2 = D.calc_reichler_index(weights)  # returns [time, index]
-        e2 = np.ma.masked_where(np.isnan(e2), e2)
+        if e2 is not None:
+            e2 = np.ma.masked_where(np.isnan(e2), e2)
         # Note that the returned value is E**2 for each timestep!
         # When doing the normalization, one needs to take the sqrt(E++2)
         # to obtain the actual RMSE
@@ -2111,24 +2079,22 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def _draw_colorbar(self, left, width, logscale=False):
+    def _draw_colorbar(self, left, width, logscale=False, ticks=None):
         """
         draw legend for Glecker plot. Requires information on
         the positioning of the colormap axis which can be obtained from
 
         left,right,bottom,top = get_subplot_boundaries(gs,self.fig)
 
-        @param left: left position of axis
-        @type left: float
-
-        @param width: width of the axis to plot colorbar
-        @type width: float
+        left : float
+            left position of axis
+        width : float
+            width of the axis to plot colorbar
         """
 
         if logscale:
             #http://www.mailinglistarchive.com/html/matplotlib-users@lists.sourceforge.net/2010-06/msg00311.html
             from matplotlib.ticker import LogLocator, LogFormatter, FormatStrFormatter
-            #l_f = LogFormatter(10, labelOnlyBase=False)
             l_f = FormatStrFormatter('$10^{%d}$')
         else:
             l_f = None
@@ -2141,7 +2107,9 @@ class GlecklerPlot(object):
             extend = 'neither'
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
                                    norm=self.norm,
-                                   orientation='horizontal',format=l_f,boundaries=self.bounds,extend=extend)
+                                   orientation='horizontal',
+                                   format=l_f,boundaries=self.bounds,
+                                   extend=extend, ticks=ticks)
 
     def _draw_legend(self, labels, title=None):
         """
@@ -2221,9 +2189,9 @@ def __basemap_ancillary(m,latvalues = None, lonvalues = None,drawparallels=True,
 
     """
 
-    if latvalues == None:
+    if latvalues is None:
         latvalues=np.arange(-90.,120.,30.)
-    if lonvalues == None:
+    if lonvalues is None:
         lonvalues= np.arange(-180.,180.,90.)
     if drawcountries:
         m.drawcountries()
@@ -2401,494 +2369,6 @@ def map_season(x, figsize=(8,6), **kwargs):
     return f
 
 #-----------------------------------------------------------------------
-
-class MapPlotGeneric(object):
-    """
-    Generic class to produce map plots
-    """
-
-    def __init__(self, backend='imshow', format='png', savefile=None,
-                    show_statistic = True, stat_type='mean', figure=None):
-        self.backend = backend
-        self.format = format
-        self.savefile = savefile
-        self.show_statistic = show_statistic
-        self.stat_type = stat_type
-        self._dummy_axes=[]
-
-        if figure is None:
-            self.figure = plt.figure()
-        else:
-            self.figure = figure
-
-        # consistency checks
-        self._check()
-
-        # set plotting backend routine
-        if self.backend == 'imshow':
-            self._draw = self._draw_imshow
-        else:
-            raise ValueError('Unknown backend!')
-
-    def _save_data_to_file(self, timmean=True):
-        """
-        save data to file. The filename is automatically generated
-        depednend on self.savefile and the option timmean
-
-        Parameters
-        ----------
-        timmean : bool
-            if True, then the temporal mean field (like in the plot) is
-            stored. Otherwise the entire dataset which was available for
-            plotting will be stored
-        """
-        if mean:
-            tok = '_timmean'
-        else:
-            tok = '_all'
-        if self.savefile is None:
-            return
-        if self.savefile[:-3] != '.nc':
-            self.savefile +=  tok + '.nc'
-        else:
-            self.savefile = self.savefile[:-3] + tok +  '.nc'
-        self.x.save(self.savefile, timmean=timmean, delete=True, mean=False)
-
-    def save(self, save_mean=True, save_all=False):
-        """
-        save data to file
-
-        Parameters
-        ----------
-        save_mean : bool
-            save temporal mean field to file
-        save_all : bool
-            save entire field which was available for plotting
-            to file
-        """
-        if save_mean:
-            self._save_data_to_file(timmean=True)
-        if save_all:
-            self._save_data_to_file(timmean=False)
-
-    def _check(self):
-        if self.stat_type not in ['mean', 'median', 'sum']:
-            raise ValueError('Invalid statistic type: %s' % self.stat_type)
-        if self.backend not in ['imshow']:
-            raise ValueError('Invalid plotting backend: %s' % self.backend)
-
-    def _draw_imshow(self, **kwargs):
-        """
-        draw data using imshow command
-        """
-        if self.pax is None:
-            raise ValueError('Fatal Error: no axis for plotting specified')
-        # set dummy axes invisible
-        for ax in self._dummy_axes:
-            self._set_axis_invisible(ax, frame=False)
-        if self.pax is not None:
-            self._set_axis_invisible(self.pax, frame=True)
-        if self.cax is not None:
-            self._set_axis_invisible(self.cax, frame=True)
-        if self.zax is not None:
-            self._set_axis_invisible(self.zax, frame=True)
-
-        # do plotting
-        self.im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
-
-        # colorbar
-        if self.show_colorbar:
-            self._set_colorbar(self.im)
-
-
-    def _get_cticks(self):
-        """ get cticks from dictionary if available """
-        if self.ctick_prop is None:
-            return None
-        if 'ticks' in self.ctick_prop.keys():
-            return self.ctick_prop['ticks']
-
-    def _get_cticklabels(self):
-        if self.ctick_prop is None:
-            return None
-        if 'labels' in self.ctick_prop.keys():
-            l = self.ctick_prop['labels']
-            if len(l) != len(self._get_cticks()):
-                raise ValueError('CTICKS and CTICKLABELS need to have the same length!')
-            return l
-        else:
-            return None
-
-
-
-
-    def _set_colorbar(self, im):
-        """
-        create colorbar and return colorbar object
-
-        Parameters
-        ----------
-        im : plot
-            results from e.g. an imshow command
-        """
-        if not self.show_colorbar:
-            raise ValueError('Colorbar can not be generated when not requested')
-
-        vmin = im.get_clim()[0]
-        vmax = im.get_clim()[1]
-        self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-
-        cb   = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self._get_cticks(), orientation=self.colorbar_orientation)
-        if self.ctick_prop is not None:
-            cb.set_ticklabels(self._get_cticklabels())
-
-    def _set_axis_invisible(self, ax, frame=True):
-        """
-        set axis parameteres in a way that it is invisible
-        """
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.set_frame_on(frame)
-
-class SingleMap(MapPlotGeneric):
-    """
-    A class to generate a plot with a single figure
-    """
-    def __init__(self, x, **kwargs):
-        """
-        Parameters
-        ----------
-        X : Data
-            Data object with data to plot
-        """
-        assert(isinstance(x,Data))
-        super(SingleMap, self).__init__(**kwargs)
-        self.x = x
-
-        self.pax = None  # axis for plot
-        self.cax = None  # axis for colorbar
-        self.tax = None  # axis for timeseries
-        self.hax = None  # axis for histogram
-        self.zax = None  # axis for zonal plot
-
-        self.cmap = 'jet'
-
-    def _plot_zonal(self):
-        if self.show_zonal:
-            if self.x._latitudecheckok:
-                self._draw_zonal_plot(self)
-            else:
-                print('WARNING: zonal plot not possible due to invalid latitude configurations')
-
-
-    def _set_cmap(self, nclasses):
-        """
-        generate a colormap. If self.cmap is already a colormap
-        object, then nothing happens. Otherwise a new colormap object
-        is created which has nclasses
-
-        Parameters
-        ----------
-        nclasses : int
-            number of classes for colormap
-        """
-        if hasattr(self.cmap,'monochrome'):
-            # colormap object was given
-            self.cmap = cmap_data
-        else:
-            self.cmap = plt.cm.get_cmap(self.cmap, nclasses)
-
-
-    def _draw_title(self, title=None, fontsize=14):
-        """
-        draw title, units and statistics
-
-        Parameters
-        ----------
-        title : str
-            title for figure. If not specified, then the label
-            of the data will be used
-        fontsize : int
-            fontsize for the title
-
-        """
-        stat = self._get_statistics_str()
-        if title is None:
-            title = self.x._get_label()
-        unit = self.x._get_unit()
-
-        self.pax.set_title(title + '\n', size=fontsize)
-        self.pax.set_title(unit, loc='right', size=fontsize-2)
-        self.pax.set_title(stat, loc='left', size=fontsize-2)
-
-    def _get_statistics_str(self):
-        tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
-        s = ''
-        if self.show_statistic:
-            if self.stat_type == 'mean':
-                me = tmp_xm.fldmean()
-                st = tmp_xm.fldstd()
-                assert(len(me) == 1)
-                assert(len(st) == 1)
-                me = me[0]
-                st=st[0]
-                s ='mean: $' + str(round(me,2))  + ' \pm ' + str(round(st,2)) + '$'
-            elif stat_type == 'sum': #area sum
-                me = tmp_xm.areasum()
-                assert(len(me) == 1)
-                me = me[0]
-                s = 'sum: $' + str(round(me,2))  + '$'
-            else:
-                me = np.ma.median(tmp_xm.data)
-                s = 'median: $' + str(round(me,2)) + '$'
-        return s
-
-
-    def _draw_zonal_plot(self, timmean=True, vmin=None, vmax=None, fontsize=8):
-        """
-        calculate zonal statistics and add to zonal axis
-
-        Parameters
-        ----------
-        timmean : bool
-            temporal mean for zonal plot [default=True]
-        vmin : float
-            minimum value for zonal plot
-        vmax : float
-            maximum value for zonal plot
-        """
-
-        ZP = ZonalPlot(ax=self.zax, dir='y')
-
-        if self.x.ndim == 2:
-            pass
-        elif self.x.ndim == 3:
-            nt,ny,nx = self.x.shape
-
-        ZP.plot(self.x, timmean=timmean, show_ylabel=False)
-
-        # set limits
-        if ((vmin is None) & (vmax is None)):
-            vmin = self.zax.get_xlim()[0]
-            vmax = self.zax.get_xlim()[1]
-            # symmetry if neg. and positive limits
-            if (vmin < 0.) & (vmax > 0.):
-                val = max(abs(vmin) ,abs(vmax))
-                vmin = -val
-                vmax = val
-
-        if vmin is None:
-            vmin = self.zax.get_xlim()[0]
-        if vmax is None:
-            vmax = self.zax.get_xlim()[1]
-        self.zax.set_xlim(vmin, vmax)
-
-        # set only first and last label
-        self.zax.set_xticks([vmin, vmax])
-        self.zax.plot([0,0], self.zax.get_ylim(), linestyle='-', color='grey')
-
-        for tick in self.zax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(fontsize)
-
-
-
-    def plot(self, show_zonal=False, show_histogram=False,
-            show_timeseries=False, show_colorbar=True,
-            colorbar_orientation='vertical', cmap='jet', ctick_prop=None,
-            vmin=None, vmax=None, nclasses=10,
-            title=None):
-        """
-        routine to plot a single map
-
-        Parameters
-        ----------
-
-
-        ctick_prop : dict
-            dictionary that specifies the properties for the colorbar
-            ticks. Currently the following keys are supported:
-
-            'ticks' : float list : specifies locations of ticks
-            'labels' : str list : user defined label list; needs to
-                                  have same length as 'ticks'
-
-             Example:
-                ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C']
-
-
-
-
-        """
-
-        if colorbar_orientation not in ['vertical','horizontal']:
-            raise ValueError('Invalid colorbar orientation')
-
-        self.show_zonal=show_zonal
-        self.colorbar_orientation=colorbar_orientation
-        self.show_histogram=show_histogram
-        self.show_timeseries=show_timeseries
-        self.show_colorbar=show_colorbar
-        self.ctick_prop = ctick_prop  #dictionary
-        self.vmin = vmin
-        self.vmax = vmax
-
-
-        # set colormap and ensure to have a colormap object
-        self.cmap = cmap
-        self._set_cmap(nclasses)
-
-        # set axes layout
-        self._set_layout()
-
-        # do plot using current backend
-        self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
-        self._plot_zonal()
-        self._draw_title(title=title)
-
-        # adjust plots to minimize spaces between subplots
-        self._adjust_figure()
-
-        # save data if required
-        self.save()
-
-    def _adjust_figure(self):
-        """
-        adjust subplot sizes
-        """
-        # ensure that full space is covered by data
-        self.pax.set_aspect('auto', adjustable='datalim')
-
-        #~ if self.colorbar_orientation == 'vertical':
-            #~ # pos = [left, bottom, width, height]
-#~
-            #~ cleft, cbottom, cright, ctop
-            #~ res = self.cax.get_position().get_points()
-            #~ cleft = res[0,0]
-            #~ cbottom = res[0,1]
-            #~ cright = res[1,0]
-            #~ ctop = res[1,1]
-            #~ cax_width = cright-cleft
-#~
-            #~ print cleft, cbottom, cright, ctop
-#~
-            #~ res = self.pax.get_position().get_points()
-            #~ pleft = res[0,0]
-            #~ pbottom = res[0,1]
-            #~ pright = res[1,0]
-            #~ ptop = res[1,1]
-            #~ pheight = ptop-pbottom
-            #~ pos = [cleft, pbottom, cax_width, pheight]
-            #~ print 'pos: ', pos
-            #~ self.cax.set_position(pos)
-        #~ self.figure.tight_layout(w_pad=0., h_pad=0.)
-
-
-    def _set_layout(self):
-        """
-        routine specifies layout of different axes
-        """
-        # check if option combinations are possible
-        if self.show_timeseries and self.show_histogram:
-            raise ValueError('Combination of histogram and timeseries not supported')
-
-        if self.show_colorbar:
-            # timeseries or histogram require an additional lower axis
-            if (self.show_timeseries or self.show_histogram):
-                raise ValueError('Combination with timeseries not supported yet!')
-            else:
-                if self.show_zonal:
-                    self._set_layout2()  # layout with colorbar and zonal plot
-                else:
-                    self._set_layout1()  # layout with only colorbar
-
-        else:
-            raise ValueError('Layout without colorbar not supported yet')
-
-
-
-
-    def _set_layout1(self):
-        """
-        setlayout with only colorbar. This might be oriented either
-        vertically or horizontally
-
-        vertical
-        ----------- +-+
-        |  pax      |c|
-        ----------- +-+
-
-        horizontal
-        -----------
-        |  pax    |
-        |         |
-        -----------
-        -----------
-        |  cax    |
-        -----------
-
-        """
-
-        wspace=0.05
-
-        if not self.show_colorbar:
-            raise ValueError('This routine was called by fault!')
-        if self.colorbar_orientation == 'horizontal':
-            self.gs = grd.GridSpec(2, 1, height_ratios=[95,5], wspace=wspace)
-        elif self.colorbar_orientation == 'vertical':
-            self.gs = grd.GridSpec(1, 2, width_ratios=[95,5], wspace=wspace)
-        else:
-            raise ValueError('Invalid option')
-        self.pax = self.figure.add_subplot(self.gs[0])
-        self.cax = self.figure.add_subplot(self.gs[1])
-
-
-    def _set_layout2(self):
-        """
-        layout with zonal mean and colorbar
-        """
-        if not self.show_zonal:
-            raise ValueError('Only WITH zonal mean supported here!')
-        if not self.show_colorbar:
-            raise ValueError('Only WITH colorbar supported here!')
-
-        if self.colorbar_orientation == 'horizontal':
-            self.gs = grd.GridSpec(2, 2, height_ratios=[95,5], width_ratios = [15, 85], wspace=0.05)
-            self.zax = self.figure.add_subplot(self.gs[0])
-            self.pax = self.figure.add_subplot(self.gs[1])
-            self.cax = self.figure.add_subplot(self.gs[3])
-            self._dummy_axes.append(self.figure.add_subplot(self.gs[2]))
-        elif self.colorbar_orientation == 'vertical':
-            self.gs = grd.GridSpec(1, 3, width_ratios = [15, 80, 5], wspace=0.05)
-            self.zax = self.figure.add_subplot(self.gs[0])
-            self.pax = self.figure.add_subplot(self.gs[1])
-            self.cax = self.figure.add_subplot(self.gs[2])
-        else:
-            raise ValueError('Invalid colorbar option')
-
-
-
-
-
-class MultipleMap(MapPlotGeneric):
-    def __init__(self,geometry=None,**kwargs):
-        """
-        Parameters
-        ----------
-        geometry : tuple
-            specifies number of subplots (nrows,mcols); e.g. geometry=(2,3)
-            give a plot with 2 rows and 3 cols.
-        """
-        assert(isinstance(geometry,tuple))
-        self.n = geometry[0]
-        self.m = geometry[1]
-        super(MultipleMap,self).__init__(**kwargs)
-        self.fig = plt.figure()
-        stop
-        #todo: define axes here !
-
-
 
 
 def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
@@ -3074,6 +2554,10 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
         return collection
 
+    if savegraphicfile is not None:
+        savegraphicfile = savegraphicfile.replace(' ', '_')
+
+
     if 'vmin' in kwargs.keys():
         vmin = kwargs['vmin']
     else:
@@ -3130,7 +2614,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         dummy = kwargs1.pop('levels')
 
     #--- create colormap
-    if hasattr(cmap_data,'monochrome'):
+    if hasattr(cmap_data, 'monochrome'):
         # colormap object was given
         cmap = cmap_data
     else:
@@ -3531,12 +3015,11 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         if os.path.exists(savegraphicfile):
             os.remove(savegraphicfile)
         fig.savefig(savegraphicfile, bbox_inches='tight', dpi=200)
-
     return fig
 
-#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
-def add_histogram(ax,x,bins=10):
+def add_histogram(ax, x, bins=10):
     """
     add a histogram to an axis
 
@@ -3548,17 +3031,13 @@ def add_histogram(ax,x,bins=10):
     """
 
     divider = make_axes_locatable(ax)
-    #zax     = divider.new_vertical("30%", pad=0.1, axes_class=maxes.Axes,pack_start=True)
     zax = divider.append_axes("bottom", "30%", pad=0.1)
-
-
     ax.figure.add_axes(zax, axisbg=ax.figure.get_facecolor())
 
     H = HistogrammPlot(ax=zax, bins=bins)
-    H.plot(x) #plot options ????
+    H.plot(x)
 
-
-#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 
 def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
     """
