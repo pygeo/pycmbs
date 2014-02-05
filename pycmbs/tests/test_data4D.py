@@ -2,7 +2,7 @@
 
 
 import unittest
-from pycmbs import data4d
+from pycmbs import data4D
 
 class TestPycmbsData4D(unittest.TestCase):
 
