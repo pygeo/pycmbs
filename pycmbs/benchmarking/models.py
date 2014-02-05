@@ -8,13 +8,18 @@ the pyCMBS licensing details.
 # XXX: implicit imports
 # from pycmbs.benchmarking import *
 # from pycmbs.benchmarking.utils import *
-# from cdo import *
+from cdo import Cdo
+from pycmbs.data import Data
 import tempfile as tempfile
 import copy
 import pickle
 import glob
+import os
+import sys
+import numpy as np
 
 from pycmbs.benchmarking import preprocessor
+from pycmbs.benchmarking.utils import get_T63_landseamask, get_temporary_directory
 
 class Model(Data):
     """
@@ -81,9 +86,8 @@ class Model(Data):
                     self.variables.update({ k + '_org' : dat[1]})  # (time, meanfield, originalfield)
                 else:
                     self.variables.update({ k : dat })  # update field with data
-
             else:
-                print 'WARNING: unknown function to read data (skip!), variable: ', k
+                print('WARNING: unknown function to read data (skip!), variable: %s ' % k)
                 self.variables.update({ k : None })
 
 
@@ -150,17 +154,13 @@ class MedianModel(Model):
 
                 if isinstance(self.variables[k], tuple):
                     self.variables.update({k: (None, None, None) })
-                else: #mean model!
+                else:  # mean model!
                     msk_below = M.variables[k].data <= self.variables[k].data
                     raise ValueError('Implementation of median model has not yet been finished!')
                     #could get_percentiles be used for that in some sense???
                     stop
 
-
                     up = self.n_above[k]
-
-
-
 
                     theD = hlp1.copy()
                     theD.add(hlp2, copy=False)  # SUM: by using masked arrays, the resulting field is automatically only valid, when both datasets contain valid information!
@@ -169,16 +169,6 @@ class MedianModel(Model):
                     nn = self.N[k]
                     self.N.update({k:nn+1})
                 del hlp1, hlp2
-
-
-
-
-
-
-
-
-
-
 
 
 class MeanModel(Model):
@@ -190,7 +180,7 @@ class MeanModel(Model):
         super(MeanModel, self).__init__(None, dic_variables,
                                         name='mean-model',
                                         intervals=intervals, **kwargs)
-        self.n = 0  #  specifies only the number of models that were used in general, does NOT specify if the data is valid!
+        self.n = 0  # specifies only the number of models that were used in general, does NOT specify if the data is valid!
         self._unique_name = 'model_mean'
         self.model_mean = None
         self.ensmean_called = False
@@ -210,7 +200,6 @@ class MeanModel(Model):
                 raise ValueError('Model instance or derived class expected here!')
 
         if self.n == 0:
-            #self.model_mean = M.copy()
             tmp = M.copy()
             self.variables = tmp.variables
             del tmp
@@ -271,7 +260,6 @@ class MeanModel(Model):
 
 #------------------------------------------------------------------------------
 
-
 class CMIP5Data(Model):
     """
     Class for CMIP5 model simulations. This class is derived from C{Model}.
@@ -294,17 +282,17 @@ class CMIP5Data(Model):
         self.data_dir   = data_dir
         self.shift_lon  = shift_lon
         self.type       = 'CMIP5'
-
         self._unique_name = self._get_unique_name()
-
-
 
     def _get_unique_name(self):
         """
         get unique name from model and experiment
-        @return: string with unique combination of models and experiment
+
+        Returns
+        -------
+        string with unique combination of models and experiment
         """
-        return self.model.replace(' ','') + '-' + self.experiment.replace(' ','')
+        return self.model.replace(' ', '') + '-' + self.experiment.replace(' ', '')
 
 #-----------------------------------------------------------------------
 
@@ -461,12 +449,10 @@ class CMIP5Data(Model):
 
         mdata_mean = mdata_all.fldmean()
 
-        #/// return data as a tuple list
+        # return data as a tuple list
         retval = (mdata_all.time,mdata_mean,mdata_all)
 
         del mdata_all
-
-
         return mdata, retval
 
 

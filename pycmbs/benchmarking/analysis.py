@@ -10,15 +10,26 @@ the pyCMBS licensing details.
 # from pycmbs.external_analysis import *
 # from datetime import *
 # from dateutil.rrule import *
-# from cdo import *
-from matplotlib.font_manager import FontProperties
-import pickle
+from cdo import Cdo
 
-import matplotlib.pylab as pl
-
+import matplotlib
 matplotlib.rcParams['backend'] = 'Agg'
 
+from matplotlib.font_manager import FontProperties
+import pickle
+import sys
+import os
 
+
+import matplotlib.pyplot as plt
+
+
+from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, Diagnostic
+from pycmbs.plots import GlobalMeanPlot, map_season, map_difference, ReichlerPlot
+from pycmbs.data import Data
+
+
+from pycmbs.benchmarking.utils import get_T63_landseamask, get_temporary_directory
 
 #///////////////////////////////////////////////////////////////////////
 
@@ -70,9 +81,9 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
     sys.stdout.write(' *** Preprocessing ' + raw_file + '\n')
 
     if obs_var is None:
-        raise ValueError, 'Name of variable to be processed needs to be specified!'
+        raise ValueError('Name of variable to be processed needs to be specified!')
     if shift_lon is None:
-        raise ValueError, 'Lon shift parameter needs to be specified!'
+        raise ValueError('Lon shift parameter needs to be specified!')
 
     # PREPROCESSING of observational data  ---
     cdo = Cdo()
@@ -162,8 +173,6 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
         obs_monthly._apply_mask(themask)
 
     return obs, obs_monthly
-
-    #--- preprocessing END ---
 
 
 #///////////////////////////////////////////////////////////////////////
@@ -461,7 +470,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     else:
         cticks_rdiff = None
 
-
     m_data_org = obs_type + '_org'  # name of original data field
 
     #/// land sea mask (options: land,ocean, global for parameter area)
@@ -506,9 +514,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     valid_obs = ((~obs_orig.data.mask).sum(axis=0)) > 0 #find all data where there is at least SOME data
     obs_orig._apply_mask(valid_obs)
     obs_monthly._apply_mask(valid_obs)
-
-
-    #obs_orig.save(filename='testfile.nc',delete=True)
 
     def mask_seaice_extent(x, msk):
         tmpmsk = x.data > 15.
@@ -558,7 +563,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         GM.plot(obs_monthly, linestyle='--', show_std=False, group='observations', stat_type=stat_type)
 
     if f_mapseasons == True:  # seasonal mean plot for observations
-        f_season = map_season(obs_orig, use_basemap=use_basemap, cmap_data='jet',
+        f_season = map_season(obs_orig, use_basemap=use_basemap,
+                              cmap_data='jet',
                               show_zonal=False, zonal_timmean=True,
                               nclasses=nclasses,
                               vmin=vmin, vmax=vmax, cticks=cticks,
@@ -569,8 +575,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             report.figure(f_season, caption='Seasonal mean ' + obs_name)
         else:
             report.figure(f_season, caption='Monthly mean ' + obs_name)
-
-
 
     ####################################################################################################################
     # MAIN LIST OVER MODELS
@@ -587,7 +591,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         model_data.unit = theunit
 
-        #todo: make this more flexible !!!
+        ### todo: make this more flexible !!!
         if obs_type == 'seaice_extent':
             model_data = mask_seaice_extent(model_data, ls_mask)
 
@@ -648,7 +652,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                    cticks_diff=cticks_diff,
                                    cticks_rdiff=cticks_rdiff)
             report.figure(f_dif, caption='Temporal mean fields (top) and absolute and relative differences (bottom)')
-            pl.close(f_dif.number)
+            plt.close(f_dif.number)
             del f_dif
 
         f_compare_timeseries = False  # todo
@@ -697,7 +701,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 report.figure(f_season, caption='Seasonal mean climatology for ' + model.name)
             else:
                 report.figure(f_season, caption='Monthly mean climatology for ' + model.name)
-            pl.close(f_season.number);
+            plt.close(f_season.number)
             del f_season
 
         if f_mapseason_difference:
@@ -713,7 +717,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                       stat_type=stat_type,
                                       show_stat=True,
                                       drawparallels=False,
-                                      cticks=[cticks_diff[0],cticks_diff[-1]],
+                                      cticks=[cticks_diff[0],
+                                      cticks_diff[-1]],
                                       titlefontsize=10)
 
             if len(model_data.data) == 4:
@@ -724,7 +729,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 report.figure(f_season_dif,
                               caption='Monthly mean climatology of difference between '
                                       + model.name.upper() + ' and ' + obs_orig.label.upper())
-            pl.close(f_season_dif.number);
+            plt.close(f_season_dif.number)
             del f_season_dif
 
         if f_pattern_correlation:
@@ -742,8 +747,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             s_start_time = '1979-01-01' #todo: use periods specified in options !!!!
             s_stop_time = '2012-12-31'
-            start_time = pl.num2date(pl.datestr2num(s_start_time))
-            stop_time = pl.num2date(pl.datestr2num(s_stop_time))
+            start_time = pylab.num2date(pylab.datestr2num(s_start_time))
+            stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
             #generate a reference monthly timeseries (datetime)
             tref = np.asarray(
@@ -753,7 +758,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             # HOVMOELLER PLOT FOR MODEL
             ####################################################
 
-            #--- perform temporal subsetting and interpolation for hovmoeller plot
+            # perform temporal subsetting and interpolation for hovmoeller plot
             tmp = model.variables[obs_type + '_org'][2]
             if tmp is not None:
                 tmp = tmp.interp_time(pl.date2num(tref))
@@ -777,13 +782,18 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 if ls_mask is not None:
                     tmp._apply_mask(ls_mask)
 
-                hov_obs = hovmoeller(tmp.date, None, rescaley=20, rescalex=20)
-                hov_obs.plot(climits=[vmin, vmax], input=tmp, xtickrotation=90, cmap='jet', ax=ax3, showcolorbar=True,
+                hov_obs = hovmoeller(tmp.date, None, rescaley=20,
+                                     rescalex=20)
+                hov_obs.plot(climits=[vmin, vmax], input=tmp,
+                             xtickrotation=90, cmap='jet', ax=ax3,
+                             showcolorbar=True,
                              showxticks=False)
 
                 hov_obs.hov = None
-                hov_obs.plot(climits=[dmin, dmax], input=tmp.get_deseasonalized_anomaly(base='current'),
-                             xtickrotation=90, cmap='RdBu_r', ax=ax4, showcolorbar=True)
+                hov_obs.plot(climits=[dmin, dmax],
+                             input=tmp.get_deseasonalized_anomaly(base='current'),
+                             xtickrotation=90, cmap='RdBu_r', ax=ax4,
+                             showcolorbar=True)
                 del hov_obs, tmp
 
             report.figure(f_hov,
@@ -813,8 +823,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             REGSTAT.save(prefix = sprefix, dir = report.outdir, format='txt')
 
             del REGSTAT
-
-
 
         if f_reichler == True:
             sys.stdout.write('\n *** Computing diagnostics (Reichler index). \n')
@@ -887,16 +895,16 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
         fapar_data = model.variables['phenology_faPAR']  # data object for phenology variable
         snow_data = model.variables['snow']             # data object for snow variable
 
-        #/// output directory for analysis results of current model
+        # output directory for analysis results of current model
         outdir = os.getcwd() + '/output/GPA-01-' + model.name.replace(' ', '')
 
-        #/// directory where model simulations are performed and templates are copied to
+        # directory where model simulations are performed and templates are copied to
         rundir = './output/tmp_' + model.name.replace(' ', '') + '/'
 
-        #/// Gleckler plot
+        # Gleckler plot
         GP.add_model(model.name)
 
-        #/// file and variable names ///
+        # file and variable names ///
         data_file = fapar_data.filename
         varname = fapar_data.varname
 
@@ -1295,9 +1303,9 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
                                                            ' the ensemble of models or observations', bbox_inches=None)
     report.figure(fGb, caption='Global means for ' + thelabel + ' (summary climatology)', bbox_inches=None)
 
-    pl.close(fG.number)
-    pl.close(fGa.number)
-    pl.close(fGb.number)
+    plt.close(fG.number)
+    plt.close(fGa.number)
+    plt.close(fGb.number)
 
     del GM, fG, fGa, fGb
 
@@ -1347,7 +1355,7 @@ def beer_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report
     local_plot_options = plot_options.options["gpp"]
     cticks = (0.0, 300.0, 600.0, 900.0, 1200.0, 1500.0, 1800.0, 2100.0, 2400.0, 2700.0)
 
-    fG = figure()
+    fG = plt.figure()
     ax = fG.add_subplot(111,
                         xlabel='lat',
                         ylabel='GPP [gC m-2 a-1]',
@@ -1428,8 +1436,8 @@ def time_series_regional_analysis(x, y, msk):
     if x.shape != y.shape:
         raise ValueError, 'Datasets have not the same geometry'
 
-    X = x.copy();
-    Y = y.copy() #copy data to not work on the original datasets
+    X = x.copy()
+    Y = y.copy()
 
     #--- mask data as invalid ---
     invalid = x.data.mask | y.data.mask #mask as invalid if one of the datasets is invalid
@@ -1442,22 +1450,19 @@ def time_series_regional_analysis(x, y, msk):
     L = LinePlot(title='mytitle')
 
     for v in np.unique(msk): #analysis for all unique values in mask
-
-        #--- now do analysis for each region ---
-
-        #1) calculate mask
+        # now do analysis for each region ---
+        # 1) calculate mask
         m = msk == v
         tmpx = X.copy();
         tmpx._apply_mask(m)
         tmpy = Y.copy();
         tmpy._apply_mask(m)
 
-        #2) plot results
+        # 2) plot results
         L.plot(tmpx, label='X region ' + str(int(v)).zfill(4))  # calculates automatically the fldmean()
         L.plot(tmpy, label='X region ' + str(int(v)).zfill(4))
 
         del tmpx, tmpy
-
     return L.figure
 
 
