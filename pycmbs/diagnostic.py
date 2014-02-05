@@ -17,12 +17,12 @@ import matplotlib.axes as maxes
 import matplotlib.cm as cm
 import matplotlib.colors as col
 import matplotlib as mpl
-from plots import map_plot, pm_bar, add_nice_legend
-from data import Data
+from pycmbs.plots import map_plot, pm_bar, add_nice_legend
+from pycmbs.data import Data
 from scipy import linalg, dot
 import matplotlib.gridspec as gridspec
-from anova import *
-from taylor import Taylor
+from pycmbs.anova import *
+from pycmbs.taylor import Taylor
 from pylab import *
 import pickle
 
