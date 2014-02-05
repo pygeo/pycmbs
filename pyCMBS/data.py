@@ -1040,17 +1040,17 @@ class Data(object):
         shift_lon : bool
             if given, longitudes will be shifted
 
-        @param start_time: start time for reading the data
-        @type: start_time: datetime object
+        start_time : datetime
+            start time for reading the data
 
-        @param stop_time: stop time for reading the data
-        @type: stop_time: datetime object
+        stop_time : datetime
+            stop time for reading the data
 
-        @param time_var: name of time variable field
-        @type time_var: str
+        time_var : str
+            name of time variable field
 
-        @param checklat: check if latitude is in decreasing order (N ... S)
-        @type checklat: bool
+        checklat : bool
+            check if latitude is in decreasing order (N ... S)
         """
         if not os.path.exists(self.filename):
             sys.exit('Error: file not existing: ' + self.filename)
@@ -2392,18 +2392,28 @@ class Data(object):
     def temporal_trend(self, return_object=False, pthres=1.01):
         """
         calculate temporal trend of the data over time
-        the slope of the temporal trend
-        (unittest)
+        the slope of the temporal trend has unit [dataunit/day]
 
-        @param return_object; specifies if a C{Data} object shall be returned [True]
-                              or if a numpy array shall be returned [False]
+        Parameters
+        ----------
 
-        @param pthres: specifies significance threshold; all values above this threshold will be masked
-        @return: returns either C{Data} object or a numpy array. The following variables are returned: correlation,
-        slope, intercept, p-value
-                 the slope which is returned has unit [dataunit/day]
+        return_object : bool
+            specifies if a C{Data} object shall be returned [True]
+            or if a numpy array shall be returned [False]
+        pthres : float
+            specifies significance threshold; all values above this threshold will be masked
+
+        Returns
+        -------
+        The following variables are returned:
+        correlation, slope, intercept, p-value
+
+        Tests
+        -----
+        unittest implemented
+
         """
-        dt = np.asarray([x.days for x in self.date - self.date[0]])  # time difference in days
+        dt = np.asarray([x.days for x in self.date - self.date[0]]).astype('float')  # time difference in days
         x = np.ma.array(dt, mask=dt != dt)  # ensure that a masked array is used
 
         R, S, I, P, C = self.corr_single(x, pthres=pthres)
@@ -2467,6 +2477,7 @@ class Data(object):
         ----
         unittest implemented
         """
+
         if self.data.ndim == 3:
             res = self.data.min(axis=0)
         elif self.data.ndim == 2:
@@ -4273,22 +4284,27 @@ class Data(object):
         msk = (P > pthres) | (np.isnan(R))
         #msk = np.zeros_like(R).astype('bool')
         Rout.data = np.ma.array(R, mask=msk).copy()
+        Rout.unit = '-'
 
         Sout = self.copy()  # copy object to get coordinates
         Sout.label = 'slope'
         Sout.data = np.ma.array(S, mask=msk).copy()
+        Sout.unit = self.unit
 
         Iout = self.copy()  # copy object to get coordinates
         Iout.label = 'intercept'
         Iout.data = np.ma.array(I, mask=msk).copy()
+        Iout.unit = self.unit
 
         Pout = self.copy()  # copy object to get coordinates
         Pout.label = 'p-value'
         Pout.data = np.ma.array(P, mask=msk).copy()
+        Pout.unit = '-'
 
         Cout = self.copy()  # copy object to get coordinates
         Cout.label = 'covariance'
         Cout.data = np.ma.array(np.ones(P.shape) * np.nan, mask=msk).copy()  # currently not supported: covariance!
+        Cout.unit = '-'
 
         if mask is not None:
             # apply a mask
@@ -4297,12 +4313,6 @@ class Data(object):
             Iout._apply_mask(mask)
             Pout._apply_mask(mask)
             Cout._apply_mask(mask)
-
-        Rout.unit = None
-        Sout.unit = None
-        Iout.unit = None
-        Pout.unit = None
-        Cout.unit = None
 
         return Rout, Sout, Iout, Pout, Cout
 

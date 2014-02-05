@@ -70,13 +70,9 @@ class Report(object):
 #-----------------------------------------------------------------------
 
     def open(self):
-        """
-        open report
-        """
-
+        """ open report """
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
-
         if os.path.exists(self.filename):
             os.remove(self.filename)
         self.file = open(self.filename, 'w')
@@ -85,12 +81,9 @@ class Report(object):
 #-----------------------------------------------------------------------
 
     def close(self):
-        """
-        close report
-        """
+        """ close report """
         self._write_footer()
         self.file.close()
-
         if self.autocompile:
             print 'Compiling REPORT ...'
             self.compile()
@@ -98,9 +91,7 @@ class Report(object):
 #-----------------------------------------------------------------------
 
     def _write_header(self):
-        """
-        write document header
-        """
+        """ write document header """
         self.write('\documentclass{article}')
         self.write('\usepackage{fancyhdr}')
         self.write('\usepackage{graphicx}')
