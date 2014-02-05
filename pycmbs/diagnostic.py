@@ -2214,6 +2214,7 @@ class Diagnostic(object):
             raise ValueError('Can not calculate Reichler & Kim index without STD information!')
 
         if not self.x._is_monthly():
+            print self.x.label
             raise ValueError('Variable X has no monthly stepping!')
         if not self.y._is_monthly():
             raise ValueError('Variable Y has no monthly stepping!')

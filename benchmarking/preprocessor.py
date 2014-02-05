@@ -45,6 +45,12 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         for x in l:
             r += x + ' '
         return r
+        
+    def _log(self, s):
+        logfile = self.output_dir + 'cmip5_preprocessor.log'
+        o = open(logfile, 'a')
+        o.write(s + '\n')
+        o.close()    
 
     def mergetime(self, n, start_time=None, stop_time=None, delete=False):
         """
@@ -76,8 +82,11 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         else:
             selstr = ''
 
+        ens_files = self.ensemble_files[n]
+        self._log(self.model + '\t' + str(n) + '\t' + str(len(ens_files))) #model name, ensemble nr., files per ensemble member
+
         # create string with filenames
-        fstr = self._filelist(self.ensemble_files[n])
+        fstr = self._filelist(ens_files)
 
         # output file
         ofile = self.output_dir + os.path.basename(self._get_file_wildcard()) + str(n) + '_mergetime.nc'
@@ -94,24 +103,30 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
                 os.remove(tmpfile)
             cmd1 = 'cdo -f nc mergetime ' + fstr + ' ' + tmpfile
             os.system(cmd1)
+            
+            if not os.path.exists(tmpfile):
+                tmp_s='Error in creating temporary file: ABORT! ' + self.model + ' ' + self.experiment + ' ' + tmpfile
+                print tmp_s
+                self._log(tmp_s)
+            
             cmd = 'cdo -f nc ' + selstr + ' ' + tmpfile + ' ' + ofile
 
 
-        #~ print cmd
-        #~ stop
+        # calculate final output file 
         if os.path.exists(ofile):
             if delete:
                 os.remove(ofile)
             else:
+                self.mergetime_files.append(ofile)        
                 print('File already existing ... no processing is done')
                 return
 
         print('Doing temporal preprocessing for ensemble member ... %s' % n)
         os.system(cmd)
+        if os.path.exists(ofile):  # just ensure that everything wen well
+            self.mergetime_files.append(ofile)        
 
-        if selstr == '':
-            pass
-        else:
+        if os.path.exists(tmpfile):
             os.remove(tmpfile)
 
     def get_ensemble_files(self, maxens=10):
@@ -151,7 +166,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
     def mergetime_ensembles(self, delete=False, start_time=None, stop_time=None):
         self.get_ensemble_files()
         for i in self.ensemble_files.keys():
-            E.mergetime(i, delete=delete, start_time=start_time, stop_time=stop_time)
+            self.mergetime(i, delete=delete, start_time=start_time, stop_time=stop_time)
 
     def ensemble_mean(self, delete=False, start_time=None, stop_time=None):
         """
@@ -168,7 +183,8 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             self.mergetime_ensembles(delete=delete, start_time=start_time, stop_time=stop_time)
         if len(self.mergetime_files) < 2:
             print self.mergetime_files
-            raise ValueError('No ensemble mean calculation possible as not enough files!')
+            print 'No ensemble mean calculation possible as not enough files!'
+            self._log('No ensemble mean calculation possible as not enough files! ' + self.model + ' ' + self.experiment)
         fstr = self._filelist(self.mergetime_files)
 
         # ensemble mean calculation
