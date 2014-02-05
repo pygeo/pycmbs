@@ -1,62 +1,18 @@
 from unittest import TestCase
 import unittest
 
-__author__ = 'Alexander Loew'
-
-from pyCMBS.data import *
+from pycmbs.data import Data
+import os
 import scipy as sc
-import pylab as pl
 import numpy as np
 from scipy import stats
-from pyCMBS.netcdf import *
-from dateutil.rrule import *
+from dateutil.rrule import rrule
+from dateutil.rrule import MONTHLY
+import pylab as pl
 
-#todo: check test_cut_bounding_box (right border!)
-#_apply_mask
-#_sub_sample --> needs still implementation for check of values!
-# fldstd()
-
-
-#unittests needed for
-# - get_zonal_mean
-
-# - get_percentile
-# - _shift_lon
-# - _shift_lon_360
-# - _apply_temporal_mask
-
-# - partial_correlation
-
-#- get_deseasonalized_anomaly
-
-# _temporal_subsetting
-# interp_time
-
-#read_netcdf
-#get_aoi
-#get_aoi_lat_lon
-
-#get_valid_data
-
-#shift_x
-#__shift3D
-#timeshift
-
-#__shift2D
-
-#pad_timeseries
-#_convert_monthly_timeseries
-
-
-
-
-
-
-
-class TestData(TestCase):
+class TestData(unittest.TestCase):
 
     def setUp(self):
-        # init Data object for testing
         n=1000  # slows down significantly! constraint is percentile  test
         x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
@@ -70,7 +26,6 @@ class TestData(TestCase):
         self.D.filename = 'testinputfilename.nc'
         self.D.varname = 'testvarname'
         self.D.long_name = 'This is the longname'
-
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
@@ -78,7 +33,7 @@ class TestData(TestCase):
     def test_get_time_indices(self):
         d1 = pl.num2date(pl.datestr2num('2001-01-05'))
         d2 = pl.num2date(pl.datestr2num('2001-05-05'))
-        self.D._oldtime = True #use old time convention to be compliant with pylab *PLUS ONE* feature
+        self.D._oldtime = True 
         i1,i2 = self.D._get_time_indices(d1,d2)
         s1 = str(pl.num2date(self.D.time[i1]))
         s2 = str(pl.num2date(self.D.time[i2]))
@@ -263,6 +218,8 @@ class TestData(TestCase):
     def test_addc(self):
         r1 = self.D.addc(5.,copy=True)
         self.assertAlmostEqual(r1.data[4,0,0]-5.,self.D.data[4,0,0], 8)
+
+    def testAddcWithoutDataCopy(self):
         ref = self.D.data[5,0,0]
         self.D.addc(666.,copy=False)
         self.assertEqual(ref+666.,self.D.data[5,0,0])
@@ -298,40 +255,13 @@ class TestData(TestCase):
         self.assertEqual(p.data[0,0], 0.)
 
     def test_set_time(self):
-        #self.D.time_str = 'day as %Y%m%d.%f'
-        #self.D.time = [20120503,19750101]
-        #self.D.set_time()
-        #print self.time
-        #self.D.time_str = "days since 1992-01-01 00:00:00"
-        #self.D.time = np.array([6633, 6725, 6817, 6908])
-        #self.D.set_time()
-        #if self.D.verbose:
-        #    print self.D.time[0]
-        #    print self.D.time[3]
-        #self.assertEqual(self.D.time[0],733831.)
-        #self.assertEqual(self.D.time[3],734106.)
-
-        #print ''
-        #print '---'
-        self.D.time_str = "days since 0001-01-01 00:00:00" #behaviour look a bit strange here, as num2date gives number of days PLUS one (see num2date docstring)
+        # NB: num2date gives number of days PLUS one (see num2date docstring)
+        self.D.time_str = "days since 0001-01-01 00:00:00"         
         self.D.time = np.array([1.])
         self.D.set_time()
-        #if self.D.verbose:
-        #    print 'Results: ', self.D.time[0], pl.num2date(self.D.time[0])
         self.assertEqual(self.D.time[0],1.)
 
-        #print ''
-        #print '---'
-        #self.D.time_str = "days since 1997-10-21 00:00:00" #o.k.
-        #self.D.time = np.array([0., 2.])
-        #self.D.set_time()
-        #if self.D.verbose:
-        #    print self.D.time[0],pl.num2date(self.D.time[0])
-        #    print self.D.time[1],pl.num2date(self.D.time[1])
-        #self.assertEqual(self.D.time[0],729318.0)
-        #self.assertEqual(self.D.time[1],729320.0)
-
-    def test_temporal_trend(self):
+    def testTemporalTrendNoTimeNormalization(self):
         y = np.arange(len(self.D.time))*2.+8.
         self.D.data[:, 0, 0] = y
 
@@ -342,29 +272,28 @@ class TestData(TestCase):
         R, S, I, P = self.D.temporal_trend()  # no object is returned (default)
         self.assertEqual(R[0,0], r_value)
         self.assertEqual(S[0,0], slope)
-        #self.assertEqual(I[0,0],intercept)
 
     def test_get_yearmean(self):
         #check get_yeartime
         D = self.D.copy()
-        t1 = pl.datestr2num('2001-01-01') + np.arange(4) #year 2001
-        t2 = pl.datestr2num('2005-05-15') + np.arange(4) #year 2005
-        t3 = pl.datestr2num('2010-07-15') + np.arange(4) #year 2010
+        t1 = pl.datestr2num('2001-01-01') + np.arange(4)
+        t2 = pl.datestr2num('2005-05-15') + np.arange(4)
+        t3 = pl.datestr2num('2010-07-15') + np.arange(4)
         D.time = np.asarray([t1,t2,t3]).flatten()
-        D._oldtime = True #use old python pylab time definition to be compliant with the test results here
+        D._oldtime = True
         data = pl.rand(len(D.time), 1, 1)
         data[8:, 0, 0] = np.nan
-        D.data = np.ma.array(data,mask=np.isnan(data))       #generate random data
+        D.data = np.ma.array(data,mask=np.isnan(data))
         r1 = np.mean(D.data[0:4])
         r2 = np.mean(D.data[4:8])
         r3=np.mean(D.data[8:])
         #print 'Reference results: ', r1, r2, r3
         years, res = D.get_yearmean()
         #print 'Result: ', res
-        #~ print 'years[0]: ',years[0]
-        #~ print 'Times: ', D.num2date(D.time)
-        #~ print 'Times2: ', pl.num2date(D.time)
-        #~ print pl.num2date(t1)
+        # print 'years[0]: ',years[0]
+        # print 'Times: ', D.num2date(D.time)
+        # print 'Times2: ', pl.num2date(D.time)
+        # print pl.num2date(t1)
         self.assertEqual(years[0],2001)
         self.assertEqual(years[1],2005)
         self.assertEqual(res[0,0,0],r1)
@@ -634,7 +563,6 @@ class TestData(TestCase):
         if p <= 0.05:
             self.assertEqual(s.p_mask[0,0], True)
         else:
-            print p
             self.assertEqual(s.p_mask[0,0], False)
 
         #test for same data
@@ -853,7 +781,6 @@ class TestData(TestCase):
 
             #1) test if scipy functions return similar results
             self.assertAlmostEqual(r_value1,r_value2,places=10)
-            #self.assertAlmostEqual(p_value1,p_value2,places=15) #not used, as BUG in stats.mstats.linregress!
 
             #2) test data.correlate() results
             self.assertAlmostEqual(r.data[0,0],r_value2,places=10) #results from stats.linregress are used, as mstats is BUGGY!!
@@ -894,28 +821,6 @@ class TestData(TestCase):
         r,p = x.correlate(y, detrend=True)
         self.assertEquals(r.data[0,0], 0.)
 
-    def test_detrend(self):
-        x = self.D.copy()
-        t = np.arange(len(x.time))
-        r = np.random.random(len(x.time))
-        y = t * 10.73 + 5.39 + r
-        x.data[:,0,0] = np.ma.array(y, mask=y!=y)
-
-        # return object
-        xd = x.detrend()
-        slope, intercept, r_value, p_value, std_err = stats.linregress(t,y)
-        ref = y - (slope*t+intercept)
-        d = np.abs(1.-xd.data[:,0,0]/ref)
-        self.assertTrue(np.all(d < 1.E-10))
-
-        # no object
-        x = self.D.copy()
-        x.data[:,0,0] = np.ma.array(y, mask=y!=y)
-        x.detrend(return_object=False)
-        slope, intercept, r_value, p_value, std_err = stats.linregress(t,y)
-        ref = y - (slope*t+intercept)
-        d = np.abs(1.-x.data[:,0,0]/ref)
-        self.assertTrue(np.all(d < 1.E-10))
 
     def test_normalize(self):
         x = self.D.copy()
@@ -1083,6 +988,15 @@ class TestData(TestCase):
 
 
     def test_fldstd(self):
+        #define testdata
+        D = self.D
+        x = np.ones((1,3,1))
+        for i in [0]:
+            x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
+        D.data = np.ma.array(x,mask=x!=x)
+        y = np.ones((3,1))
+        y[0,0] = 75.; y[1,0] = 25.; y[2,0] = 25.
+        D.cell_area = y
 
         # define testcase described under http://en.wikipedia.org/wiki/Weighted_mean#Weighted_sample_variance
         # For example, if values \{2, 2, 4, 5, 5, 5\} are drawn from
@@ -1485,6 +1399,5 @@ class TestData(TestCase):
         self.assertAlmostEqual(tmp[10:13,1,0].sum()/3., y3a.data[11,1,0], 8)
 
 
-
-#~ if __name__ == '__main__':
-    #~ unittest.main()
+if __name__ == '__main__':
+    unittest.main()
