@@ -5,11 +5,12 @@ For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
 
-from utils import *
-from external_analysis import *
-from datetime import *
-from dateutil.rrule import *
-from cdo import *
+# XXX: implicit imports
+# from benchmarking.utils import *
+# from pycmbs.external_analysis import *
+# from datetime import *
+# from dateutil.rrule import *
+# from cdo import *
 from matplotlib.font_manager import FontProperties
 import pickle
 
