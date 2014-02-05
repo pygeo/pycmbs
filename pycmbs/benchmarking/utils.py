@@ -8,6 +8,7 @@ the pyCMBS licensing details.
 # XXX: implicit imports
 # from pyCMBS import *
 import os
+from pycmbs.data import Data
 # from cdo import *
 
 
