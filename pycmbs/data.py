@@ -14,7 +14,7 @@ import matplotlib.pylab as pl
 from scipy import stats
 import pycmbs.netcdftime as netcdftime
 from pycmbs.statistic import get_significance, ttest_ind
-#from pycmbs.netcdf import *
+from pycmbs.netcdf import NetCDFHandler
 from calendar import monthrange
 from cdo import Cdo
 import datetime
