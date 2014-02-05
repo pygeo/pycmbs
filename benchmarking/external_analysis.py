@@ -144,6 +144,7 @@ class ExternalAnalysis():
 
 
 
+# XXX: clean up comments
 #~ template='test.txt'
 #~ tags = [{'tag':'ALEX','value':'peakXXXmat'}]
 #~

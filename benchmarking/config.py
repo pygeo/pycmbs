@@ -8,11 +8,12 @@ the pyCMBS licensing details.
 import os
 import sys
 import numpy as np
-from utils import get_data_pool_directory
+from benchmarking.utils import get_data_pool_directory
 import pylab as pl
 import glob
-from pyCMBS import Region, Data
-from cdo import *
+from pycmbs.data import Region, Data
+# XXX: implicit import
+# from cdo import *
 
 class ConfigFile(object):
     """

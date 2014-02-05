@@ -5,9 +5,10 @@ For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
 
-from pyCMBS import *
-from utils import *
-from cdo import *
+# XXX: implicit imports
+# from pyCMBS import *
+# from utils import *
+# from cdo import *
 import tempfile as tempfile
 import copy
 import pickle

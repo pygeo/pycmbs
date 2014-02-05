@@ -5,9 +5,10 @@ For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
 
-from pyCMBS import *
+# XXX: implicit imports
+# from pyCMBS import *
 import os
-from cdo import *
+# from cdo import *
 
 
 def get_data_pool_directory():
