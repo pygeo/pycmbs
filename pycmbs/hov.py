@@ -26,7 +26,7 @@ HOVMOELLER CLASS
 class to generate hovmoeller diagrams
 '''
 
-from pylab import *
+#from pylab import *
 import pylab as pl
 import matplotlib.dates as mdates
 import sys
