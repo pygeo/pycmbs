@@ -13,6 +13,10 @@ from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
 import pylab as pl
 
+from nose.tools import assert_raises
+
+
+
 class TestData(unittest.TestCase):
 
     def setUp(self):
@@ -33,10 +37,22 @@ class TestData(unittest.TestCase):
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
 
+    def test_DataInitLabelNotNone(self):
+        d = Data(None,None, label='testlabel')
+        self.assertEqual(d.label, 'testlabel')
+
+    def test_DataInitUnitNotNone(self):
+        d = Data(None,None, unit='myfunkyunit')
+        self.assertEqual(d.unit, 'myfunkyunit')
+
+    def test_DataInitTimeCycleNotNone(self):
+        d = Data(None,None, time_cycle=24)
+        self.assertEqual(d.time_cycle, 24)
+
     def test_get_time_indices(self):
         d1 = pl.num2date(pl.datestr2num('2001-01-05'))
         d2 = pl.num2date(pl.datestr2num('2001-05-05'))
-        self.D._oldtime = True 
+        self.D._oldtime = True
         i1,i2 = self.D._get_time_indices(d1,d2)
         s1 = str(pl.num2date(self.D.time[i1]))
         s2 = str(pl.num2date(self.D.time[i2]))
@@ -259,7 +275,7 @@ class TestData(unittest.TestCase):
 
     def test_set_time(self):
         # NB: num2date gives number of days PLUS one (see num2date docstring)
-        self.D.time_str = "days since 0001-01-01 00:00:00"         
+        self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.time = np.array([1.])
         self.D.set_time()
         self.assertEqual(self.D.time[0],1.)
@@ -667,14 +683,21 @@ class TestData(unittest.TestCase):
         d = D.data[:,0,0] *2.
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
+    #~ def test_ConvertMonthlyTimeSeries_RaisesValueErrorForInvalidCalendar(self):
+        #~ d = self.D
+        #~ d.calendar = 'nothing_calendar'
+        #~ assert_raises(ValueError, d._convert_monthly_timeseries())  not working yet!
+
+
     def test_partial_correlation(self):
         x = self.D
         nt,ny,nx = x.data.shape
         y = x.copy(); y.data = y.data + pl.rand(nt,ny,nx)*1000.
         z = x.copy(); z.data = z.data * pl.rand(nt,ny,nx)*100.
 
-        res  = x.partial_correlation(y,z)
-        res1 = x.partial_correlation(y,z,ZY=z) #test with second condition
+        res  = x.partial_correlation(y, z)
+        resarr  = x.partial_correlation(y, z, return_object=False)
+        res1 = x.partial_correlation(y, z, ZY=z)  # test with second condition
 
         #generate reference solution
         slope, intercept, rxy, p_value, std_err = stats.linregress(x.data[:,0,0],y.data[:,0,0])
@@ -683,11 +706,12 @@ class TestData(unittest.TestCase):
 
         ref = (rxy - rxz*rzy) / (np.sqrt(1.-rxz*rxz)*np.sqrt(1.-rzy*rzy))
 
-        self.assertAlmostEqual(ref,res.data[0,0],places=5)
-        self.assertAlmostEqual(ref,res1.data[0,0],places=5)
+        self.assertAlmostEqual(ref,res.data[0, 0], places=5)
+        self.assertAlmostEqual(ref,resarr[0, 0], places=5)
+        self.assertAlmostEqual(ref,res1.data[0, 0], places=5)
+        self.assertAlmostEqual(ref,resarr[0, 0], places=5)
 
-
-    def test__equal_lon(self):
+    def test_equal_lon(self):
         D=self.D
 
         #1) not equal longitudes
