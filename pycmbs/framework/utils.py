@@ -151,14 +151,13 @@ def get_T63_landseamask(shift_lon, mask_antarctica=True, area='land'):
     get JSBACH T63 land sea mask
     the LS mask is read from the JSBACH init file
 
-    @param area: 'land' or 'ocean'. When 'land', then the mask returned
-                  is True on land pixels, for ocean it is vice versa.
-                 in any other case, you get a valid field everywhere (globally)
-    @type area: str
+    area : str
+        ['land','ocean']: When 'land', then the mask returned
+        is True on land pixels, for ocean it is vice versa.
+        In any other case, you get a valid field everywhere (globally)
 
-    @param mask_antarctica: mask antarctica;
-    if True, then the mask is FALSE over Antarctica (<60S)
-    @type mask_antarctica: bool
+    mask_antarctica : bool
+        if True, then the mask is FALSE over Antarctica (<60S)
     """
     ls_file = get_data_pool_directory() \
         + 'variables/land/land_sea_mask/jsbach_T63_GR15_4tiles_1992.nc'

@@ -580,7 +580,7 @@ for variable in variables:
 ########################################################################
 
 #/// generate Gleckler analysis plot for all variables and models analyzed ///
-global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=25, show_value=True)
+global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=True, ticks=[-0.1,-0.05,0.,0.05,0.1])
 oname = outdir + 'gleckler.pkl'
 if os.path.exists(oname):
     os.remove(oname)
