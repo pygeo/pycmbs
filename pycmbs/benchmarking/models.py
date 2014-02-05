@@ -6,13 +6,15 @@ the pyCMBS licensing details.
 """
 
 # XXX: implicit imports
-# from pyCMBS import *
-# from utils import *
+# from pycmbs.benchmarking import *
+# from pycmbs.benchmarking.utils import *
 # from cdo import *
 import tempfile as tempfile
 import copy
 import pickle
 import glob
+
+from pycmbs.benchmarking import preprocessor
 
 class Model(Data):
     """
