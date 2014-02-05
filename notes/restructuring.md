@@ -11,3 +11,6 @@
 
 # QUESTIONS
  * shall `benchmarking` be a part of pycmbs or a standalone project?
+
+# SUGGESTIONS
+ * increase test coverage (only four submodules are test covered, also incompletely)
