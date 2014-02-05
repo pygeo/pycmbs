@@ -11,15 +11,15 @@ clean :
 	find . -name "data_warnings.log" -exec rm -rf {} \;
 	rm -rf build
 	rm -rf MANIFEST
+	rm -rf cover
 
 ship : dist
 	rm -rf $(TDIR)/*
 	cp ./dist/pyCMBS-$(VERSION).tar.gz $(TDIR)
 	tar -C $(TDIR) -xvf $(TDIR)/pyCMBS-$(VERSION).tar.gz
 
-
-
-
+coverage: 
+	nosetests --with-coverage --cover-package=pycmbs pycmbs/tests --cover-html
 
 dist : clean
 	python setup.py sdist
