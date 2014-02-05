@@ -9,8 +9,6 @@ the pyCMBS licensing details.
 This module implements generic map plotting capabilities
 """
 
-import matplotlib as mpl
-mpl.use('agg')
 import os
 from mpl_toolkits.basemap import Basemap, shiftgrid
 
