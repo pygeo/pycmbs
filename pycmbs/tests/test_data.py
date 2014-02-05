@@ -1,3 +1,4 @@
+from unittest import TestCase
 import unittest
 
 from pycmbs.data import Data
@@ -14,11 +15,11 @@ class TestData(unittest.TestCase):
     def setUp(self):
         n=1000  # slows down significantly! constraint is percentile  test
         x = sc.randn(n)*100.  # generate dummy data
-        self.D = Data(None,None)
-        d=np.ones((n,1,1))
+        self.D = Data(None, None)
+        d=np.ones((n, 1, 1))
         self.D.data = d
         self.D.data[:,0,0]=x
-        self.D.data = np.ma.array(self.D.data,mask=self.D.data != self.D.data)
+        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
         self.D.verbose = True
         self.D.unit = 'myunit'
         self.D.label = 'testlabel'
@@ -223,8 +224,33 @@ class TestData(unittest.TestCase):
         self.D.addc(666.,copy=False)
         self.assertEqual(ref+666.,self.D.data[5,0,0])
 
-    def testCorrelationWithItself(self):
-        r,p = self.D.correlate(self.D, pthres=1.01)
+#    def test_get_percentile(self):
+#        #print self.D.data
+#        r = self.D.get_percentile(0.5,return_object = False)[0,0]
+#        self.assertAlmostEqual(r,0.,delta = 0.5)
+
+    def test_timn(self):
+        A = self.D.copy()
+        B = self.D.copy()
+        me = A.timmean()
+        su = B.timsum()
+        an = A.timn()  # ndarray
+        bn = B.timn(return_object=True)  # Data object
+        r = su/me
+        self.assertEqual(r[0,0], an[0,0])
+        self.assertEqual(r[0,0], bn.data[0,0])
+
+    def test_flipud(self):
+        x = self.D.copy()
+        y = x.copy()
+        y._flipud()
+        self.assertEqual(x.data[0,0,0], y.data[0,-1,0])
+        self.assertEqual(x.data[0,-1,0], y.data[0,0,0])
+
+
+    def test_correlate1(self):
+        #test for correlation calculations
+        r,p = self.D.correlate(self.D, pthres=1.01) #1) correlation with itself (returns data objects)
         self.assertEqual(r.data[0,0], 1.)
         self.assertEqual(p.data[0,0], 0.)
 
@@ -238,7 +264,11 @@ class TestData(unittest.TestCase):
     def testTemporalTrendNoTimeNormalization(self):
         y = np.arange(len(self.D.time))*2.+8.
         self.D.data[:, 0, 0] = y
+
+        # reference solution
         slope, intercept, r_value, p_value, std_err = stats.linregress(self.D.time,y)
+
+        # calculate temporal correlation WITHOUT normalization of time
         R, S, I, P = self.D.temporal_trend()  # no object is returned (default)
         self.assertEqual(R[0,0], r_value)
         self.assertEqual(S[0,0], slope)

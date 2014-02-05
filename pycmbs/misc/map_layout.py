@@ -35,17 +35,23 @@ d=Data(file,'tmp',read=True)
 #~ d.data = np.ma.array(x, mask = x != x)
 
 # map only with colorbars
-m = SingleMap(d)
-m.plot(colorbar_orientation='horizontal', vmin=10., vmax=20.)
+m = SingleMap(d, backend='basemap')
+m.plot(colorbar_orientation='horizontal', vmin=10., vmax=20., proj_prop={'projection':'robin', 'lon_0':0.})
+
+mx = SingleMap(d, backend='imshow')
+mx.plot(colorbar_orientation='horizontal', vmin=10., vmax=20.)
 
 
-divider = make_axes_locatable(m.pax)
+
+#~ divider = make_axes_locatable(m.pax)
 
 
 
 m1 = SingleMap(d)
 m1.plot(colorbar_orientation='vertical')
 
+m1 = SingleMap(d, backend='basemap')
+m1.plot(colorbar_orientation='vertical', proj_prop={'projection':'robin', 'lon_0':0.})
 
 # map with colorbar and zonal plot
 m2 = SingleMap(d)
@@ -57,6 +63,8 @@ m3.plot(colorbar_orientation='vertical', show_zonal=True, cmap='RdBu', nclasses=
 #~ m3.pax.imshow(x)
 #~ m3.cax.imshow(x)
 
+m3 = SingleMap(d, savefile='mym3xx', backend='basemap')
+m3.plot(colorbar_orientation='vertical', show_zonal=True, cmap='RdBu', nclasses=7, title='Mytest', ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C'] }, proj_prop={'projection':'robin', 'lon_0':0.})
 
 
 plt.show()

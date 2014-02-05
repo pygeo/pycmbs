@@ -15,12 +15,13 @@ from pyCMBS.region import *
 class TestData(TestCase):
 
     def setUp(self):
-        #init Data object for testing
-        n=1000 #slows down significantly! constraint is percentile  test
-        x = sc.randn(n)*100. #generate dummy data
+        # init Data object for testing
+        n=1000  # slows down significantly! constraint is percentile  test
+        x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
-        d=np.ones((n,1,1))
-        self.D.data = d; self.D.data[:,0,0]=x
+        d=np.ones((n, 1, 1))
+        self.D.data = d
+        self.D.data[:,0,0]=x
         self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
         self.D.verbose = True
         self.D.unit = 'myunit'
@@ -32,11 +33,34 @@ class TestData(TestCase):
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
 
+    def test_pattern_correlation(self):
+        """
+        test pattern correlation function
+        """
+        x = self.D.copy()
+
+        # correlation with random values
+        y = self.D.copy()
+        tmp = np.random.random(y.shape)
+        y.data = np.ma.array(tmp, mask=tmp != tmp)
+        P2 = PatternCorrelation(x, y)
+        P2._correlate()
+        self.assertEqual(x.nt,len(P2.r_value))
+        self.assertEqual(x.nt,len(P2.t))
+
+        for i in xrange(x.nt):
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(x.data[i,:,:].flatten(),y.data[i,:,:].flatten())
+            self.assertEqual(P2.r_value[i], r_value)
+            self.assertEqual(P2.p_value[i], p_value)
+            self.assertEqual(P2.slope[i], slope)
+            self.assertEqual(P2.intercept[i], intercept)
+            self.assertEqual(P2.std_err[i], std_err)
+
+
 
     def test_gleckler_index(self):
         """
         test Reichler index/Gleckler plot
-        @return:
         """
 
         # generate sample data

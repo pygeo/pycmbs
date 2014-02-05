@@ -16,9 +16,7 @@
 # GNU General Public License for more details.
 """
 
-# XXX: Is it necessary to provide author/institute info here?
-
-__name__ = "pycmbs"
+__name__ = "pyCMBS"
 """The project name."""
 
 __author__ = "$Author: $"
@@ -49,7 +47,6 @@ __docformat__ = "epytext en"
 
 __email__ = "alexander.loew@mpimet.mpg.de"
 
-# TODO: clean up commented lines
 #------------------------------
 #--- Import classes
 #------------------------------
@@ -57,40 +54,44 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 #- generic classes
 import matplotlib
 matplotlib.use('Agg')   #this is the first level import of Matplotlib. activate or deactivate here if you want to change the backend used
-# from matplotlib import pylab as pl
-# from pycmbs import  netcdf 
-# 
-# from scipy import stats
-# 
-# import numpy as np
-# 
-# from mpl_toolkits.basemap import Basemap,shiftgrid
-# 
-# import os
-# 
-# import sys
-# 
-# import logging
-# 
-# #- classes specific to pyCMBS
-# from pycmbs import statistic
-# from data   import *
-# from report import *
-# from region import *
-# from plots  import *
-# from diagnostic import *
-# from icon import *
-# from grid import *
-# from data4D import *
-# 
-# from taylor import *
-# 
-# from hov import *
-# from region import *
-# 
-# from netcdftime import *
-# 
-# from colormaps.colormaps import *
+from matplotlib import pylab as pl
+from netcdf import *
+
+from scipy import stats
+
+import numpy as np
+
+from mpl_toolkits.basemap import Basemap,shiftgrid
+
+import os
+
+import sys
+
+import logging
+
+
+
+#- classes specific to pyCMBS
+from statistic import *
+from data   import *
+from report import *
+from region import *
+from plots  import *
+from diagnostic import *
+from icon import *
+from grid import *
+from data4D import *
+
+from taylor import *
+
+from mapping import MultipleMap, SingleMap
+
+from hov import *
+from region import *
+
+from netcdftime import *
+
+from colormaps.colormaps import *
 
 #------------------------------
 #--- Global constants
