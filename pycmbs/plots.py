@@ -20,7 +20,8 @@ mpl.use('agg')
 from pycmbs.data import *
 from pycmbs.hov import *
 
-from matplotlib import pylab as plt
+from matplotlib import pyplot as plt
+from matplotlib import pylab
 
 from matplotlib.patches import Polygon
 import matplotlib.path as mpath
@@ -36,6 +37,7 @@ from matplotlib.patches import Circle
 import matplotlib.patches as mpatches
 import sys
 import copy
+import numpy as np
 
 
 from scipy.spatial import cKDTree as KDTree #import the C version of KDTree (faster)
@@ -770,13 +772,13 @@ class GlobalMeanPlot(object):
             o=[]
             for xx in x:
                 m1=abs(x1-xx)<d
-                m2=~isnan(y1)
+                m2=~np.isnan(y1)
                 m = m1 & m2
                 if sum(m)>0:
-                    o.append(mean(y1[m]))
+                    o.append(np.mean(y1[m]))
                 else:
-                    o.append(nan)
-            o=asarray(o)
+                    o.append(np.nan)
+            o=np.asarray(o)
             return o
 
         if hasattr(self,'pdata'):
@@ -784,11 +786,11 @@ class GlobalMeanPlot(object):
         else:
             raise ValueError('Can not plot mean results for GlobalMeanPlot! Missing data!')
 
-        f = pl.figure()
+        f = plt.figure()
         ax = f.add_subplot(111)
         if plot_clim:
             pdata = self.pdata_clim
-            print 'GlobalMeanPlot climdata: ', pdata
+            print('GlobalMeanPlot climdata: %s ' % pdata)
         else:
             pdata = self.pdata
 
@@ -801,7 +803,7 @@ class GlobalMeanPlot(object):
                     if plot_clim:
                         tref = dat[i]['time']  # climatology 1...12
                     else:
-                        tref = pl.date2num(dat[i]['time'])  # reference time vector
+                        tref = pylab.date2num(dat[i]['time'])  # reference time vector
                     y = dat[i]['data']*1.
                     ys = y*y
                     n = np.ones(len(y))*1.
@@ -810,9 +812,9 @@ class GlobalMeanPlot(object):
                     if plot_clim:
                         t1 = dat[i]['time']
                     else:
-                        t1 = pl.date2num(dat[i]['time'])
+                        t1 = pylab.date2num(dat[i]['time'])
                     y1 = dat[i]['data']*1.
-                    yo = coregister(tref,t1,y1,dt)
+                    yo = coregister(tref, t1, y1, dt)
 
                     m = ~np.isnan(yo)
 
@@ -832,14 +834,14 @@ class GlobalMeanPlot(object):
                 std_data = np.sqrt(ys - ym*ym)
 
                 color=None
-                if colors != None:
+                if colors is not None:
                     if g in colors.keys():
                         color=colors[g]
 
                 if plot_clim:
                     tval = tref
                 else:
-                    tval = pl.num2date(tref)
+                    tval = pylab.num2date(tref)
 
                 ax.fill_between(tval,ym-std_data,ym+std_data,color=color,alpha=0.5)
                 ax.plot(tval,ym,label=g+'$\pm 1\sigma$',color=color)
@@ -900,23 +902,23 @@ class GlobalMeanPlot(object):
             #print 'Label already existing: ', label, ' skipping analysis'
             return
 
-        #ensure to work with a data object
+        # ensure to work with a data object
         if 'tuple' in str(type(D1)): #only a vector is provided as data together with time (time,data)
-            D = D1[2] #(time,data,orgdata)
+            D = D1[2]  # (time,data,orgdata)
         else:
             D = D1
 
         if D.data.ndim != 3:
-            raise ValueError, 'Global plot only supported for 3D data'
+            raise ValueError('Global plot only supported for 3D data')
 
         if mask is not None:
             D._apply_mask(mask)
 
         if stat_type == 'mean':
-            #mean field
-            m = D.fldmean(return_data=True) #mean
+            # mean field
+            m = D.fldmean(return_data=True)  # mean
         elif stat_type == 'sum':
-            m = D.areasum(return_data=True) #area weighted sum
+            m = D.areasum(return_data=True)  # area weighted sum
         else:
             raise ValueError, 'Unsupported stat_type: ' + stat_type
         mdata = m.data.flatten()
@@ -929,10 +931,7 @@ class GlobalMeanPlot(object):
 
         #--- plot generation ---
         if color is None:
-            #print m.time
-            #print t
             p = self.ax.plot(t,mdata,linewidth=linewidth,linestyle=linestyle)
-
         else:
             p = self.ax.plot(t,mdata,color=color,linewidth=linewidth,linestyle=linestyle)
 
@@ -940,7 +939,7 @@ class GlobalMeanPlot(object):
             vdata = self.pdata[group]
         else:
             vdata=[]
-        vdata.append({'time':t,'data':mdata,'unit':m._get_unit()})
+        vdata.append({'time':t, 'data':mdata,'unit':m._get_unit()})
 
         #print 'vdata: ', t
         self.pdata.update({group:vdata}) #store results for current group
@@ -951,23 +950,22 @@ class GlobalMeanPlot(object):
             sdata = s.data.flatten()
             self.ax.fill_between(t,mdata-sdata,y2=mdata+sdata,color=p[0].get_color(),alpha=0.5)
 
-        #- plot climatology if desired
+        # plot climatology if desired
         if self.climatology:
             if hasattr(D,'time_cycle'):
                 tmp = D.get_climatology(return_object=True)
-                tmp.adjust_time(year=1700,day=15)
+                tmp.adjust_time(year=1700, day=15)
                 tmp.timsort()
                 m = tmp.fldmean(return_data=False).flatten()
 
-                self.ax1.plot(np.arange(1,13),m,linestyle=linestyle)
+                self.ax1.plot(np.arange(1,13), m, linestyle=linestyle)
                 self.ax1.set_xlim(0.,13.)
                 self.ax1.set_ylabel(tmp._get_unit())
                 self.ax1.set_xlabel('months')
 
                 self.ax1.grid()
-                #self.ax1.axis('tight')
 
-                #store values for aggregated plot
+                # store values for aggregated plot
                 if group in self.pdata_clim.keys():
                     vdata = self.pdata_clim[group]
                 else:
@@ -979,17 +977,17 @@ class GlobalMeanPlot(object):
                 print 'WARNING: Global mean plot can not be generated due to missing time_cycle!'
 
 
-        #- store information for legend
+        # store information for legend
         self.plots.append(p[0])
         if label is None:
             self.labels.append(D.label)
         else:
             self.labels.append(label)
 
-        #- labels
+        # labels
         self.ax.set_ylabel(D._get_unit())
 
-       #--- LEGEND always below the figure
+       # LEGEND always below the figure
         if self.nplots == 1:
             lax = self.ax
             loff = 0.2
@@ -998,12 +996,11 @@ class GlobalMeanPlot(object):
             loff = 0.4
         box = lax.get_position()
 
-        lax.figure.subplots_adjust(bottom=loff) #make space on bottom for legend
+        lax.figure.subplots_adjust(bottom=loff)  # make space on bottom for legend
         lax.legend(self.plots,self.labels,loc='upper center', bbox_to_anchor=(0.5, -loff),fancybox=True, shadow=True, ncol=3,prop={'size':8})
 
         self.ax.grid()
 
-#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 class HistogrammPlot(object):
@@ -1037,7 +1034,7 @@ class HistogrammPlot(object):
         self.normalize = normalize
         self.percent = percent
 
-    def plot(self,X,color='black',linestyle='-',linewidth=1.,label='',shown=False,show_legend=False,**kwargs):
+    def plot(self, X, color='black', linestyle='-', linewidth=1., label='', shown=False, show_legend=False, **kwargs):
         """
         plot data to histogram
 

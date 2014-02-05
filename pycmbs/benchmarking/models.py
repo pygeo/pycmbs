@@ -8,13 +8,18 @@ the pyCMBS licensing details.
 # XXX: implicit imports
 # from pycmbs.benchmarking import *
 # from pycmbs.benchmarking.utils import *
-# from cdo import *
+from cdo import Cdo
+from pycmbs.data import Data
 import tempfile as tempfile
 import copy
 import pickle
 import glob
+import os
+import sys
+import numpy as np
 
 from pycmbs.benchmarking import preprocessor
+from pycmbs.benchmarking.utils import get_T63_landseamask, get_temporary_directory
 
 class Model(Data):
     """
