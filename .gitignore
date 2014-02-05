@@ -5,3 +5,4 @@ tags
 .coverage
 tmp_data.nc
 *.swp
+./cover
