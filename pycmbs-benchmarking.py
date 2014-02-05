@@ -74,7 +74,11 @@ def create_dummy_configuration():
     CFGW.save(temp_dir='<put here the temporary data processing directory>',
               vars=['albedo', 'sis'], start_date='2000-01-01',
               stop_date='2007-09-30',
-              models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP', 'path': '/this/is/the/root/path/to/the/model/data/'}, {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST', 'path': '/this/is/the/root/path/to/the/model/data/'}])
+              models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP', 
+                            'path': '/this/is/the/root/path/to/the/model/data/'}, 
+                      {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST', 
+                            'path': '/this/is/the/root/path/to/the/model/data/'}
+                      ])
 
     os.system('rm -rf ' + odir + '/.svn')
 
