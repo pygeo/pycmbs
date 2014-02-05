@@ -8,6 +8,7 @@ the pyCMBS licensing details.
 import numpy as np
 import os
 import scipy as sci
+from scipy import stats
 
 from matplotlib import pylab as plt
 
@@ -2127,7 +2128,7 @@ class Diagnostic(object):
 
             #2) calculation of lagged correlation
             if len(hlpx) > 1:
-                slope, intercept, r_value, p_value, std_err = sci.stats.linregress(hlpx, hlpy)
+                slope, intercept, r_value, p_value, std_err = stats.linregress(hlpx, hlpy)
             else:
                 r_value = np.nan
                 p_value =2.
@@ -2254,6 +2255,9 @@ class Diagnostic(object):
                 e2[i] = np.sum(d)  # sum at end to avoid nan's   #it is important to use np.sum() !!
 
         if np.any(np.isnan(e2)):
+            print 'd: ', d
+            for i in xrange(n):
+                print 'std_x', i, std_x[i,:]
             print('Reichler: e2 contains NAN, this happens most likely if STDV == 0')
             return None
         else:
@@ -2325,7 +2329,7 @@ class Diagnostic(object):
             if sum(msk) > 3:
 
                 if lag == 0:
-                    slope, intercept, r_value, p_value, std_err = sci.stats.linregress(xx[msk],yy[msk])
+                    slope, intercept, r_value, p_value, std_err = stats.linregress(xx[msk],yy[msk])
                 else:
 
                     #print nlags
@@ -2382,8 +2386,8 @@ class Diagnostic(object):
         x=self.x.data.copy()
 
         if not hasattr(self, 'y'):
-            #if no y value is given, then time is used as independent variable
-            print 'No y-value specified. Use time as indpendent variable!'
+            # if no y value is given, then time is used as independent variable
+            print('No y-value specified. Use time as indpendent variable!')
 
             y = x.copy()
             x = np.ma.array(self.x.time.copy(), mask=self.x.time < 0. )
@@ -2409,33 +2413,34 @@ class Diagnostic(object):
         L = np.ones((n,n))*np.nan
         S = np.ones((n,n))*np.nan
 
-        #--- perform correlation analysis
-        print '   Doing slice correlation analysis ...'
+        # perform correlation analysis
+        print('   Doing slice correlation analysis ...')
         i1 = 0
-        while i1 < n-1: #loop over starting year
+        while i1 < n-1:  # loop over starting year
             i2 = i1 + 2
-            #- loop over different lengths
+            # loop over different lengths
             while i2 < len(x)-1:
                 length = i2-i1
 
                 if timmean:
-                    ''' temporal mean -> all grid cells only (temporal mean) '''
-                    #print 'drin'
+                    """ temporal mean -> all grid cells only (temporal mean) """
                     xdata = x[i1:i2,:].mean(axis=0)
                     ydata = y[i1:i2,:].mean(axis=0)
 
-                    xmsk  = xdata.mask; ymsk = ydata.mask
+                    xmsk  = xdata.mask
+                    ymsk = ydata.mask
                     msk = xmsk | ymsk
 
                     if partial:
-                        raise ValueError, 'No timmean supported yet for partial correlation!'
+                        raise ValueError('No timmean supported yet for partial correlation!')
 
                 else:
-                    ''' all grid cells at all times '''
-                    xdata = x.data[i1:i2,:]; ydata = y.data[i1:i2,:]
-                    xmsk  = x.mask[i1:i2,:]
-                    ymsk  = y.mask[i1:i2,:]
-                    msk   = xmsk | ymsk
+                    """ all grid cells at all times """
+                    xdata = x.data[i1:i2,:]
+                    ydata = y.data[i1:i2,:]
+                    xmsk = x.mask[i1:i2,:]
+                    ymsk = y.mask[i1:i2,:]
+                    msk = xmsk | ymsk
 
                     if partial:
                         zdata = z.data[i1:i2,:]
@@ -2446,7 +2451,7 @@ class Diagnostic(object):
                 xdata = xdata[~msk].flatten()
                 ydata = ydata[~msk].flatten()
 
-                #use spearman correlation
+                # use spearman correlation
                 if spearman:
                     tmpx = xdata.argsort()
                     tmpy = ydata.argsort()
@@ -2455,13 +2460,13 @@ class Diagnostic(object):
 
                 if partial:
                     #calculate residuals for individual correlations
-                    slope, intercept, r, p, stderr = sci.stats.linregress(zdata,xdata)
+                    slope, intercept, r, p, stderr = stats.linregress(zdata,xdata)
                     xdata = (xdata - intercept) / slope
 
-                    slope, intercept, r, p, stderr = sci.stats.linregress(zdata,ydata)
+                    slope, intercept, r, p, stderr = stats.linregress(zdata,ydata)
                     ydata = (ydata - intercept) / slope
 
-                slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
+                slope, intercept, r, p, stderr = stats.linregress(xdata,ydata)
                 R[length,i1] = r
                 P[length,i1] = p
                 L[length,i1] = length
@@ -2557,10 +2562,11 @@ class Diagnostic(object):
 
                 #use spearman correlation
                 if spearman:
-                    tmpx = xdata.argsort(); tmpy = ydata.argsort()
+                    tmpx = xdata.argsort()
+                    tmpy = ydata.argsort()
                     xdata = tmpx; ydata = tmpy
 
-                slope, intercept, r, p, stderr = sci.stats.linregress(xdata,ydata)
+                slope, intercept, r, p, stderr = stats.linregress(xdata,ydata)
                 R[gap,i1] = r; P[gap,i1] = p
                 L[gap,i1] = gap-1; S[gap,i1] = slope
 
