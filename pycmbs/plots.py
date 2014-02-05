@@ -17,8 +17,9 @@ Module that contains relevant classes for diagnostic plots
 import matplotlib as mpl
 mpl.use('agg')
 
-from pycmbs.data import *
-from pycmbs.hov import *
+# XXX: implicit imports
+# from pycmbs.data import *
+# from pycmbs.hov import *
 
 from matplotlib import pylab as plt
 
