@@ -1,4 +1,5 @@
-from pyCMBS import *
+# XXX: implicit import
+#from pyCMBS import *
 import os
 import numpy as np
 from matplotlib import pylab as pl
