@@ -1165,9 +1165,9 @@ class ZonalPlot(object):
         if self.dir == 'y':
             dat = thex.get_zonal_mean()
         else:
-            raise ValueError, 'Invalid option'
+            raise ValueError('Invalid option')
 
-        #return dat
+        # return dat
         if timmean:
             pass
         else:
