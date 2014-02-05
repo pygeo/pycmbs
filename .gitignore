@@ -2,3 +2,5 @@
 tags
 *.log
 ./tests
+.coverage
+tmp_data.nc
