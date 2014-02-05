@@ -13,6 +13,8 @@ import copy
 import pickle
 import glob
 
+from . import preprocessor
+
 class Model(Data):
     """
     This class is the main class, specifying a climate model or a particular run
@@ -662,10 +664,18 @@ class CMIP5Data(Model):
 
     def get_surface_shortwave_radiation_up(self, interval='season', force_calc = False):
 
+
+        # //// Ensemble mean data ///
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsus/' +  self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
             filename1 = self.data_dir + 'rsus/' +  self.experiment + '/raw/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+
+            # do preprocessing based on raw ensemble mean data
+
+            #~ >>>>>>>>> filename1 needs ot be the OUTPUT file  !!!
+            #~ E = CMIP5Preprocessor(self.data_dir + 'rsus/' +  self.experiment + '/raw/, filename1, 'rsus', self.model, self.experiment)
+
             if not os.path.exists(filename1):
                 filename1 = self._preprocess_ensembles(filename1, delete=force_calc)  # do preprocessing of ensemble means and get name of resulting file
         else:
@@ -821,18 +831,9 @@ class CMIP5RAWData(CMIP5Data):
         self.type = 'CMIP5RAW'
         self._unique_name = self._get_unique_name()
 
-    def _preprocess_times(self, filename, delete=False):
-        """
-        preprocess different files for a single ensemble member
-        """
-        root = filename.split('_ensmean')[0]
-        print root
-        stop
 
 
-
-
-    def _preprocess_ensembles(self, filename, delete=False):
+    def xxxxxxxxxxxxxxxxx_preprocess_ensembles(self, filename, delete=False):
         """
         do preprocessing of the CMIP5 rawdata based on the individual
         model ensemble members. Output is written to the processing
