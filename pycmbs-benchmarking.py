@@ -120,6 +120,8 @@ plot_options = PCFG
 outdir = CF.options['outputdir']
 if outdir[-1] != os.sep:
     outdir += os.sep
+os.environ['PYCMBS_OUTPUTDIR'] = CF.options['outputdir']
+os.environ['PYCMBS_OUTPUTFORMAT'] = CF.options['report_format']
 
 os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' + CF.options['report'] + '.log'
 if os.path.exists(os.environ['DATA_WARNING_FILE']):
@@ -445,6 +447,13 @@ for i in range(len(CF.models)):
                              start_time=start_time,
                              stop_time=stop_time,
                              shift_lon=shift_lon)
+    elif CF.dtypes[i].upper() == 'CMIP5RAW':
+        themodel = CMIP5RAWData(data_dir, model, experiment, varmethods,
+                             intervals=CF.intervals, lat_name='lat',
+                             lon_name='lon', label=model,
+                             start_time=start_time,
+                             stop_time=stop_time,
+                             shift_lon=shift_lon)
     elif CF.dtypes[i].upper() == 'JSBACH_BOT':
         themodel = JSBACH_BOT(data_dir, varmethods, experiment,
                               intervals=CF.intervals,
@@ -571,7 +580,7 @@ for variable in variables:
 ########################################################################
 
 #/// generate Gleckler analysis plot for all variables and models analyzed ///
-global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=25, show_value=True)
+global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=True, ticks=[-0.1,-0.05,0.,0.05,0.1])
 oname = outdir + 'gleckler.pkl'
 if os.path.exists(oname):
     os.remove(oname)
@@ -619,6 +628,13 @@ for v in global_gleckler.variables:
                caption='Model RANKING for different observational \
                datasets: ' + v.upper())
     del tmpfig
+
+    # write a table with model ranking
+    tmp_filename = outdir + 'ranking_table_' + v + '.tex'
+    rep.open_table()
+    global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex')
+    rep.input(tmp_filename)
+    rep.close_table(caption='Model rankings for variable ' + v.upper())
 
     # plot absolute model error
     tmpfig = global_gleckler.plot_model_error(v)
