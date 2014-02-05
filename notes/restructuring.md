@@ -8,6 +8,7 @@
 # ISSUES
  * a lot of comments in the code
  * some multitask tests can be split into single method test with single assertion statement
+ * manual copying updates from pyCMBS to pycmbs does not preserve history
 
 # QUESTIONS
  * shall `benchmarking` be a part of pycmbs or a standalone project?
