@@ -2,6 +2,7 @@
 # This file is part of pyCMBS
 #######################################
 
+# XXX: machine specific paths
 PEP = /home/m300028/shared/dev/svn/pep8/pep8/pep8.py
 TDIR = /home/m300028/shared/temp/nixxxx
 VERSION = 0.1.5
@@ -19,7 +20,7 @@ ship : dist
 	tar -C $(TDIR) -xvf $(TDIR)/pyCMBS-$(VERSION).tar.gz
 
 coverage: 
-	nosetests --with-coverage --cover-package=pycmbs pycmbs/tests --cover-html
+	nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs pycmbs/benchmarking/tests pycmbs/tests --cover-html
 
 dist : clean
 	python setup.py sdist
