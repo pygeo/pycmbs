@@ -7,7 +7,7 @@ the pyCMBS licensing details.
 
 from pyCMBS.data import Data
 import os
-from netcdf import *
+from pycmbs.netcdf import *
 import numpy as np
 
 
