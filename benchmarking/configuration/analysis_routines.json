@@ -1,0 +1,22 @@
+{
+    "albedo": "albedo_analysis",
+    "albedo_nir": "albedo_analysis_nir",
+    "albedo_vis": "albedo_analysis_vis",
+    "budg": "budg_analysis",
+    "evap": "evaporation_analysis",
+    "gpp": "gpp_analysis",
+    "grass": "grass_fraction_analysis",
+    "hair": "hair_analysis",
+    "late": "late_analysis",
+    "phenology_faPAR": "phenology_faPAR_analysis",
+    "rain": "rainfall_analysis",
+    "seaice_concentration": "seaice_concentration_analysis",
+    "seaice_extent": "seaice_extent_analysis",
+    "sis": "sis_analysis",
+    "surface_upward_flux": "surface_upward_flux_analysis",
+    "temperature": "temperature_analysis",
+    "tree": "tree_fraction_analysis",
+    "twpa": "twpa_analysis",
+    "wind": "wind_analysis",
+    "wvpa": "wvpa_analysis"
+}
