@@ -13,7 +13,8 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 
 #============ IMPORTS ==================================================
 
-from pyCMBS import *
+# XXX: implicit imports
+# from pycmbs import *
 
 #--- always use plot backend which is not interactive for benchmarking framework
 import matplotlib as mpl
@@ -23,9 +24,9 @@ pl = mpl.pylab
 import sys
 import os
 
-from models import *
-from config import *
-from analysis import *
+from pycmbs.benchmarking import models
+from pycmbs.benchmarking import config
+from pycmbs.benchmarking import analysis 
 import pickle
 
 #####################################################################
