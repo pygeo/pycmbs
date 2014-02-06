@@ -10,6 +10,7 @@ import sys
 
 from matplotlib import pylab as pl
 
+
 class Report(object):
     """
     A class to generate latex based report
@@ -54,7 +55,7 @@ class Report(object):
         ext = ''
         if filename[:-4] != '.tex':
             ext = '.tex'
-        self.filename = outdir + filename+ext
+        self.filename = outdir + filename + ext
         self.format = format
         self.title = title
         self.author = author
@@ -312,7 +313,7 @@ class Report(object):
 
     def close_table(self, caption='Put a figure caption here'):
         """ closes a table """
-        self.write('    \caption{' + caption.replace('_','-') + '}')
+        self.write('    \caption{' + caption.replace('_', '-') + '}')
         self.write('\end{table}')
 
 #-----------------------------------------------------------------------
