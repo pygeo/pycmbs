@@ -271,6 +271,19 @@ class TestData(unittest.TestCase):
         self.assertEqual(r.data[0,0], 1.)
         self.assertEqual(p.data[0,0], 0.)
 
+    def test_correlate_WithInvalidGeometries(self):
+        x = self.D.copy()
+        y = self.D.copy()
+        y.data = np.random.random((10, 200, 273))
+        with self.assertRaises(ValueError):
+            x.correlate(y)
+
+    def get_date_from_months_WithInvalidTimestr(self):
+        d = self.D
+        d.time_str = 'some_invalid_str'
+        with self.assertRaises(ValueError):
+            d._get_date_form_month(10)
+
     def test_set_time(self):
         # NB: num2date gives number of days PLUS one (see num2date docstring)
         self.D.time_str = "days since 0001-01-01 00:00:00"
@@ -687,6 +700,28 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             data_object._convert_monthly_timeseries()
 
+    def test_apply_temporal_mask_WithInvalidGeometryForMask(self):
+        data_object= self.D
+        with self.assertRaises(ValueError):
+            data_object._apply_temporal_mask(np.random.random((10,20)))
+
+    def test_apply_temporal_mask_WithInvalidMaskTimes(self):
+        data_object= self.D
+        with self.assertRaises(ValueError):
+            data_object._apply_temporal_mask(np.random.random(data_object.nt + 1))
+
+
+    def test_getunit_ForEmptyUnit(self):
+        d = self.D
+        d.unit = None
+        self.assertEqual(d._get_unit(), '')
+
+    def test_getunit_ForValidUnit(self):
+        d = self.D
+        d.unit = 'mm/h'
+        self.assertEqual(d._get_unit(), '[mm/h]')
+
+
     def test_get_percentile_ForInvalidGeometry(self):
         d = self.D
         d.data = np.random.random((10, 20))
@@ -1026,6 +1061,8 @@ class TestData(unittest.TestCase):
         T = Data('tmp_fldmean.nc', 'test', read=True)
         self.assertEquals(r, T.data[0,0])
         self.assertEquals(2., T.data[0,0])
+        os.remove('tmp_fldmean.nc')
+        os.remove('tmp_data.nc')
 
         # testcase where some of data is not valid and different weighting approaches are applied
         D = self.D.copy()
