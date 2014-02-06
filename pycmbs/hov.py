@@ -33,6 +33,7 @@ import sys
 import matplotlib.pyplot as pyplot
 #from plots import add_nice_legend
 
+
 def agg_hourly(d, v, timestamp='mid', mode='mean'):
     """
     calculate hourly mean values in a very efficient way
@@ -92,7 +93,8 @@ def generate_monthly_timeseries(t, sday='01'):
     t: time (numeric)
     """
 
-    tn = []; d = num2date(t)
+    tn = []
+    d = num2date(t)
     for i in range(len(t)):
         y = str(d[i].year).zfill(4)
         m = str(d[i].month).zfill(2)
@@ -170,14 +172,14 @@ class hovmoeller:
         """
 
         #/// check consistency ///
-        if value != None:
+        if value is not None:
             if len(time) == len(value):
                 pass
             else:
                 sys.exit('Inconsistent sizes of time and value (hovmoeller)')
 
-        if lat is not None and shape(lat) != shape(value[0, :,:]):
-            print shape(lat), shape(value[0, :,:])
+        if lat is not None and shape(lat) != shape(value[0, :, :]):
+            print shape(lat), shape(value[0, :, :])
             sys.exit('Inconsistent latitudes and data (hovmoeller)')
 
         #/// set values of class ///
@@ -189,12 +191,12 @@ class hovmoeller:
         self.t_min = num2date(floor(t.min()))
         self.t_max = num2date(ceil(t.max()))
 
-        if value != None:
+        if value is not None:
             self.value = value.copy()
             self.value = ma.array(self.value, mask=isnan(self.value))
             self.value.shape = (ntim, -1)  # now reshape everything to [time,ngridcells]
 
-        if var_unc == None:
+        if var_unc is None:
             self.var_unc = None
         else:
             self.var_unc = var_unc.copy()
@@ -202,15 +204,16 @@ class hovmoeller:
 
         self.hov_var = None
 
-        self.rescalex = rescalex; self.rescaley = rescaley
+        self.rescalex = rescalex
+        self.rescaley = rescaley
 
-        if lat != None:
+        if lat is not None:
             self.lat = lat.copy()
             self.lat.shape = (-1)
         else:
             self.lat = None
 
-        if lon != None:
+        if lon is not None:
             self.lon = lon.copy()
             self.lon.shape = (-1)
         else:
@@ -276,7 +279,7 @@ class hovmoeller:
 
         if input is not None:
             if self.hov is not None:
-                raise ValueError, 'If precalculated dat is provided as input, the data MUST not be calculated already by the class!'
+                raise ValueError('If precalculated dat is provided as input, the data MUST not be calculated already by the class!')
             else:
                 #////////////////////////////////////////////////
                 # HOVMOELLER PLOT FROM DATA OBJECT
@@ -289,10 +292,10 @@ class hovmoeller:
                 if nt != len(self.time):
                     print input1.shape
                     print nt, len(self.time)
-                    raise ValueError, 'inconsistent time shape!'
+                    raise ValueError('inconsistent time shape!')
 
                 self.hov = input1.data
-                self.yearonly = True  # todo
+                self.yearonly = True
 
                 #/// check if latitudes are in increasing order ?
                 lats = input1.lat*1.
@@ -305,7 +308,7 @@ class hovmoeller:
                     lats = lats[::-1]
 
                     if not np.all(np.diff(lats) > 0):
-                        raise ValueError, 'Latitudes can not be put into ascending order!!!!'
+                        raise ValueError('Latitudes can not be put into ascending order!!!!')
 
                 #/// monthly ticks ///
                 data_days = generate_monthly_timeseries(pl.date2num(input1.date))  # convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
@@ -338,28 +341,28 @@ class hovmoeller:
 
                 ylabel = 'latitude [degree]'
 
-        if climits == None:
-            raise ValueError, 'Hovmoeller, please specify climits'
+        if climits is None:
+            raise ValueError('Hovmoeller, please specify climits')
 
-        if xlabel == None:
+        if xlabel is None:
             self.xlabel = 'x-label'
         else:
             self.xlabel = xlabel
 
-        if figsize == None:
+        if figsize is None:
             if self.transpose:
                 figsize = (6, 11)
             else:
                 figsize = (12, 4)
 
-        if ylabel == None:
+        if ylabel is None:
             self.ylabel = 'y-label'
         else:
             self.ylabel = ylabel
 
         self.title = title
 
-        if ax == None:
+        if ax is None:
             self.fig = figure(figsize=figsize)
             self.ax = self.fig.add_subplot(111)
         else:
@@ -374,7 +377,7 @@ class hovmoeller:
             arr = self.hov.repeat(self.rescaley, axis=0).repeat(self.rescalex, axis=1)
             self.im = self.ax.imshow(arr, interpolation='Nearest', origin=origin, cmap=pyplot.get_cmap(cmap, nclasses), vmin=climits[0], vmax=climits[1])
 
-            if (show_uncertainties) & (self.hov_var != None):
+            if (show_uncertainties) & (self.hov_var is not None):
                 arr1 = self.hov_var.repeat(self.rescaley, axis=0).repeat(self.rescalex, axis=1)
 
                 if norm_uncertainties:
@@ -382,8 +385,10 @@ class hovmoeller:
                     arr1 = arr / arr1
                 self.ax.contour(arr1, linestyles='-', colors='black')
 
-        if xlabel != None: self.ax.set_xlabel(self.xlabel)
-        if ylabel != None: self.ax.set_ylabel(self.ylabel)
+        if xlabel is not None:
+            self.ax.set_xlabel(self.xlabel)
+        if ylabel is not None:
+            self.ax.set_ylabel(self.ylabel)
         self.ax.set_title(self.title)
 
         #/// ticks
@@ -408,7 +413,7 @@ class hovmoeller:
         else:
             self.ax.set_xticks([])
 
-        if xticks != None:
+        if xticks is not None:
             nx = 2
             set_label(nx)
 
@@ -455,7 +460,7 @@ class hovmoeller:
 
         self.yearonly = yearonly
 
-        if self.lat == None:
+        if self.lat is None:
             sys.exit('Error time_to_lat in hovmoeller: no latitude specified')
 
         #/// preprocessing: extract only VALID data
@@ -476,11 +481,13 @@ class hovmoeller:
         #print pixmsk
         #/// generate latitudes by rounding
         lats = ((lat - 0.5*dlat) / dlat).round() * dlat
-        ulats = unique(lats[pixmsk == 1.]); nlat = len(ulats)
+        ulats = unique(lats[pixmsk == 1.])
+        nlat = len(ulats)
         #~ print 'Number of lats: ', nlat
         #print ulats
 
-        d = self.time; tnum = date2num(d)
+        d = self.time
+        tnum = date2num(d)
         t_min = date2num(self.t_min)
         t_max = date2num(self.t_max)
 
@@ -521,8 +528,8 @@ class hovmoeller:
 
                     #print unique(v1), ulats[j]
                     if len(v1) > 0.:
-                        outsum[j, i] +=  sum(v1)  # ... and average them
-                        outn  [j, i] +=  len(v1)
+                        outsum[j, i] += sum(v1)  # ... and average them
+                        outn[j, i] += len(v1)
                     #~ print sum (v1), outsum[j,i], outn[j,i]
                 else:
                     print 'Da sollten wir beim Testen nicht landen todo'
@@ -580,7 +587,8 @@ class hovmoeller:
         r = agg_hourly(self.time, self.value)
         df_data = pa1.DataFrame(r.values, index=r.index, columns=['data'])
 
-        dmin = df_data.index.min(); dmax = df_data.index.max()
+        dmin = df_data.index.min()
+        dmax = df_data.index.max()
         t1 = str(dmin.month).zfill(2) + '/' + str(dmin.day).zfill(2) + '/' + str(dmin.year).zfill(4)
         t2 = str(dmax.month).zfill(2) + '/' + str(dmax.day).zfill(2) + '/' + str(dmax.year).zfill(4)
 
@@ -594,7 +602,7 @@ class hovmoeller:
             df_j = df_hours.join(df_data)
 
             #4) store results for actual hour in output array
-            if arr == None:
+            if arr is None:
                 ndays = len(df_j.values)
                 nhours = 24
                 arr = zeros((nhours, ndays))*nan  # create output array
@@ -648,7 +656,7 @@ class hovmoeller:
         out = ones((24., len(all_days)))*nan
         outsum = zeros((24., len(all_days)))
 
-        if (self.var_unc != None):
+        if (self.var_unc is not None):
             if shape(self.var_unc) == shape(self.value):
                 f_var = True
             else:
@@ -719,7 +727,8 @@ class hovmoeller:
         """
 
         dd = num2date(all_days)
-        xticks = []; xticklabels = []
+        xticks = []
+        xticklabels = []
         last_month = dd[0].month
         last_year = dd[0].year
 
@@ -739,7 +748,8 @@ class hovmoeller:
                     xticklabels.append(str(d.year))
                 else:
                     xticklabels.append(mstr + '/' + str(d.year))
-                last_month = d.month; last_year = d.year
+                last_month = d.month
+                last_year = d.year
 
         if self.transpose:
             scal = self.rescaley
@@ -750,7 +760,8 @@ class hovmoeller:
         #/// remap to image coordinates
         ny, nx = shape(self.hov)
         w = (xticks - date2num(self.t_min)) / (date2num(self.t_max) - date2num(self.t_min))  # weights for positions on x-axis
-        xticks = w * nx * scal; xticks = list(xticks)
+        xticks = w * nx * scal
+        xticks = list(xticks)
 
         #here we have monthly ticks which we can now subsample
         xticks = xticks[::monthsamp]
