@@ -34,13 +34,14 @@ class DiagnosticMaster(object):
     def __init__(self, **kwargs):
         pass
 
+
 class PatternCorrelation(DiagnosticMaster):
     """
     a class to perform pattern correlation diagnostics
     it calculates for each timestep the correlations between the spatial
     fields and allows to vizualize results in different ways
     """
-    def __init__(self, x, y, ax = None, figsize=(10,3), **kwargs):
+    def __init__(self, x, y, ax=None, figsize=(10, 3), **kwargs):
         """
         Parameters
         ----------
@@ -90,19 +91,19 @@ class PatternCorrelation(DiagnosticMaster):
           in Taylor diagram
         """
         if self.x.ndim == 2:
-            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(self.x.data[:,:].flatten(),self.y.data[:,:].flatten())
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(self.x.data[:, :].flatten(), self.y.data[:,:].flatten())
             self.slope = np.asarray([slope])
             self.r_value = np.asarray([r_value])
             self.intercept = np.asarray([intercept])
             self.p_value = np.asarray([p_value])
             self.std_err = np.asarray([std_err])
         elif self.x.ndim == 3:
-            r = np.asarray([stats.mstats.linregress(self.x.data[i,:,:].flatten(),self.y.data[i,:,:].flatten()) for i in xrange(self.x.nt)])
-            self.slope = np.asarray(r[:,0])
-            self.intercept = np.asarray(r[:,1])
-            self.r_value = np.asarray(r[:,2])
-            self.p_value = np.asarray(r[:,3])
-            self.std_err = np.asarray(r[:,4])
+            r = np.asarray([stats.mstats.linregress(self.x.data[i, :,:].flatten(), self.y.data[i,:,:].flatten()) for i in xrange(self.x.nt)])
+            self.slope = np.asarray(r[:, 0])
+            self.intercept = np.asarray(r[:, 1])
+            self.r_value = np.asarray(r[:, 2])
+            self.p_value = np.asarray(r[:, 3])
+            self.std_err = np.asarray(r[:, 4])
         else:
             raise ValueError('Unsupported geometry')
 
@@ -135,7 +136,7 @@ class PatternCorrelation(DiagnosticMaster):
         else:
             raise ValueError('Invalid plot type!')
 
-        self.ax.legend(loc='lower left',prop={'size':10})
+        self.ax.legend(loc='lower left', prop={'size': 10})
         self.ax.set_xlabel('timestep #')
         self.ax.set_ylabel('$r_{pears}$')
         self.ax.grid()
@@ -153,10 +154,7 @@ class PatternCorrelation(DiagnosticMaster):
         self.ax.plot(self.t, self.r_value, **kwargs)
 
 
-
-
 #-----------------------------------------------------------------------
-
 class RegionalAnalysis(object):
     """
     a class to perform comparisons between two datasets on a regional basis
@@ -216,8 +214,8 @@ class RegionalAnalysis(object):
                     raise ValueError('Inconsistent shape of \
                                        X-data with Region')
             elif self.x.ndim == 3:
-                if self.x.data[0, :, :].shape != self.region.shape:
-                    print self.x.data[0, :, :].shape, self.region.shape
+                if self.x.data[0, :,:].shape != self.region.shape:
+                    print self.x.data[0, :,:].shape, self.region.shape
                     raise ValueError('Inconsistent shape of \
                                        X-data with Region')
             else:
@@ -230,8 +228,8 @@ class RegionalAnalysis(object):
                     raise ValueError('Inconsistent shape of \
                                        Y-data with Region')
             elif self.y.ndim == 3:
-                if self.y.data[0, :, :].shape != self.region.shape:
-                    print self.y.data[0, :, :].shape, self.region.shape
+                if self.y.data[0, :,:].shape != self.region.shape:
+                    print self.y.data[0, :,:].shape, self.region.shape
                     raise ValueError('Inconsistent shape of \
                                       Y-data with Region')
             else:
@@ -404,8 +402,6 @@ class RegionalAnalysis(object):
         #--- return result ---
         return {'analysis_A': corrstat1, 'analysis_B': _reshuffle(corrstat2), 'analysis_C': _reshuffle(corrstat3)}
 
-
-
     def calculate(self, pthres=1.01):
         """
         perform calculation of regional statistics
@@ -515,7 +511,7 @@ class RegionalAnalysis(object):
 
         This routine just acts as a wrapper
         """
-        self._save_correlation_statistics_B(fname,tok='C')
+        self._save_correlation_statistics_B(fname, tok='C')
 
     def _save_correlation_statistics_A(self, fname):
         """
@@ -582,19 +578,10 @@ class RegionalAnalysis(object):
                 o.write(s)
             o.close()
 
-
-
-
-
-
-
-
-
     def xxxxxxxxxxxxxprint_table(self, format='txt', filename=None):
         """
         print table of regional statistics
         """
-
 
         def _get_string(d, id):
             #d: dictionary (self.statistics)
@@ -603,7 +590,7 @@ class RegionalAnalysis(object):
             #xmean,xstd,ymean,ystd
 
             sep = '\t'
-            s=str(id) + sep
+            s = str(id) + sep
 
             #xstat and ystat needs to be printed separately, as it can be a function of time !!!
             # xstat = d['xstat']
@@ -619,7 +606,6 @@ class RegionalAnalysis(object):
             # else:
             #     m = d['ystat']['id'] == id
             #     s += str(d['ystat']['mean'][m]) + sep + str(d['ystat']['std'][m]) + sep
-
 
             # id, mean correlation, std of correlation
             if d['corrstat']['corrstat1'] is None:
@@ -658,13 +644,10 @@ class RegionalAnalysis(object):
 
             return s
 
-
-
-
         if filename is not None:
             if os.path.exists(filename):
                 os.remove(filename)
-            o = open(filename,'w')
+            o = open(filename, 'w')
 
         #--- loop over all regions ---
         keys = np.unique(self.region.data.flatten()); keys.sort()
@@ -675,7 +658,7 @@ class RegionalAnalysis(object):
         if filename != None:
             o.write(header + '\n')
         for k in keys:
-            s = _get_string(self.statistics,k) #get formatted string for a particular region
+            s = _get_string(self.statistics, k)  # get formatted string for a particular region
             print s
             if filename != None:
                 if format == 'txt':
@@ -688,9 +671,7 @@ class RegionalAnalysis(object):
 
 #---
 
-
-
-    def plot_taylor(self,dia=None,color='red'):
+    def plot_taylor(self, dia=None, color='red'):
         """
         Taylor plot of statistics
 
@@ -719,21 +700,19 @@ class RegionalAnalysis(object):
         ratio = sy/sx
 
         if dia == None:
-            tay = Taylor(stdmax=max(ratio.max()*1.2,2.)  )
+            tay = Taylor(stdmax=max(ratio.max()*1.2, 2.))
         else:
-            if not isinstance(dia,Taylor):
+            if not isinstance(dia, Taylor):
                 print type(dia)
                 raise ValueError, 'Provided argument is no taylor class! '
             else:
                 tay = dia
-                tay.stdmax=max(max(ratio.max()*1.2,2.),dia.stdmax) #preserve stdmax information when possible
+                tay.stdmax = max(max(ratio.max()*1.2, 2.), dia.stdmax)  # preserve stdmax information when possible
 
-        sid = map(str,self.statistics['corrstat']['corrstat2']['id'])
-        tay.plot(r,ratio,labels=sid,color=color)
+        sid = map(str, self.statistics['corrstat']['corrstat2']['id'])
+        tay.plot(r, ratio, labels=sid, color=color)
 
         return tay
-
-
 
 
 class EOF(object):
@@ -751,7 +730,7 @@ class EOF(object):
     [1] ﻿von Storch, H. & Zwiers, F.W., 1999. Statistical Analysis in Climate Research, chapter 13
     """
 
-    def __init__(self,x0,allow_gaps=False,normalize=False,cov_norm = True,anomalies=False, area_weighting=True,
+    def __init__(self, x0, allow_gaps=False, normalize=False, cov_norm=True, anomalies=False, area_weighting=True,
                  use_corr=False, use_svd=True):
         """
         constructor for EOF analysis
@@ -800,18 +779,18 @@ class EOF(object):
         if x0.data.ndim != 3:
             raise ValueError, 'EOF analysis currently only supported for 3D data matrices of type [time,ny,nx]'
 
-        x = x0.copy() #copy input data object as the data will be weighted!
+        x = x0.copy()  # copy input data object as the data will be weighted!
 
-        self._x0 = x #preserve information on original data
+        self._x0 = x  # preserve information on original data
 
         #/// reshape data [time,npoints] ///
-        self._shape0 = x.data[0,:,:].shape #original data shape
-        n = len(x.data) #number of timestamps
+        self._shape0 = x.data[0, :,:].shape  # original data shape
+        n = len(x.data)  # number of timestamps
         self.n = n
 
         #--- area weighting
         if area_weighting:
-            wmat= np.sqrt(x._get_weighting_matrix())
+            wmat = np.sqrt(x._get_weighting_matrix())
             #wmat = np.zeros(x.data.shape) #weighting for gaussian grid
             #clat = np.sqrt(np.ma.array(x.lat.copy(),mask=x.data[0,:,:].mask))
 
@@ -822,21 +801,20 @@ class EOF(object):
 
         else:
             print '    WARNING: it is recommended to use area weighting for EOFs'
-            wmat= np.sqrt(np.ones(x.data.shape))
+            wmat = np.sqrt(np.ones(x.data.shape))
         self._sum_weighting = np.sum(wmat)
         x.data *= wmat; del wmat
 
-
         #-estimate only valid data, discard any masked values
         if allow_gaps:
-            lon,lat,vdata,msk = x.get_valid_data(return_mask=True,mode='one')
+            lon, lat, vdata, msk = x.get_valid_data(return_mask=True, mode='one')
         else:
-            lon,lat,vdata,msk = x.get_valid_data(return_mask=True,mode='all')
+            lon, lat, vdata, msk = x.get_valid_data(return_mask=True, mode='all')
 
-        self._x0mask = msk.copy() #store mask applied to original data
+        self._x0mask = msk.copy()  # store mask applied to original data
 
         #--- reshape data
-        self.x = vdata.copy(); self.x.shape = (n,-1) #time x npixels
+        self.x = vdata.copy(); self.x.shape = (n, -1)  # time x npixels
 
         if anomalies:
             self._calc_anomalies()
@@ -844,32 +822,32 @@ class EOF(object):
             print '    WARNING: it is recommended that EOFs are calculated based on anomalies'
 
         if normalize:
-            self.__time_normalization() #results in unit variance for all data points
+            self.__time_normalization()  # results in unit variance for all data points
 
         #--- transpose data
-        self.x = self.x.T #[npoints,time]
-        npoints,ntime = self.x.shape
-        print '   EOF analysis with %s timesteps and %s grid cells ...' % (ntime,npoints)
+        self.x = self.x.T  # [npoints,time]
+        npoints, ntime = self.x.shape
+        print '   EOF analysis with %s timesteps and %s grid cells ...' % (ntime, npoints)
 
         #/// calculate covariance matrix ///
         if allow_gaps:
             if use_corr:
-                self.C = np.ma.corrcoef(self.x,rowvar=0)
+                self.C = np.ma.corrcoef(self.x, rowvar=0)
             else:
                 #--- calculation using covariance matrix
                 if cov_norm:
-                    self.C = np.ma.cov(self.x,rowvar=0)
+                    self.C = np.ma.cov(self.x, rowvar=0)
                 else:
                     raise ValueError, 'gappy data not supported for cov_norm option'
         else:
             if use_corr:
-                self.C = np.corrcoef(self.x,rowvar=0)
+                self.C = np.corrcoef(self.x, rowvar=0)
             else:
                 #--- covariance matrix for calculations
                 if cov_norm:
-                    self.C = np.cov(self.x,rowvar=0)
+                    self.C = np.cov(self.x, rowvar=0)
                 else:
-                    self.C = np.dot(self.x.T,self.x)
+                    self.C = np.dot(self.x.T, self.x)
 
         #/// solve eigenvalue problem ///
         # The SVD implementation was validated by comparing U,l,V = svd(cov(x,rowvar=0)) against the results from
@@ -878,55 +856,48 @@ class EOF(object):
         # in the validdation, the eigenvalues however corresponded directly to the singular values!
         if use_svd:
             # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
-            self.eigvec,self.eigval,v = linalg.svd( self.C )
+            self.eigvec, self.eigval, v = linalg.svd( self.C)
         else:
             #returns the eigenvalues in ASCENDING order (or no order at all!)
             # complex numbers in output matrices (eigenvalues not necessarily increasing!)
-            self.eigval,self.eigvec = np.linalg.eigh(self.C)
-
+            self.eigval, self.eigvec = np.linalg.eigh(self.C)
 
         #self.eigvec /= self._sum_weighting #normalize Eigenvector with the sum of the weights that have been applied. This gives the timeseries mean amplitude (see NCL EOF example)
-
-
-
-
         #--- check if Eigenvalues are in descending order
-        if np.any(np.diff(self.eigval) > 0. ):
+        if np.any(np.diff(self.eigval) > 0.):
             print self.eigval
             raise ValueError('Eigenvalues are not in descending order. This is not supported yet so far.'
                              ' Needs ordering of results!')
 
         #/// calculate EOF expansion coefficients == PC (projection of original data to new parameter space)
         if allow_gaps:
-            self.EOF = np.ma.dot(self.x,self.eigvec) #A
+            self.EOF = np.ma.dot(self.x, self.eigvec)  # A
         else:
-            self.EOF = np.dot(self.x,self.eigvec) #A
+            self.EOF = np.dot(self.x, self.eigvec)  # A
 
         #/// explained variance
-        self._var = self.eigval/sum(self.eigval) #explained variance
-
-
+        self._var = self.eigval/sum(self.eigval)  # explained variance
 
     def __time_normalization(self):
         """
         normalize timeseries x [time,position]
         by dividing by the standard deviation
         """
-        nt,nx = np.shape(self.x)
-        s = self.x.std(axis=0) #temporal standard deviation
-        S = np.repeat(s,nt).reshape(nx,nt).T #generate array with all same std
+        nt, nx = np.shape(self.x)
+        s = self.x.std(axis=0)  # temporal standard deviation
+        S = np.repeat(s, nt).reshape(nx, nt).T  # generate array with all same std
         self.x /= S
-        del S,s
+        del S, s
 
     def _calc_anomalies(self):
         """
         calculate anomalies by removing temporal x [time,position]
         """
-        nt,nx = np.shape(self.x)
-        m = self.x.mean(axis=0) #temporal mean
-        M = np.repeat(m,nt).reshape(nx,nt).T
+        nt, nx = np.shape(self.x)
+        m = self.x.mean(axis=0)  # temporal mean
+        M = np.repeat(m, nt).reshape(nx, nt).T
         self.x -= M
-        del M,m
+        del M, m
 
     def get_explained_variance(self):
         """
@@ -935,7 +906,7 @@ class EOF(object):
         """
         return self._var
 
-    def plot_eof_coefficients(self,k,all=False,norm=False,ax=None,label=None,show_legend=True):
+    def plot_eof_coefficients(self, k, all=False, norm=False, ax=None, label=None, show_legend=True):
         """
         plot EOF coefficients = time series
 
@@ -949,30 +920,30 @@ class EOF(object):
         @type norm: bool
         """
         if all:
-            k=range(self.n)
+            k = range(self.n)
         else:
             if np.isscalar(k):
-                k=[k]
+                k = [k]
 
         if ax is None:
             f = plt.figure(); ax = f.add_subplot(111)
         else:
-            f=ax.figure
+            f = ax.figure
 
         if label is None:
-            label=''
+            label = ''
         else:
             label += ' '
 
         for i in k:
-            y = self.eigvec[:,i].copy()
+            y = self.eigvec[:, i].copy()
             if norm:
                 y -= y.mean()
-                y /= y.std() #normalize to zero mean and unit std #todo: this kind of noramlization is not a standard. needs revision!
+                y /= y.std()  # normalize to zero mean and unit std #todo: this kind of noramlization is not a standard. needs revision!
 
             #print len(k)
             #if len(k)>1: #lineplot
-            ax.plot(self._x0.num2date(self._x0.time),y,label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
+            ax.plot(self._x0.num2date(self._x0.time), y, label=label + 'EOF'+str(i+1).zfill(3))  # caution: labeling is k+1
             #else: #nice plot with different colors for pos/neg. values
             #yupper = np.ma.masked_where(y < 0., y); ylower = np.ma.masked_where(y > 0., y)
             #ax.plot(plt.num2date(self._x0.time),yupper,color='red',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
@@ -984,8 +955,8 @@ class EOF(object):
         return ax
 
     def plot_EOF(self, k, all=False, use_basemap=False, logplot=False,
-                 ax=None,label=None,region=None,vmin=None,
-                 vmax=None,show_coef=False,cmap=None,title=None,corr_plot=False,contours=False,norm=False,nclasses=10,levels=None):
+                 ax=None, label=None, region=None, vmin=None,
+                 vmax=None, show_coef=False, cmap=None, title=None, corr_plot=False, contours=False, norm=False, nclasses=10, levels=None):
         """
         plot multiple eof patterns
 
@@ -1019,22 +990,22 @@ class EOF(object):
             k = range(self.n); ax = None
         else:
             if np.isscalar(k):
-                k=[k]
+                k = [k]
 
         for i in k:
             if show_coef:
                 f = plt.figure()
-                gs = gridspec.GridSpec(2, 1, wspace=0.05,hspace=0.05,bottom=0.2,height_ratios = [5,1])
-                ax  = f.add_subplot(gs[0]); ax2 = f.add_subplot(gs[1])
+                gs = gridspec.GridSpec(2, 1, wspace=0.05, hspace=0.05, bottom=0.2, height_ratios=[5, 1])
+                ax = f.add_subplot(gs[0]); ax2 = f.add_subplot(gs[1])
 
-            self._plot_single_EOF(i,use_basemap=use_basemap,logplot=logplot,ax=ax,label=label,region=region,
-                                  vmin=vmin,vmax=vmax,cmap=cmap,title=title,corr_plot=corr_plot,contours=contours,
-                                  norm=norm,nclasses=nclasses,levels=levels)
+            self._plot_single_EOF(i, use_basemap=use_basemap, logplot=logplot, ax=ax, label=label, region=region,
+                                  vmin=vmin, vmax=vmax, cmap=cmap, title=title, corr_plot=corr_plot, contours=contours,
+                                  norm=norm, nclasses=nclasses, levels=levels)
             if show_coef:
-                self.plot_eof_coefficients(i,ax=ax2,show_legend=False,norm=False)
+                self.plot_eof_coefficients(i, ax=ax2, show_legend=False, norm=False)
                 ax2.grid()
-                ti = ax2.get_yticks(); n=len(ti) / 2
-                ax2.set_yticks([ti[0],ti[n],ti[-1]])
+                ti = ax2.get_yticks(); n = len(ti) / 2
+                ax2.set_yticks([ti[0], ti[n], ti[-1]])
 
         if show_coef:
             return f
@@ -1043,10 +1014,9 @@ class EOF(object):
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-
-    def _plot_single_EOF(self,k,use_basemap=False,logplot=False,ax=None,label=None,region=None,vmin=None,
-                         vmax=None,cmap=None,title=None,corr_plot=False,contours=False,norm=False,
-                         nclasses=10,levels=None):
+    def _plot_single_EOF(self, k, use_basemap=False, logplot=False, ax=None, label=None, region=None, vmin=None,
+                         vmax=None, cmap=None, title=None, corr_plot=False, contours=False, norm=False,
+                         nclasses=10, levels=None):
         """
         plot principal component k
 
@@ -1079,7 +1049,7 @@ class EOF(object):
         [1] NCAR EOF example: http://www.ncl.ucar.edu/Applications/eof.shtml
 
         """
-        if k<0:
+        if k < 0:
             raise ValueError, 'k<0'
 
         if label == None:
@@ -1094,10 +1064,10 @@ class EOF(object):
         #remap data back to original shape
         #1) valid data --> all data
         hlp = np.zeros(len(self._x0mask))*np.nan
-        hlp[self._x0mask] = self.EOF[:,k].copy()
+        hlp[self._x0mask] = self.EOF[:, k].copy()
         #2) vector --> matrix
         hlp.shape = self._shape0
-        hlp = np.ma.array(hlp,mask=np.isnan(hlp))
+        hlp = np.ma.array(hlp, mask=np.isnan(hlp))
 
         if norm:
             ########normalize EOF pattern to represent physical units (see von Storch, p.298) NOT USED!!!
@@ -1108,15 +1078,12 @@ class EOF(object):
             #The returned values are normalized such that the sum of squares for each EOF pattern equals one.
             #To denormalize the returned EOFs multiply by the square root of the associated eigenvalue
             #aka,the singular value).
-            hlp /= np.sqrt(self.eigval[k]) #todo not sure if this really works!
+            hlp /= np.sqrt(self.eigval[k])  # todo not sure if this really works!
             print 'WARNING, not sure if this normalization of EOF makes sense!'
-
-
 
         #/// normalize EOF timeseries by multiplying with the stdv of the principal components
         #this gives results which are similar to what the CDOs do (@todo: validate again, but fits well with NCL example [1])
-        hlp *= self.eigvec[:,k].std()
-
+        hlp *= self.eigvec[:, k].std()
 
         #/// calculate normalized EOFs by correlation of data with expansion coefficients ///
         if corr_plot:
@@ -1124,22 +1091,22 @@ class EOF(object):
                 raise ValueError('Data normalization and correlation plot does not make sense and is not'
                                  ' supported therefore')
             #todo that can be done also more efficiently using matrix methods I guess
-            Rout,Sout,Iout,Pout, Cout = self._x0.corr_single(self.eigvec[:,k])
+            Rout, Sout, Iout, Pout, Cout = self._x0.corr_single(self.eigvec[:, k])
             D = Rout.copy()
             D.unit = None
-            del Rout,Sout,Iout,Pout, Cout
+            del Rout, Sout, Iout, Pout, Cout
         else:
             #pyCMBS data object
             D = self._x0.copy()
             D.data = hlp
-            D.unit = None #reset units as EOF have no physical units
+            D.unit = None  # reset units as EOF have no physical units
 
-        D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100.,2)) + '%)' #caution: labeling is always k+1!
+        D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100., 2)) + '%)'  # caution: labeling is always k+1!
 
-        map_plot(D,use_basemap=use_basemap,logplot=logplot,ax=ax,region=region,vmin=vmin,vmax=vmax,
-                 cmap_data=cmap,title=title,contours=contours,nclasses=nclasses,levels=levels)
+        map_plot(D, use_basemap=use_basemap, logplot=logplot, ax=ax, region=region, vmin=vmin, vmax=vmax,
+                 cmap_data=cmap, title=title, contours=contours, nclasses=nclasses, levels=levels)
 
-    def reconstruct_data(self,maxn=None,input=None):
+    def reconstruct_data(self, maxn=None, input=None):
         """
         reconstruct data from EOFs
 
@@ -1151,7 +1118,7 @@ class EOF(object):
         @type input: list of int
         """
 
-        sh = (self.n,np.prod(self._shape0))
+        sh = (self.n, np.prod(self._shape0))
         F = np.zeros(sh)
 
         #- reconsturction list
@@ -1164,22 +1131,21 @@ class EOF(object):
             #use user defined list
             thelist = input
 
-
         #- reconstruct data matrix
         for i in thelist:
             #~ a = np.asarray([self.EOF[:,i]]).T
             #remap to original geometry first
             hlp = np.zeros(len(self._x0mask))*np.nan
-            hlp[self._x0mask] = self.EOF[:,i].copy()
+            hlp[self._x0mask] = self.EOF[:, i].copy()
 
             a = np.asarray([hlp]).T
-            c = np.asarray([self.eigvec[:,i]])
-            F += np.dot(a,c).T
+            c = np.asarray([self.eigvec[:, i]])
+            F += np.dot(a, c).T
 
         #- generate data object to be returned
         D = self._x0.copy()
         F.shape = self._x0.data.shape
-        D.data = np.ma.array(F,mask=np.isnan(F))
+        D.data = np.ma.array(F, mask=np.isnan(F))
 
         return D
 
@@ -1191,24 +1157,24 @@ class EOF(object):
         """
         return np.corrcoef(self.x, rowvar=0)
 
-    def get_eof_data_correlation(self,plot=True):
+    def get_eof_data_correlation(self, plot=True):
         """
         get correlation between original data and PCs
         """
 
-        c=np.corrcoef(self.x,self.EOF,rowvar=0) #correlate PCS and original data
-        c1 = c[self.n:,0:self.n]
+        c = np.corrcoef(self.x, self.EOF, rowvar=0)  # correlate PCS and original data
+        c1 = c[self.n:, 0:self.n]
         if plot:
             f = plt.figure()
             ax = f.add_subplot(111)
 
-            im=ax.imshow(c1**2,interpolation='nearest',vmin=0,vmax=1.,origin='lower')
+            im = ax.imshow(c1**2, interpolation='nearest', vmin=0, vmax=1., origin='lower')
             plt.colorbar(im)
             ax.set_title('$R^2$ of EOFs with original data')
             ax.set_xlabel('original data channel #')
             ax.set_ylabel('PC #')
 
-    def plot_channnel_correlations(self,samp):
+    def plot_channnel_correlations(self, samp):
         """
         generate a scatterplot of correlations of call channles vs. each other
 
@@ -1219,30 +1185,24 @@ class EOF(object):
         f = plt.figure()
         cnt = 1
         for i in range(self.n):
-            x = self.x[::samp,i]
+            x = self.x[::samp, i]
             for j in xrange(self.n):
-                print i,j
-                y = self.x[::samp,j]
-                if j >=i:
-                    ax = f.add_subplot(self.n,self.n,cnt)
+                print i, j
+                y = self.x[::samp, j]
+                if j >= i:
+                    ax = f.add_subplot(self.n, self.n, cnt)
                     #~ ax.set_aspect('equal')
-                    ax.hexbin(x,y,mincnt=1,bins='log')
+                    ax.hexbin(x, y, mincnt=1, bins='log')
                     ax.set_ylim(ax.get_xlim())
                     ax.set_xticks([]); ax.set_yticks([])
                 cnt += 1
 
-        f.subplots_adjust(wspace=0.,hspace=0.,right=1.,left=0.,bottom=0.,top=1.)
+        f.subplots_adjust(wspace=0., hspace=0., right=1., left=0., bottom=0., top=1.)
 
         return f
 
 
-
-
-
-
-
 #-----------------------------------------------------------------------
-
 class ANOVA(object):
     """
     main class to perform an ANOVA analysis
@@ -1254,18 +1214,18 @@ class ANOVA(object):
     def __init__(self):
         self.experiments = []; self.data = {}
 
-    def add_experiment(self,label):
+    def add_experiment(self, label):
         self.experiments.append(self.__trim(label))
-        self.data.update({self.__trim(label):[]})
+        self.data.update({self.__trim(label): []})
 
-    def __trim(self,s):
-        return s.replace(' ','_')
+    def __trim(self, s):
+        return s.replace(' ', '_')
 
-    def add_data(self,e,d):
+    def add_data(self, e, d):
         """
         adds data for each experiment to a list
         """
-        k = self.__trim(e) #experiment key
+        k = self.__trim(e)  # experiment key
         if k in self.experiments:
             #experiment was registered
             #~ has_mask = True
@@ -1282,7 +1242,7 @@ class ANOVA(object):
         else:
             raise ValueError, 'Experiment was not yet registered!'
 
-    def analysis(self,analysis_type = None):
+    def analysis(self, analysis_type=None):
         """
         perform ANOVA analysis based on the data given
         """
@@ -1295,12 +1255,12 @@ class ANOVA(object):
         # the implementation here
         # generate a common mask with points that are valid throughout
         # all timesteps and are not masked
-        self._get_valid_mask() #--> self.mask
+        self._get_valid_mask()  # --> self.mask
 
         #2) rearange data to work only with valid (not masked data)
         #   check also that only data which is valid in all cases is used
         #   it is realized by getting the valid indices of the data
-        idx = np.argwhere(self.mask) #returns list of indices of valid pixels
+        idx = np.argwhere(self.mask)  # returns list of indices of valid pixels
 
         #3) perform ANOVA analysis on all pixels individually
         resA = np.zeros(self.refshape)*np.nan
@@ -1316,38 +1276,35 @@ class ANOVA(object):
         resIa = np.zeros(self.refshape)*np.nan
 
         for p in idx:
-            if analysis_type == 'one': #one way ANOVA
-                m = self._data2anova1(p) #[nrens,ntime]
+            if analysis_type == 'one':  # one way ANOVA
+                m = self._data2anova1(p)  # [nrens,ntime]
                 A = Anova1(m)
                 A.one_way_anova(verbose=False)
 
-                resA[p[0],p[1]] = A.get_fractional_variance_explained(adjust=False) #ssa
-                resPA[p[0],p[1]] = A.p
-                resB[p[0],p[1]] = A.sse / A.sst #todo: adjustment here ???
+                resA[p[0], p[1]] = A.get_fractional_variance_explained(adjust=False)  # ssa
+                resPA[p[0], p[1]] = A.p
+                resB[p[0], p[1]] = A.sse / A.sst  # todo: adjustment here ???
 
-
-
-            elif analysis_type == 'two': #two way ANOVA
+            elif analysis_type == 'two':  # two way ANOVA
                 m = self._data2anova2(p)
                 #- perform 2-way anova
                 A = Anova2(m)
                 A.two_way_anova_with_replication()
 
-                resA[p[0],p[1]] = A.get_fractional_variance_explained('a',adjust=False) #todo: adjust variance
-                resB[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=False) #todo: adjust variance
-                resI[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=False) #todo: adjust variance
-                resE[p[0],p[1]] = A.get_fractional_variance_explained('e',adjust=False) #todo: adjust variance
+                resA[p[0], p[1]] = A.get_fractional_variance_explained('a', adjust=False)  # todo: adjust variance
+                resB[p[0], p[1]] = A.get_fractional_variance_explained('b', adjust=False)  # todo: adjust variance
+                resI[p[0], p[1]] = A.get_fractional_variance_explained('i', adjust=False)  # todo: adjust variance
+                resE[p[0], p[1]] = A.get_fractional_variance_explained('e', adjust=False)  # todo: adjust variance
 
-                resPA[p[0],p[1]] = A.p_ssa
-                resPB[p[0],p[1]] = A.p_ssb
-                resPI[p[0],p[1]] = A.p_ssi
+                resPA[p[0], p[1]] = A.p_ssa
+                resPB[p[0], p[1]] = A.p_ssb
+                resPI[p[0], p[1]] = A.p_ssi
 
                 #~ resAa[p[0],p[1]] = A.get_fractional_variance_explained('a',adjust=True) #todo: adjust variance
                 #~ resBa[p[0],p[1]] = A.get_fractional_variance_explained('b',adjust=True) #todo: adjust variance
                 #~ resIa[p[0],p[1]] = A.get_fractional_variance_explained('i',adjust=True) #todo: adjust variance
 
                 #@todo significance
-
 
             else:
                 raise ValueError, 'Invalid ANOVA type'
@@ -1365,8 +1322,7 @@ class ANOVA(object):
         self.resBa = resBa
         self.resIa = resIa
 
-
-    def _data2anova1(self,p):
+    def _data2anova1(self, p):
         """
         extract from the database all the data
         relevant for a single location, given by the indices in p
@@ -1384,21 +1340,19 @@ class ANOVA(object):
         if nexp != 1:
             raise ValueError, 'one-way anova only valid for signle experiments!'
 
-        x = np.zeros((self.n,self.nt))*np.nan #[nrens,nt]
+        x = np.zeros((self.n, self.nt))*np.nan  # [nrens,nt]
 
         e = self.experiments[0]
         for i in range(self.n):
-            d = self.data[e][i] #data object for experiment 'e' and ensemble nr [i]
-            x [i,:] = d.data[:,p[0],p[1]]
+            d = self.data[e][i]  # data object for experiment 'e' and ensemble nr [i]
+            x[i, :] = d.data[:, p[0], p[1]]
 
         if np.any(np.isnan(x) > 0):
             raise ValueError, 'Something is wrong: not all data valid!'
 
         return x
 
-
-
-    def _data2anova2(self,p):
+    def _data2anova2(self, p):
         """
         extract from the database all the data
         relevant for a single location, given by the indices in p
@@ -1411,13 +1365,13 @@ class ANOVA(object):
         v experiment (nexp)
         """
         nexp = len(self.experiments)
-        x = np.zeros((nexp,self.nt,self.n))*np.nan
+        x = np.zeros((nexp, self.nt, self.n))*np.nan
 
         for j in range(len(self.experiments)):
             e = self.experiments[j]
             for i in range(self.n):
-                d = self.data[e][i] #data object for experiment 'e' and ensemble nr [i]
-                x [j,:,i] = d.data[:,p[0],p[1]]
+                d = self.data[e][i]  # data object for experiment 'e' and ensemble nr [i]
+                x[j, :, i] = d.data[:, p[0], p[1]]
 
         if np.any(np.isnan(x) > 0):
             raise ValueError, 'Something is wrong: not all data valid!'
@@ -1439,11 +1393,11 @@ class ANOVA(object):
         for k in self.experiments:
             d = self.data[k]
             if cnt == 0:
-                refshape = d[0].data.shape #first dataset geometry as reference
-                self.refshape=(refshape[1],refshape[2])
+                refshape = d[0].data.shape  # first dataset geometry as reference
+                self.refshape = (refshape[1], refshape[2])
                 nrens = len(d)
                 self.n = nrens; self.nt = refshape[0]
-                refmsk = np.ones((refshape[1],refshape[2])).astype('bool')
+                refmsk = np.ones((refshape[1], refshape[2])).astype('bool')
                 cnt += 1
 
             if len(d) != nrens:
@@ -1466,6 +1420,7 @@ class ANOVA(object):
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
+
 class SVD(object):
     """
     class to perform singular value decomposition analysis
@@ -1477,7 +1432,7 @@ class SVD(object):
                            McGill University, available online
     """
 
-    def __init__(self,X,Y,scf_threshold = 0.01,label='',format='pdf'):
+    def __init__(self, X, Y, scf_threshold=0.01, label='', format='pdf'):
         """
         constructor for SVD class
 
@@ -1496,14 +1451,14 @@ class SVD(object):
         @param format: specifies the format of figures to be generated [png,pdf]
         @type format: str
         """
-        x = X.data.copy(); y = Y.data.copy() #these are masked arrays
+        x = X.data.copy(); y = Y.data.copy()  # these are masked arrays
 
         n = len(x)
         if n != len(y):
             raise ValueError, 'Datasets need to have same timelength!'
 
-        x.shape = (n,-1) #[time,position]
-        y.shape = (n,-1)
+        x.shape = (n, -1)  # [time,position]
+        y.shape = (n, -1)
 
         self.x = x; self.y = y
         self.X = X; self.Y = Y
@@ -1511,14 +1466,14 @@ class SVD(object):
         self.time = X.time.copy()
         self.label = label
 
-        self.scf_threshold = scf_threshold #threshold for explained variance until which result maps are plotted
-        self.dpi  = 150 #output dpi for plotting
-        self.ext = format #file extension for plotting
+        self.scf_threshold = scf_threshold  # threshold for explained variance until which result maps are plotted
+        self.dpi = 150  # output dpi for plotting
+        self.ext = format  # file extension for plotting
         self.use_basemap = False
 
 #-----------------------------------------------------------------------
 
-    def _get_valid_timeseries(self,x):
+    def _get_valid_timeseries(self, x):
         """
         get only points where ALL
         timeseries are valid
@@ -1529,23 +1484,23 @@ class SVD(object):
         @return: masked array [time,nvalidpixels] and mask that can be applied to original data [norgpixels]
         """
 
-        nt,n = x.shape
-        mx = np.sum(~x.mask,axis=0) == nt #get mask for valid pixels only
+        nt, n = x.shape
+        mx = np.sum(~x.mask, axis=0) == nt  # get mask for valid pixels only
         m1 = mx
 
-        r = np.ones( (nt , sum(mx)  ))*np.nan
+        r = np.ones( (nt, sum(mx)))*np.nan
         for i in xrange(nt):
-            tmp = x.data[i,:]
+            tmp = x.data[i, :]
             if np.any(np.isnan(tmp[m1])):
                 raise ValueError, 'Nans are not allowed here!'
-            r[i,:] = tmp[m1]*1.
+            r[i, :] = tmp[m1]*1.
             del tmp
 
-        return np.ma.array(r),m1
+        return np.ma.array(r), m1
 
 #-----------------------------------------------------------------------
 
-    def __detrend_time(self,x):
+    def __detrend_time(self, x):
         """
         given a variable x[time,position]
         the data is linear detrended individually for each position
@@ -1555,17 +1510,17 @@ class SVD(object):
         @return: return detrended array [time,position]
         """
 
-        if x.ndim !=2:
+        if x.ndim != 2:
             raise ValueError, 'Invalid shape for detrending'
-        n,m = x.shape
+        n, m = x.shape
         for i in xrange(m):
-            h = x[:,i].copy(); h = plt.detrend_linear(h)
-            x[:,i] = h.copy()
+            h = x[:, i].copy(); h = plt.detrend_linear(h)
+            x[:, i] = h.copy()
         return x
 
 #-----------------------------------------------------------------------
 
-    def __time_normalization(self,x):
+    def __time_normalization(self, x):
         """
         normalize timeseries x [time,position]
         by dividing by the standard deviation
@@ -1575,15 +1530,15 @@ class SVD(object):
 
         @return: normalized timeseries numpy array
         """
-        nt,nx = np.shape(x)
-        s = x.std(axis=0) #temporal standard deviation
-        S = np.repeat(s,nt).reshape(nx,nt).T #generate array with all same std
-        x /= S; del S,s
+        nt, nx = np.shape(x)
+        s = x.std(axis=0)  # temporal standard deviation
+        S = np.repeat(s, nt).reshape(nx, nt).T  # generate array with all same std
+        x /= S; del S, s
         return x
 
 #-----------------------------------------------------------------------
 
-    def svd_analysis(self,detrend=True,varnorm=False):
+    def svd_analysis(self, detrend=True, varnorm=False):
         """
         perform SVD analysis
 
@@ -1595,8 +1550,8 @@ class SVD(object):
         """
 
         #/// perform SVN only for data points which are valid throughout entire time series ///
-        x,mskx = self._get_valid_timeseries(self.x) #self.x is a masked array; returns an array [time,nvalid]
-        y,msky = self._get_valid_timeseries(self.y)
+        x, mskx = self._get_valid_timeseries(self.x)  # self.x is a masked array; returns an array [time,nvalid]
+        y, msky = self._get_valid_timeseries(self.y)
         self.mskx = mskx; self.msky = msky
 
         #/// detrend the data for each grid point ///
@@ -1613,29 +1568,29 @@ class SVD(object):
 
         #/// calculate covariance matrix
         print 'Construct covariance matrix ...'
-        C = dot(x.T,y) #this covariance matrix does NOT contain the variances of the individual
+        C = dot(x.T, y)  # this covariance matrix does NOT contain the variances of the individual
         # grid points, but only the covariance terms!
         print 'Done!'
         self.C = C
-        self.x_used = x.copy() #store vectors like they are used for SVD calculations
+        self.x_used = x.copy()  # store vectors like they are used for SVD calculations
         self.y_used = y.copy()
 
         #/// singular value decomposition
         print '   Doing singular value decomposition xxxxxx ...'
 
-        U, s, V = linalg.svd( C )
+        U, s, V = linalg.svd( C)
         print 'Done!'
-        L = linalg.diagsvd(s, len(C), len(V) ) #construct diagonal maxtrix such that U L V.T = C; this is
+        L = linalg.diagsvd(s, len(C), len(V))  # construct diagonal maxtrix such that U L V.T = C; this is
         # somewhat python specific
 
         #/// expansion coefficients (time series)
-        A = dot(x,U); B = dot(y,V.T) # ACHTUNG!!! SCHOULD BE B = dot(y,V)
+        A = dot(x, U); B = dot(y, V.T) # ACHTUNG!!! SCHOULD BE B = dot(y,V)
 
         #/// store results
         self.U = U; self.V = V
         self.L = L; self.A = A; self.B = B
-        self.scf = (s*s) / sum(s*s) #fractions of variance explained CAUTION: not properly described in manual if squared or not!
-        self.__get_mode_correlation() #calculate correlation between modes
+        self.scf = (s*s) / sum(s*s)  # fractions of variance explained CAUTION: not properly described in manual if squared or not!
+        self.__get_mode_correlation()  # calculate correlation between modes
 
 #-----------------------------------------------------------------------
 
@@ -1646,13 +1601,13 @@ class SVD(object):
         """
         self.mcorr = []
         for i in range(len(self.scf)):
-            c = np.corrcoef(self.A[:,i],self.B[:,i])[0][1]
+            c = np.corrcoef(self.A[:, i], self.B[:, i])[0][1]
             self.mcorr.append(c)
         self.mcorr = np.asarray(self.mcorr)
 
 #-----------------------------------------------------------------------
 
-    def get_singular_vectors(self,mode):
+    def get_singular_vectors(self, mode):
         """
         return the singular vectors of both fields for a specific mode
         as a spatial (2D) field
@@ -1666,11 +1621,11 @@ class SVD(object):
         #x_used is a vector that only contains the valid values that were used for caluclation of covariance matrix C
         #mskx is the corresponding mask that maps x_used to the original geometry (both are estimated with
         # _get_valid_timeseries()  )
-        u = self.U[:,mode]; v = self.V[:,mode] #get singular vectors
+        u = self.U[:, mode]; v = self.V[:, mode]  # get singular vectors
 
         #map singular vectors to 2D
-        udat = self._map_valid2org(u,self.mskx,self.X.data[0,:,:].shape)
-        vdat = self._map_valid2org(v,self.msky,self.Y.data[0,:,:].shape)
+        udat = self._map_valid2org(u, self.mskx, self.X.data[0, :,:].shape)
+        vdat = self._map_valid2org(v, self.msky, self.Y.data[0, :,:].shape)
 
         U = self.X.copy(); U.label = 'U(' + str(mode) + ')'
         U.data = udat.copy()
@@ -1678,11 +1633,11 @@ class SVD(object):
         V = self.Y.copy(); V.label = 'V(' + str(mode) + ')'
         V.data = vdat.copy()
 
-        return U,V
+        return U, V
 
 #-----------------------------------------------------------------------
 
-    def _map_valid2org(self,data,mask,target_shape):
+    def _map_valid2org(self, data, mask, target_shape):
         """
         map valid data vector back to
         original data shape
@@ -1704,14 +1659,14 @@ class SVD(object):
         res = np.ones(target_shape)*np.nan; res.shape = (-1)
         res[mask] = data.copy()
 
-        res = np.ma.array(res,mask=np.isnan(res))
-        res = np.reshape(res,target_shape)
+        res = np.ma.array(res, mask=np.isnan(res))
+        res = np.reshape(res, target_shape)
 
         return res
 
 #-----------------------------------------------------------------------
 
-    def plot_var(self,ax=None,filename=None,maxvar=1.):
+    def plot_var(self, ax=None, filename=None, maxvar=1.):
         """
         plot explained variance
 
@@ -1733,7 +1688,7 @@ class SVD(object):
                 sp.set_visible(False)
 
         if ax == None:
-            fig=plt.figure()
+            fig = plt.figure()
             ax = fig.add_subplot(111)
         else:
             ax = ax
@@ -1741,7 +1696,7 @@ class SVD(object):
 
         fig.subplots_adjust(right=0.75)
 
-        ax1 = ax.twinx() #axis for cumulated variance
+        ax1 = ax.twinx()  # axis for cumulated variance
         ax2 = ax.twinx()
 
         ax2.spines["right"].set_position(("axes", 1.2))
@@ -1749,19 +1704,19 @@ class SVD(object):
         ax2.spines["right"].set_visible(True)
 
         n = len(self.scf)
-        ax.step(np.arange(n),self.scf,where='post')
-        ax.set_ylabel('fraction of variance explained',color='blue')
+        ax.step(np.arange(n), self.scf, where='post')
+        ax.set_ylabel('fraction of variance explained', color='blue')
         ax.set_xlabel('mode')
-        ax.set_ylim(0.,maxvar)
+        ax.set_ylim(0., maxvar)
         ax.grid()
 
-        ax1.plot(np.cumsum(self.scf),color='red')
-        ax1.set_ylabel('cumulated variance [-]',color='red')
-        ax1.set_ylim(0.,1.)
+        ax1.plot(np.cumsum(self.scf), color='red')
+        ax1.set_ylabel('cumulated variance [-]', color='red')
+        ax1.set_ylim(0., 1.)
 
-        ax2.plot(np.arange(n),self.mcorr,color='green')
-        ax2.set_ylabel('mode correlation [-]',color='green')
-        ax2.set_ylim(-1,1.)
+        ax2.plot(np.arange(n), self.mcorr, color='green')
+        ax2.set_ylabel('mode correlation [-]', color='green')
+        ax2.set_ylim(-1, 1.)
         ax2.grid(color='green')
 
         ax .tick_params(axis='y', colors='blue')
@@ -1770,11 +1725,11 @@ class SVD(object):
 
         if filename != None:
             oname = filename + '_mode_var.' + self.ext
-            ax.figure.savefig(oname,dpi=self.dpi)
+            ax.figure.savefig(oname, dpi=self.dpi)
 
 #-----------------------------------------------------------------------
 
-    def plot_singular_vectors(self,mode,use_basemap=False,logplot=False,filename=None):
+    def plot_singular_vectors(self, mode, use_basemap=False, logplot=False, filename=None):
         """
         generate maps of singular vectors U and V
 
@@ -1782,7 +1737,7 @@ class SVD(object):
         """
 
         #--- mode list
-        if mode is None: #plot all modes with variance contained
+        if mode is None:  # plot all modes with variance contained
             mode_list = []
             for i in range(len(self.scf)):
                 if self.scf[i] > self.scf_threshold:
@@ -1792,36 +1747,36 @@ class SVD(object):
 
         #--- generate plots
         for i in mode_list:
-            fig=plt.figure()
+            fig = plt.figure()
             ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122)
 
-            U,V = self.get_singular_vectors(i) #get singular vector fields
+            U, V = self.get_singular_vectors(i)  # get singular vector fields
 
             #--- determine min/max values
             mu = U.data.mean(); su = U.data.std()
             mv = V.data.mean(); sv = V.data.std()
 
-            su *= 1.96; sv *= 1.96 #not used at the moment
+            su *= 1.96; sv *= 1.96  # not used at the moment
 
             if logplot:
-                umin=None;umax=None
-                vmin=None;vmax=None
+                umin = None; umax = None
+                vmin = None; vmax = None
             else:
-                umin=mu-su;umax=mu+su
-                vmin=mv-sv;vmax=mv+sv
+                umin = mu-su; umax = mu+su
+                vmin = mv-sv; vmax = mv+sv
 
-            map_plot(U,use_basemap=use_basemap,ax=ax1,logplot=logplot,vmin=umin,vmax=umax)
-            map_plot(V,use_basemap=use_basemap,ax=ax2,logplot=logplot,vmin=vmin,vmax=vmax)
+            map_plot(U, use_basemap=use_basemap, ax=ax1, logplot=logplot, vmin=umin, vmax=umax)
+            map_plot(V, use_basemap=use_basemap, ax=ax2, logplot=logplot, vmin=vmin, vmax=vmax)
 
-            fig.suptitle('Mode: #' + str(i) + ' scf: ' + str(round(self.scf[i]*100.,1) ) + '%', size=14)
+            fig.suptitle('Mode: #' + str(i) + ' scf: ' + str(round(self.scf[i]*100., 1)) + '%', size=14)
 
             if filename != None:
-                fig.savefig(filename + '_singular_vectors_mode_' + str(i).zfill(5) + '.pdf' )
+                fig.savefig(filename + '_singular_vectors_mode_' + str(i).zfill(5) + '.pdf')
 
 #-----------------------------------------------------------------------
 
-    def plot_correlation_map(self,mode,ax1in=None,ax2in=None,pthres=1.01,plot_var=False,filename=None,
-                             region1=None,region2=None,regions_to_plot=None):
+    def plot_correlation_map(self, mode, ax1in=None, ax2in=None, pthres=1.01, plot_var=False, filename=None,
+                             region1=None, region2=None, regions_to_plot=None):
         """
         plot correlation map of an SVN mode
         with original data
@@ -1840,8 +1795,7 @@ class SVD(object):
         plot_var: plot variance instead of correlation
         """
 
-
-        n1,m1 = self.A.shape; n2,m2 = self.B.shape
+        n1, m1 = self.A.shape; n2, m2 = self.B.shape
 
         if mode != None:
             if mode > m1-1:
@@ -1849,7 +1803,7 @@ class SVD(object):
             if mode > m2-1:
                 raise ValueError, 'Mode > B'
 
-        if mode == None: #plot all modes with variance contained
+        if mode == None:  # plot all modes with variance contained
             mode_list = []
             for i in xrange(len(self.scf)):
                 if self.scf[i] > self.scf_threshold:
@@ -1857,8 +1811,8 @@ class SVD(object):
         else:
             mode_list = [mode]
 
-        def plot_cmap(R,ax,title,vmin=-1.,vmax=1.,plot_var=False,use_basemap=False,region=None,
-                      cmap='RdBu_r',cticks=None,regions_to_plot=None):
+        def plot_cmap(R, ax, title, vmin=-1., vmax=1., plot_var=False, use_basemap=False, region=None,
+                      cmap='RdBu_r', cticks=None, regions_to_plot=None):
             """
             R data object
             """
@@ -1872,31 +1826,30 @@ class SVD(object):
                 O.label = 'correlation'
 
             #calculate mean and stdv
-            O.label = O.label + ' (' + str(round(O.data.mean(),2)) + ' ' + str(round(O.data.std(),2)) + ')'
+            O.label = O.label + ' (' + str(round(O.data.mean(), 2)) + ' ' + str(round(O.data.std(), 2)) + ')'
 
-            map_plot(O,use_basemap=use_basemap,ax=ax,region=region,cmap_data=cmap,vmin=vmin,vmax=vmax,cticks=cticks,title=title,regions_to_plot=regions_to_plot,show_stat=True)
-
+            map_plot(O, use_basemap=use_basemap, ax=ax, region=region, cmap_data=cmap, vmin=vmin, vmax=vmax, cticks=cticks, title=title, regions_to_plot=regions_to_plot, show_stat=True)
 
         #/// calculate correlations and do plotting
         for i in mode_list:
-            fig=plt.figure(figsize=(6,8))
-            ax1a = fig.add_subplot(421) #homogeneous plots
+            fig = plt.figure(figsize=(6, 8))
+            ax1a = fig.add_subplot(421)  # homogeneous plots
             ax1b = fig.add_subplot(423)
             ax1c = fig.add_subplot(425)
 
-            ax2a = fig.add_subplot(422) #heterogeneous plots
+            ax2a = fig.add_subplot(422)  # heterogeneous plots
             ax2b = fig.add_subplot(424)
             ax2c = fig.add_subplot(426)
 
-            ax3  = fig.add_subplot(515) #expansion coefficients
+            ax3 = fig.add_subplot(515)  # expansion coefficients
 
             #homogeneous correlations
-            Rout1_ho,Sout1_ho,Iout1_ho,Pout1_ho,Cout1_ho = self.X.corr_single(self.A[:,i],pthres=pthres)
-            Rout2_ho,Sout2_ho,Iout2_ho,Pout2_ho,Cout2_ho = self.Y.corr_single(self.B[:,i],pthres=pthres)
+            Rout1_ho, Sout1_ho, Iout1_ho, Pout1_ho, Cout1_ho = self.X.corr_single(self.A[:, i], pthres=pthres)
+            Rout2_ho, Sout2_ho, Iout2_ho, Pout2_ho, Cout2_ho = self.Y.corr_single(self.B[:, i], pthres=pthres)
 
             #heterogeneous correlations
-            Rout1_he,Sout1_he,Iout1_he,Pout1_he,Cout1_he = self.X.corr_single(self.B[:,i],pthres=pthres)
-            Rout2_he,Sout2_he,Iout2_he,Pout2_he,Cout2_he = self.Y.corr_single(self.A[:,i],pthres=pthres)
+            Rout1_he, Sout1_he, Iout1_he, Pout1_he, Cout1_he = self.X.corr_single(self.B[:, i], pthres=pthres)
+            Rout2_he, Sout2_he, Iout2_he, Pout2_he, Cout2_he = self.Y.corr_single(self.A[:, i], pthres=pthres)
 
             #R #output matrix for correlation
             #P #output matrix for p-value
@@ -1907,44 +1860,43 @@ class SVD(object):
             #--- plot maps
             print 'Starting map plotting'
             #homogeneous
-            plot_cmap(Rout1_ho,ax1a,'correlation (homo) ' + self.X.label,plot_var=False,
-                      use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
-                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
-            plot_cmap(Rout2_ho,ax1b,'correlation (homo) ' + self.Y.label,plot_var=False,
-                      use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
-                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
-            plot_cmap(Rout2_ho,ax1c,'exp.frac.var (homo)'   ,plot_var=True,
-                      use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',
-                      cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
+            plot_cmap(Rout1_ho, ax1a, 'correlation (homo) ' + self.X.label, plot_var=False,
+                      use_basemap=self.use_basemap, region=region1, vmin=-0.8, vmax=0.8, cmap='RdBu_r',
+                      cticks=[-1., -0.5, 0., 0.5, 1.], regions_to_plot=regions_to_plot)  # correlation field 1
+            plot_cmap(Rout2_ho, ax1b, 'correlation (homo) ' + self.Y.label, plot_var=False,
+                      use_basemap=self.use_basemap, region=region2, vmin=-0.8, vmax=0.8, cmap='RdBu_r',
+                      cticks=[-1., -0.5, 0., 0.5, 1.], regions_to_plot=regions_to_plot)  # correlation field 2
+            plot_cmap(Rout2_ho, ax1c, 'exp.frac.var (homo)', plot_var=True,
+                      use_basemap=self.use_basemap, region=region2, vmin=0., vmax=0.6, cmap='YlOrRd',
+                      cticks=[0., 0.25, 0.5], regions_to_plot=regions_to_plot)  # explained variance field 2
 
             #heterogeneous
-            plot_cmap(Rout1_he,ax2a,'correlation (hetero) ' + self.X.label,plot_var=False,
-                      use_basemap=self.use_basemap,region=region1,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
-                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 1
-            plot_cmap(Rout2_he,ax2b,'correlation (hetero) ' + self.Y.label,plot_var=False,
-                      use_basemap=self.use_basemap,region=region2,vmin=-0.8,vmax=0.8,cmap='RdBu_r',
-                      cticks=[-1.,-0.5,0.,0.5,1.],regions_to_plot=regions_to_plot) #correlation field 2
-            plot_cmap(Rout2_he,ax2c,'exp.frac.var (hetero)'   ,plot_var=True,
-                      use_basemap=self.use_basemap,region=region2,vmin=0.,vmax=0.6,cmap='YlOrRd',
-                      cticks=[0.,0.25,0.5],regions_to_plot=regions_to_plot)  #explained variance field 2
-
+            plot_cmap(Rout1_he, ax2a, 'correlation (hetero) ' + self.X.label, plot_var=False,
+                      use_basemap=self.use_basemap, region=region1, vmin=-0.8, vmax=0.8, cmap='RdBu_r',
+                      cticks=[-1., -0.5, 0., 0.5, 1.], regions_to_plot=regions_to_plot)  # correlation field 1
+            plot_cmap(Rout2_he, ax2b, 'correlation (hetero) ' + self.Y.label, plot_var=False,
+                      use_basemap=self.use_basemap, region=region2, vmin=-0.8, vmax=0.8, cmap='RdBu_r',
+                      cticks=[-1., -0.5, 0., 0.5, 1.], regions_to_plot=regions_to_plot)  # correlation field 2
+            plot_cmap(Rout2_he, ax2c, 'exp.frac.var (hetero)', plot_var=True,
+                      use_basemap=self.use_basemap, region=region2, vmin=0., vmax=0.6, cmap='YlOrRd',
+                      cticks=[0., 0.25, 0.5], regions_to_plot=regions_to_plot)  # explained variance field 2
 
             #expansion coefficients
-            self.plot_expansion_correlation(i,ax=ax3)
+            self.plot_expansion_correlation(i, ax=ax3)
 
             #figure title
-            fig.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i],2)) + ')',size=14)
-            fig.subplots_adjust(wspace=0.0,hspace=0.5)
+            fig.suptitle(self.label + ': Mode: #' + str(i) + ' (scf: ' + str(round(self.scf[i], 2)) + ')', size=14)
+            fig.subplots_adjust(wspace=0.0, hspace=0.5)
             fig.set_figheight(10.)
 
             #--- save figure
             if filename != None:
                 oname = filename + '_mode_' + str(i) + '.' + self.ext
-                ax1a.figure.savefig(oname,dpi=self.dpi)
+                ax1a.figure.savefig(oname, dpi=self.dpi)
 
 #-----------------------------------------------------------------------
 
-    def _get_variance_field(self,X,E,mode,pthres=1.01):
+    def _get_variance_field(self, X, E, mode, pthres=1.01):
         """
         calculate variance field for a particular mode
         (explained variance by a particular expansion mode)
@@ -1959,13 +1911,13 @@ class SVD(object):
 
         @return: squared correlation as C{Data} object
         """
-        Rout,Sout,Iout,Pout = X.corr_single(E[:,mode],pthres=pthres)
+        Rout, Sout, Iout, Pout = X.corr_single(E[:, mode], pthres=pthres)
         Rout.data = Rout.data*Rout.data
-        return Rout #return squared correlation to get variance
+        return Rout  # return squared correlation to get variance
 
 #-----------------------------------------------------------------------
 
-    def reconstruct_variance_fraction(self,X,E,mode_list,pthres=1.01):
+    def reconstruct_variance_fraction(self, X, E, mode_list, pthres=1.01):
         """
         reconstruct variance of data based on
         a list of modes that should be used
@@ -1985,19 +1937,19 @@ class SVD(object):
 
         O = None
         for mode in mode_list:
-            V = self._get_variance_field(X,E,mode,pthres=pthres)
+            V = self._get_variance_field(X, E, mode, pthres=pthres)
             if O is None:
                 O = V.data
             else:
-                O = O + V.data #add variances
+                O = O + V.data  # add variances
 
-        O = np.ma.array(O,mask=np.isnan(O))
+        O = np.ma.array(O, mask=np.isnan(O))
 
         return O
 
 #-----------------------------------------------------------------------
 
-    def print_mode_statistic(self,filename=None):
+    def print_mode_statistic(self, filename=None):
         """
         print statistic of modes
 
@@ -2005,18 +1957,18 @@ class SVD(object):
         @type filename: str
         """
         sep = ' & '; rnd = 2
-        self.__get_mode_correlation() #calculate mode correlations
+        self.__get_mode_correlation()  # calculate mode correlations
 
         if filename != None:
-            o = open(filename,'w')
+            o = open(filename, 'w')
             o.write('mode' + sep + 'scf' + sep + 'r' + ' \\\ ' + '\n')
 
         for i in np.arange(len(self.scf)):
             if self.scf[i] > self.scf_threshold:
                 print i, self.scf[i], self.mcorr[i]
                 if filename != None:
-                    s = str(i) + sep + str(np.round(self.scf[i],rnd)) + sep \
-                        + str(np.round(self.mcorr[i],rnd)) + ' \\\ ' +  '\n'
+                    s = str(i) + sep + str(np.round(self.scf[i], rnd)) + sep \
+                        + str(np.round(self.mcorr[i], rnd)) + ' \\\ ' +  '\n'
                     o.write(s)
 
         if not filename is None:
@@ -2024,7 +1976,7 @@ class SVD(object):
 
 #-----------------------------------------------------------------------
 
-    def plot_expansion_correlation(self,mode,ax=None):
+    def plot_expansion_correlation(self, mode, ax=None):
         """
         plot correlation and time series of expansion coeffcients
 
@@ -2035,23 +1987,24 @@ class SVD(object):
         @type ax: matplotlib axis
         """
         if ax == None:
-            fig=plt.figure()
+            fig = plt.figure()
             ax = fig.add_subplot(111)
         else:
             ax = ax
 
-        ax.plot(self.num2date(self.time),self.A[:,mode]/np.std(self.A[:,mode]),label='A',color='red')
-        ax.plot(self.num2date(self.time),self.B[:,mode]/np.std(self.B[:,mode]),label='B',color='blue',linestyle='--')
-        c = np.corrcoef(self.A[:,mode],self.B[:,mode])[0][1]
+        ax.plot(self.num2date(self.time), self.A[:, mode]/np.std(self.A[:, mode]), label='A', color='red')
+        ax.plot(self.num2date(self.time), self.B[:, mode]/np.std(self.B[:, mode]), label='B', color='blue', linestyle='--')
+        c = np.corrcoef(self.A[:, mode], self.B[:, mode])[0][1]
         plt.legend()
-        ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c,2)) + ')',size=10)
-        ax.set_xlabel('time'); ax.set_ylim(-3.,3.)
+        ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c, 2)) + ')', size=10)
+        ax.set_xlabel('time'); ax.set_ylim(-3., 3.)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
+
 
 class Diagnostic(object):
-    def __init__(self,x,y=None):
+    def __init__(self, x, y=None):
         """
         constructor for diagnostic class
         diagnostic for one or multiple data sets
@@ -2072,7 +2025,7 @@ class Diagnostic(object):
         """
         return the number of valid samples
         """
-        xm = ~self.xvec.mask #vector with valid sample
+        xm = ~self.xvec.mask  # vector with valid sample
         ym = ~self.yvec.mask
         m = xm & ym
         return sum(m)
@@ -2131,7 +2084,7 @@ class Diagnostic(object):
                 slope, intercept, r_value, p_value, std_err = stats.linregress(hlpx, hlpy)
             else:
                 r_value = np.nan
-                p_value =2.
+                p_value = 2.
 
             if p_value < pthres:
                 CO.append(r_value)
@@ -2246,19 +2199,19 @@ class Diagnostic(object):
             std_x.shape = (n, -1)
             weights.shape = (n, -1)
             if np.shape(x) != np.shape(weights):
-                print x.shape,weights.shape
+                print x.shape, weights.shape
                 raise ValueError('Invalid shape for weights!')
 
             # calculate weighted average for all timesteps
             e2 = np.ones(n)*np.nan
             for i in xrange(n):
-                d = weights[i,:] * ((x[i,:]-y[i,:])**2.) / std_x[i,:]
+                d = weights[i, :] * ((x[i,:]-y[i,:])**2.) / std_x[i,:]
                 e2[i] = np.sum(d)  # sum at end to avoid nan's   #it is important to use np.sum() !!
 
         if np.any(np.isnan(e2)):
             print 'd: ', d
             for i in xrange(n):
-                print 'std_x', i, std_x[i,:]
+                print 'std_x', i, std_x[i, :]
             print('Reichler: e2 contains NAN, this happens most likely if STDV == 0')
             return None
         else:
@@ -2276,24 +2229,24 @@ class Diagnostic(object):
 
         def NormCrossCorrSlow(x1, x2,
                   nlags=400):
-            res=[]
-            lags=[]
-            for i in range(-(nlags/2),nlags/2,1):
+            res = []
+            lags = []
+            for i in range(-(nlags/2), nlags/2, 1):
                 lags.append(i)
-                if i<0:
-                    xx1=x1[:i]
-                    xx2=x2[-i:]
-                elif i==0:
-                    xx1=x1
-                    xx2=x2
+                if i < 0:
+                    xx1 = x1[:i]
+                    xx2 = x2[-i:]
+                elif i == 0:
+                    xx1 = x1
+                    xx2 = x2
                 else:
-                    xx1=x1[i:]
-                    xx2=x2[:-i]
+                    xx1 = x1[i:]
+                    xx2 = x2[:-i]
 
                 xx1 = xx1 - xx1.mean()
                 xx2 = xx2 - xx2.mean()
 
-                res.append( (xx1*xx2).sum() /( (xx1**2).sum() *(xx2**2).sum() )**0.5)
+                res.append( (xx1*xx2).sum() / ( (xx1**2).sum() * (xx2**2).sum())**0.5)
 
             return np.array(res), np.array(lags)
 
@@ -2306,42 +2259,41 @@ class Diagnostic(object):
         s1 = np.shape(x)
         s2 = np.shape(y)
         if s1 != s2:
-            print s1,s2
+            print s1, s2
             raise ValueError, 'Invalid shapes!'
-
 
         n = np.shape(x)[0]
         x.shape = (n, -1)
         y.shape = (n, -1)
 
-        if len(s1) ==2:
+        if len(s1) == 2:
             ndata = s1[1]*s1[2]
         elif len(s1) == 1:
-            ndata = 1 #vector
+            ndata = 1  # vector
         else:
             raise ValueError, 'Invalid shape!'
 
-        R=np.zeros(ndata)*np.nan
+        R = np.zeros(ndata)*np.nan
 
         for i in range(ndata):
-            xx=x[:,i]
-            yy=y[:,i]
+            xx = x[:, i]
+            yy = y[:, i]
             msk = (~np.isnan(xx) & ~np.isnan(yy))
             if sum(msk) > 3:
 
                 if lag == 0:
-                    slope, intercept, r_value, p_value, std_err = stats.linregress(xx[msk],yy[msk])
+                    slope, intercept, r_value, p_value, std_err = stats.linregress(xx[msk], yy[msk])
                 else:
 
                     #print nlags
                     if nlags == None:
                         nlags = len(xx[msk])
-                        if np.mod(nlags,2) == 0:
+                        if np.mod(nlags, 2) == 0:
                             nlags += 1
                     #print nlags
 
-                    r1,lags = NormCrossCorrSlow(xx[msk],yy[msk],nlags=nlags)
-                    idx = nlags/2+lag #todo something does not work with the indices !!!
+                    r1, lags = NormCrossCorrSlow(xx[msk], yy[msk], nlags=nlags)
+                    idx = nlags/2+lag  # todo something does not work with the indices !!!
                     print idx, nlags, len(r1)
                     r_value = r1[idx]
 
@@ -2351,7 +2303,7 @@ class Diagnostic(object):
 
         print self.x.data.ndim
         if len(s1) == 2:
-            R = np.reshape(R,np.shape(self.x.data[0,:]))
+            R = np.reshape(R, np.shape(self.x.data[0, :]))
         else:
             R = R
 
@@ -2384,14 +2336,14 @@ class Diagnostic(object):
                 print z.data.shape
                 raise ValueError('Invalid geometries for partial correlation!')
 
-        x=self.x.data.copy()
+        x = self.x.data.copy()
 
         if not hasattr(self, 'y'):
             # if no y value is given, then time is used as independent variable
             print('No y-value specified. Use time as indpendent variable!')
 
             y = x.copy()
-            x = np.ma.array(self.x.time.copy(), mask=self.x.time < 0. )
+            x = np.ma.array(self.x.time.copy(), mask=self.x.time < 0.)
         else:
             y = self.y.data.copy()
 
@@ -2407,12 +2359,12 @@ class Diagnostic(object):
 
         if partial:
             z = z.data.copy()
-            z.shape = (n,-1)
+            z.shape = (n, -1)
 
-        R = np.ones((n,n))*np.nan
-        P = np.ones((n,n))*np.nan
-        L = np.ones((n,n))*np.nan
-        S = np.ones((n,n))*np.nan
+        R = np.ones((n, n))*np.nan
+        P = np.ones((n, n))*np.nan
+        L = np.ones((n, n))*np.nan
+        S = np.ones((n, n))*np.nan
 
         # perform correlation analysis
         print('   Doing slice correlation analysis ...')
@@ -2425,10 +2377,10 @@ class Diagnostic(object):
 
                 if timmean:
                     """ temporal mean -> all grid cells only (temporal mean) """
-                    xdata = x[i1:i2,:].mean(axis=0)
-                    ydata = y[i1:i2,:].mean(axis=0)
+                    xdata = x[i1:i2, :].mean(axis=0)
+                    ydata = y[i1:i2, :].mean(axis=0)
 
-                    xmsk  = xdata.mask
+                    xmsk = xdata.mask
                     ymsk = ydata.mask
                     msk = xmsk | ymsk
 
@@ -2437,15 +2389,15 @@ class Diagnostic(object):
 
                 else:
                     """ all grid cells at all times """
-                    xdata = x.data[i1:i2,:]
-                    ydata = y.data[i1:i2,:]
-                    xmsk = x.mask[i1:i2,:]
-                    ymsk = y.mask[i1:i2,:]
+                    xdata = x.data[i1:i2, :]
+                    ydata = y.data[i1:i2, :]
+                    xmsk = x.mask[i1:i2, :]
+                    ymsk = y.mask[i1:i2, :]
                     msk = xmsk | ymsk
 
                     if partial:
-                        zdata = z.data[i1:i2,:]
-                        zmsk  = z.mask[i1:i2,:]
+                        zdata = z.data[i1:i2, :]
+                        zmsk = z.mask[i1:i2, :]
                         msk = msk | zmsk
                         zdata = zdata[~msk].flatten()
 
@@ -2461,17 +2413,17 @@ class Diagnostic(object):
 
                 if partial:
                     #calculate residuals for individual correlations
-                    slope, intercept, r, p, stderr = stats.linregress(zdata,xdata)
+                    slope, intercept, r, p, stderr = stats.linregress(zdata, xdata)
                     xdata = (xdata - intercept) / slope
 
-                    slope, intercept, r, p, stderr = stats.linregress(zdata,ydata)
+                    slope, intercept, r, p, stderr = stats.linregress(zdata, ydata)
                     ydata = (ydata - intercept) / slope
 
-                slope, intercept, r, p, stderr = stats.linregress(xdata,ydata)
-                R[length,i1] = r
-                P[length,i1] = p
-                L[length,i1] = length
-                S[length,i1] = slope
+                slope, intercept, r, p, stderr = stats.linregress(xdata, ydata)
+                R[length, i1] = r
+                P[length, i1] = p
+                L[length, i1] = length
+                S[length, i1] = slope
 
                 i2 += 1
             i1 += 1
@@ -2483,7 +2435,7 @@ class Diagnostic(object):
 
 #-----------------------------------------------------------------------
 
-    def slice_corr_gap(self,timmean=True,spearman=False,pthres=None):
+    def slice_corr_gap(self, timmean=True, spearman=False, pthres=None):
         """
         perform correlation analysis for
         different starting times and gap sizes
@@ -2494,13 +2446,13 @@ class Diagnostic(object):
         before the correlation calculation
         """
 
-        x=self.x.data.copy()
+        x = self.x.data.copy()
 
-        if not hasattr(self,'y'):
+        if not hasattr(self, 'y'):
             #if no y value is given, then time is used as independent variable
             print 'No y-value specified. Use time as indpendent variable!'
             y = x.copy()
-            x = np.ma.array(self.x.time.copy(),mask = self.x.time < 0. )
+            x = np.ma.array(self.x.time.copy(), mask=self.x.time < 0.)
         else:
             y = self.y.data.copy()
 
@@ -2508,26 +2460,23 @@ class Diagnostic(object):
             raise ValueError, 'slice_corr: shapes not matching!'
 
         #--- reshape data
-        n = len(x) #timesteps
+        n = len(x)  # timesteps
 
         gaps = np.arange(n)
 
-        x.shape = (n,-1) #size [time,ngridcells]
-        y.shape = (n,-1)
+        x.shape = (n, -1)  # size [time,ngridcells]
+        y.shape = (n, -1)
         maxgap = n
 
-
         #~ print 'maxgap: ', maxgap
-
-
-        R=np.ones((maxgap,n))*np.nan; P=np.ones((maxgap,n))*np.nan
-        L=np.ones((maxgap,n))*np.nan; S=np.ones((maxgap,n))*np.nan
+        R = np.ones((maxgap, n))*np.nan; P = np.ones((maxgap, n))*np.nan
+        L = np.ones((maxgap, n))*np.nan; S = np.ones((maxgap, n))*np.nan
 
         #--- perform correlation analysis
         print '   Doing slice correlation analysis ...'
         i1 = 0
-        while i1 < n-1: #loop over starting year
-            i2 = n #always entire time period
+        while i1 < n-1:  # loop over starting year
+            i2 = n  # always entire time period
             #- loop over different lengths
             for gap in gaps:
 
@@ -2540,23 +2489,23 @@ class Diagnostic(object):
                     raise ValueError, 'TIMMEAN not supported yet for gap analysis'
 
                     #print 'drin'
-                    xdata = x[i1:i2,:].mean(axis=0)
-                    ydata = y[i1:i2,:].mean(axis=0)
+                    xdata = x[i1:i2, :].mean(axis=0)
+                    ydata = y[i1:i2, :].mean(axis=0)
 
-                    xmsk  = xdata.mask; ymsk = ydata.mask
+                    xmsk = xdata.mask; ymsk = ydata.mask
                     msk = xmsk | ymsk
 
                 else:
                     #all grid cells at all times
                     xdata = x.data.copy(); ydata = y.data.copy()
-                    xmsk  = x.mask.copy() #  [i1:i2,:]
-                    ymsk  = y.mask.copy() #  [i1:i2,:]
+                    xmsk = x.mask.copy()  # [i1:i2,:]
+                    ymsk = y.mask.copy()  # [i1:i2,:]
 
                     #mask data which has gaps and use whole period elsewhere
-                    xmsk[i1:i1+gap,:] = True
-                    ymsk[i1:i1+gap,:] = True
+                    xmsk[i1:i1+gap, :] = True
+                    ymsk[i1:i1+gap, :] = True
 
-                    msk   = xmsk | ymsk
+                    msk = xmsk | ymsk
 
                 xdata = xdata[~msk].flatten()
                 ydata = ydata[~msk].flatten()
@@ -2567,27 +2516,23 @@ class Diagnostic(object):
                     tmpy = ydata.argsort()
                     xdata = tmpx; ydata = tmpy
 
-                slope, intercept, r, p, stderr = stats.linregress(xdata,ydata)
-                R[gap,i1] = r; P[gap,i1] = p
-                L[gap,i1] = gap-1; S[gap,i1] = slope
-
+                slope, intercept, r, p, stderr = stats.linregress(xdata, ydata)
+                R[gap, i1] = r; P[gap, i1] = p
+                L[gap, i1] = gap-1; S[gap, i1] = slope
 
             i1 += 1
 
-
-        if pthres is not None: #mask all insignificant values
-            R = np.ma.array(R,mask=P>pthres)
-            S = np.ma.array(S,mask=P>pthres)
+        if pthres is not None:  # mask all insignificant values
+            R = np.ma.array(R, mask=P > pthres)
+            S = np.ma.array(S, mask=P > pthres)
 
         self.slice_r_gap = R
         self.slice_p_gap = P
         self.slice_length_gap = L
         self.slice_slope_gap = S
 
-
 #-----------------------------------------------------------------------
-
-    def _set_year_ticks(self,years,ax,axis='x',size=10,rotation=0.):
+    def _set_year_ticks(self, years, ax, axis='x', size=10, rotation=0.):
         """
         set ticks of timeline with
         yearly ticks
@@ -2610,7 +2555,7 @@ class Diagnostic(object):
         ticks = ax.get_xticks()
 
         #- calculate ticks from year
-        oticks=[]
+        oticks = []
         for t in ticks:
             if t < 0:
                 oticks.append('')
@@ -2628,7 +2573,7 @@ class Diagnostic(object):
 
 #-----------------------------------------------------------------------
 
-    def plot_slice_correlation(self, pthres = 1.01):
+    def plot_slice_correlation(self, pthres=1.01):
         """
         plot slice correlation results
 
@@ -2647,7 +2592,7 @@ class Diagnostic(object):
         years = self.x._get_years()
 
         #- generate plots
-        fig = plt.figure(figsize=(12,6))
+        fig = plt.figure(figsize=(12, 6))
         fig.subplots_adjust(hspace=0.5)
         self.slice_fig = fig
         ax1 = fig.add_subplot(221)
@@ -2667,28 +2612,28 @@ class Diagnostic(object):
         slope_data[msk] = np.nan
 
         #- correlation
-        imr=ax1.imshow(r_data, interpolation='nearest', cmap=cmap1)
+        imr = ax1.imshow(r_data, interpolation='nearest', cmap=cmap1)
         ax1.set_title('correlation')
         plt.colorbar(imr, ax=ax1, shrink=0.8)
         ax1.set_xlabel('start year')
         ax1.set_ylabel('correlation period [years]')
 
         #- significance
-        imp=ax2.imshow(p_data, interpolation='nearest', cmap=cmap2)
+        imp = ax2.imshow(p_data, interpolation='nearest', cmap=cmap2)
         ax2.set_title('p-value')
         plt.colorbar(imp, ax=ax2, shrink=0.8)
         ax2.set_xlabel('start year')
         ax2.set_ylabel('correlation period [years]')
 
         #- length of period
-        iml=ax3.imshow(length_data, interpolation='nearest', cmap='RdBu_r')
+        iml = ax3.imshow(length_data, interpolation='nearest', cmap='RdBu_r')
         ax3.set_title('length')
         plt.colorbar(iml, ax=ax3, shrink=0.8)
         ax3.set_xlabel('start year')
         ax3.set_ylabel('correlation period [years]')
 
         #- slope
-        ims=ax4.imshow(slope_data, interpolation='nearest', cmap=cmap2)
+        ims = ax4.imshow(slope_data, interpolation='nearest', cmap=cmap2)
         ax4.set_title('slope')
         plt.colorbar(ims, ax=ax4, shrink=0.8)
         ax4.set_xlabel('start year')
@@ -2701,10 +2646,10 @@ class Diagnostic(object):
         self._set_year_ticks(years, ax4, axis='x')
 
         #- contour plots
-        CP1 = ax1.contour(p_data,[0.01,0.05,0.1], linewidths=2)
-        CP2 = ax2.contour(p_data,[0.01,0.05,0.1], linewidths=2)
-        CP3 = ax3.contour(p_data,[0.01,0.05,0.1], linewidths=2)
-        CP4 = ax4.contour(p_data,[0.01,0.05,0.1], linewidths=2)
+        CP1 = ax1.contour(p_data, [0.01, 0.05, 0.1], linewidths=2)
+        CP2 = ax2.contour(p_data, [0.01, 0.05, 0.1], linewidths=2)
+        CP3 = ax3.contour(p_data, [0.01, 0.05, 0.1], linewidths=2)
+        CP4 = ax4.contour(p_data, [0.01, 0.05, 0.1], linewidths=2)
 
         ax1.clabel(CP1, inline=1, fontsize=10)
         ax2.clabel(CP2, inline=1, fontsize=10)
@@ -2714,6 +2659,8 @@ class Diagnostic(object):
 #
 #
 #===========================================================================================
+
+
 class koeppen(object):
     """
     KOEPPEN CLASS
@@ -2731,12 +2678,12 @@ class koeppen(object):
                  '#e500e5', '#ff66ff', '#0000ff', '#9999ff', '#000000']
        cmap3 = col.ListedColormap(cpool[0:14], 'koeppen')
 #       plt.cm.register_cmap(cmap=cmap3,name='koeppen',lut=15)
-       plt.cm.register_cmap(cmap=cmap3,name='koeppen')
+       plt.cm.register_cmap(cmap=cmap3, name='koeppen')
        return cmap3
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def set_clim(self,psum,pmin,pminhs,pminhw,pmaxhs,pmaxhw,tavg,tmin,tmax):
+    def set_clim(self, psum, pmin, pminhs, pminhw, pmaxhs, pmaxhw, tavg, tmin, tmax):
         clim = -999
 
         if tmin > 18:
@@ -2830,13 +2777,13 @@ class koeppen(object):
 
      if (ny_t != ny_p) or (ny_t != ny_l):
        sys.exit('ERROR: The resolution ot the three arrays differ in \
-       Y-dimension: \n' + str(ny_t)+ "(temp)  " + str(ny_p)
+       Y-dimension: \n' + str(ny_t) + "(temp)  " + str(ny_p)
        + "(precip) " + str(ny_l) + "(lsm) ")
        return False
 
      if (nx_t != nx_p) or (nx_t != nx_l):
        sys.exit('ERROR: The resolution ot the three arrays differ in \
-       X-dimension: \n' + str(nx_t)+ "(temp)  " + str(nx_p)
+       X-dimension: \n' + str(nx_t) + "(temp)  " + str(nx_p)
        + "(precip) " + str(nx_l) + "(lsm) ")
        return False
 
@@ -2864,7 +2811,7 @@ class koeppen(object):
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self,temp=None,precip=None,lsm=None):
+    def __init__(self, temp=None, precip=None, lsm=None):
         """
         koeppen class
 
@@ -2909,12 +2856,12 @@ class koeppen(object):
         self.cmap = cm.get_cmap('koeppen')
         # convert from [kg m-2 s-1] to [kg m-2 day-1] (= [mm day-1])
          # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
-        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12.,copy=True)
-        self.temp = temp.subc(273.15,copy=True) # ??? Unklar warum nicht 'temp.subc(273.15)'
+        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12., copy=True)
+        self.temp = temp.subc(273.15, copy=True) # ??? Unklar warum nicht 'temp.subc(273.15)'
 
         Psum = self.precip.timsum(return_object=True)            # Berechnet die Summe der Jahresniederschlag
 
-        nt, ny,nx = self.temp.data.data.shape
+        nt, ny, nx = self.temp.data.data.shape
         nlat = ny
         nlon = nx
 
@@ -2923,19 +2870,19 @@ class koeppen(object):
 
         precipHS = self.precip.copy()
         precipHS.data[(0, 1, 2, 3, 4, 5), 0:(nlat/2-1), :] \
-            = self.precip.data[(3, 4, 5, 6, 7, 8),0:(nlat/2-1), :]
+            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat/2-1), :]
         precipHS.data[(6, 7, 8, 9, 10, 11), 0:(nlat/2-1), :] \
-            = self.precip.data[(3, 4, 5, 6, 7, 8),0:(nlat/2-1), :]
+            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat/2-1), :]
         precipHS.data[(0, 1, 2, 3, 4, 5), (nlat/2):(nlat-1), :] \
-            = self.precip.data[(0, 1, 2, 9, 10, 11),(nlat/2):(nlat-1), :]
-        precipHS.data[(6, 7, 8, 9, 10, 11),(nlat/2):(nlat-1), :] \
-            = self.precip.data[(0, 1, 2, 9, 10, 11),(nlat/2):(nlat-1), :]
+            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat/2):(nlat-1), :]
+        precipHS.data[(6, 7, 8, 9, 10, 11), (nlat/2):(nlat-1), :] \
+            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat/2):(nlat-1), :]
 
         precipHW = self.precip.copy()
-        precipHW.data[(0,1,2,3,4,5),0:(nlat/2-1),:]   = self.precip.data[(0, 1, 2, 9, 10, 11),0:(nlat/2-1),:]
-        precipHW.data[(6,7,8,9,10,11),0:(nlat/2-1),:] = self.precip.data[(0, 1, 2, 9, 10, 11),0:(nlat/2-1),:]
-        precipHW.data[(0,1,2,3,4,5),(nlat/2):(nlat-1),:]  = self.precip.data[(3, 4, 5, 6, 7, 8),(nlat/2):(nlat-1),:]
-        precipHW.data[(6,7,8,9,10,11),(nlat/2):(nlat-1),:] = self.precip.data[(3, 4, 5, 6, 7, 8),(nlat/2):(nlat-1),:]
+        precipHW.data[(0, 1, 2, 3, 4, 5), 0:(nlat/2-1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat/2-1),:]
+        precipHW.data[(6, 7, 8, 9, 10, 11), 0:(nlat/2-1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat/2-1),:]
+        precipHW.data[(0, 1, 2, 3, 4, 5), (nlat/2):(nlat-1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat/2):(nlat-1),:]
+        precipHW.data[(6, 7, 8, 9, 10, 11), (nlat/2):(nlat-1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat/2):(nlat-1),:]
 
         PminHS = precipHS.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PmaxHS
         PmaxHS = precipHS.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PmaxHS
@@ -2962,7 +2909,7 @@ class koeppen(object):
             tmax = Tmax[lat][lon]
             self.Clim.data.data[lat][lon] = self.set_clim(psum, pmin, pminhs, pminhw, pmaxhs, pmaxhw, tavg, tmin, tmax)
 
-        self.Clim.data.mask[less(self.lsm.data, 0.5)]=True
+        self.Clim.data.mask[less(self.lsm.data, 0.5)] = True
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -3040,10 +2987,8 @@ class koeppen(object):
         print "| EF: Frost climate                              |"
         print "|================================================|"
 
-
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
-
     def plot(self, **kwargs):
         """
         This routine plots the data of his own geiger-koeppen data by
@@ -3058,6 +3003,6 @@ class koeppen(object):
         """
         map_plot(self.Clim, cmap_data=self.cmap, colorbar_orientation='horizontal', vmin=0.5, vmax=14.5,
         cticks=[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.],
-                cticklabels = ["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
+                cticklabels=["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
                        "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
                        nclasses=15, **kwargs)
