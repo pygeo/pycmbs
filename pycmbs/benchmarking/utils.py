@@ -8,6 +8,7 @@ the pyCMBS licensing details.
 import os
 from pycmbs.data import Data
 
+
 def get_data_pool_directory():
     """
     get data pool directory for /pool/SEP
