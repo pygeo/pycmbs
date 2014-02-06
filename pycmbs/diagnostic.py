@@ -91,14 +91,14 @@ class PatternCorrelation(DiagnosticMaster):
           in Taylor diagram
         """
         if self.x.ndim == 2:
-            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(self.x.data[:, :].flatten(), self.y.data[:,:].flatten())
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(self.x.data[:, :].flatten(), self.y.data[:, :].flatten())
             self.slope = np.asarray([slope])
             self.r_value = np.asarray([r_value])
             self.intercept = np.asarray([intercept])
             self.p_value = np.asarray([p_value])
             self.std_err = np.asarray([std_err])
         elif self.x.ndim == 3:
-            r = np.asarray([stats.mstats.linregress(self.x.data[i, :,:].flatten(), self.y.data[i,:,:].flatten()) for i in xrange(self.x.nt)])
+            r = np.asarray([stats.mstats.linregress(self.x.data[i, :, :].flatten(), self.y.data[i, :, :].flatten()) for i in xrange(self.x.nt)])
             self.slope = np.asarray(r[:, 0])
             self.intercept = np.asarray(r[:, 1])
             self.r_value = np.asarray(r[:, 2])
@@ -214,8 +214,8 @@ class RegionalAnalysis(object):
                     raise ValueError('Inconsistent shape of \
                                        X-data with Region')
             elif self.x.ndim == 3:
-                if self.x.data[0, :,:].shape != self.region.shape:
-                    print self.x.data[0, :,:].shape, self.region.shape
+                if self.x.data[0, :, :].shape != self.region.shape:
+                    print self.x.data[0, :, :].shape, self.region.shape
                     raise ValueError('Inconsistent shape of \
                                        X-data with Region')
             else:
@@ -228,8 +228,8 @@ class RegionalAnalysis(object):
                     raise ValueError('Inconsistent shape of \
                                        Y-data with Region')
             elif self.y.ndim == 3:
-                if self.y.data[0, :,:].shape != self.region.shape:
-                    print self.y.data[0, :,:].shape, self.region.shape
+                if self.y.data[0, :, :].shape != self.region.shape:
+                    print self.y.data[0, :, :].shape, self.region.shape
                     raise ValueError('Inconsistent shape of \
                                       Y-data with Region')
             else:
@@ -619,12 +619,12 @@ class RegionalAnalysis(object):
                     else:
                         print id
                         print m
-                        raise ValueError, 'The ID seems not to be unique here!'
+                        raise ValueError('The ID seems not to be unique here!')
                 else:
                     s += '' + sep + '' + sep
 
             #--- corrstat2 ---
-            if d['corrstat']['corrstat2'] == None:
+            if d['corrstat']['corrstat2'] is None:
                 s += '' + sep + '' + sep + '' + sep + '' + sep + '' + sep + '' + sep
             else:
                 stat = d['corrstat']['corrstat2']
@@ -641,7 +641,6 @@ class RegionalAnalysis(object):
                         raise ValueError('The ID seems not to be unique here!')
                 else:
                     s += '' + sep + '' + sep + '' + sep + '' + sep + '' + sep + '' + sep
-
             return s
 
         if filename is not None:
@@ -650,23 +649,24 @@ class RegionalAnalysis(object):
             o = open(filename, 'w')
 
         #--- loop over all regions ---
-        keys = np.unique(self.region.data.flatten()); keys.sort()
+        keys = np.unique(self.region.data.flatten())
+        keys.sort()
         sep = '\t'
         header = 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2'\
                  + sep + 'intercept2' + sep + 'stdx' + sep + 'stdy' + sep
         print header
-        if filename != None:
+        if filename is not None:
             o.write(header + '\n')
         for k in keys:
             s = _get_string(self.statistics, k)  # get formatted string for a particular region
             print s
-            if filename != None:
+            if filename is not None:
                 if format == 'txt':
                     o.write(s + '\n')
                 else:
-                    raise ValueError, 'Unsupported output format!'
+                    raise ValueError('Unsupported output format!')
 
-        if filename != None:
+        if filename is not None:
             o.close()
 
 #---
@@ -690,7 +690,8 @@ class RegionalAnalysis(object):
         """
 
         #--- check
-        keys = np.unique(self.region.data.flatten()); keys.sort()
+        keys = np.unique(self.region.data.flatten())
+        keys.sort()
 
         #---
         r = self.statistics['corrstat']['corrstat2']['correlation']
@@ -699,12 +700,12 @@ class RegionalAnalysis(object):
 
         ratio = sy / sx
 
-        if dia == None:
+        if dia is None:
             tay = Taylor(stdmax=max(ratio.max() * 1.2, 2.))
         else:
             if not isinstance(dia, Taylor):
                 print type(dia)
-                raise ValueError, 'Provided argument is no taylor class! '
+                raise ValueError('Provided argument is no taylor class! ')
             else:
                 tay = dia
                 tay.stdmax = max(max(ratio.max() * 1.2, 2.), dia.stdmax)  # preserve stdmax information when possible
@@ -777,14 +778,14 @@ class EOF(object):
 
         #/// check geometries
         if x0.data.ndim != 3:
-            raise ValueError, 'EOF analysis currently only supported for 3D data matrices of type [time,ny,nx]'
+            raise ValueError('EOF analysis currently only supported for 3D data matrices of type [time,ny,nx]')
 
         x = x0.copy()  # copy input data object as the data will be weighted!
 
         self._x0 = x  # preserve information on original data
 
         #/// reshape data [time,npoints] ///
-        self._shape0 = x.data[0, :,:].shape  # original data shape
+        self._shape0 = x.data[0, :, :].shape  # original data shape
         n = len(x.data)  # number of timestamps
         self.n = n
 
@@ -803,7 +804,8 @@ class EOF(object):
             print '    WARNING: it is recommended to use area weighting for EOFs'
             wmat = np.sqrt(np.ones(x.data.shape))
         self._sum_weighting = np.sum(wmat)
-        x.data *= wmat; del wmat
+        x.data *= wmat
+        del wmat
 
         #-estimate only valid data, discard any masked values
         if allow_gaps:
@@ -814,7 +816,8 @@ class EOF(object):
         self._x0mask = msk.copy()  # store mask applied to original data
 
         #--- reshape data
-        self.x = vdata.copy(); self.x.shape = (n, -1)  # time x npixels
+        self.x = vdata.copy()
+        self.x.shape = (n, -1)  # time x npixels
 
         if anomalies:
             self._calc_anomalies()
@@ -838,7 +841,7 @@ class EOF(object):
                 if cov_norm:
                     self.C = np.ma.cov(self.x, rowvar=0)
                 else:
-                    raise ValueError, 'gappy data not supported for cov_norm option'
+                    raise ValueError('gappy data not supported for cov_norm option')
         else:
             if use_corr:
                 self.C = np.corrcoef(self.x, rowvar=0)
@@ -926,7 +929,8 @@ class EOF(object):
                 k = [k]
 
         if ax is None:
-            f = plt.figure(); ax = f.add_subplot(111)
+            f = plt.figure()
+            ax = f.add_subplot(111)
         else:
             f = ax.figure
 
@@ -987,7 +991,8 @@ class EOF(object):
         """
 
         if all:
-            k = range(self.n); ax = None
+            k = range(self.n)
+            ax = None
         else:
             if np.isscalar(k):
                 k = [k]
@@ -996,7 +1001,8 @@ class EOF(object):
             if show_coef:
                 f = plt.figure()
                 gs = gridspec.GridSpec(2, 1, wspace=0.05, hspace=0.05, bottom=0.2, height_ratios=[5, 1])
-                ax = f.add_subplot(gs[0]); ax2 = f.add_subplot(gs[1])
+                ax = f.add_subplot(gs[0])
+                ax2 = f.add_subplot(gs[1])
 
             self._plot_single_EOF(i, use_basemap=use_basemap, logplot=logplot, ax=ax, label=label, region=region,
                                   vmin=vmin, vmax=vmax, cmap=cmap, title=title, corr_plot=corr_plot, contours=contours,
@@ -1004,7 +1010,8 @@ class EOF(object):
             if show_coef:
                 self.plot_eof_coefficients(i, ax=ax2, show_legend=False, norm=False)
                 ax2.grid()
-                ti = ax2.get_yticks(); n = len(ti) / 2
+                ti = ax2.get_yticks()
+                n = len(ti) / 2
                 ax2.set_yticks([ti[0], ti[n], ti[-1]])
 
         if show_coef:
@@ -1050,14 +1057,14 @@ class EOF(object):
 
         """
         if k < 0:
-            raise ValueError, 'k<0'
+            raise ValueError('k<0')
 
-        if label == None:
+        if label is None:
             label = ''
         else:
-            label +=  ' '
+            label += ' '
 
-        if ax == None:
+        if ax is None:
             f = plt.figure()
             ax = f.add_subplot(111)
 
@@ -1122,9 +1129,9 @@ class EOF(object):
         F = np.zeros(sh)
 
         #- reconsturction list
-        if input == None:
+        if input is None:
             #use all data up to maxn
-            if maxn == None:
+            if maxn is None:
                 maxn = self.n
             thelist = range(maxn)
         else:
@@ -1194,7 +1201,8 @@ class EOF(object):
                     #~ ax.set_aspect('equal')
                     ax.hexbin(x, y, mincnt=1, bins='log')
                     ax.set_ylim(ax.get_xlim())
-                    ax.set_xticks([]); ax.set_yticks([])
+                    ax.set_xticks([])
+                    ax.set_yticks([])
                 cnt += 1
 
         f.subplots_adjust(wspace=0., hspace=0., right=1., left=0., bottom=0., top=1.)
@@ -1212,7 +1220,8 @@ class ANOVA(object):
     blocks are obtained by different experiments
     """
     def __init__(self):
-        self.experiments = []; self.data = {}
+        self.experiments = []
+        self.data = {}
 
     def add_experiment(self, label):
         self.experiments.append(self.__trim(label))
@@ -1240,15 +1249,15 @@ class ANOVA(object):
                 # otherwise common mask generation is not possible
             self.data[k].append(d)
         else:
-            raise ValueError, 'Experiment was not yet registered!'
+            raise ValueError('Experiment was not yet registered!')
 
     def analysis(self, analysis_type=None):
         """
         perform ANOVA analysis based on the data given
         """
 
-        if analysis_type == None:
-            raise ValueError, 'Needs to specify type of ANOVA to be performed'
+        if analysis_type is None:
+            raise ValueError('Needs to specify type of ANOVA to be performed')
 
         #1) check if all data has the same length
         # this is not a strong prerequesite for ANOVA as such, but for
@@ -1307,7 +1316,7 @@ class ANOVA(object):
                 #@todo significance
 
             else:
-                raise ValueError, 'Invalid ANOVA type'
+                raise ValueError('Invalid ANOVA type')
 
         self.resA = resA
         self.resB = resB
@@ -1338,7 +1347,7 @@ class ANOVA(object):
         nexp = len(self.experiments)
 
         if nexp != 1:
-            raise ValueError, 'one-way anova only valid for signle experiments!'
+            raise ValueError('one-way anova only valid for signle experiments!')
 
         x = np.zeros((self.n, self.nt)) * np.nan  # [nrens,nt]
 
@@ -1348,7 +1357,7 @@ class ANOVA(object):
             x[i, :] = d.data[:, p[0], p[1]]
 
         if np.any(np.isnan(x) > 0):
-            raise ValueError, 'Something is wrong: not all data valid!'
+            raise ValueError('Something is wrong: not all data valid!')
 
         return x
 
@@ -1374,7 +1383,7 @@ class ANOVA(object):
                 x[j, :, i] = d.data[:, p[0], p[1]]
 
         if np.any(np.isnan(x) > 0):
-            raise ValueError, 'Something is wrong: not all data valid!'
+            raise ValueError('Something is wrong: not all data valid!')
 
         return x
 
@@ -1396,17 +1405,18 @@ class ANOVA(object):
                 refshape = d[0].data.shape  # first dataset geometry as reference
                 self.refshape = (refshape[1], refshape[2])
                 nrens = len(d)
-                self.n = nrens; self.nt = refshape[0]
+                self.n = nrens
+                self.nt = refshape[0]
                 refmsk = np.ones((refshape[1], refshape[2])).astype('bool')
                 cnt += 1
 
             if len(d) != nrens:
-                raise ValueError, 'Invalid Number of ensemble members found!'
+                raise ValueError('Invalid Number of ensemble members found!')
             for i in range(len(d)):
 
                 if d[i].data.shape != refshape:
                     print k, i
-                    raise ValueError, 'Invalid data shape found!'
+                    raise ValueError('Invalid data shape found!')
 
                 #- generate common mask
                 msk = d[i].get_valid_mask()
@@ -1451,17 +1461,20 @@ class SVD(object):
         @param format: specifies the format of figures to be generated [png,pdf]
         @type format: str
         """
-        x = X.data.copy(); y = Y.data.copy()  # these are masked arrays
+        x = X.data.copy()
+        y = Y.data.copy()  # these are masked arrays
 
         n = len(x)
         if n != len(y):
-            raise ValueError, 'Datasets need to have same timelength!'
+            raise ValueError('Datasets need to have same timelength!')
 
         x.shape = (n, -1)  # [time,position]
         y.shape = (n, -1)
 
-        self.x = x; self.y = y
-        self.X = X; self.Y = Y
+        self.x = x
+        self.y = y
+        self.X = X
+        self.Y = Y
 
         self.time = X.time.copy()
         self.label = label
@@ -1492,7 +1505,7 @@ class SVD(object):
         for i in xrange(nt):
             tmp = x.data[i, :]
             if np.any(np.isnan(tmp[m1])):
-                raise ValueError, 'Nans are not allowed here!'
+                raise ValueError('Nans are not allowed here!')
             r[i, :] = tmp[m1] * 1.
             del tmp
 
@@ -1511,10 +1524,11 @@ class SVD(object):
         """
 
         if x.ndim != 2:
-            raise ValueError, 'Invalid shape for detrending'
+            raise ValueError('Invalid shape for detrending')
         n, m = x.shape
         for i in xrange(m):
-            h = x[:, i].copy(); h = plt.detrend_linear(h)
+            h = x[:, i].copy()
+            h = plt.detrend_linear(h)
             x[:, i] = h.copy()
         return x
 
@@ -1533,7 +1547,8 @@ class SVD(object):
         nt, nx = np.shape(x)
         s = x.std(axis=0)  # temporal standard deviation
         S = np.repeat(s, nt).reshape(nx, nt).T  # generate array with all same std
-        x /= S; del S, s
+        x /= S
+        del S, s
         return x
 
 #-----------------------------------------------------------------------
@@ -1552,7 +1567,8 @@ class SVD(object):
         #/// perform SVN only for data points which are valid throughout entire time series ///
         x, mskx = self._get_valid_timeseries(self.x)  # self.x is a masked array; returns an array [time,nvalid]
         y, msky = self._get_valid_timeseries(self.y)
-        self.mskx = mskx; self.msky = msky
+        self.mskx = mskx
+        self.msky = msky
 
         #/// detrend the data for each grid point ///
         print 'Detrending ...'
@@ -1584,11 +1600,15 @@ class SVD(object):
         # somewhat python specific
 
         #/// expansion coefficients (time series)
-        A = dot(x, U); B = dot(y, V.T) # ACHTUNG!!! SCHOULD BE B = dot(y,V)
+        A = dot(x, U)
+        B = dot(y, V.T)  # ACHTUNG!!! SCHOULD BE B = dot(y,V)
 
         #/// store results
-        self.U = U; self.V = V
-        self.L = L; self.A = A; self.B = B
+        self.U = U
+        self.V = V
+        self.L = L
+        self.A = A
+        self.B = B
         self.scf = (s * s) / sum(s * s)  # fractions of variance explained CAUTION: not properly described in manual if squared or not!
         self.__get_mode_correlation()  # calculate correlation between modes
 
@@ -1621,16 +1641,19 @@ class SVD(object):
         #x_used is a vector that only contains the valid values that were used for caluclation of covariance matrix C
         #mskx is the corresponding mask that maps x_used to the original geometry (both are estimated with
         # _get_valid_timeseries()  )
-        u = self.U[:, mode]; v = self.V[:, mode]  # get singular vectors
+        u = self.U[:, mode]
+        v = self.V[:, mode]  # get singular vectors
 
         #map singular vectors to 2D
-        udat = self._map_valid2org(u, self.mskx, self.X.data[0, :,:].shape)
-        vdat = self._map_valid2org(v, self.msky, self.Y.data[0, :,:].shape)
+        udat = self._map_valid2org(u, self.mskx, self.X.data[0, :, :].shape)
+        vdat = self._map_valid2org(v, self.msky, self.Y.data[0, :, :].shape)
 
-        U = self.X.copy(); U.label = 'U(' + str(mode) + ')'
+        U = self.X.copy()
+        U.label = 'U(' + str(mode) + ')'
         U.data = udat.copy()
 
-        V = self.Y.copy(); V.label = 'V(' + str(mode) + ')'
+        V = self.Y.copy()
+        V.label = 'V(' + str(mode) + ')'
         V.data = vdat.copy()
 
         return U, V
@@ -1653,10 +1676,12 @@ class SVD(object):
         """
         sz = np.shape(data)
         if sz[0] != mask.sum():
-            print sz[1]; print mask.sum()
-            raise ValueError, 'Inconsistent mask and data'
+            print sz[1]
+            print mask.sum()
+            raise ValueError('Inconsistent mask and data')
 
-        res = np.ones(target_shape) * np.nan; res.shape = (-1)
+        res = np.ones(target_shape) * np.nan
+        res.shape = (-1)
         res[mask] = data.copy()
 
         res = np.ma.array(res, mask=np.isnan(res))
@@ -1687,7 +1712,7 @@ class SVD(object):
             for sp in ax.spines.itervalues():
                 sp.set_visible(False)
 
-        if ax == None:
+        if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
         else:
@@ -1723,7 +1748,7 @@ class SVD(object):
         ax1.tick_params(axis='y', colors='red')
         ax2.tick_params(axis='y', colors='green')
 
-        if filename != None:
+        if filename is not None:
             oname = filename + '_mode_var.' + self.ext
             ax.figure.savefig(oname, dpi=self.dpi)
 
@@ -1748,29 +1773,37 @@ class SVD(object):
         #--- generate plots
         for i in mode_list:
             fig = plt.figure()
-            ax1 = fig.add_subplot(121); ax2 = fig.add_subplot(122)
+            ax1 = fig.add_subplot(121)
+            ax2 = fig.add_subplot(122)
 
             U, V = self.get_singular_vectors(i)  # get singular vector fields
 
             #--- determine min/max values
-            mu = U.data.mean(); su = U.data.std()
-            mv = V.data.mean(); sv = V.data.std()
+            mu = U.data.mean()
+            su = U.data.std()
+            mv = V.data.mean()
+            sv = V.data.std()
 
-            su *= 1.96; sv *= 1.96  # not used at the moment
+            su *= 1.96
+            sv *= 1.96  # not used at the moment
 
             if logplot:
-                umin = None; umax = None
-                vmin = None; vmax = None
+                umin = None
+                umax = None
+                vmin = None
+                vmax = None
             else:
-                umin = mu - su; umax = mu + su
-                vmin = mv - sv; vmax = mv + sv
+                umin = mu - su
+                umax = mu + su
+                vmin = mv - sv
+                vmax = mv + sv
 
             map_plot(U, use_basemap=use_basemap, ax=ax1, logplot=logplot, vmin=umin, vmax=umax)
             map_plot(V, use_basemap=use_basemap, ax=ax2, logplot=logplot, vmin=vmin, vmax=vmax)
 
             fig.suptitle('Mode: #' + str(i) + ' scf: ' + str(round(self.scf[i] * 100., 1)) + '%', size=14)
 
-            if filename != None:
+            if filename is not None:
                 fig.savefig(filename + '_singular_vectors_mode_' + str(i).zfill(5) + '.pdf')
 
 #-----------------------------------------------------------------------
@@ -1795,15 +1828,16 @@ class SVD(object):
         plot_var: plot variance instead of correlation
         """
 
-        n1, m1 = self.A.shape; n2, m2 = self.B.shape
+        n1, m1 = self.A.shape
+        n2, m2 = self.B.shape
 
-        if mode != None:
+        if mode is not None:
             if mode > m1 - 1:
-                raise ValueError, 'Mode > A'
+                raise ValueError('Mode > A')
             if mode > m2 - 1:
-                raise ValueError, 'Mode > B'
+                raise ValueError('Mode > B')
 
-        if mode == None:  # plot all modes with variance contained
+        if mode is None:  # plot all modes with variance contained
             mode_list = []
             for i in xrange(len(self.scf)):
                 if self.scf[i] > self.scf_threshold:
@@ -1890,7 +1924,7 @@ class SVD(object):
             fig.set_figheight(10.)
 
             #--- save figure
-            if filename != None:
+            if filename is not None:
                 oname = filename + '_mode_' + str(i) + '.' + self.ext
                 ax1a.figure.savefig(oname, dpi=self.dpi)
 
@@ -1956,19 +1990,20 @@ class SVD(object):
         @param filename: filename to save table to
         @type filename: str
         """
-        sep = ' & '; rnd = 2
+        sep = ' & '
+        rnd = 2
         self.__get_mode_correlation()  # calculate mode correlations
 
-        if filename != None:
+        if filename is not None:
             o = open(filename, 'w')
             o.write('mode' + sep + 'scf' + sep + 'r' + ' \\\ ' + '\n')
 
         for i in np.arange(len(self.scf)):
             if self.scf[i] > self.scf_threshold:
                 print i, self.scf[i], self.mcorr[i]
-                if filename != None:
+                if filename is not None:
                     s = str(i) + sep + str(np.round(self.scf[i], rnd)) + sep \
-                        + str(np.round(self.mcorr[i], rnd)) + ' \\\ ' +  '\n'
+                        + str(np.round(self.mcorr[i], rnd)) + ' \\\ ' + '\n'
                     o.write(s)
 
         if not filename is None:
@@ -1986,7 +2021,7 @@ class SVD(object):
         @param ax: axis to plot data
         @type ax: matplotlib axis
         """
-        if ax == None:
+        if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
         else:
@@ -1997,7 +2032,8 @@ class SVD(object):
         c = np.corrcoef(self.A[:, mode], self.B[:, mode])[0][1]
         plt.legend()
         ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c, 2)) + ')', size=10)
-        ax.set_xlabel('time'); ax.set_ylim(-3., 3.)
+        ax.set_xlabel('time')
+        ax.set_ylim(-3., 3.)
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -2054,13 +2090,13 @@ class Diagnostic(object):
         """
 
         if self.x.data.shape != self.y.data.shape:
-            raise ValueError, 'Invalid geometries!'
+            raise ValueError('Invalid geometries!')
 
         if not plt.isvector(self.x.data):
-            raise ValueError, 'Routine works only with vectorized data!'
+            raise ValueError('Routine works only with vectorized data!')
 
         if any(lags < 0.):
-            raise ValueError, 'Negative lags currently not supported yet!'
+            raise ValueError('Negative lags currently not supported yet!')
 
         CO = []
         for lag in lags:
@@ -2077,7 +2113,8 @@ class Diagnostic(object):
             #1) temporal subsetting of data
             if lag > 0:
                 #temporal subset data
-                hlpx = hlpx[lag:]; hlpy = hlpy[:-lag]
+                hlpx = hlpx[lag:]
+                hlpy = hlpy[:-lag]
 
             #2) calculation of lagged correlation
             if len(hlpx) > 1:
@@ -2205,7 +2242,7 @@ class Diagnostic(object):
             # calculate weighted average for all timesteps
             e2 = np.ones(n) * np.nan
             for i in xrange(n):
-                d = weights[i, :] * ((x[i,:] - y[i,:]) ** 2.) / std_x[i,:]
+                d = weights[i, :] * ((x[i, :] - y[i, :]) ** 2.) / std_x[i, :]
                 e2[i] = np.sum(d)  # sum at end to avoid nan's   #it is important to use np.sum() !!
 
         if np.any(np.isnan(e2)):
@@ -2260,7 +2297,7 @@ class Diagnostic(object):
         s2 = np.shape(y)
         if s1 != s2:
             print s1, s2
-            raise ValueError, 'Invalid shapes!'
+            raise ValueError('Invalid shapes!')
 
         n = np.shape(x)[0]
         x.shape = (n, -1)
@@ -2271,7 +2308,7 @@ class Diagnostic(object):
         elif len(s1) == 1:
             ndata = 1  # vector
         else:
-            raise ValueError, 'Invalid shape!'
+            raise ValueError('Invalid shape!')
 
         R = np.zeros(ndata) * np.nan
 
@@ -2286,7 +2323,7 @@ class Diagnostic(object):
                 else:
 
                     #print nlags
-                    if nlags == None:
+                    if nlags is None:
                         nlags = len(xx[msk])
                         if np.mod(nlags, 2) == 0:
                             nlags += 1
@@ -2457,7 +2494,7 @@ class Diagnostic(object):
             y = self.y.data.copy()
 
         if np.shape(x) != np.shape(y):
-            raise ValueError, 'slice_corr: shapes not matching!'
+            raise ValueError('slice_corr: shapes not matching!')
 
         #--- reshape data
         n = len(x)  # timesteps
@@ -2469,8 +2506,10 @@ class Diagnostic(object):
         maxgap = n
 
         #~ print 'maxgap: ', maxgap
-        R = np.ones((maxgap, n)) * np.nan; P = np.ones((maxgap, n)) * np.nan
-        L = np.ones((maxgap, n)) * np.nan; S = np.ones((maxgap, n)) * np.nan
+        R = np.ones((maxgap, n)) * np.nan
+        P = np.ones((maxgap, n)) * np.nan
+        L = np.ones((maxgap, n)) * np.nan
+        S = np.ones((maxgap, n)) * np.nan
 
         #--- perform correlation analysis
         print '   Doing slice correlation analysis ...'
@@ -2480,28 +2519,24 @@ class Diagnostic(object):
             #- loop over different lengths
             for gap in gaps:
 
-                if gap >=  i2 - i1:
+                if gap >= i2 - i1:
                     continue
-
                 if timmean:
-                    ''' temporal mean -> all grid cells only (temporal mean) '''
-
-                    raise ValueError, 'TIMMEAN not supported yet for gap analysis'
-
-                    #print 'drin'
+                    # temporal mean -> all grid cells only (temporal mean)
+                    raise ValueError('TIMMEAN not supported yet for gap analysis')
                     xdata = x[i1:i2, :].mean(axis=0)
                     ydata = y[i1:i2, :].mean(axis=0)
-
-                    xmsk = xdata.mask; ymsk = ydata.mask
+                    xmsk = xdata.mask
+                    ymsk = ydata.mask
                     msk = xmsk | ymsk
-
                 else:
-                    #all grid cells at all times
-                    xdata = x.data.copy(); ydata = y.data.copy()
+                    # all grid cells at all times
+                    xdata = x.data.copy()
+                    ydata = y.data.copy()
                     xmsk = x.mask.copy()  # [i1:i2,:]
                     ymsk = y.mask.copy()  # [i1:i2,:]
 
-                    #mask data which has gaps and use whole period elsewhere
+                    # mask data which has gaps and use whole period elsewhere
                     xmsk[i1:i1 + gap, :] = True
                     ymsk[i1:i1 + gap, :] = True
 
@@ -2514,11 +2549,14 @@ class Diagnostic(object):
                 if spearman:
                     tmpx = xdata.argsort()
                     tmpy = ydata.argsort()
-                    xdata = tmpx; ydata = tmpy
+                    xdata = tmpx
+                    ydata = tmpy
 
                 slope, intercept, r, p, stderr = stats.linregress(xdata, ydata)
-                R[gap, i1] = r; P[gap, i1] = p
-                L[gap, i1] = gap - 1; S[gap, i1] = slope
+                R[gap, i1] = r
+                P[gap, i1] = p
+                L[gap, i1] = gap - 1
+                S[gap, i1] = slope
 
             i1 += 1
 
@@ -2564,12 +2602,12 @@ class Diagnostic(object):
             else:
                 oticks.append(years[int(t)])
         #- set ticks of axis
-        if   axis == 'x':
+        if axis == 'x':
             ax.set_xticklabels(oticks, size=size, rotation=rotation)
         elif axis == 'y':
             ax.set_yticklabels(oticks, size=size, rotation=rotation)
         else:
-            raise ValueError, 'Invalid axis (set_year_ticks)'
+            raise ValueError('Invalid axis (set_year_ticks)')
 
 #-----------------------------------------------------------------------
 
@@ -2690,7 +2728,7 @@ class koeppen(object):
           if pmin > 60:                 # A(B)
             clim = 1                    # Af
           else:
-            if  pmin > (0.04 * (2500 - psum)):      # A(B)-msw
+            if pmin > (0.04 * (2500 - psum)):      # A(B)-msw
               clim = 2                  # Am
             else:
               if (pminhs < 40) and (pminhs < (pmaxhw / 3)):   # A(B)-sw
@@ -2717,7 +2755,7 @@ class koeppen(object):
               else:
                 clim = 5                    # BS
             else:
-              if  tmax < 10:                # CDE-s
+              if tmax < 10:                # CDE-s
                 if tmax < 0:                # E
                   clim = 14                 # EF
                 else:
@@ -2795,15 +2833,15 @@ class koeppen(object):
      """
           This routine just checks if all three array have a equal number of ny and nx values
      """
-     if self.precip.unit !=  "kg/m^2s":
+     if self.precip.unit != "kg/m^2s":
        sys.exit('ERROR: The unit of the precip is not [kg/m^2s] its set to [' + self.precip.unit + "]")
        return False
 
-     if self.temp.unit !=  "K":
+     if self.temp.unit != "K":
        sys.exit('ERROR: The unit of the temperature is not [K] its set to [' + self.temp.unit + "]")
        return False
 
-     if self.lsm.unit !=  "fractional":
+     if self.lsm.unit != "fractional":
        sys.exit('ERROR: The unit of the temperature is not [fractional] its set to [' + self.temp.unit + "]")
        return False
 
@@ -2832,12 +2870,12 @@ class koeppen(object):
         """
 
         #/// check consistency ///
-        if temp == None:
+        if temp is None:
           sys.exit('No temperature given')
 
-        if precip == None:
+        if precip is None:
           sys.exit('No precipitation given')
-        if temp == None:
+        if temp is None:
           sys.exit('No land-sea-mask given')
 
         #/// set values of class ///
@@ -2857,7 +2895,7 @@ class koeppen(object):
         # convert from [kg m-2 s-1] to [kg m-2 day-1] (= [mm day-1])
          # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
         self.precip = precip.mulc(60. * 60. * 24. * 365. / 12., copy=True)
-        self.temp = temp.subc(273.15, copy=True) # ??? Unklar warum nicht 'temp.subc(273.15)'
+        self.temp = temp.subc(273.15, copy=True)  # ??? Unklar warum nicht 'temp.subc(273.15)'
 
         Psum = self.precip.timsum(return_object=True)            # Berechnet die Summe der Jahresniederschlag
 
@@ -2879,10 +2917,10 @@ class koeppen(object):
             = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat / 2):(nlat - 1), :]
 
         precipHW = self.precip.copy()
-        precipHW.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1),:]
-        precipHW.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1),:]
-        precipHW.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1),:]
-        precipHW.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1),:]
+        precipHW.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1), :]
+        precipHW.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1), :]
+        precipHW.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1), :]
+        precipHW.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1), :]
 
         PminHS = precipHS.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PmaxHS
         PmaxHS = precipHS.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PmaxHS
@@ -3003,6 +3041,6 @@ class koeppen(object):
         """
         map_plot(self.Clim, cmap_data=self.cmap, colorbar_orientation='horizontal', vmin=0.5, vmax=14.5,
         cticks=[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.],
-                cticklabels=["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
-                       "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
+            cticklabels=["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
+                             "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
                        nclasses=15, **kwargs)
