@@ -77,7 +77,7 @@ class PatternCorrelation(DiagnosticMaster):
         if self.x.ndim == 2:
             self.t = None
         elif self.x.ndim == 3:
-            self.t = np.arange(self.x.nt)+1
+            self.t = np.arange(self.x.nt) + 1
         else:
             raise ValueError('Invalid geometry')
 
@@ -662,7 +662,7 @@ class RegionalAnalysis(object):
             print s
             if filename != None:
                 if format == 'txt':
-                    o.write(s+'\n')
+                    o.write(s + '\n')
                 else:
                     raise ValueError, 'Unsupported output format!'
 
@@ -697,17 +697,17 @@ class RegionalAnalysis(object):
         sx = self.statistics['corrstat']['corrstat2']['stdx']
         sy = self.statistics['corrstat']['corrstat2']['stdy']
 
-        ratio = sy/sx
+        ratio = sy / sx
 
         if dia == None:
-            tay = Taylor(stdmax=max(ratio.max()*1.2, 2.))
+            tay = Taylor(stdmax=max(ratio.max() * 1.2, 2.))
         else:
             if not isinstance(dia, Taylor):
                 print type(dia)
                 raise ValueError, 'Provided argument is no taylor class! '
             else:
                 tay = dia
-                tay.stdmax = max(max(ratio.max()*1.2, 2.), dia.stdmax)  # preserve stdmax information when possible
+                tay.stdmax = max(max(ratio.max() * 1.2, 2.), dia.stdmax)  # preserve stdmax information when possible
 
         sid = map(str, self.statistics['corrstat']['corrstat2']['id'])
         tay.plot(r, ratio, labels=sid, color=color)
@@ -876,7 +876,7 @@ class EOF(object):
             self.EOF = np.dot(self.x, self.eigvec)  # A
 
         #/// explained variance
-        self._var = self.eigval/sum(self.eigval)  # explained variance
+        self._var = self.eigval / sum(self.eigval)  # explained variance
 
     def __time_normalization(self):
         """
@@ -943,7 +943,7 @@ class EOF(object):
 
             #print len(k)
             #if len(k)>1: #lineplot
-            ax.plot(self._x0.num2date(self._x0.time), y, label=label + 'EOF'+str(i+1).zfill(3))  # caution: labeling is k+1
+            ax.plot(self._x0.num2date(self._x0.time), y, label=label + 'EOF' + str(i + 1).zfill(3))  # caution: labeling is k+1
             #else: #nice plot with different colors for pos/neg. values
             #yupper = np.ma.masked_where(y < 0., y); ylower = np.ma.masked_where(y > 0., y)
             #ax.plot(plt.num2date(self._x0.time),yupper,color='red',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
@@ -1063,7 +1063,7 @@ class EOF(object):
 
         #remap data back to original shape
         #1) valid data --> all data
-        hlp = np.zeros(len(self._x0mask))*np.nan
+        hlp = np.zeros(len(self._x0mask)) * np.nan
         hlp[self._x0mask] = self.EOF[:, k].copy()
         #2) vector --> matrix
         hlp.shape = self._shape0
@@ -1101,7 +1101,7 @@ class EOF(object):
             D.data = hlp
             D.unit = None  # reset units as EOF have no physical units
 
-        D.label = label + 'EOF ' + str(k+1).zfill(3) + ' (' + str(round(self._var[k]*100., 2)) + '%)'  # caution: labeling is always k+1!
+        D.label = label + 'EOF ' + str(k + 1).zfill(3) + ' (' + str(round(self._var[k] * 100., 2)) + '%)'  # caution: labeling is always k+1!
 
         map_plot(D, use_basemap=use_basemap, logplot=logplot, ax=ax, region=region, vmin=vmin, vmax=vmax,
                  cmap_data=cmap, title=title, contours=contours, nclasses=nclasses, levels=levels)
@@ -1135,7 +1135,7 @@ class EOF(object):
         for i in thelist:
             #~ a = np.asarray([self.EOF[:,i]]).T
             #remap to original geometry first
-            hlp = np.zeros(len(self._x0mask))*np.nan
+            hlp = np.zeros(len(self._x0mask)) * np.nan
             hlp[self._x0mask] = self.EOF[:, i].copy()
 
             a = np.asarray([hlp]).T
@@ -1168,7 +1168,7 @@ class EOF(object):
             f = plt.figure()
             ax = f.add_subplot(111)
 
-            im = ax.imshow(c1**2, interpolation='nearest', vmin=0, vmax=1., origin='lower')
+            im = ax.imshow(c1 ** 2, interpolation='nearest', vmin=0, vmax=1., origin='lower')
             plt.colorbar(im)
             ax.set_title('$R^2$ of EOFs with original data')
             ax.set_xlabel('original data channel #')
@@ -1263,17 +1263,17 @@ class ANOVA(object):
         idx = np.argwhere(self.mask)  # returns list of indices of valid pixels
 
         #3) perform ANOVA analysis on all pixels individually
-        resA = np.zeros(self.refshape)*np.nan
-        resB = np.zeros(self.refshape)*np.nan
-        resI = np.zeros(self.refshape)*np.nan
-        resE = np.zeros(self.refshape)*np.nan
-        resPA = np.zeros(self.refshape)*np.nan
-        resPB = np.zeros(self.refshape)*np.nan
-        resPI = np.zeros(self.refshape)*np.nan
+        resA = np.zeros(self.refshape) * np.nan
+        resB = np.zeros(self.refshape) * np.nan
+        resI = np.zeros(self.refshape) * np.nan
+        resE = np.zeros(self.refshape) * np.nan
+        resPA = np.zeros(self.refshape) * np.nan
+        resPB = np.zeros(self.refshape) * np.nan
+        resPI = np.zeros(self.refshape) * np.nan
 
-        resAa = np.zeros(self.refshape)*np.nan
-        resBa = np.zeros(self.refshape)*np.nan
-        resIa = np.zeros(self.refshape)*np.nan
+        resAa = np.zeros(self.refshape) * np.nan
+        resBa = np.zeros(self.refshape) * np.nan
+        resIa = np.zeros(self.refshape) * np.nan
 
         for p in idx:
             if analysis_type == 'one':  # one way ANOVA
@@ -1340,7 +1340,7 @@ class ANOVA(object):
         if nexp != 1:
             raise ValueError, 'one-way anova only valid for signle experiments!'
 
-        x = np.zeros((self.n, self.nt))*np.nan  # [nrens,nt]
+        x = np.zeros((self.n, self.nt)) * np.nan  # [nrens,nt]
 
         e = self.experiments[0]
         for i in range(self.n):
@@ -1365,7 +1365,7 @@ class ANOVA(object):
         v experiment (nexp)
         """
         nexp = len(self.experiments)
-        x = np.zeros((nexp, self.nt, self.n))*np.nan
+        x = np.zeros((nexp, self.nt, self.n)) * np.nan
 
         for j in range(len(self.experiments)):
             e = self.experiments[j]
@@ -1488,12 +1488,12 @@ class SVD(object):
         mx = np.sum(~x.mask, axis=0) == nt  # get mask for valid pixels only
         m1 = mx
 
-        r = np.ones((nt, sum(mx)))*np.nan
+        r = np.ones((nt, sum(mx))) * np.nan
         for i in xrange(nt):
             tmp = x.data[i, :]
             if np.any(np.isnan(tmp[m1])):
                 raise ValueError, 'Nans are not allowed here!'
-            r[i, :] = tmp[m1]*1.
+            r[i, :] = tmp[m1] * 1.
             del tmp
 
         return np.ma.array(r), m1
@@ -1589,7 +1589,7 @@ class SVD(object):
         #/// store results
         self.U = U; self.V = V
         self.L = L; self.A = A; self.B = B
-        self.scf = (s*s) / sum(s*s)  # fractions of variance explained CAUTION: not properly described in manual if squared or not!
+        self.scf = (s * s) / sum(s * s)  # fractions of variance explained CAUTION: not properly described in manual if squared or not!
         self.__get_mode_correlation()  # calculate correlation between modes
 
 #-----------------------------------------------------------------------
@@ -1656,7 +1656,7 @@ class SVD(object):
             print sz[1]; print mask.sum()
             raise ValueError, 'Inconsistent mask and data'
 
-        res = np.ones(target_shape)*np.nan; res.shape = (-1)
+        res = np.ones(target_shape) * np.nan; res.shape = (-1)
         res[mask] = data.copy()
 
         res = np.ma.array(res, mask=np.isnan(res))
@@ -1762,13 +1762,13 @@ class SVD(object):
                 umin = None; umax = None
                 vmin = None; vmax = None
             else:
-                umin = mu-su; umax = mu+su
-                vmin = mv-sv; vmax = mv+sv
+                umin = mu - su; umax = mu + su
+                vmin = mv - sv; vmax = mv + sv
 
             map_plot(U, use_basemap=use_basemap, ax=ax1, logplot=logplot, vmin=umin, vmax=umax)
             map_plot(V, use_basemap=use_basemap, ax=ax2, logplot=logplot, vmin=vmin, vmax=vmax)
 
-            fig.suptitle('Mode: #' + str(i) + ' scf: ' + str(round(self.scf[i]*100., 1)) + '%', size=14)
+            fig.suptitle('Mode: #' + str(i) + ' scf: ' + str(round(self.scf[i] * 100., 1)) + '%', size=14)
 
             if filename != None:
                 fig.savefig(filename + '_singular_vectors_mode_' + str(i).zfill(5) + '.pdf')
@@ -1798,9 +1798,9 @@ class SVD(object):
         n1, m1 = self.A.shape; n2, m2 = self.B.shape
 
         if mode != None:
-            if mode > m1-1:
+            if mode > m1 - 1:
                 raise ValueError, 'Mode > A'
-            if mode > m2-1:
+            if mode > m2 - 1:
                 raise ValueError, 'Mode > B'
 
         if mode == None:  # plot all modes with variance contained
@@ -1819,7 +1819,7 @@ class SVD(object):
 
             if plot_var:
                 O = R.copy()
-                O.data = O.data*O.data
+                O.data = O.data * O.data
                 O.label = 'exp.frac.var.'
             else:
                 O = R.copy()
@@ -1912,7 +1912,7 @@ class SVD(object):
         @return: squared correlation as C{Data} object
         """
         Rout, Sout, Iout, Pout = X.corr_single(E[:, mode], pthres=pthres)
-        Rout.data = Rout.data*Rout.data
+        Rout.data = Rout.data * Rout.data
         return Rout  # return squared correlation to get variance
 
 #-----------------------------------------------------------------------
@@ -1992,8 +1992,8 @@ class SVD(object):
         else:
             ax = ax
 
-        ax.plot(self.num2date(self.time), self.A[:, mode]/np.std(self.A[:, mode]), label='A', color='red')
-        ax.plot(self.num2date(self.time), self.B[:, mode]/np.std(self.B[:, mode]), label='B', color='blue', linestyle='--')
+        ax.plot(self.num2date(self.time), self.A[:, mode] / np.std(self.A[:, mode]), label='A', color='red')
+        ax.plot(self.num2date(self.time), self.B[:, mode] / np.std(self.B[:, mode]), label='B', color='blue', linestyle='--')
         c = np.corrcoef(self.A[:, mode], self.B[:, mode])[0][1]
         plt.legend()
         ax.set_title('normalized expansion coefficient #' + str(mode) + ' (r=' + str(round(c, 2)) + ')', size=10)
@@ -2039,7 +2039,7 @@ class Diagnostic(object):
         @param self: Diagnostic object
         @type self : Diagnostic object
         """
-        return np.sqrt(np.mean((self.xvec - self.yvec)**2))
+        return np.sqrt(np.mean((self.xvec - self.yvec) ** 2))
 
 #-----------------------------------------------------------------------
 
@@ -2191,7 +2191,7 @@ class Diagnostic(object):
             raise ValueError('Invalid shapes of arrays!')
 
         if x.ndim == 1:  # only timeseries
-            e2 = sum(weights * (x-y)**2. / std_x)
+            e2 = sum(weights * (x - y) ** 2. / std_x)
         else:
             n = len(x)
             x.shape = (n, -1)  # [time,index]
@@ -2203,9 +2203,9 @@ class Diagnostic(object):
                 raise ValueError('Invalid shape for weights!')
 
             # calculate weighted average for all timesteps
-            e2 = np.ones(n)*np.nan
+            e2 = np.ones(n) * np.nan
             for i in xrange(n):
-                d = weights[i, :] * ((x[i,:]-y[i,:])**2.) / std_x[i,:]
+                d = weights[i, :] * ((x[i,:] - y[i,:]) ** 2.) / std_x[i,:]
                 e2[i] = np.sum(d)  # sum at end to avoid nan's   #it is important to use np.sum() !!
 
         if np.any(np.isnan(e2)):
@@ -2231,7 +2231,7 @@ class Diagnostic(object):
                   nlags=400):
             res = []
             lags = []
-            for i in range(-(nlags/2), nlags/2, 1):
+            for i in range(-(nlags / 2), nlags / 2, 1):
                 lags.append(i)
                 if i < 0:
                     xx1 = x1[:i]
@@ -2246,7 +2246,7 @@ class Diagnostic(object):
                 xx1 = xx1 - xx1.mean()
                 xx2 = xx2 - xx2.mean()
 
-                res.append((xx1*xx2).sum() / ((xx1**2).sum() * (xx2**2).sum())**0.5)
+                res.append((xx1 * xx2).sum() / ((xx1 ** 2).sum() * (xx2 ** 2).sum()) ** 0.5)
 
             return np.array(res), np.array(lags)
 
@@ -2267,13 +2267,13 @@ class Diagnostic(object):
         y.shape = (n, -1)
 
         if len(s1) == 2:
-            ndata = s1[1]*s1[2]
+            ndata = s1[1] * s1[2]
         elif len(s1) == 1:
             ndata = 1  # vector
         else:
             raise ValueError, 'Invalid shape!'
 
-        R = np.zeros(ndata)*np.nan
+        R = np.zeros(ndata) * np.nan
 
         for i in range(ndata):
             xx = x[:, i]
@@ -2293,7 +2293,7 @@ class Diagnostic(object):
                     #print nlags
 
                     r1, lags = NormCrossCorrSlow(xx[msk], yy[msk], nlags=nlags)
-                    idx = nlags/2+lag  # todo something does not work with the indices !!!
+                    idx = nlags / 2 + lag  # todo something does not work with the indices !!!
                     print idx, nlags, len(r1)
                     r_value = r1[idx]
 
@@ -2361,19 +2361,19 @@ class Diagnostic(object):
             z = z.data.copy()
             z.shape = (n, -1)
 
-        R = np.ones((n, n))*np.nan
-        P = np.ones((n, n))*np.nan
-        L = np.ones((n, n))*np.nan
-        S = np.ones((n, n))*np.nan
+        R = np.ones((n, n)) * np.nan
+        P = np.ones((n, n)) * np.nan
+        L = np.ones((n, n)) * np.nan
+        S = np.ones((n, n)) * np.nan
 
         # perform correlation analysis
         print('   Doing slice correlation analysis ...')
         i1 = 0
-        while i1 < n-1:  # loop over starting year
+        while i1 < n - 1:  # loop over starting year
             i2 = i1 + 2
             # loop over different lengths
-            while i2 < len(x)-1:
-                length = i2-i1
+            while i2 < len(x) - 1:
+                length = i2 - i1
 
                 if timmean:
                     """ temporal mean -> all grid cells only (temporal mean) """
@@ -2469,13 +2469,13 @@ class Diagnostic(object):
         maxgap = n
 
         #~ print 'maxgap: ', maxgap
-        R = np.ones((maxgap, n))*np.nan; P = np.ones((maxgap, n))*np.nan
-        L = np.ones((maxgap, n))*np.nan; S = np.ones((maxgap, n))*np.nan
+        R = np.ones((maxgap, n)) * np.nan; P = np.ones((maxgap, n)) * np.nan
+        L = np.ones((maxgap, n)) * np.nan; S = np.ones((maxgap, n)) * np.nan
 
         #--- perform correlation analysis
         print '   Doing slice correlation analysis ...'
         i1 = 0
-        while i1 < n-1:  # loop over starting year
+        while i1 < n - 1:  # loop over starting year
             i2 = n  # always entire time period
             #- loop over different lengths
             for gap in gaps:
@@ -2502,8 +2502,8 @@ class Diagnostic(object):
                     ymsk = y.mask.copy()  # [i1:i2,:]
 
                     #mask data which has gaps and use whole period elsewhere
-                    xmsk[i1:i1+gap, :] = True
-                    ymsk[i1:i1+gap, :] = True
+                    xmsk[i1:i1 + gap, :] = True
+                    ymsk[i1:i1 + gap, :] = True
 
                     msk = xmsk | ymsk
 
@@ -2518,7 +2518,7 @@ class Diagnostic(object):
 
                 slope, intercept, r, p, stderr = stats.linregress(xdata, ydata)
                 R[gap, i1] = r; P[gap, i1] = p
-                L[gap, i1] = gap-1; S[gap, i1] = slope
+                L[gap, i1] = gap - 1; S[gap, i1] = slope
 
             i1 += 1
 
@@ -2559,7 +2559,7 @@ class Diagnostic(object):
         for t in ticks:
             if t < 0:
                 oticks.append('')
-            elif t > len(years)-1:
+            elif t > len(years) - 1:
                 oticks.append('')
             else:
                 oticks.append(years[int(t)])
@@ -2693,26 +2693,26 @@ class koeppen(object):
             if  pmin > (0.04 * (2500 - psum)):      # A(B)-msw
               clim = 2                  # Am
             else:
-              if (pminhs < 40) and (pminhs < (pmaxhw/3)):   # A(B)-sw
-                if (psum/10) < (2 * tavg):          # A(B)-s
-                  if (psum/10) < (tavg):            # B
+              if (pminhs < 40) and (pminhs < (pmaxhw / 3)):   # A(B)-sw
+                if (psum / 10) < (2 * tavg):          # A(B)-s
+                  if (psum / 10) < (tavg):            # B
                     clim = 6                    # BW
                   else:
                     clim = 5                    # BS
                 else:
                   clim = 3                      # As
               else:
-                if (psum/10) < (2 * (tavg + 14)):       # A(B)-w
-                  if (psum/10) < (tavg + 14):       # B
+                if (psum / 10) < (2 * (tavg + 14)):       # A(B)-w
+                  if (psum / 10) < (tavg + 14):       # B
                     clim = 6                    # BW
                   else:
                     clim = 5                    # BS
                 else:
                   clim = 4                      # Aw
         else:
-          if (pminhs < 40) and (pminhs < (pmaxhw/3)):   # CDE(B)
-            if (psum/10) < (2 * tavg):          # CDE(B)-s
-              if (psum/10) < (tavg):            # B
+          if (pminhs < 40) and (pminhs < (pmaxhw / 3)):   # CDE(B)
+            if (psum / 10) < (2 * tavg):          # CDE(B)-s
+              if (psum / 10) < (tavg):            # B
                 clim = 6                    # BW
               else:
                 clim = 5                    # BS
@@ -2728,9 +2728,9 @@ class koeppen(object):
                 else:
                   clim = 11                 # Ds
           else:
-            if pminhw < (pmaxhs/10):            # CDE(B)-fw
-              if (psum/10) < (2 * (tavg + 14)):     # CDE(B)-w
-                if (psum/10) < (tavg + 14):         # B
+            if pminhw < (pmaxhs / 10):            # CDE(B)-fw
+              if (psum / 10) < (2 * (tavg + 14)):     # CDE(B)-w
+                if (psum / 10) < (tavg + 14):         # B
                   clim = 6                  # BW
                 else:
                   clim = 5                  # BS
@@ -2747,8 +2747,8 @@ class koeppen(object):
                   else:
                     clim = 12               # Dw
             else:
-              if (psum/10) < (2 * (tavg + 7)):      # CDE(B)-f
-                if (psum/10) < (tavg + 7):          # B
+              if (psum / 10) < (2 * (tavg + 7)):      # CDE(B)-f
+                if (psum / 10) < (tavg + 7):          # B
                   clim = 6                  # BW
                 else:
                   clim = 5                  # BS
@@ -2796,15 +2796,15 @@ class koeppen(object):
           This routine just checks if all three array have a equal number of ny and nx values
      """
      if self.precip.unit !=  "kg/m^2s":
-       sys.exit('ERROR: The unit of the precip is not [kg/m^2s] its set to ['+self.precip.unit+"]")
+       sys.exit('ERROR: The unit of the precip is not [kg/m^2s] its set to [' + self.precip.unit + "]")
        return False
 
      if self.temp.unit !=  "K":
-       sys.exit('ERROR: The unit of the temperature is not [K] its set to ['+self.temp.unit+"]")
+       sys.exit('ERROR: The unit of the temperature is not [K] its set to [' + self.temp.unit + "]")
        return False
 
      if self.lsm.unit !=  "fractional":
-       sys.exit('ERROR: The unit of the temperature is not [fractional] its set to ['+self.temp.unit+"]")
+       sys.exit('ERROR: The unit of the temperature is not [fractional] its set to [' + self.temp.unit + "]")
        return False
 
      return True
@@ -2869,20 +2869,20 @@ class koeppen(object):
         Pmax = self.precip.data.max(axis=0)
 
         precipHS = self.precip.copy()
-        precipHS.data[(0, 1, 2, 3, 4, 5), 0:(nlat/2-1), :] \
-            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat/2-1), :]
-        precipHS.data[(6, 7, 8, 9, 10, 11), 0:(nlat/2-1), :] \
-            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat/2-1), :]
-        precipHS.data[(0, 1, 2, 3, 4, 5), (nlat/2):(nlat-1), :] \
-            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat/2):(nlat-1), :]
-        precipHS.data[(6, 7, 8, 9, 10, 11), (nlat/2):(nlat-1), :] \
-            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat/2):(nlat-1), :]
+        precipHS.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] \
+            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat / 2 - 1), :]
+        precipHS.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] \
+            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat / 2 - 1), :]
+        precipHS.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] \
+            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat / 2):(nlat - 1), :]
+        precipHS.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] \
+            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat / 2):(nlat - 1), :]
 
         precipHW = self.precip.copy()
-        precipHW.data[(0, 1, 2, 3, 4, 5), 0:(nlat/2-1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat/2-1),:]
-        precipHW.data[(6, 7, 8, 9, 10, 11), 0:(nlat/2-1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat/2-1),:]
-        precipHW.data[(0, 1, 2, 3, 4, 5), (nlat/2):(nlat-1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat/2):(nlat-1),:]
-        precipHW.data[(6, 7, 8, 9, 10, 11), (nlat/2):(nlat-1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat/2):(nlat-1),:]
+        precipHW.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1),:]
+        precipHW.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1),:]
+        precipHW.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1),:]
+        precipHW.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1),:]
 
         PminHS = precipHS.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PmaxHS
         PmaxHS = precipHS.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PmaxHS
@@ -2930,11 +2930,11 @@ class koeppen(object):
         climfrac = [0] * 14
 
         ny, nx = self.Clim.data.data.shape
-        for ny in range(0, ny-1):
+        for ny in range(0, ny - 1):
             Aweight = cos(self.Clim.lat[ny][0] / 180 * 3.14159265359)
-            for nx in range(0, nx-1):
+            for nx in range(0, nx - 1):
                 clim = int(self.Clim.data.data[ny][nx])
-                climfrac[clim-1] = climfrac[clim-1] + Aweight
+                climfrac[clim - 1] = climfrac[clim - 1] + Aweight
 
         s = sum(climfrac)
         climfrac[:] = [x / s for x in climfrac]

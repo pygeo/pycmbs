@@ -13,15 +13,13 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 
 #============ IMPORTS ==================================================
 
-# XXX: implicit imports
-from pycmbs.data import Data
-
 #--- always use plot backend which is not interactive for benchmarking framework
 import matplotlib as mpl
 mpl.rcParams['backend'] = 'Agg'
 
+from pycmbs.data import Data
+
 import matplotlib.pyplot as plt
-#~ pl = mpl.pylab
 
 import sys
 import os
@@ -29,7 +27,7 @@ import pylab
 import pickle
 
 from pycmbs.plots import GlecklerPlot, GlobalMeanPlot
-from pycmbs.report import Report
+from pycmbs.benchmarking.report import Report
 from pycmbs.benchmarking.utils import get_T63_landseamask
 from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
@@ -79,15 +77,16 @@ def create_dummy_configuration():
     CFGW.save(temp_dir='<put here the temporary data processing directory>',
               vars=['albedo', 'sis'], start_date='2000-01-01',
               stop_date='2007-09-30',
-              models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP', 
-                            'path': '/this/is/the/root/path/to/the/model/data/'}, 
-                      {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST', 
+              models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP',
+                            'path': '/this/is/the/root/path/to/the/model/data/'},
+                      {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST',
                             'path': '/this/is/the/root/path/to/the/model/data/'}
                       ])
 
     os.system('rm -rf ' + odir + '/.svn')
 
 ########################################################################
+
 
 def main():
     plt.close('all')
@@ -156,7 +155,6 @@ def main():
 
     #print 'Using Basemap: ', use_basemap
 
-
     ########################################################################
     # TIMES
     ########################################################################
@@ -165,7 +163,7 @@ def main():
     start_time = pylab.num2date(pylab.datestr2num(s_start_time))
     stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
-    model_dict = {'rain':  {'CMIP5':
+    model_dict = {'rain': {'CMIP5':
                                 {
                                     'variable': 'pr',
                                     'unit': 'mm/day',
@@ -192,7 +190,7 @@ def main():
                             },
 
 
-                  'evap':   {'CMIP5':
+                  'evap': {'CMIP5':
                                  {
                                      'variable': 'evspsbl',
                                      'unit': 'mm/day',
@@ -206,7 +204,7 @@ def main():
                                  }
                             },
 
-                  'twpa':   {'CMIP5':
+                  'twpa': {'CMIP5':
                                  {
                                      'variable': 'clwvi',
                                      'unit': 'kg/m^2',
@@ -220,7 +218,7 @@ def main():
                                  }
                   },
 
-                 'wind':    {'CMIP5':
+                 'wind': {'CMIP5':
                                  {
                                      'variable': 'sfcWind',
                                      'unit': 'm/s',
@@ -234,7 +232,7 @@ def main():
                                  }
                             },
 
-                  'wvpa':   {'CMIP5':
+                  'wvpa': {'CMIP5':
                                  {
                                      'variable': 'prw',
                                      'unit': 'kg m^2',
@@ -248,7 +246,7 @@ def main():
                                  }
                             },
 
-                  'late':   {'CMIP5':
+                  'late': {'CMIP5':
                                  {
                                      'variable': 'hfls',
                                      'unit': 'W/m^2',
@@ -262,7 +260,7 @@ def main():
                                  }
                             },
 
-                  'hair':   {'CMIP5':
+                  'hair': {'CMIP5':
                                  {
                                      'variable': 'huss',
                                      'unit': '$kg/kg^2$',
@@ -276,7 +274,7 @@ def main():
                                  }
                             },
 
-                  'seaice_concentration':   {'CMIP5':
+                  'seaice_concentration': {'CMIP5':
                                    {
                                     'variable': 'sic',
                                     'unit': '-',
@@ -306,7 +304,7 @@ def main():
                                    },
                               },
 
-                  'seaice_extent':   {'CMIP5':
+                  'seaice_extent': {'CMIP5':
                                    {
                                     'variable': 'sic',
                                     'unit': '-',
@@ -336,7 +334,7 @@ def main():
                                    },
                               },
 
-                  'budg':   {'CMIP5':
+                  'budg': {'CMIP5':
                                  {
                                     'variable': 'budg',
                                     'unit': 'mm/d',
@@ -352,7 +350,7 @@ def main():
                             },
 
 
-                  'sis':   {'JSBACH_RAW2':
+                  'sis': {'JSBACH_RAW2':
                                  {
                                     'variable': 'swdown_acc',
                                     'unit': '$W/m^2$',
@@ -369,7 +367,7 @@ def main():
 
                             },
 
-                  'surface_upward_flux':   {'JSBACH_RAW2':
+                  'surface_upward_flux': {'JSBACH_RAW2':
                                  {
                                     'variable': 'swdown_reflect_acc',
                                     'unit': '$W/m^2$',
@@ -381,7 +379,7 @@ def main():
                                  }
                             },
 
-                  'albedo_vis':   {'JSBACH_RAW2':
+                  'albedo_vis': {'JSBACH_RAW2':
                                  {
                                     'variable': 'var14',
                                     'unit': '-',
@@ -393,7 +391,7 @@ def main():
                                  }
                             },
 
-                  'albedo_nir':   {'JSBACH_RAW2':
+                  'albedo_nir': {'JSBACH_RAW2':
                                  {
                                     'variable': 'var15',
                                     'unit': '-',
@@ -405,7 +403,7 @@ def main():
                                  }
                             },
 
-                  'temperature':    {
+                  'temperature': {
                                         'JSBACH_RAW2':
                                         {
                                             'variable': 'temp2',
@@ -420,11 +418,9 @@ def main():
 
                   }
 
-
     ########################################################################
     # INIT METHODS
     ########################################################################
-
     # names of analysis scripts for all variables ---
     scripts = CF.get_analysis_scripts()
 
@@ -511,12 +507,10 @@ def main():
         proc_models.append('model' + str(model_cnt).zfill(4))
         model_cnt += 1
 
-
     ########################################################################
     # MULTIMODEL MEAN
     # here we have now all the model and variables read.
     # The list of all models is contained in the variable proc_models.
-
     f_mean_model = True
     if f_mean_model:
         # calculate climatological mean values: The models contain already
@@ -538,11 +532,9 @@ def main():
         # add mean model to general list of models to process in analysis
         proc_models.append('MEANMODEL')
 
-
     ########################################################################
     # END MULTIMODEL MEAN
     ########################################################################
-
     ########################################################################
     # INIT reporting and plotting and diagnostics
     ########################################################################
@@ -557,7 +549,6 @@ def main():
                  dpi=300, format=CF.options['report_format'])
     cmd = 'cp ' + os.environ['PYCMBSPATH'] + '/logo/Phytonlogo5.pdf ' + rep.outdir
     os.system(cmd)
-
 
     ########################################################################
     ########################################################################
@@ -579,20 +570,18 @@ def main():
                 print '   ... ', scripts[variable]
                 # model list is reformatted so it can be evaluated properly
                 model_list = str(proc_models).replace("'", "")
-                cmd = 'analysis.' + scripts[variable]+'(' + model_list \
+                cmd = 'analysis.' + scripts[variable] + '(' + model_list \
                     + ',GP=global_gleckler,shift_lon=shift_lon, \
                         use_basemap=use_basemap,report=rep,\
                         interval=CF.intervals[variable],\
                         plot_options=PCFG,regions=REGIONS.regions)'
                 eval(cmd)
 
-
     ########################################################################
     # GLECKLER PLOT finalization ...
     ########################################################################
-
     #/// generate Gleckler analysis plot for all variables and models analyzed ///
-    global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=True, ticks=[-0.1,-0.05,0.,0.05,0.1])
+    global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=True, ticks=[-0.1, -0.05, 0., 0.05, 0.1])
     oname = outdir + 'gleckler.pkl'
     if os.path.exists(oname):
         os.remove(oname)
@@ -610,7 +599,6 @@ def main():
     rep.figure(global_gleckler.fig,
                caption='Gleckler et al. (2008) model performance index',
                width='10cm')
-
 
     #/// legend for gleckler plot ///
     for variable in variables:
