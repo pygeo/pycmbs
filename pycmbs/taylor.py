@@ -24,6 +24,7 @@ from matplotlib import pylab as plt
 
 import numpy as np
 
+
 class Taylor(object):
     def __init__(self, stdmax=2., plot_r_mesh=True, plot_std_mesh=True,
                  ref_std=1., plot_reference=True, r_meshstep=0.1, std_meshstep=0.25,
@@ -165,11 +166,14 @@ class Taylor(object):
 
         X = np.linspace(-r, +r, 1000.)
         Y = np.sqrt(r*r - X*X)
-        XN = X+x; YN = Y+y
+        XN = X+x
+        YN = Y+y
         m = XN < 0.
-        XN[m] = np.nan; YN[m] = np.nan
+        XN[m] = np.nan
+        YN[m] = np.nan
         m = (XN**2 + YN**2) >= self.stdmax**2
-        XN[m] = np.nan; YN[m] = np.nan
+        XN[m] = np.nan
+        YN[m] = np.nan
 
         #calculate label position
         alpha = np.arctan(self.stdmax / x)
@@ -177,7 +181,7 @@ class Taylor(object):
         ylab = y + r * np.sin(alpha)
 
         self.ax.plot(XN, YN, '--', color=color)
-        if label != None:
+        if label is not None:
             if ylab < 0.9*self.stdmax:  # avoid labels at boundaries
                 self.ax.annotate(label, [xlab, ylab], xycoords='data', rotation=30., color=color, backgroundcolor='white', verticalalignment='center', horizontalalignment='center', size=size)
 
@@ -197,7 +201,7 @@ class Taylor(object):
             r = rms[i]
             self.plot_circle(self.ref_std, 0., r, color=color, label=str(r))
 
-    def plot_std_meshlines(self, step = 0.1):
+    def plot_std_meshlines(self, step=0.1):
         '''
         plot mesh circles for stdv
         '''
@@ -252,16 +256,14 @@ class Taylor(object):
         ax = self.figure.add_axes([0.8, 0.8, 0.15, 0.15], frameon=False)
         ax.set_xticks([])
         ax.set_yticks([])
-        #ax.set_xlim(0.,1.)
-        #ax.set_ylim(0.,1.)
 
         lw = 2
-        P1 = [0., 0.]; P2 = [1., 1.]; P3 = [0.7, 0.]
+        P1 = [0., 0.]
+        P2 = [1., 1.]
+        P3 = [0.7, 0.]
         ax.plot([P1[0], P2[0]], [P1[1], P2[1]], '-', color=self.r_color, linewidth=lw)
-        ax.plot([P1[0], P3[0]], [P1[1], P3[1]], '-', color = self.std_color, linewidth=lw)
+        ax.plot([P1[0], P3[0]], [P1[1], P3[1]], '-', color=self.std_color, linewidth=lw)
         ax.plot([P3[0], P2[0]], [P3[1], P2[1]], '-', color=self.rms_color, linewidth=lw)
-
-        #ax.plot(rand(100))
 
     def plot(self, R, S, marker='o', linestyle='None', markerfacecolor='black', markeredgecolor=None,
              color='black', linewidth=0, label=None, markersize=8, markeredgewidth=1, R1=None, S1=None,
@@ -273,7 +275,8 @@ class Taylor(object):
         normvalue: value to use for normalization (e.g. stdv of observations)
         """
 
-        if markersize == None: markersize = self.size * 0.67
+        if markersize is None:
+            markersize = self.size * 0.67
 
         def nanmean(x):
             return np.mean(x[~np.isnan(x)])
@@ -282,14 +285,14 @@ class Taylor(object):
             S = S / normvalue
 
         show_shift = False
-        if (R1 != None) & (S1 != None):
+        if (R1 is not None) & (S1 is not None):
             if (len(R1) == len(S1)) & (len(R1) == len(R)):
                 show_shift = True
             else:
                 print len(R1), len(S1), len(R)
                 sys.exit('Not possible to show shift in taylor as different sizes!')
 
-        if markeredgecolor == None:
+        if markeredgecolor is None:
             markeredgecolor = markerfacecolor
 
         #/// calculate mean values ///
@@ -301,11 +304,11 @@ class Taylor(object):
             self.S_mean = nanmean(S)
         except:
             self.S_mean = np.nan
-        if R1 != None:
+        if R1 is not None:
             self.R1_mean = nanmean(R1)
         else:
             self.R1_mean = None
-        if S1 != None:
+        if S1 is not None:
             self.S1_mean = nanmean(S1)
         else:
             self.S1_mean = None
@@ -313,10 +316,8 @@ class Taylor(object):
         #/// get coordinates
         x, y = self.map2xy(R, S)
 
-        #~ print 'coordinates: ', R,S,x,y
-
         #/// generate plots
-        if labels == None:
+        if labels is None:
             self.ax.plot(x, y, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor, linewidth=linewidth,
                          label=label, markeredgecolor=markeredgecolor, markersize=markersize, markeredgewidth=markeredgewidth)
         else:
@@ -328,7 +329,7 @@ class Taylor(object):
             xmean, ymean = self.map2xy(self.R_mean, self.S_mean)
             self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor='blue', markersize=markersize*2, markeredgewidth=markeredgewidth*2.)
 
-            if (self.R1_mean != None) & (self.S1_mean != None):
+            if (self.R1_mean is not None) & (self.S1_mean is not None):
                 xmean, ymean = self.map2xy(self.R1_mean, self.S1_mean)
                 self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=shiftcolor, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor=shiftcolor, markersize=markersize*2, markeredgewidth=markeredgewidth*2)
 
@@ -337,7 +338,8 @@ class Taylor(object):
             x1, y1 = self.map2xy(R1, S1)
             #self.ax.plot(x1,y1,'ro')
             for i in np.arange(len(x1)):
-                dx = x1[i]-x[i]; dy = y1[i]-y[i]
+                dx = x1[i]-x[i]
+                dy = y1[i]-y[i]
                 self.ax.arrow(x[i], y[i], dx, dy, edgecolor=shiftcolor, alpha=0.5, linewidth=2.)
 
                 #this is a nice looking more flexible arrow
@@ -358,11 +360,14 @@ class Taylor(object):
         map R and S coordinates into x and y
         """
 
-        theta = np.deg2rad((1.-R)*90.); r = S
+        theta = np.deg2rad((1.-R)*90.)
+        r = S
         if self.r_equidistant:
-            x = r*np.cos(theta); y = r*np.sin(theta)
+            x = r*np.cos(theta)
+            y = r*np.sin(theta)
         else:
-            x = S*R; y = S*np.sin(np.arccos(R))
+            x = S*R
+            y = S*np.sin(np.arccos(R))
         return x, y
 
     def set_legend_plot(self, label, color='black', marker='o'):
@@ -383,14 +388,20 @@ def test():
     #/// testing ///
     plt.close('all')
     #generate some sample data
-    corr1 = np.asarray([1., .5, 0.9, 1., -0.8]); corr2 = np.asarray([0.1, 0.25, 0.5, 0.6])
-    s1 = np.asarray([1., 1., 1.5, 0.5]); s2 = np.asarray([0.9, 1.5, 1.7])
+    corr1 = np.asarray([1., .5, 0.9, 1., -0.8])
+    corr2 = np.asarray([0.1, 0.25, 0.5, 0.6])
+    s1 = np.asarray([1., 1., 1.5, 0.5])
+    s2 = np.asarray([0.9, 1.5, 1.7])
 
-    s1 = [0.5, .5, 1.5, 1.2]; corr1 = [0.6, 1., 0.95, -0.8]
-    S1 = [0.4, .2, 1.7, 0.7]; R1 = [0.4, 0.9, 0.5, 0.6]
+    s1 = [0.5, .5, 1.5, 1.2]
+    corr1 = [0.6, 1., 0.95, -0.8]
+    S1 = [0.4, .2, 1.7, 0.7]
+    R1 = [0.4, 0.9, 0.5, 0.6]
 
-    s1 = np.asarray(s1); corr1 = np.asarray(corr1)
-    S1 = np.asarray(S1); R1 = np.asarray(R1)
+    s1 = np.asarray(s1)
+    corr1 = np.asarray(corr1)
+    S1 = np.asarray(S1)
+    R1 = np.asarray(R1)
 
     #Taylor plot with equidistant correlations
     tay1 = taylor(r_equidistant=True)  # initialize the Taylor diagram
