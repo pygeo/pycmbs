@@ -3,9 +3,10 @@
 #######################################
 
 # XXX: machine specific paths
-PEP = /home/m300028/shared/dev/svn/pep8/pep8/pep8.py
-TDIR = /home/m300028/shared/temp/nixxxx
-VERSION = 0.1.5
+# pep8, ignoring some errors like e.g. indention errors or linelength error
+PEP = pep8 --ignore=E501,E128,E111,E127,E124,E121
+TDIR = /tmp
+VERSION = 0.1.6
 
 clean :
 	find . -name "*.pyc" -exec rm -rf {} \;
@@ -19,27 +20,15 @@ ship : dist
 	cp ./dist/pyCMBS-$(VERSION).tar.gz $(TDIR)
 	tar -C $(TDIR) -xvf $(TDIR)/pyCMBS-$(VERSION).tar.gz
 
-coverage: 
+coverage:
 	nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs pycmbs/benchmarking/tests pycmbs/tests --cover-html
 
 dist : clean
 	python setup.py sdist
 
 pep8 :
-	$(PEP) ./pyCMBS/mapping.py
-	#$(PEP) ./pyCMBS/netcdf.py
-	#$(PEP) ./pyCMBS/icon.py
-	#$(PEP) ./pyCMBS/grid.py
-	#$(PEP) ./pyCMBS/report.py
-	#$(PEP) ./pyCMBS/statistic.py
-	#$(PEP) ./pyCMBS/region.py
-	#$(PEP) ./pyCMBS/framework/__init__.py
-	#$(PEP) ./pyCMBS/framework/utils.py
-	#$(PEP) ./pyCMBS/diagnostic.py
-	#$(PEP) ./pyCMBS/framework/config.py
-	#$(PEP) ./pyCMBS/framework/pycmbs.py
-	#$(PEP) ./pyCMBS/framework/models.py
-	#$(PEP) ./pyCMBS/data.py
-	#data.py models.py analysis.py pycmbs.py
+	$(PEP) *.py
+	$(PEP) ./pycmbs/*.py
+
 
 
