@@ -17,6 +17,7 @@ from pycmbs.region import Region
 
 from pycmbs.benchmarking.utils import get_data_pool_directory
 
+
 class ConfigFile(object):
     """
     class to read pyCMBS configuration file
@@ -98,7 +99,7 @@ class ConfigFile(object):
         if 'TEMP_DIR=' in l.upper():
             s = l[9:]
             if s[-1] != os.sep:
-                s = s+os.sep
+                s = s + os.sep
             self.options.update({'tempdir': s.replace(' ', '')})
         else:
             raise ValueError('Temporary directory not specified!')
@@ -119,7 +120,7 @@ class ConfigFile(object):
         if 'CONFIG_DIR=' in l.upper():
             s = l[11:]
             if s[-1] != os.sep:
-                s = s+os.sep
+                s = s + os.sep
             if not os.path.exists(s):
                 raise ValueError('Configuration path is invalid: %s' % s)
             self.options.update({'configdir': s.replace(' ', '')})
@@ -130,13 +131,12 @@ class ConfigFile(object):
         if 'OUTPUT_DIRECTORY=' in l.upper():
             s = l[17:]
             if s[-1] != os.sep:
-                s = s+os.sep
+                s = s + os.sep
             if not os.path.exists(s):
                 os.makedirs(s)
             self.options.update({'outputdir': s.replace(' ', '')})
         else:
             raise ValueError('OUTPUT directory not specified!')
-
 
         #//// create / remove directories
         if not os.path.exists(self.options['tempdir']):
@@ -716,9 +716,9 @@ class CFGWriter(object):
 
         for v in supported_vars:
             if v in vars:
-                self._write(v+',1,' + interval)
+                self._write(v + ',1,' + interval)
             else:
-                self._write(v+',0,' + interval)
+                self._write(v + ',0,' + interval)
         self._write('')
 
         self._write('################################')
