@@ -21,8 +21,6 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 '''
 
 
-
-
 '''
 Module for ANOVA analysis
 
@@ -41,7 +39,7 @@ class Anova1():
     '''
     Analysis of variance class for one-way anova analyis
     '''
-    def __init__(self,x):
+    def __init__(self, x):
         '''
 
         an alternative code for ANOVA analysis in python can be found
@@ -54,16 +52,16 @@ class Anova1():
         '''
 
         if x.ndim != 2:
-            raise ValueError, 'Only 2D supported for one-way ANOVA'
+            raise ValueError('Only 2D supported for one-way ANOVA')
 
         self.x = x.copy()
-        self.xmean = x.mean(axis=0) #ensemble mean
-        self.mean  = x.mean() #overall mean
+        self.xmean = x.mean(axis=0)  # ensemble mean
+        self.mean = x.mean()  # overall mean
 
         self.n, self.nt = x.shape
 
-    def one_way_anova(self,verbose=False):
-        self._calc_sst() #calculate different variance components
+    def one_way_anova(self, verbose=False):
+        self._calc_sst()  # calculate different variance components
         self.p = self.get_significance(self._get_f())
 
         if verbose:
@@ -77,7 +75,6 @@ class Anova1():
     def print_results(self):
         print
 
-
         print 'p  :', self.p
         print 'F  :', self._get_f()
         print 'R2 :', self.get_fractional_variance_explained()
@@ -86,11 +83,10 @@ class Anova1():
         print 'SSE: ', self.sse
         print 'SST: ', self.sst
 
-
     def _calc_sst(self):
-        if not hasattr(self,'ssa'):
+        if not hasattr(self, 'ssa'):
             self._calc_ssa()
-        if not hasattr(self,'sse'):
+        if not hasattr(self, 'sse'):
             self._calc_sse()
 
         self.sst = self.ssa + self.sse
@@ -98,18 +94,18 @@ class Anova1():
     def _calc_ssa(self):
         self.ssa = self.n * sum((self.xmean - self.mean)**2)
 
-    def get_significance(self,f):
-        p = 1. - stats.f.cdf(f,(self.nt-1),self.nt*(self.n-1))
+    def get_significance(self, f):
+        p = 1. - stats.f.cdf(f, (self.nt-1), self.nt*(self.n-1))
         return p
 
     def _calc_sse(self):
         tmp = []
         for i in range(self.n):
-            tmp.append(sum((self.x[i,:] - self.xmean)**2))
+            tmp.append(sum((self.x[i, :] - self.xmean)**2))
         tmp = np.asarray(tmp)
         self.sse = sum(tmp)
 
-    def get_fractional_variance_explained(self,adjust=True):
+    def get_fractional_variance_explained(self, adjust=True):
         if adjust:
             return (self.ssa - self.sse*(self.nt-1)/(self.nt*(self.n-1))) / self.sst
         else:
@@ -117,26 +113,30 @@ class Anova1():
 
 #-----------------------------------------------------------------------
 
+
 class Anova2():
-    def __init__(self,x):
+    def __init__(self, x):
         '''
         x [blocks,treatmens,nrens]
         '''
         self.x = x.copy()
-        self.mean = x.mean() #overall mean
+        self.mean = x.mean()  # overall mean
 
-        self.bmean = x.mean(axis=1).mean(axis=1) #mean value for each block (Ybar_0j0)
-        self.tmean = x.mean(axis=0).mean(axis=1) #mean value for all treatments (ybar_i00)
+        # mean value for each block (Ybar_0j0)
+        self.bmean = x.mean(axis=1).mean(axis=1)
+        # mean value for all treatments (ybar_i00)
+        self.tmean = x.mean(axis=0).mean(axis=1)
 
-        self.J,self.I,self.n = self.x.shape #nr of experiments, timesteps, ensemble members
+        # nr of experiments, timesteps, ensemble members
+        self.J, self.I, self.n = self.x.shape
 
-    def two_way_anova_with_replication(self,verbose=False):
+    def two_way_anova_with_replication(self, verbose=False):
         self._calc_sst()
         self._calc_f()
         if verbose:
             self.print_results()
 
-    def get_fractional_variance_explained(self,s,adjust=True):
+    def get_fractional_variance_explained(self, s, adjust=True):
         """
         s: a,b,i,e
 
@@ -144,20 +144,19 @@ class Anova2():
         """
         if adjust:
             print 'WARNING: AJUSTED FRACTIONAL VARIANCE NOT VALIDATED WITH SOME REFERENCE DATA'
-            if s=='a':
+            if s == 'a':
                 adj = (self.sse / self.sst) * (self.df_ssa/self.df_sse)
             elif s == 'b':
                 adj = (self.sse / self.sst) * (self.df_ssb/self.df_sse)
             elif s == 'i':
                 adj = (self.sse / self.sst) * (self.df_ssi/self.df_sse)
-            elif s=='e':
+            elif s == 'e':
                 adj = (self.sse / self.sst) * (self.df_sse/self.df_sse)
             else:
-                raise ValueError, 'unkown type'
+                raise ValueError('unkown type')
 
         else:
             adj = 0.
-
 
         if s == 'a':
             return self.ssa / self.sst - adj
@@ -168,36 +167,36 @@ class Anova2():
         elif s == 'e':
             return self.sse / self.sst - adj
         else:
-            raise ValueError, 'Invalid identified for variance!'
+            raise ValueError('Invalid identified for variance!')
 
-    def get_significance(self,f,df1,df2):
-        p = 1. - stats.f.cdf(f,df1,df2)
+    def get_significance(self, f, df1, df2):
+        p = 1. - stats.f.cdf(f, df1, df2)
         return p
 
     def _calc_sst(self):
-        if not hasattr(self,'ssa'):
+        if not hasattr(self, 'ssa'):
             self._calc_ssa()
-        if not hasattr(self,'ssb'):
+        if not hasattr(self, 'ssb'):
             self._calc_ssb()
-        if not hasattr(self,'sse'):
+        if not hasattr(self, 'sse'):
             self._calc_sse()
-        if not hasattr(self,'ssi'):
+        if not hasattr(self, 'ssi'):
             self._calc_ssi()
 
-        self.sst = self.ssa + self.sse + self.ssb + self.ssi #eq. 9.19 in von Storch
+        self.sst = self.ssa + self.sse + self.ssb + self.ssi  # eq. 9.19 in von Storch
 
     def _calc_ssa(self):
-        self.ssa = self.n * self.J * sum((self.tmean - self.mean)**2) #eq. 9.21 in von Storch
+        self.ssa = self.n * self.J * sum((self.tmean - self.mean)**2)  # eq. 9.21 in von Storch
 
     def _calc_ssb(self):
-        self.ssb = self.n * self.I * sum((self.bmean - self.mean)**2) #eq. 9.22 in von Storch
+        self.ssb = self.n * self.I * sum((self.bmean - self.mean)**2)  # eq. 9.22 in von Storch
 
     def _calc_ssi(self):
-        ensmean = self.x.mean(axis=2) #mean over all replications [J,I]
+        ensmean = self.x.mean(axis=2)  # mean over all replications [J,I]
         s = 0.
-        for i in np.arange(self.I): #eq.9.23
+        for i in np.arange(self.I):  # eq.9.23
             for j in np.arange(self.J):
-                s += (ensmean[j,i] - self.tmean[i] - self.bmean[j] + self.mean)**2
+                s += (ensmean[j, i] - self.tmean[i] - self.bmean[j] + self.mean)**2
         self.ssi = self.n * s
 
     def _calc_sse(self):
@@ -205,12 +204,12 @@ class Anova2():
         #~ print ensmean.shape
         s = []
         for l in np.arange(self.n):
-            tmp = (self.x[:,:,l] - ensmean)**2
+            tmp = (self.x[:, :, l] - ensmean)**2
             #~ print tmp.shape, tmp.sum()
             s.append(tmp.sum())
         s = np.asarray(s)
         if len(s) != self.n:
-            raise ValueError, 'invalid lengths!'
+            raise ValueError('invalid lengths!')
 
         self.sse = sum(s)
 
@@ -233,9 +232,9 @@ class Anova2():
         self.f_ssb = mssb / msse
         self.f_ssi = mssi / msse
 
-        self.p_ssa = self.get_significance(self.f_ssa,self.df_ssa,self.df_sse)
-        self.p_ssb = self.get_significance(self.f_ssb,self.df_ssb,self.df_sse)
-        self.p_ssi = self.get_significance(self.f_ssi,self.df_ssi,self.df_sse)
+        self.p_ssa = self.get_significance(self.f_ssa, self.df_ssa, self.df_sse)
+        self.p_ssb = self.get_significance(self.f_ssb, self.df_ssb, self.df_sse)
+        self.p_ssi = self.get_significance(self.f_ssi, self.df_ssi, self.df_sse)
 
     def print_results(self):
         print 'Source of variation', 'SS', 'df', 'F', 'p'
@@ -247,15 +246,16 @@ class Anova2():
 
 #-----------------------------------------------------------------------
 
+
 def __example_one_way():
     '''
     http://adorio-research.org/wordpress/?p=1102
     '''
 
     groups = [[48, 49, 50, 49],
-                  [47, 49, 48, 48],
-                  [49, 51, 50, 50]]
-    groups = np.asarray(groups).T #transpose necessary, as reference routine works different
+              [47, 49, 48, 48],
+              [49, 51, 50, 50]]
+    groups = np.asarray(groups).T  # transpose necessary, as reference routine works different
 
     A = Anova1(groups)
     A.one_way_anova()
