@@ -81,9 +81,9 @@ def align(x, y):
     this is a hack as I dont know how to do it better at the moment
     """
 
-    t = x+y  # just add the two series and then substract the individuals again
+    t = x + y  # just add the two series and then substract the individuals again
 
-    return t-y, t-x  # corresponds to x,y
+    return t - y, t - x  # corresponds to x,y
 
 
 def generate_monthly_timeseries(t, sday='01'):
@@ -298,7 +298,7 @@ class hovmoeller:
                 self.yearonly = True
 
                 #/// check if latitudes are in increasing order ?
-                lats = input1.lat*1.
+                lats = input1.lat * 1.
                 if np.all(np.diff(lats) > 0):
                     f_invert = False
 
@@ -318,7 +318,7 @@ class hovmoeller:
 
                 dlat = 10.  # todo
 
-                lat_tick = arange(-90., 90+dlat, dlat)  # positions for yticks (degree)
+                lat_tick = arange(-90., 90 + dlat, dlat)  # positions for yticks (degree)
 
                 #interpolate the tick grid to the data grid
                 lat_pos = interp(lat_tick, lats, arange(len(lats)))  # index positions
@@ -480,7 +480,7 @@ class hovmoeller:
 
         #print pixmsk
         #/// generate latitudes by rounding
-        lats = ((lat - 0.5*dlat) / dlat).round() * dlat
+        lats = ((lat - 0.5 * dlat) / dlat).round() * dlat
         ulats = unique(lats[pixmsk == 1.])
         nlat = len(ulats)
         #~ print 'Number of lats: ', nlat
@@ -500,7 +500,7 @@ class hovmoeller:
             all_days = unique(data_days)
         else:
             #/// per days ///
-            all_days = linspace(t_min, t_max, t_max-t_min+1)  # every day
+            all_days = linspace(t_min, t_max, t_max - t_min + 1)  # every day
 
         #/// init output arrays ///
         outsum = zeros((nlat, len(all_days)))
@@ -543,7 +543,7 @@ class hovmoeller:
         self.hov = out.copy()
 
         #/// labels or y-axis uses matplotlib.ticker
-        lattick = arange(ulats.min(), ulats.max()+dlat, dlat)
+        lattick = arange(ulats.min(), ulats.max() + dlat, dlat)
         #~ print lattick
         #~ print ulats.min(),ulats.max(),dlat
 
@@ -596,7 +596,7 @@ class hovmoeller:
             #2) generate a vector of days for a particular hour and store it in a dataframe
             hr = str(i).zfill(2)
             d_hours = pa1.DateRange(t1 + ' ' + hr + ':30:00+00:00', t2 + ' ' + hr + ':30:00+00:00', offset=pa1.datetools.Hour(n=24))
-            df_hours = pa1.DataFrame(rand(len(d_hours))*nan, index=d_hours, columns=['nix'])  # reference data frame
+            df_hours = pa1.DataFrame(rand(len(d_hours)) * nan, index=d_hours, columns=['nix'])  # reference data frame
 
             #3) merge the two dataframes: result is a tiemseries of the same length as the data, but only for the single hour
             df_j = df_hours.join(df_data)
@@ -605,11 +605,11 @@ class hovmoeller:
             if arr is None:
                 ndays = len(df_j.values)
                 nhours = 24
-                arr = zeros((nhours, ndays))*nan  # create output array
+                arr = zeros((nhours, ndays)) * nan  # create output array
             else:
                 pass
 
-            arr[i-1, :] = df_j['data'].values
+            arr[i - 1, :] = df_j['data'].values
 
         self.hov = arr
 
@@ -650,10 +650,10 @@ class hovmoeller:
         all_days = unique(floor(date2num(d)))
         t_min = date2num(self.t_min)
         t_max = date2num(self.t_max)
-        all_days = linspace(t_min, t_max, t_max-t_min+1)
+        all_days = linspace(t_min, t_max, t_max - t_min + 1)
         days = floor(date2num(d))
 
-        out = ones((24., len(all_days)))*nan
+        out = ones((24., len(all_days))) * nan
         outsum = zeros((24., len(all_days)))
 
         if (self.var_unc is not None):
