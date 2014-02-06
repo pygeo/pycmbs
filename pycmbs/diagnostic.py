@@ -856,7 +856,7 @@ class EOF(object):
         # in the validdation, the eigenvalues however corresponded directly to the singular values!
         if use_svd:
             # Since the matrix is square and symmetric, eigenval(eof)=eigenval(svd)!
-            self.eigvec, self.eigval, v = linalg.svd( self.C)
+            self.eigvec, self.eigval, v = linalg.svd(self.C)
         else:
             #returns the eigenvalues in ASCENDING order (or no order at all!)
             # complex numbers in output matrices (eigenvalues not necessarily increasing!)
@@ -1488,7 +1488,7 @@ class SVD(object):
         mx = np.sum(~x.mask, axis=0) == nt  # get mask for valid pixels only
         m1 = mx
 
-        r = np.ones( (nt, sum(mx)))*np.nan
+        r = np.ones((nt, sum(mx)))*np.nan
         for i in xrange(nt):
             tmp = x.data[i, :]
             if np.any(np.isnan(tmp[m1])):
@@ -1578,7 +1578,7 @@ class SVD(object):
         #/// singular value decomposition
         print '   Doing singular value decomposition xxxxxx ...'
 
-        U, s, V = linalg.svd( C)
+        U, s, V = linalg.svd(C)
         print 'Done!'
         L = linalg.diagsvd(s, len(C), len(V))  # construct diagonal maxtrix such that U L V.T = C; this is
         # somewhat python specific
@@ -2246,7 +2246,7 @@ class Diagnostic(object):
                 xx1 = xx1 - xx1.mean()
                 xx2 = xx2 - xx2.mean()
 
-                res.append( (xx1*xx2).sum() / ( (xx1**2).sum() * (xx2**2).sum())**0.5)
+                res.append((xx1*xx2).sum() / ((xx1**2).sum() * (xx2**2).sum())**0.5)
 
             return np.array(res), np.array(lags)
 
@@ -2673,7 +2673,7 @@ class koeppen(object):
        Create a colormap with 14 discrete colors and register it
        """
        # define individual colors as hex values
-       cpool = [ '#7f0000', '#ff0000', '#ff4c4c', '#ff9999', '#ffa500',
+       cpool = ['#7f0000', '#ff0000', '#ff4c4c', '#ff9999', '#ffa500',
                  '#ffff4c', '#009900', '#00ff00', '#99ff99', '#990099',
                  '#e500e5', '#ff66ff', '#0000ff', '#9999ff', '#000000']
        cmap3 = col.ListedColormap(cpool[0:14], 'koeppen')
