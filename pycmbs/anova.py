@@ -68,9 +68,9 @@ class Anova1():
             self.print_results()
 
     def _get_f(self):
-        n = self.ssa/(self.nt-1)
-        d = self.sse/(self.nt*(self.n-1))
-        return n/d
+        n = self.ssa / (self.nt - 1)
+        d = self.sse / (self.nt * (self.n - 1))
+        return n / d
 
     def print_results(self):
         print
@@ -92,22 +92,22 @@ class Anova1():
         self.sst = self.ssa + self.sse
 
     def _calc_ssa(self):
-        self.ssa = self.n * sum((self.xmean - self.mean)**2)
+        self.ssa = self.n * sum((self.xmean - self.mean) ** 2)
 
     def get_significance(self, f):
-        p = 1. - stats.f.cdf(f, (self.nt-1), self.nt*(self.n-1))
+        p = 1. - stats.f.cdf(f, (self.nt - 1), self.nt * (self.n - 1))
         return p
 
     def _calc_sse(self):
         tmp = []
         for i in range(self.n):
-            tmp.append(sum((self.x[i, :] - self.xmean)**2))
+            tmp.append(sum((self.x[i, :] - self.xmean) ** 2))
         tmp = np.asarray(tmp)
         self.sse = sum(tmp)
 
     def get_fractional_variance_explained(self, adjust=True):
         if adjust:
-            return (self.ssa - self.sse*(self.nt-1)/(self.nt*(self.n-1))) / self.sst
+            return (self.ssa - self.sse * (self.nt - 1) / (self.nt * (self.n - 1))) / self.sst
         else:
             return self.ssa / self.sst
 
@@ -145,13 +145,13 @@ class Anova2():
         if adjust:
             print 'WARNING: AJUSTED FRACTIONAL VARIANCE NOT VALIDATED WITH SOME REFERENCE DATA'
             if s == 'a':
-                adj = (self.sse / self.sst) * (self.df_ssa/self.df_sse)
+                adj = (self.sse / self.sst) * (self.df_ssa / self.df_sse)
             elif s == 'b':
-                adj = (self.sse / self.sst) * (self.df_ssb/self.df_sse)
+                adj = (self.sse / self.sst) * (self.df_ssb / self.df_sse)
             elif s == 'i':
-                adj = (self.sse / self.sst) * (self.df_ssi/self.df_sse)
+                adj = (self.sse / self.sst) * (self.df_ssi / self.df_sse)
             elif s == 'e':
-                adj = (self.sse / self.sst) * (self.df_sse/self.df_sse)
+                adj = (self.sse / self.sst) * (self.df_sse / self.df_sse)
             else:
                 raise ValueError('unkown type')
 
@@ -186,17 +186,17 @@ class Anova2():
         self.sst = self.ssa + self.sse + self.ssb + self.ssi  # eq. 9.19 in von Storch
 
     def _calc_ssa(self):
-        self.ssa = self.n * self.J * sum((self.tmean - self.mean)**2)  # eq. 9.21 in von Storch
+        self.ssa = self.n * self.J * sum((self.tmean - self.mean) ** 2)  # eq. 9.21 in von Storch
 
     def _calc_ssb(self):
-        self.ssb = self.n * self.I * sum((self.bmean - self.mean)**2)  # eq. 9.22 in von Storch
+        self.ssb = self.n * self.I * sum((self.bmean - self.mean) ** 2)  # eq. 9.22 in von Storch
 
     def _calc_ssi(self):
         ensmean = self.x.mean(axis=2)  # mean over all replications [J,I]
         s = 0.
         for i in np.arange(self.I):  # eq.9.23
             for j in np.arange(self.J):
-                s += (ensmean[j, i] - self.tmean[i] - self.bmean[j] + self.mean)**2
+                s += (ensmean[j, i] - self.tmean[i] - self.bmean[j] + self.mean) ** 2
         self.ssi = self.n * s
 
     def _calc_sse(self):
@@ -204,7 +204,7 @@ class Anova2():
         #~ print ensmean.shape
         s = []
         for l in np.arange(self.n):
-            tmp = (self.x[:, :, l] - ensmean)**2
+            tmp = (self.x[:, :, l] - ensmean) ** 2
             #~ print tmp.shape, tmp.sum()
             s.append(tmp.sum())
         s = np.asarray(s)
@@ -215,10 +215,10 @@ class Anova2():
 
     def _calc_f(self):
         #- calculate degree of freedoms
-        self.df_ssa = (self.I-1)
-        self.df_ssb = (self.J-1)
-        self.df_ssi = (self.I-1) * (self.J-1)
-        self.df_sse = self.I*self.J*(self.n-1)
+        self.df_ssa = (self.I - 1)
+        self.df_ssb = (self.J - 1)
+        self.df_ssi = (self.I - 1) * (self.J - 1)
+        self.df_sse = self.I * self.J * (self.n - 1)
 
         #- calculate MS
         mssa = self.ssa / self.df_ssa

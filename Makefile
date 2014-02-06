@@ -28,7 +28,8 @@ dist : clean
 
 pep8 :
 	$(PEP) *.py
-	$(PEP) ./pycmbs/*.py
+	#$(PEP) ./pycmbs/*.py
+	$(PEP) ./pycmbs/benchmarking/*.py
 
 
 
