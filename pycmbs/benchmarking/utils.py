@@ -7,7 +7,7 @@ the pyCMBS licensing details.
 
 import os
 from pycmbs.data import Data
-
+from cdo import Cdo
 
 def get_data_pool_directory():
     """
@@ -112,7 +112,7 @@ def get_generic_landseamask(shift_lon, mask_antarctica=True,
     #/// construct output filename.
     #If a filename was given for the grid, replace path separators ///
     target_grid1 = target_grid.replace(os.sep, '_')
-    outputfilev = get_temporary_directory() + 'land_sea_fractions_' \
+    outputfile = get_temporary_directory() + 'land_sea_fractions_' \
         + interpolation_method + '_' + target_grid1 + '.nc'
 
     print 'outfile: ', outputfile
