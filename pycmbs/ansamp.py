@@ -68,28 +68,28 @@ def twoway_interaction(groups, format="html"):
     print "groupsums=", groupsums, vs
     print 'Total variation: ', v
 
-    totadjustment = GT*GT/(a * b * c)
-    vs = vs/b - totadjustment
-    vr = vr/(b * c) - totadjustment
+    totadjustment = GT * GT / (a * b * c)
+    vs = vs / b - totadjustment
+    vr = vr / (b * c) - totadjustment
     v -= totadjustment
-    vc = sum([x * x for x in groupsums]) / (a*b)-totadjustment
-    vi = vs-vr - vc
+    vc = sum([x * x for x in groupsums]) / (a * b) - totadjustment
+    vi = vs - vr - vc
     ve = v - (vr + vc + vi)
     print "debug vs, vr, vc=", vs, vr, vc, v
 
-    dfvr = (a-1)
-    dfvc = (c-1.0)
-    dfvi = ((a-1)*(c-1))
-    dfve = (a * c * (b-1))
-    dfvs = a*c - 1
+    dfvr = (a - 1)
+    dfvc = (c - 1.0)
+    dfvi = ((a - 1) * (c - 1))
+    dfve = (a * c * (b - 1))
+    dfvs = a * c - 1
     dfv = (a * b * c - 1)
-    mvr = vr/(dfvr)
-    mvc = vc/(dfvc)
+    mvr = vr / (dfvr)
+    mvc = vc / (dfvc)
     mvi = vi / dfvi
-    mve = ve/dfve
-    Fr = mvr/mve
-    Fc = mvc/mve
-    Fi = mvi/mve
+    mve = ve / dfve
+    Fr = mvr / mve
+    Fc = mvc / mve
+    Fi = mvi / mve
 
     from scipy import stats
 
@@ -108,19 +108,19 @@ def twoway_interaction(groups, format="html"):
     <tr><td>Residuals(random)  </td><td>%f</td><td>  %d</td><td>%f</td></tr>
     <tr><td>Totals</td><td>%f.2 </td><td>%d </td></tr>
     </table>
-    """ % (vr, dfvr, mvr, mvr/mve, pvalr,
-           vc, dfvc, mvc, mvc/mve, pvalc,
-           vi, dfvi, mvi, mvi/mve, pvali,
+    """ % (vr, dfvr, mvr, mvr / mve, pvalr,
+           vc, dfvc, mvc, mvc / mve, pvalc,
+           vi, dfvi, mvi, mvi / mve, pvali,
            vs, dfvs,
            ve, dfve, mve,
-           v,  dfv)
+           v, dfv)
     else:
-        output = [[vr, dfvr, mvr, mvr/mve, pvalr],
-         [vc, dfvc, mvc, mvc/mve, pvalc],
-         [vi, dfvi, mvi, mvi/mve, pvali],
+        output = [[vr, dfvr, mvr, mvr / mve, pvalr],
+         [vc, dfvc, mvc, mvc / mve, pvalc],
+         [vi, dfvi, mvi, mvi / mve, pvali],
          [vs, dfvs],
          [ve, dfve, mve],
-         [v,  dfv]]
+         [v, dfv]]
 
     return output
 
