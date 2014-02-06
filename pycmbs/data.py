@@ -215,7 +215,6 @@ class Data(object):
                 print self.lon.min(), self.lon.max()
                 print 'WARNING: plotting etc not supported for longitudes which are not equal to 0 ... 360'
 
-
     def _get_shape(self):
         return self.data.shape
     shape = property(_get_shape)
@@ -690,7 +689,7 @@ class Data(object):
         if self.lon.ndim == 1:
             return self.lon
         elif self.lon.ndim == 2:
-            if self._equal_lon(): #... check for unique lons
+            if self._equal_lon():  # ... check for unique lons
                 return self.lon[0,:]
             else:
                 print self.filename
@@ -812,7 +811,7 @@ class Data(object):
             try:
                 cdo.gridarea(options='-f nc', output=cell_file, input=self.filename)
             except:
-                print '   Seems that cell_area file can not be generated, try to generate in temporary directory' #occurs if you dont have write permissions
+                print '   Seems that cell_area file can not be generated, try to generate in temporary directory'  # occurs if you dont have write permissions
                 cell_file = tempfile.mktemp(prefix='cell_area_', suffix='.nc')  # generate some temporary filename
                 try:
                     cdo.gridarea(options='-f nc', output=cell_file, input=self.filename)
@@ -820,7 +819,7 @@ class Data(object):
                 except:
                     #--- not sucessfull so far ... last try here by selecting an alternative grid (if available)
                     print("   Try to calculate gridarea using alternative grid")
-                    cell_file = tempfile.mktemp(prefix='cell_area_', suffix='.nc') #generate some temporary filename
+                    cell_file = tempfile.mktemp(prefix='cell_area_', suffix='.nc')  # generate some temporary filename
                     try:
                         cdo.gridarea(options='-f nc', output=cell_file, input='-selgrid,2 ' + self.filename)
                         print '   Cell area file generated sucessfully in temporary file: ' + cell_file
@@ -891,14 +890,14 @@ class Data(object):
 
         #/// calculate zonal mean
         if dat.ndim == 2:
-            r = dat.sum(axis=1) / w.sum(axis=1) #zonal mean
+            r = dat.sum(axis=1) / w.sum(axis=1)  # zonal mean
         elif dat.ndim == 3:
             nt, ny, nx = dat.shape
             r = np.ones((nt, ny)) * np.nan
             W = np.ones((nt, ny)) * np.nan
 
             for i in xrange(nt):
-                r[i] = dat[i,:,:].sum(axis=1) / w[i,:,:].sum(axis=1) #weighted sum, normalized by valid data why ???
+                r[i] = dat[i,:,:].sum(axis=1) / w[i,:,:].sum(axis=1)  # weighted sum, normalized by valid data why ???
                 W[i] = w[i,:,:].sum(axis=1)
             r = np.ma.array(r, mask=W == 0.)
 
@@ -918,7 +917,6 @@ class Data(object):
 #-----------------------------------------------------------------------
 
     def get_percentile(self, p, return_object=True):
-
         """
         calculate percentile
 
@@ -1460,7 +1458,7 @@ class Data(object):
                 p = res[:, 1]
                 r[p > pthres] = np.nan
 
-            else: #Pearson product-moment correlation
+            else:  # Pearson product-moment correlation
                 res = [np.ma.corrcoef(xn[:, i], yn[:, i]) for i in xrange(sum(
                     mskvalid))]  # <<<< as an alternative one could use stats.mstats.linregress ; results are however equal for R-VALUE, but NOT for P-value, here mstats.linregress seems to be buggy!, see unittests
                 res = np.asarray(res)
@@ -1477,7 +1475,7 @@ class Data(object):
         R[mskvalid] = r
         P[mskvalid] = p
         orgshape = (sdim[1], sdim[2])
-        R = R.reshape(orgshape) #generate a map again
+        R = R.reshape(orgshape)  # generate a map again
         P = P.reshape(orgshape)
 
         R = np.ma.array(R, mask=np.isnan(R))
@@ -2100,12 +2098,12 @@ class Data(object):
         #/// construct weighting matrix
         W = np.zeros((nt, nt0))
         i1 = 0
-        i2 = 1 #indices in original data
+        i2 = 1  # indices in original data
         f_init = True
         for i in xrange(nt - 1):
             #1) find start of interpolation period
             if f_init:
-                while self.date[i2] <= d[0]: #do nothing while data coverage not reached yet
+                while self.date[i2] <= d[0]:  # do nothing while data coverage not reached yet
                     i2 += 1
                     continue
             f_init = False
@@ -2154,8 +2152,8 @@ class Data(object):
                     i2 += 1
 
         #/// generate interpolation Matrix and perform interpolation
-        N = np.ma.dot(W, X) #could become a problem for really large matrices!
-        N[nt - 1,:] = np.nan #avoid boundary problem (todo: where is the problem coming from ??)
+        N = np.ma.dot(W, X)  # could become a problem for really large matrices!
+        N[nt - 1,:] = np.nan  # avoid boundary problem (todo: where is the problem coming from ??)
         #mask all data that is outside of valid time period
         msk = (d < self.date.min()) | (d > self.date.max())
         N[msk,:] = np.nan
@@ -2340,7 +2338,6 @@ class Data(object):
         #~ print
         #~ scal = 1.
 
-
         offset = File._get_add_offset(varname)
         #~ if hasattr(var,'add_offset'):
         #~ offset = float(var.add_offset)
@@ -2348,7 +2345,6 @@ class Data(object):
         #~ print('This variable has no offset !!!!')
         #~ offset = 0.
         self._add_offset_netcdf = offset * 1.
-
 
         #data = data * scal + offset
         data *= scal
@@ -2913,8 +2909,8 @@ class Data(object):
 
         if apply_weights:
             #area weighting
-            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
-            w *= self.data #multiply the data with the weighting matrix in memory efficient way
+            w = self._get_weighting_matrix()  # get weighting matrix for each timestep (taking care of invalid data)
+            w *= self.data  # multiply the data with the weighting matrix in memory efficient way
             if self.data.ndim == 3:
                 w.shape = (len(self.data), -1)
                 tmp = w.sum(axis=1)  # ... gives weighted sum
@@ -2924,7 +2920,7 @@ class Data(object):
                 raise ValueError('Undefined!')
 
             # mean = sum { w * x } = sum { area * x / totalarea } ==> mean * totalarea = sum {area * x}
-            tmp *= self.totalarea #this is the difference to fldmean() !; Here we rescale the result by the total area used for calculating the weights
+            tmp *= self.totalarea  # this is the difference to fldmean() !; Here we rescale the result by the total area used for calculating the weights
 
         else:
             # no area weighting
@@ -2948,7 +2944,7 @@ class Data(object):
 
             assert (isinstance(tmp, np.ma.masked_array))
             r = self.copy()
-            r.data = np.ma.array(x.copy(), mask=tmp.mask) #use mask of array tmp (important if all values are invalid!)
+            r.data = np.ma.array(x.copy(), mask=tmp.mask)  # use mask of array tmp (important if all values are invalid!)
 
             # return cell area array with same size of data
             r.cell_area = np.array([1.])
@@ -2956,7 +2952,6 @@ class Data(object):
             return r
         else:  # return numpy array
             return tmp
-
 
     def fldmean(self, return_data=False, apply_weights=True):
         """
@@ -3030,9 +3025,7 @@ class Data(object):
         else:  # return numpy array
             return tmp
 
-
 #-----------------------------------------------------------------------
-
     def fldstd(self, return_data=False, apply_weights=True, ddof=0):
         """
         calculate stdv of the spatial field using area weighting
@@ -3086,7 +3079,7 @@ class Data(object):
             # in a way that this is not obligatory
 
             # calculate weighting matrix
-            w = self._get_weighting_matrix() #get weighting matrix for each timestep (taking care of invalid data)
+            w = self._get_weighting_matrix()  # get weighting matrix for each timestep (taking care of invalid data)
 
             if self.data.ndim == 2:
                 mu = (self.data * w).sum() / w.sum()
@@ -3308,7 +3301,7 @@ class Data(object):
         x.time = x.time[s]
         if hasattr(x, 'std'):  # standard deviation
             x.std = x.std[s,:,:]
-        if hasattr(x, 'n'):  #number of datasets
+        if hasattr(x, 'n'):  # number of datasets
             x.n = x.n[s,:,:]
 
         # result
@@ -3578,7 +3571,7 @@ class Data(object):
             self.__oldstd = self.std.data.copy()
 
         if self.data.ndim == 2:
-            tmp1 = self.data.copy().astype('float') #convert to float to allow for nan support
+            tmp1 = self.data.copy().astype('float')  # convert to float to allow for nan support
             tmp1[~msk] = np.nan
 
             if hasattr(self, 'std'):
@@ -3695,13 +3688,13 @@ class Data(object):
         tmp = self.data.copy()
 
         #--- generate output
-        if return_data: #... a new data object is returned
+        if return_data:  # ... a new data object is returned
             res = self.copy()
             res.data[:,:,:] = np.nan
             res.data[:-n:,:,:] = tmp[n:,:,:]
             res.data[-n:,:,:] = tmp[0:n,:,:]
             return res
-        else: #... the data object is changed
+        else:  # ... the data object is changed
             self.data[:,:,:] = np.nan
             self.data[:-n:,:,:] = tmp[n:,:,:]
             self.data[-n:,:,:] = tmp[0:n,:,:]
@@ -3896,19 +3889,19 @@ class Data(object):
             t, p = ttest_ind(d.data, x.data, axis=axis)  # use routine in pyCMBS.statistic.py
         else:
             t, p = stats.ttest_ind(d.data, x.data,
-                                   axis=axis) #todo equal var for welch test not part of my psthon installation!
+                                   axis=axis)  # todo equal var for welch test not part of my psthon installation!
 
         p = 1. - p  # invert p-value, as a p-value of 1. would correspond to the same data
 
         #/// mean difference masked if p-value too low
         mask = p <= pthres
         if mask_data:
-            d.data = np.ma.array(self.timmean() - x.timmean(), mask=~mask) #mean difference as masked array
+            d.data = np.ma.array(self.timmean() - x.timmean(), mask=~mask)  # mean difference as masked array
         else:
             d.data = np.ma.array(self.timmean() - x.timmean(),
-                                 mask=np.zeros(self.timmean().shape).astype('bool')) #mean difference as masked array
+                                 mask=np.zeros(self.timmean().shape).astype('bool'))  # mean difference as masked array
         d.p_value = p
-        d.p_mask = mask #masks the grid cells that show significant changes (todo check this again!) needs additional validation
+        d.p_mask = mask  # masks the grid cells that show significant changes (todo check this again!) needs additional validation
         d.t_value = t
 
         return d
@@ -4241,7 +4234,6 @@ class Data(object):
             #~ res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]
             #~ ...
 
-
             for i in xrange(
                     n):  # this is implemented like this at the moment, as the number of valid data points needs to be > 3
                 invalid = False
@@ -4346,7 +4338,7 @@ class Data(object):
             raise ValueError('Can not detrend data other than 3D!')
 
         #generate dummy vector for linear correlation (assumes equally spaced data!!!!!) todo: generate unittest for this
-        x = np.arange(len(self.time)) #@todo: replace this by using actual timestamp for regression calcuclation
+        x = np.arange(len(self.time))  # @todo: replace this by using actual timestamp for regression calcuclation
         x = np.ma.array(x, mask=x != x)
 
         #correlate and get slope and intercept
@@ -4584,4 +4576,3 @@ class Data(object):
             return res
         else:
             return tmp
-
