@@ -36,7 +36,7 @@ def get_significance(correlation, n, pthres=1.01):
     if np.isscalar(correlation):
         if abs(correlation) < 1.:
             # abs() is important
-            t_value = np.abs(correlation) * np.sqrt(nf / (1.-correlation**2.))
+            t_value = np.abs(correlation) * np.sqrt(nf / (1. - correlation ** 2.))
             # calculate two-sided p-value
             p = 2. * stats.t.sf(t_value, nf)
         else:
@@ -44,7 +44,7 @@ def get_significance(correlation, n, pthres=1.01):
     else:
         msk = correlation < 1.
         p = np.zeros_like(correlation)
-        t_value = np.abs(correlation[msk]) * np.sqrt(nf / (1.-correlation[msk]**2.))
+        t_value = np.abs(correlation[msk]) * np.sqrt(nf / (1. - correlation[msk] ** 2.))
         p[msk] = 2. * stats.t.sf(t_value, nf)
 
     return np.ma.array(p, mask=p > pthres)
@@ -82,16 +82,16 @@ def ttest_ind(a, b, axis=0):
     (x1, x2) = (a.mean(axis), b.mean(axis))
     (v1, v2) = (a.var(axis=axis, ddof=1), b.var(axis=axis, ddof=1))
     (n1, n2) = (a.count(axis), b.count(axis))
-    df = n1+n2-2
+    df = n1 + n2 - 2
     #AL <<<<<<<<<<<<<< fix, as float() functions from mstats_basic.py
     #does not work for multidimensional arrays!
-    svar = ((n1-1)*v1+(n2-1)*v2) / (df*1.)
+    svar = ((n1 - 1) * v1 + (n2 - 1) * v2) / (df * 1.)
     #svar == 0
     # N-D COMPUTATION HERE!!!!!!
-    t = (x1-x2)/np.ma.sqrt(svar*(1.0/n1 + 1.0/n2))
+    t = (x1 - x2) / np.ma.sqrt(svar * (1.0 / n1 + 1.0 / n2))
     t = np.ma.filled(t, 1)           # replace NaN t-values with 1.0
     #AL <<<<<<<<<<<<<<
-    probs = betai(0.5*df, 0.5, (df*1.)/(df+t*t)).reshape(t.shape)
+    probs = betai(0.5 * df, 0.5, (df * 1.) / (df + t * t)).reshape(t.shape)
     # .squeeze() #<<< AL removed the squeeze, so I get back an array!
     return t, probs
 
@@ -138,12 +138,12 @@ def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
 
     .. BSD: http://www.opensource.org/licenses/bsd-license.php
     """
-    svm1 = sem1**2 * n1
-    svm2 = sem2**2 * n2
-    t_s_prime = (mean1 - mean2)/np.sqrt(svm1/n1+svm2/n2)
+    svm1 = sem1 ** 2 * n1
+    svm2 = sem2 ** 2 * n2
+    t_s_prime = (mean1 - mean2) / np.sqrt(svm1 / n1 + svm2 / n2)
 
-    t_alpha_df1 = Sstats.t.ppf(1-alpha/2, n1 - 1)
-    t_alpha_df2 = Sstats.t.ppf(1-alpha/2, n2 - 1)
-    t_alpha_prime = (t_alpha_df1 * sem1**2 + t_alpha_df2 * sem2**2) /\
-                    (sem1**2 + sem2**2)
+    t_alpha_df1 = Sstats.t.ppf(1 - alpha / 2, n1 - 1)
+    t_alpha_df2 = Sstats.t.ppf(1 - alpha / 2, n2 - 1)
+    t_alpha_prime = (t_alpha_df1 * sem1 ** 2 + t_alpha_df2 * sem2 ** 2) /\
+                    (sem1 ** 2 + sem2 ** 2)
     return abs(t_s_prime) > t_alpha_prime, t_s_prime, t_alpha_prime
