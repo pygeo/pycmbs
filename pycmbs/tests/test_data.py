@@ -683,12 +683,6 @@ class TestData(unittest.TestCase):
         d = D.data[:,0,0] *2.
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
-    #~ def test_ConvertMonthlyTimeSeries_RaisesValueErrorForInvalidCalendar(self):
-        #~ d = self.D
-        #~ d.calendar = 'nothing_calendar'
-        #~ assert_raises(ValueError, d._convert_monthly_timeseries())  not working yet!
-
-
     def test_partial_correlation(self):
         x = self.D
         nt,ny,nx = x.data.shape

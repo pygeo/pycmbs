@@ -28,7 +28,7 @@ from matplotlib.patches import Polygon
 import matplotlib.path as mpath
 from matplotlib.collections import PatchCollection
 
-from mpl_toolkits.basemap import Basemap,shiftgrid
+from mpl_toolkits.basemap import Basemap, shiftgrid
 from scipy import stats
 
 import numpy as np
@@ -51,11 +51,13 @@ from mpl_toolkits.axes_grid import make_axes_locatable
 import  matplotlib.axes as maxes
 import datetime
 
+import os
+
 
 
 #-----------------------------------------------------------------------
 
-def thin_xticks(ax,n):
+def thin_xticks(ax, n):
     """
     thin xticks of axis
 
@@ -1525,7 +1527,7 @@ class GlecklerPlot(object):
             variable to be investigated
         """
 
-        fig = pl.figure()
+        fig = plt.figure()
         gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
 
@@ -1555,11 +1557,11 @@ class GlecklerPlot(object):
             xmi,xma = ax.get_xlim()
             ymi,yma = ax.get_ylim()
 
-            ax.set_ylim(min(xmi, ymi),max(xma, yma))
-            ax.set_xlim(min(xmi, ymi),max(xma, yma))
+            ax.set_ylim(min(xmi, ymi), max(xma, yma))
+            ax.set_xlim(min(xmi, ymi), max(xma, yma))
             ax.grid()
             ax.set_title('Comparison of model errors: ' + var.upper())
-            ax.plot(ax.get_xlim(),ax.get_xlim(),'k--') #1:1 line
+            ax.plot(ax.get_xlim(), ax.get_xlim(),'k--')  # 1:1 line
         return fig
 
     def write_ranking_table(self, var, filename, fmt='latex'):
@@ -1669,7 +1671,7 @@ class GlecklerPlot(object):
 
         tmp=self._get_model_ranking(1, var)
 
-        fig = pl.figure()
+        fig = plt.figure()
         gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3,1])
         ax = fig.add_subplot(gs[0])
 
@@ -2288,7 +2290,7 @@ def map_season(x, figsize=(8,6), **kwargs):
     if 'figure' in kwargs:
         f = kwargs['figure']
     else:
-        f = pl.figure(figsize=figsize)
+        f = plt.figure(figsize=figsize)
 
     if 'title' in kwargs:
         tit = kwargs.pop('title')
@@ -2309,9 +2311,9 @@ def map_season(x, figsize=(8,6), **kwargs):
 
     # plot
     if year:
-        labels=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+        labels=['JAN', 'FEB', 'MAR', 'APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     else:
-        labels=['DJF','MAM','JJA','SON']
+        labels=['DJF', 'MAM', 'JJA', 'SON']
 
     # check dates
     if year:
