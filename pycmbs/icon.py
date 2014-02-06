@@ -79,12 +79,12 @@ class Icon(Data):
         File = NetCDFHandler()
         File.open_file(self.gridfile, 'r')
         # grid cell center coordinates
-        self.lon = File.get_variable('clon')*180./np.pi
-        self.lat = File.get_variable('clat')*180./np.pi
+        self.lon = File.get_variable('clon') * 180. / np.pi
+        self.lat = File.get_variable('clat') * 180. / np.pi
         self.ncell = len(self.lon)
 
-        self.vlon = File.get_variable('clon_vertices')*180./np.pi
-        self.vlat = File.get_variable('clat_vertices')*180./np.pi
+        self.vlon = File.get_variable('clon_vertices') * 180. / np.pi
+        self.vlat = File.get_variable('clat_vertices') * 180. / np.pi
 
         File.close()
 
