@@ -7,8 +7,6 @@ import scipy as sc
 import pylab as pl
 import numpy as np
 from scipy import stats
-# XXX: implicit import statements
-# from pycmbs.netcdf import NetCDF
 from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
 import pylab as pl
@@ -688,6 +686,22 @@ class TestData(unittest.TestCase):
         data_object.calendar = 'nothing_calendar'
         with self.assertRaises(ValueError):
             data_object._convert_monthly_timeseries()
+
+    def test_get_percentile_ForInvalidGeometry(self):
+        d = self.D
+        d.data = np.random.random((10, 20))
+        with self.assertRaises(ValueError):
+            d.get_percentile(0.5, return_object=True)
+
+    def test_getmindate_ForInvalidBase(self):
+        data_object= self.D
+        with self.assertRaises(ValueError):
+            data_object._get_mindate(base='something')
+
+    def test_getmaxdate_ForInvalidBase(self):
+        data_object= self.D
+        with self.assertRaises(ValueError):
+            data_object._get_maxdate(base='something')
 
     def test_partial_correlation(self):
         x = self.D
