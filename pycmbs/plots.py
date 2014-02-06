@@ -41,14 +41,14 @@ import copy
 import numpy as np
 
 
-from scipy.spatial import cKDTree as KDTree #import the C version of KDTree (faster)
+from scipy.spatial import cKDTree as KDTree  # import the C version of KDTree (faster)
 from matplotlib.ticker import MaxNLocator
 
 import matplotlib.gridspec as gridspec
 
 #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
 from mpl_toolkits.axes_grid import make_axes_locatable
-import  matplotlib.axes as maxes
+import matplotlib.axes as maxes
 import datetime
 
 import os
@@ -68,7 +68,7 @@ def thin_xticks(ax, n):
     @param n: number of ticks to plot
     @type n: int
     """
-    ax.xaxis.set_major_locator(MaxNLocator(n+1))
+    ax.xaxis.set_major_locator(MaxNLocator(n + 1))
 
 
 def rotate_ticks(ax, angle):
@@ -109,7 +109,8 @@ class CorrelationAnalysis(object):
             @type ax: matplotlib axis
             """
 
-            self.x = X; self.y = Y
+            self.x = X
+            self.y = Y
             self.mask = mask
 
             if ax is None:
@@ -131,10 +132,10 @@ class CorrelationAnalysis(object):
 
             #--- calculate diagnostics
             D = Diagnostic(self.x, y=self.y)
-            D._mat2vec(mask=self.mask) #here is the point fo regional statistics
+            D._mat2vec(mask=self.mask)  # here is the point fo regional statistics
             rmse = D.get_rmse_value()
-            r    = D.get_correlation_value()
-            n    = D. get_n()
+            r = D.get_correlation_value()
+            n = D. get_n()
 
             #print 'RMSE: ', rmse
             #print 'R   : ', r
@@ -209,8 +210,9 @@ class ReichlerPlot(object):
         else:
             self.ax = ax
 
-        self.e2 = [] #list to store RMS error results
-        self.labels = []; self.colors = []
+        self.e2 = []  # list to store RMS error results
+        self.labels = []
+        self.colors = []
 
 #-----------------------------------------------------------------------
 
@@ -252,7 +254,7 @@ class ReichlerPlot(object):
         @type title: str
         """
 
-        if len(self.e2) == 0: #no valid data
+        if len(self.e2) == 0:  # no valid data
             return self.ax.figure
 
         if self.e2[0] is None:
@@ -261,10 +263,11 @@ class ReichlerPlot(object):
         #- normalize results (relative modle performance)
         self._normalize()
         x = np.arange(len(self.e_norm))
-        y1 = self.e_norm*100.; y2 = self.e_norm*100.
+        y1 = self.e_norm * 100.
+        y2 = self.e_norm * 100.
 
-        y1 = np.ma.array(y1, mask=y1 < 0.) #positive values only
-        y2 = np.ma.array(y2, mask=y2 >= 0.) #negative values only
+        y1 = np.ma.array(y1, mask=y1 < 0.)  # positive values only
+        y2 = np.ma.array(y2, mask=y2 >= 0.)  # negative values only
 
         #print 'Reichler data for plotting: ', y1,y2
         #print 'Original Reichler data:'
@@ -272,21 +275,21 @@ class ReichlerPlot(object):
         #print self.e2_norm
 
         if 'color' in kwargs.keys():
-            upcolor  = kwargs.pop('color')
+            upcolor = kwargs.pop('color')
             lowcolor = kwargs.pop('color')
         else:
             upcolor = 'red'
             lowcolor = 'blue'
 
-        self.ax.bar(x, y1, color=upcolor , edgecolor='None', **kwargs)
+        self.ax.bar(x, y1, color=upcolor, edgecolor='None', **kwargs)
         self.ax.bar(x, y2, color=lowcolor, edgecolor='None', **kwargs)
 
-        self.ax.set_xticks(x+0.5)
+        self.ax.set_xticks(x + 0.5)
         self.ax.set_xticklabels(self.labels, rotation=90.)
-        if (vmin != None) & (vmax != None):
+        if (vmin is not None) & (vmax is not None):
             self.ax.set_ylim(vmin, vmax)
         else:
-            vmin, vmax = self.ax.get_ylim() #equal axes
+            vmin, vmax = self.ax.get_ylim()  # equal axes
             if abs(vmax) > abs(vmin):
                 vmin = -vmax
                 vmax = vmax
@@ -295,7 +298,8 @@ class ReichlerPlot(object):
                 vmax = -vmin
             self.ax.set_ylim(vmin, vmax)
         self.ax.set_ylabel('$\\epsilon / \\bar{\\epsilon}$ [%]')
-        self.ax.grid(); self.ax.set_title(title)
+        self.ax.grid()
+        self.ax.set_title(title)
 
         return self.ax.figure
 
@@ -318,10 +322,10 @@ class ReichlerPlot(object):
 
         dx = 0.
         tsize = 10.
-        for i in np.arange(len(self.e2)): #over all timestamps
-            print i, self.labels[i], self.e2_norm[i]*100.
+        for i in np.arange(len(self.e2)):  # over all timestamps
+            print i, self.labels[i], self.e2_norm[i] * 100.
             #~ print self.e2_norm
-            circle = Circle( (self.e2_norm[i], 0.), 0.1)
+            circle = Circle((self.e2_norm[i], 0.), 0.1)
 
             circle.set_color(self.colors[i])
             circle.set_alpha(0.4)
@@ -329,7 +333,7 @@ class ReichlerPlot(object):
             circle.set_edgecolor('k')
             self.ax.add_artist(circle)
 
-            self.ax.text(0.1+dx, 0.5, self.labels[i], size=tsize, rotation=0.,
+            self.ax.text(0.1 + dx, 0.5, self.labels[i], size=tsize, rotation=0.,
              ha="center", va="center",
              bbox=dict(boxstyle="round",
                          ec=self.colors[i],
@@ -338,7 +342,8 @@ class ReichlerPlot(object):
                          ))
             dx += 0.15
 
-        self.ax.set_ylim(-1., 1.); self.ax.set_xlim(-1., 1.)
+        self.ax.set_ylim(-1., 1.)
+        self.ax.set_xlim(-1., 1.)
         self.ax.set_xlabel('$\\epsilon / \\bar{\\epsilon}$ [%]')
         self.ax.legend()
 
@@ -350,16 +355,17 @@ class ReichlerPlot(object):
         Glecker et al, eq. 2
         """
 
-        n  = len(self.e2[0])
+        n = len(self.e2[0])
         E = []
 
         for e2 in self.e2:
             if len(e2) != n:
                 print 'WARNING: non consistent length in error statistics!!!'
-            E.append(np.nansum(np.sqrt(e2))) #temporal aggregation
+            E.append(np.nansum(np.sqrt(e2)))  # temporal aggregation
 
-        E = np.asarray(E);  EM = E.mean() #take square root, as e2 is still the squared error!
-        self.e_norm =  (E - EM) / EM #see Glecker et al, eq.2
+        E = np.asarray(E)
+        EM = E.mean()  # take square root, as e2 is still the squared error!
+        self.e_norm = (E - EM) / EM  # see Glecker et al, eq.2
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -407,7 +413,7 @@ class ScatterPlot(object):
         """
         normmalize timeseries
         """
-        return (x-x.mean()) / x.std()
+        return (x - x.mean()) / x.std()
 
 #-----------------------------------------------------------------------
 
@@ -438,7 +444,7 @@ class ScatterPlot(object):
             if self.x.data.shape != y.data.shape:
                 print self.x.data.shape
                 print self.y.data.shape
-                raise ValueError, 'Invalid geometry between X and Y. fldmean=True option therefore not possible!'
+                raise ValueError('Invalid geometry between X and Y. fldmean=True option therefore not possible!')
             else:
                 xdat = self.x.data.flatten()
                 ydat = y.data.flatten()
@@ -461,14 +467,14 @@ class ScatterPlot(object):
             #~ print 'r_value: ', r_value
             #~ print xdat
             #~ print ydat
-            nval = (~(xdat-ydat).mask).sum()  # number of valid datasets used for comparison
+            nval = (~(xdat - ydat).mask).sum()  # number of valid datasets used for comparison
 
             assert(isinstance(xdat, np.ma.core.MaskedArray))
             assert(isinstance(ydat, np.ma.core.MaskedArray))
 
             rms_error = calc_rms_error(xdat, ydat)
             bias, c_rms = calc_centered_rms_error(xdat, ydat)
-            std_error = np.std(xdat-ydat)
+            std_error = np.std(xdat - ydat)
 
             if p_value < 0.01:
                 spvalue = 'p < 0.01'
@@ -489,17 +495,18 @@ class ScatterPlot(object):
         if hexbin:
             pass
         else:
-            self.lines.append(l); self.labels.append(label)
+            self.lines.append(l)
+            self.labels.append(label)
 
         if regress:
             if r_value is not None:
                 if hexbin:
-                    self.ax.plot(xdat, xdat*slope+intercept, '--')
+                    self.ax.plot(xdat, xdat * slope + intercept, '--')
                 else:
-                    self.ax.plot(xdat, xdat*slope+intercept, '--', color=l.get_color())
+                    self.ax.plot(xdat, xdat * slope + intercept, '--', color=l.get_color())
 
         if self.show_xlabel:
-            self.ax.set_xlabel(self.x._get_label(), size=self.ticksize )
+            self.ax.set_xlabel(self.x._get_label(), size=self.ticksize)
         self.ax.set_ylabel(y._get_unit(), size=self.ticksize)
 
         self._change_ticklabels()
@@ -645,10 +652,10 @@ class LinePlot(object):
                 ax = ax
                 set_axiscolor = True
 
-            if x.ndim == 1: #if a vector already provided
+            if x.ndim == 1:  # if a vector already provided
                 y = x.data * 1.
             else:
-                y = x.fldmean() #... otherwise use fldmean() to get timeseries
+                y = x.fldmean()  # ... otherwise use fldmean() to get timeseries
 
             if norm_std:
                 y /= y.std()
@@ -656,8 +663,8 @@ class LinePlot(object):
             if label is None:
                 label = x.label
 
-            if self.regress: #calculate linear regression
-                slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time/self.normx, y)
+            if self.regress:  # calculate linear regression
+                slope_print, intercept_print, r_value, p_value, std_err = stats.linregress(x.time / self.normx, y)
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x.time, y)
                 self.tmp_slope = slope
                 self.tmp_corr = r_value
@@ -668,37 +675,34 @@ class LinePlot(object):
                     spvalue = 'p=' + str(round(p_value, 2))
 
                 if self.show_equation:
-                    label = label + ' (y=' + "%.1e" % slope_print + 'x+' + "%.1e" % intercept_print  + ', r=' + str(round(r_value, 2)) + ', ' + spvalue + ')'
+                    label = label + ' (y=' + "%.1e" % slope_print + 'x+' + "%.1e" % intercept_print + ', r=' + str(round(r_value, 2)) + ', ' + spvalue + ')'
                 else:
                     label = label + ' (r=' + str(round(r_value, 2)) + ', ' + spvalue + ')'
 
             self.labels.append(label)
 
-            p = ax.plot(x.date, y , label=label, **kwargs)[0]
+            p = ax.plot(x.date, y, label=label, **kwargs)[0]
             self.lines.append(p)
             if self.regress:
-                ax.plot(x.date, x.time*slope+intercept, '--', color=p.get_color()) #plot regression line
+                ax.plot(x.date, x.time * slope + intercept, '--', color=p.get_color())  # plot regression line
 
             if self.show_ylabel:
                 ax.set_ylabel(x._get_unit(), size=self.ticksize)
             if self.show_xlabel:
                 ax.set_xlabel('time', size=self.ticksize)
 
-            if self.title != None:
+            if self.title is not None:
                 ax.set_title(self.title, size=self.ticksize)
 
-            if vmin != None and vmax != None:
+            if (vmin is not None) and (vmax is not None):
                 ax.set_ylim(vmin, vmax)
 
             if set_ytickcolor:
                 for tl in ax.get_yticklabels():
                     tl.set_color(p.get_color())
 
-            #self._change_ticklabels(ax)
-
-
 #-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
+
 
 class GlobalMeanPlot(object):
     """
@@ -733,15 +737,16 @@ class GlobalMeanPlot(object):
                     self.ax1 = self.ax.figure.add_subplot(nplots, 1, 2)
                 else:
                     self.ax1 = ax1
-        else: #figure already existing
+        else:  # figure already existing
             self.ax = ax
             if self.climatology:
                 if ax1 is None:
-                    raise ValueError, 'If option climatology is chosen for GlobalMeanPlot and axis is provided, then axis1 needs also be provided!'
+                    raise ValueError('If option climatology is chosen for GlobalMeanPlot and axis is provided, then axis1 needs also be provided!')
                 else:
                     self.ax1 = ax1
 
-        self.labels = []; self.plots = []
+        self.labels = []
+        self.plots = []
         self.pdata = {}
         self.pdata_clim = {}
 
@@ -770,7 +775,7 @@ class GlobalMeanPlot(object):
 
             o = []
             for xx in x:
-                m1 = abs(x1-xx) < d
+                m1 = abs(x1 - xx) < d
                 m2 = ~np.isnan(y1)
                 m = m1 & m2
                 if sum(m) > 0:
@@ -795,7 +800,7 @@ class GlobalMeanPlot(object):
 
         groups = pdata.keys()
         for g in groups:
-            dat = pdata[g] #this gives a list, where each entry is a dictionary of ['time','data','unit']
+            dat = pdata[g]  # this gives a list, where each entry is a dictionary of ['time','data','unit']
             n = 0
             for i in xrange(len(dat)):
                 if i == 0:
@@ -803,22 +808,22 @@ class GlobalMeanPlot(object):
                         tref = dat[i]['time']  # climatology 1...12
                     else:
                         tref = pylab.date2num(dat[i]['time'])  # reference time vector
-                    y = dat[i]['data']*1.
-                    ys = y*y
-                    n = np.ones(len(y))*1.
+                    y = dat[i]['data'] * 1.
+                    ys = y * y
+                    n = np.ones(len(y)) * 1.
                 else:
                     # interpolate results to reference time period
                     if plot_clim:
                         t1 = dat[i]['time']
                     else:
                         t1 = pylab.date2num(dat[i]['time'])
-                    y1 = dat[i]['data']*1.
+                    y1 = dat[i]['data'] * 1.
                     yo = coregister(tref, t1, y1, dt)
 
                     m = ~np.isnan(yo)
 
-                    y[m] = y[m]+yo[m]
-                    ys[m] = ys[m] + yo[m]*yo[m]
+                    y[m] = y[m] + yo[m]
+                    ys[m] = ys[m] + yo[m] * yo[m]
                     n[m] += 1.
 
                     if plot_clim:
@@ -828,8 +833,8 @@ class GlobalMeanPlot(object):
             if len(n) > 0:
                 n = map(float, n)
                 ym = y / n
-                ys /=  n #squared values
-                std_data = np.sqrt(ys - ym*ym)
+                ys /= n  # squared values
+                std_data = np.sqrt(ys - ym * ym)
 
                 color = None
                 if colors is not None:
@@ -841,8 +846,8 @@ class GlobalMeanPlot(object):
                 else:
                     tval = pylab.num2date(tref)
 
-                ax.fill_between(tval, ym-std_data, ym+std_data, color=color, alpha=0.5)
-                ax.plot(tval, ym, label=g+'$\pm 1\sigma$', color=color)
+                ax.fill_between(tval, ym - std_data, ym + std_data, color=color, alpha=0.5)
+                ax.plot(tval, ym, label=g + '$\pm 1\sigma$', color=color)
                 ax.set_ylabel(dat[0]['unit'])
                 ax.set_xlabel('months')
 
@@ -891,17 +896,15 @@ class GlobalMeanPlot(object):
         """
 
         if stat_type not in ['mean', 'sum']:
-            raise ValueError, 'Invalid stat_type in GlobalMean plot'
+            raise ValueError('Invalid stat_type in GlobalMean plot')
 
         if (label is None) and (D1.label in self.labels):
-            #print 'Label already existing: ', D.label, ' skipping analysis'
             return
         elif ((label is not None) and (label in self.labels)):
-            #print 'Label already existing: ', label, ' skipping analysis'
             return
 
         # ensure to work with a data object
-        if 'tuple' in str(type(D1)): #only a vector is provided as data together with time (time,data)
+        if 'tuple' in str(type(D1)):  # only a vector is provided as data together with time (time,data)
             D = D1[2]  # (time,data,orgdata)
         else:
             D = D1
@@ -918,7 +921,7 @@ class GlobalMeanPlot(object):
         elif stat_type == 'sum':
             m = D.areasum(return_data=True)  # area weighted sum
         else:
-            raise ValueError, 'Unsupported stat_type: ' + stat_type
+            raise ValueError('Unsupported stat_type: ' + stat_type)
         mdata = m.data.flatten()
 
         #time
@@ -940,13 +943,13 @@ class GlobalMeanPlot(object):
         vdata.append({'time': t, 'data': mdata, 'unit': m._get_unit()})
 
         #print 'vdata: ', t
-        self.pdata.update({group: vdata}) #store results for current group
+        self.pdata.update({group: vdata})  # store results for current group
         del vdata
 
         if show_std & (stat_type == 'mean'):
-            s = D.fldstd (return_data=True) #std
+            s = D.fldstd(return_data=True)  # std
             sdata = s.data.flatten()
-            self.ax.fill_between(t, mdata-sdata, y2=mdata+sdata, color=p[0].get_color(), alpha=0.5)
+            self.ax.fill_between(t, mdata - sdata, y2=mdata + sdata, color=p[0].get_color(), alpha=0.5)
 
         # plot climatology if desired
         if self.climatology:
@@ -969,7 +972,7 @@ class GlobalMeanPlot(object):
                 else:
                     vdata = []
                 vdata.append({'time': np.arange(1, 13), 'data': m, 'unit': tmp._get_unit()})
-                self.pdata_clim.update({group: vdata}) #store results for current group
+                self.pdata_clim.update({group: vdata})  # store results for current group
                 del vdata, tmp
             else:
                 print 'WARNING: Global mean plot can not be generated due to missing time_cycle!'
@@ -1073,9 +1076,9 @@ class HistogrammPlot(object):
             show_legend = True
 
             if label == '':
-                label = 'n='+str(sum(~np.isnan(x)))
+                label = 'n=' + str(sum(~np.isnan(x)))
             else:
-                label = label + '(n='+str(sum(~np.isnan(x))) + ')'
+                label = label + '(n=' + str(sum(~np.isnan(x))) + ')'
 
         #--- calculate frequency distribution
         f, b = np.histogram(x, bins=self.bins, **kwargs)
@@ -1109,7 +1112,7 @@ class ZonalPlot(object):
         """
 
         # directionalities
-        if dir == 'y': # zonal plot
+        if dir == 'y':  # zonal plot
             self.dir = 'y'
         elif dir == 'x':
             self.dir = 'x'
@@ -1146,7 +1149,7 @@ class ZonalPlot(object):
 
         # check if all latitudes are the same
         lu = x.lat.mean(axis=1)
-        if any( abs(lu - x.lat[:, 0]) > 1.E-5):
+        if any(abs(lu - x.lat[:, 0]) > 1.E-5):
             print 'WARNING: latitudes are not unique!!!'
             print lu.shape, x.lat.shape
             print lu
@@ -1169,7 +1172,7 @@ class ZonalPlot(object):
         if timmean:
             pass
         else:
-            if dat.shape[x.data.ndim-2] != x.lat.shape[0]:
+            if dat.shape[x.data.ndim - 2] != x.lat.shape[0]:
                 print 'Inconsistent shapes!'
                 print dat.shape
                 print x.lat.shape
@@ -1180,7 +1183,7 @@ class ZonalPlot(object):
             self.ax.plot(dat, x.lat[:, 0], label=label)
         elif dat.ndim == 2:
             for i in range(len(dat)):
-                self.ax.plot(dat[i, :], x.lat[:, 0], label='time='+str(i))
+                self.ax.plot(dat[i, :], x.lat[:, 0], label='time=' + str(i))
                 self.ax.grid(b='on')
 
         self.ax.set_ylim(-90., 90.)
@@ -1190,7 +1193,7 @@ class ZonalPlot(object):
         else:
             self.ax.set_yticks([])
 
-        if xlim != None:
+        if xlim is not None:
             self.ax.set_xlim(xlim)
 
         self.ax.grid(b='on')
@@ -1297,7 +1300,7 @@ class GlecklerPlot(object):
         if np.isscalar(v):
             r = self.cmap(self.norm(np.asarray([v])))
         else:
-            r =  self.cmap(self.norm(v))
+            r = self.cmap(self.norm(v))
         return r.flatten()
 
     def __plot_triangle(self, ax, value, pos='top'):
@@ -1358,7 +1361,7 @@ class GlecklerPlot(object):
                 tpos = (0.75, 0.25)
             else:
                 print 'Positions: ', self.pos.values()
-                raise ValueError, 'Invalid position for plot: ' + str(pos) + ' pmax: ' + str(pmax)
+                raise ValueError('Invalid position for plot: %s pmax: %s' % (str(pos), str(pmax)))
 
         xy = list(zip(x, y))
         p = Polygon(xy, edgecolor='white', linewidth=1, fill=True, linestyle='solid', facecolor=color)
@@ -1400,7 +1403,7 @@ class GlecklerPlot(object):
                 xm = self._get_mean_value(p, var, method=method)
                 for k in self.data:
                     if (self.pos[k] == p) & ('_' + var + '_' in k):
-                        self.data[k] = (self.data[k] - xm) / xm #see Glecker et al, eq.2
+                        self.data[k] = (self.data[k] - xm) / xm  # see Glecker et al, eq.2
 
 #-----------------------------------------------------------------------
 
@@ -1428,12 +1431,12 @@ class GlecklerPlot(object):
             return None
 
         # generate two array where each specifies the rank of a particular model
-        x = np.arange(len(r1))+1    #pos1
-        y = np.ones_like(x)*np.nan  #pos 2
+        x = np.arange(len(r1)) + 1  # pos1
+        y = np.ones_like(x) * np.nan  # pos 2
         for i in xrange(len(r1)):
             for j in xrange(len(r1)):
                 if r1[i] == r2[j]:
-                    y[i] = j+1
+                    y[i] = j + 1
 
         # Spearman correlation coefficient based on ranks
         spear = np.corrcoef(np.asarray(x), np.asarray(y))[0][1]
@@ -1475,7 +1478,7 @@ class GlecklerPlot(object):
         if ax is None:
             f = pl.figure()
             ax = f.add_subplot(111)
-        d1 = self._get_model_error(p1, var) #this gives a dict with (key,value)
+        d1 = self._get_model_error(p1, var)  # this gives a dict with (key,value)
         d2 = self._get_model_error(p2, var)
 
         if len(d1) == 0:
@@ -1609,7 +1612,7 @@ class GlecklerPlot(object):
                     return '-'
             for i in xrange(len(x)):
                 if x[i] == k:
-                    return i+1
+                    return i + 1
             raise ValueError('Fatal error: no solution found!')
 
         # get for each obs. dataset a list of models keys which are ordered
@@ -1684,8 +1687,8 @@ class GlecklerPlot(object):
             ax.legend(prop={'size': 8}, ncol=1, fancybox=True, loc='upper left')
             ax.set_xlabel('rank(observation X)')
             ax.set_ylabel('rank(observation Y)')
-            ax.set_ylim(ymin=0, ymax=len(tmp)+1)
-            ax.set_xlim(xmin=0, xmax=len(tmp)+1)
+            ax.set_ylim(ymin=0, ymax=len(tmp) + 1)
+            ax.set_xlim(xmin=0, xmax=len(tmp) + 1)
             ax.grid()
             ax.set_title('Comparison of model ranking: ' + var.upper())
             ax.plot(ax.get_xlim(), ax.get_xlim(), 'k--')  # 1:1 line
@@ -1711,13 +1714,14 @@ class GlecklerPlot(object):
         NOTE: to obtain a relative model ranking, one needs to normalize the data before, otherwise the absolute values
               are used!
         """
-        x = []; keys = []
+        x = []
+        keys = []
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
-                keys.append(k[:k.index(var)-1]) #model name
+                keys.append(k[:k.index(var) - 1])  # model name
 
-        x    = np.asarray(x)
+        x = np.asarray(x)
         keys = np.asarray(keys)
 
         return dict(zip(keys, x))
@@ -1735,14 +1739,14 @@ class GlecklerPlot(object):
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
-                keys.append(k[:k.index(var)-1])  # model name
+                keys.append(k[:k.index(var) - 1])  # model name
 
-        x    = np.asarray(x)
+        x = np.asarray(x)
         keys = np.asarray(keys)
-        idx  = x.argsort()
-        rnk  = np.arange(len(x))
+        idx = x.argsort()
+        rnk = np.arange(len(x))
 
-        return keys[idx] #return list with keys which give ranked sequence
+        return keys[idx]  # return list with keys which give ranked sequence
 
 #-----------------------------------------------------------------------
     def _get_mean_value(self, pos, var, method='median'):
@@ -1767,11 +1771,11 @@ class GlecklerPlot(object):
         x = np.asarray(x)
 
         if method == 'median':
-            return np.median(x)   #todo unittest for this!
+            return np.median(x)  # todo unittest for this!
         elif method == 'mean':
             return x.mean()
         else:
-            raise ValueError, 'Invalid option in _get_mean_value() ' + method
+            raise ValueError('Invalid option in _get_mean_value() %s' % method)
 
 #-----------------------------------------------------------------------
     def plot(self, cmap_name='RdBu_r', vmin=-1.0, vmax=1.0, nclasses=15,
@@ -1831,7 +1835,8 @@ class GlecklerPlot(object):
         if normalize:
             self._normalize_data(method=method)
 
-        nm = len(self.models); nv = len(self.variables)
+        nm = len(self.models)
+        nv = len(self.variables)
         if nm == 0:
             ax = self.fig.add_subplot(111, frameon=True, aspect='equal', axisbg='grey')
             ax.text(0.5, 0.5, 'no plot possible (missing model data)',
@@ -1847,15 +1852,15 @@ class GlecklerPlot(object):
         if cmap is None:
             self.cmap = plt.cm.get_cmap(cmap_name, nclasses)
             self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-        else: #use provided colormap
+        else:  # use provided colormap
             self.cmap = cmap
             if norm is None:
-                raise ValueError, 'If a colormap is provided, the NORM function shall also be provided!'
+                raise ValueError('If a colormap is provided, the NORM function shall also be provided!')
             else:
                 self.norm = norm
                 #self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
-        gs = gridspec.GridSpec(nm, nv, wspace=0.05, hspace=0.05, bottom=0.2) #generate grid for subplots
+        gs = gridspec.GridSpec(nm, nv, wspace=0.05, hspace=0.05, bottom=0.2)  # generate grid for subplots
 
         cnt = 0
         cnt_m = 0
@@ -1871,12 +1876,12 @@ class GlecklerPlot(object):
 
                 # labels
                 if cnt_v == 0:
-                    ax.set_ylabel(model, size=size, rotation='horizontal', horizontalalignment='right') #set labels for models
+                    ax.set_ylabel(model, size=size, rotation='horizontal', horizontalalignment='right')  # set labels for models
                 if cnt_m == nm:
                     ax.set_xlabel(variable, size=size)
 
                 self.__plot_triangle(ax, self.get_data(variable, model, 1), pos='top')    # upper triangle
-                self.__plot_triangle(ax, self.get_data(variable, model, 2), pos='bottom') # lower triangle
+                self.__plot_triangle(ax, self.get_data(variable, model, 2), pos='bottom')  # lower triangle
                 #~ if variable == 'albedo':
                     #~ print 'POS 2: ', self.get_data(variable,model,2)
                 self.__plot_triangle(ax, self.get_data(variable, model, 3), pos='left')   # left triangle
@@ -1895,12 +1900,12 @@ class GlecklerPlot(object):
             return l[0], r[-1], b[-1], t[0]
 
         if autoscale:
-            self.fig.set_size_inches(3.+0.5*nv, 4.+0.5*nm) #important to have this *before* drawring the colorbar
+            self.fig.set_size_inches(3. + 0.5 * nv, 4. + 0.5 * nm)  # important to have this *before* drawring the colorbar
 
         left, right, bottom, top = get_subplot_boundaries(gs, self.fig)
         # draw legend
         c = 1.
-        width = (right-left)*c
+        width = (right - left) * c
         if show_colorbar:
             self._draw_colorbar(left, width, logscale=logscale, ticks=ticks)
 
@@ -1960,7 +1965,7 @@ class GlecklerPlot(object):
             return None
         if v is None:
             return None
-        return m.replace(' ', '_')+'_'+v.replace(' ', '_')+'_'+str(int(p))
+        return m.replace(' ', '_') + '_' + v.replace(' ', '_') + '_' + str(int(p))
 
 #-----------------------------------------------------------------------
 
@@ -1982,8 +1987,8 @@ class GlecklerPlot(object):
         if x is not None:
             if v in self.variables:
                 if m in self.models:
-                    self.data.update({ self.__gen_key(m, v, pos) : x})
-                    self.pos.update({ self.__gen_key(m, v, pos) : pos})
+                    self.data.update({self.__gen_key(m, v, pos): x})
+                    self.pos.update({self.__gen_key(m, v, pos): pos})
                 else:
                     pass
             else:
@@ -2028,7 +2033,7 @@ class GlecklerPlot(object):
             else:
                 print('WARNING: no weights when calculating performance index')
                 weights = np.ones(x.data.shape)
-        else: #weights are given
+        else:  # weights are given
             if x.cell_area is not None:
                 print('WARNING: cell weights are given, while cell_area available from data!!')
 
@@ -2052,7 +2057,7 @@ class GlecklerPlot(object):
             else:
                 wt = np.ones(len(e2)) / float(len(e2))
 
-            return np.sqrt((e2*wt).sum())
+            return np.sqrt((e2 * wt).sum())
 
 #-----------------------------------------------------------------------
 
@@ -2121,7 +2126,7 @@ class GlecklerPlot(object):
             elif k == 4:
                 pos = 'right'
             else:
-                raise ValueError, 'Can not draw Gleckler legend! Invalid position value! ' + str(k)
+                raise ValueError('Can not draw Gleckler legend! Invalid position value! %s' % str(k))
 
             oldval = self.show_value
             self.show_value = False
@@ -2134,7 +2139,7 @@ class GlecklerPlot(object):
         linewidth = 3
 
         for k in labels.keys():
-            if k == 1: #top
+            if k == 1:  # top
                 ax.annotate(labels[k], xy=(0.5, 0.9), xycoords='axes fraction', xytext=(0., 1.2), textcoords='axes fraction', arrowprops=dict(arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=-90", linewidth=linewidth), horizontalalignment='left', size=fontsize)
             elif k == 2:
                 ax.annotate(labels[k], xy=(0.5, 0.1), xycoords='axes fraction', xytext=(0., -0.3), textcoords='axes fraction', arrowprops=dict(arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=-90", linewidth=linewidth), horizontalalignment='left', size=fontsize)
@@ -2175,10 +2180,10 @@ def __basemap_ancillary(m, latvalues=None, lonvalues=None, drawparallels=True, d
         m.drawcountries()
     m.drawcoastlines()
     m.drawlsmask(lakes=True, land_color=land_color)
-    m.drawmapboundary() # draw a line around the map region
+    m.drawmapboundary()  # draw a line around the map region
     if drawparallels:
         m.drawparallels(latvalues, labels=[1, 0, 0, 0])
-        m.drawmeridians(lonvalues, labels=[0, 0, 0, 1]) # draw meridians
+        m.drawmeridians(lonvalues, labels=[0, 0, 0, 1])  # draw meridians
 
 #-----------------------------------------------------------------------
 
@@ -2200,14 +2205,14 @@ def pm_bar(x, y=None, pcolor='red', ncolor='blue', ax=None, **kwargs):
         ax = ax
 
     if y is None:
-        y = x*1.
+        y = x * 1.
         x = np.arange(len(y))
     else:
         pass
 
-    yp = y*1.
+    yp = y * 1.
     yp[y < 0.] = 0.
-    yn = y*1.
+    yn = y * 1.
     yn[y > 0.] = 0.
 
     #--- plot
@@ -2252,21 +2257,21 @@ def map_season(x, figsize=(8, 6), **kwargs):
     elif nvals == 4:
         year = False
     else:
-        raise ValueError, 'Only data for 4-seasons or monthly data is supported!'
+        raise ValueError('Only data for 4-seasons or monthly data is supported!')
 
     #/// checks ///
     if x.data.ndim != 3:
-        raise ValueError, 'only 3D data supported'
+        raise ValueError('only 3D data supported')
 
     if 'vmin' not in kwargs.keys():
-        raise ValueError, 'vmin argument is obligatory for map_seasons()'
+        raise ValueError('vmin argument is obligatory for map_seasons()')
     if 'vmax' not in kwargs.keys():
-        raise ValueError, 'vmax argument is obligatory for map_seasons()'
+        raise ValueError('vmax argument is obligatory for map_seasons()')
 
     if kwargs['vmin'] is None:
-        raise ValueError, 'vmin MUST NOT be None!'
+        raise ValueError('vmin MUST NOT be None!')
     if kwargs['vmax'] is None:
-        raise ValueError, 'vmax MUST NOT be None!'
+        raise ValueError('vmax MUST NOT be None!')
 
     #/// figure and axes
     if 'figure' in kwargs:
@@ -2303,7 +2308,7 @@ def map_season(x, figsize=(8, 6), **kwargs):
         for t in x.time:
             if x.num2date(t).month != mo:
                 print x.num2date(t), mo
-                raise ValueError, 'Invalid monthly sequence! Can not plot results!'
+                raise ValueError('Invalid monthly sequence! Can not plot results!')
             mo += 1
 
     #/// in case that an overlay is provided, this needs to be processed for each timestep individually
@@ -2314,27 +2319,27 @@ def map_season(x, figsize=(8, 6), **kwargs):
 
     for i in range(nvals):
         if year:
-            ax = f.add_subplot(4, 3, i+1)
+            ax = f.add_subplot(4, 3, i + 1)
             #if i % 3 == 2:
             if i > 8:
                 show_colorbar = True
             else:
                 show_colorbar = False
         else:
-            ax = f.add_subplot(2, 2, i+1)
+            ax = f.add_subplot(2, 2, i + 1)
             if 'show_colorbar' in kwargs:
                 show_colorbar = kwargs.pop('show_colorbar')
             else:
                 show_colorbar = True
 
         d = x.copy()
-        d.data = x.data[i, :,:]
+        d.data = x.data[i, :, :]
         d.label = labels[i]
 
         if overlays is None:
             overlay = None
         else:
-            overlay = overlays[i, :,:]
+            overlay = overlays[i, :, :]
 
         if savefile is not None:
             tmpoutname = savefile + '_' + labels[i]
@@ -2494,19 +2499,19 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         #init
         Path = mpath.Path
         patches = []
-        pdata = xm[0, :]*1. #full list of data
-        vmsk  = np.ones_like(pdata).astype('bool') #mask to indicate which cells contain valid data
+        pdata = xm[0, :] * 1.  # full list of data
+        vmsk = np.ones_like(pdata).astype('bool')  # mask to indicate which cells contain valid data
 
         for i in xrange(x.ncell):
-            if np.any(vlon[i, :]) > 180.: #todo fix this properly !!!
+            if np.any(vlon[i, :]) > 180.:  # todo fix this properly !!!
                 vmsk[i] = False
                 continue
             if basemap_object is None:
                 xv = vlon[i, :]
                 yv = vlat[i, :]
             else:
-                xv, yv = basemap_object(vlon[i, :], vlat[i,:])    #todo: how to properly deal with boundary problem ????
-            if (vlon[i, :].min() < -100.) & (vlon[i,:].max() > 100.): #todo
+                xv, yv = basemap_object(vlon[i, :], vlat[i, :])  # todo: how to properly deal with boundary problem ????
+            if (vlon[i, :].min() < -100.) & (vlon[i, :].max() > 100.):  # todo
                 #... triangles across the boundaries of the projection are a problem
                 # ... solution: generate two triangles ! TODO
                 vmsk[i] = False
@@ -2529,8 +2534,8 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             vmax = pdata.max()
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-        collection = PatchCollection(patches, cmap=cmap, norm=norm, alpha=1., match_original=False, edgecolors='grey')  #construct library of all objects
-        collection.set_array(pdata[vmsk]) #assign data values here
+        collection = PatchCollection(patches, cmap=cmap, norm=norm, alpha=1., match_original=False, edgecolors='grey')  # construct library of all objects
+        collection.set_array(pdata[vmsk])  # assign data values here
 
         return collection
 
@@ -2547,14 +2552,14 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         vmax = None
 
     if plot_method not in ['colormesh', 'scatter']:
-        raise ValueError, 'Invalid plotting option ' + plot_method
+        raise ValueError('Invalid plotting option %s' % plot_method)
 
     # checks
     if proj not in ['robin', 'npstere', 'spstere']:
         raise ValueError('ERROR: projection type not validated for map_plot so far: %s' % proj)
-    if proj == 'npstere': #todo: for stereographic projection, scatter is used as method at the moment
+    if proj == 'npstere':  # todo: for stereographic projection, scatter is used as method at the moment
         plot_method = 'scatter'
-    if proj == 'spstere': #todo: for stereographic projection, scatter is used as method at the moment
+    if proj == 'spstere':  # todo: for stereographic projection, scatter is used as method at the moment
         plot_method = 'scatter'
 
     if overlay is not None:
@@ -2563,7 +2568,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 print overlay.shape, x.data.shape
                 raise ValueError('Invalid geometry for overlay !')
         elif x.data.ndim == 3:
-            if overlay.shape != x.data[0, :,:].shape:
+            if overlay.shape != x.data[0, :, :].shape:
                 print overlay.shape, x.data.shape
                 raise ValueError('Invalid geometry for overlay !')
         else:
@@ -2583,13 +2588,13 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     else:
         fig = ax.figure
         if show_timeseries:
-            raise ValueError, 'Showing timeseries and providing some prior axis is currently not impelmented!' #todo
+            raise ValueError('Showing timeseries and providing some prior axis is currently not impelmented!')  # ##TODO
 
     # if cmap provided in kwargs, then remove it and set cmap_data
     kwargs1 = kwargs.copy()
     if 'cmap' in kwargs:
         cmap_data = kwargs1.pop('cmap')
-    if ('levels' in kwargs) and (contours == False): #levels not needed
+    if ('levels' in kwargs) and (contours is False):  # levels not needed
         dummy = kwargs1.pop('levels')
 
     #--- create colormap
@@ -2600,29 +2605,32 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         cmap = plt.cm.get_cmap(cmap_data, nclasses)
 
     # temporal mean fields as data to plot
-    xm = x.timmean() #returns an array
+    xm = x.timmean()  # returns an array
 
     # logscale plot ?
     if logplot:
         if logoffset is None:
-            if xm.min() < 0.: logoffset = abs(xm.min())*1.01
-            else: logoffset = 0.
-        else: logoffset = logoffset
+            if xm.min() < 0.:
+                logoffset = abs(xm.min()) * 1.01
+            else:
+                logoffset = 0.
+        else:
+            logoffset = logoffset
         print '     logoffset: ', logoffset
-        xm = np.log10( xm + logoffset )
+        xm = np.log10(xm + logoffset)
 
     #--- save field that is plotted as file
     if savefile is not None:
         if savefile[:-3] != '.nc':
             savefile += '.nc'
         tmp = x.copy()
-        tmp.data = xm*1.
+        tmp.data = xm * 1.
         tmp.time = None
         tmp.save(savefile, varname='temporal_mean_field')
         del tmp
 
     #--- set projection parameters
-    if proj == 'robin': #todo: more flexible handling of projection parameters (dictionary ??)
+    if proj == 'robin':  # todo: more flexible handling of projection parameters (dictionary ??)
         lon_0 = lon_0
         lat_0 = lat_0
     elif proj == 'npstere':
@@ -2644,16 +2652,18 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         urcrnrlat = None
 
         #if a region is specfied, then the plotting boundaries are set
-        if region != None:
+        if region is not None:
             if not hasattr(region, 'lonmin'):
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
             else:
-                dlat = (region.latmax-region.latmin)*0.25
-                dlon = (region.lonmax-region.lonmin)*0.25
-                di = 0. # with 0 it works; for other values problems may occur for negative lon!
-                llcrnrlon = region.lonmin - di; llcrnrlat = region.latmin - di
-                urcrnrlon = region.lonmax + di; urcrnrlat = region.latmax + di
-                proj = 'tmerc' #use mercator projection at regional scale as robinson does not work!
+                dlat = (region.latmax - region.latmin) * 0.25
+                dlon = (region.lonmax - region.lonmin) * 0.25
+                di = 0.  # with 0 it works; for other values problems may occur for negative lon!
+                llcrnrlon = region.lonmin - di
+                llcrnrlat = region.latmin - di
+                urcrnrlon = region.lonmax + di
+                urcrnrlat = region.latmax + di
+                proj = 'tmerc'  # use mercator projection at regional scale as robinson does not work!
 
         ############################################
         # generate Basemap map
@@ -2672,14 +2682,14 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             #and vlon/vlat attributes with corresponding vertices corresponding to the center coordinates
 
             if not hasattr(x, 'vlon'):
-                raise ValueError, 'Plotting for unstructured grid not possible, as VLON attribute missing!'
+                raise ValueError('Plotting for unstructured grid not possible, as VLON attribute missing!')
             if not hasattr(x, 'vlat'):
-                raise ValueError, 'Plotting for unstructured grid not possible, as VLAT attribute missing!'
+                raise ValueError('Plotting for unstructured grid not possible, as VLAT attribute missing!')
 
             #--- generate collection of patches for Basemap plot
             collection = _get_unstructured_collection(x.vlon, x.vlat, xm, vmin, vmax, basemap_object=m1)
 
-        else: #unstructured gridtype
+        else:  # unstructured gridtype
 
             #check if all longitudes are the same. If so, then a plotting with different options is possible.
             #otherwise, f_kdtree is activates as default option to ensure valid plotting
@@ -2694,26 +2704,27 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 #use KDTRee nearest neighbor resampling to avoid stripes in plotting
                 lons = np.unique(x.lon)
                 lats = np.unique(x.lat)
-                lons.sort(); lats.sort()
-                TLON, TLAT = np.meshgrid(lons, lats)  #generate target coordinates
+                lons.sort()
+                lats.sort()
+                TLON, TLAT = np.meshgrid(lons, lats)  # generate target coordinates
                 XT, YT = m1(TLON, TLAT)
                 X = XT.copy()
                 Y = YT.copy()
                 shape0 = np.shape(XT)
                 XT.shape = (-1)
                 YT.shape = (-1)  # ... vectorize them for inertpolation
-                tree = KDTree(zip(XT, YT)) #generate tree from TARGET coordinates
+                tree = KDTree(zip(XT, YT))  # generate tree from TARGET coordinates
 
                 #prepare data and interpolate
                 xmap, ymap = m1(x.lon, x.lat)
                 xmap.shape = (-1)
                 ymap.shape = (-1)
-                pts  = zip(xmap, ymap) #generate points to interpolate from source data
-                dist, idx = tree.query(pts, k=1)     #perform nearest neighbor interpolation (returns distance and indices)
+                pts = zip(xmap, ymap)  # generate points to interpolate from source data
+                dist, idx = tree.query(pts, k=1)  # perform nearest neighbor interpolation (returns distance and indices)
 
                 #- map data to output matrix for plotting
-                Z = np.ones(shape0)*np.nan
-                Z.shape = (-1) #generate target vector
+                Z = np.ones(shape0) * np.nan
+                Z.shape = (-1)  # generate target vector
                 omask = np.ones(shape0).astype('bool')
                 omask.shape = (-1)
 
@@ -2725,12 +2736,12 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
                 xm1 = xm.copy()
                 xm1.shape = (-1)
-                Z[idx]   = xm1 #assign data and reshape it and set generate masked array
+                Z[idx] = xm1  # assign data and reshape it and set generate masked array
                 Z[omask] = np.nan
                 Z = np.reshape(Z, shape0)
                 Z = np.ma.array(Z, mask=np.isnan(Z))
 
-            else: #f_kdtree --> not kdtree
+            else:  # f_kdtree --> not kdtree
 
                 #/// in the following, we check if the longitudes are in the right order
                 #    to allow for an appropirate plotting. Basemap assumes ascending order
@@ -2743,7 +2754,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 if plot_method == 'colormesh':
                     print 'Projection: ', proj
                     if x._lon360:  # if lon 0 ... 360, then shift data
-                        tmp_lon = x._get_unique_lon() #get unique longitudes
+                        tmp_lon = x._get_unique_lon()  # get unique longitudes
                         tmplon1 = tmp_lon.copy()
                         Z, tmp_lon = shiftgrid(180, xm, tmp_lon, start=False)
                         if overlay is not None:
@@ -2772,7 +2783,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
             if x.gridtype == 'unstructured':
                 #--- do actual plotting
-                im1 = m1.ax.add_collection(collection) #add unstructure grid plots (e.g. triangles)
+                im1 = m1.ax.add_collection(collection)  # add unstructure grid plots (e.g. triangles)
             else:
                 if contours:
                     if 'levels' in kwargs1.keys():
@@ -2787,14 +2798,13 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
                 else:
                     if plot_method == 'colormesh':
-                        im1 = m1.pcolormesh(X, Y, Z, cmap=cmap, **kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+                        im1 = m1.pcolormesh(X, Y, Z, cmap=cmap, **kwargs1)  # ,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
                     elif plot_method == 'scatter':
                         im1 = m1.scatter(X, Y, c=Z, marker='8', edgecolor='None', cmap=cmap, **kwargs1)
                     else:
-                        raise ValueError, 'Invalid plotting option! ' + plot_method
+                        raise ValueError('Invalid plotting option! %s' % plot_method)
 
-                if overlay != None:
-                    #print 'Doing overlay plot! ...'
+                if overlay is not None:
                     xcoordnew = X[overlay]
                     ycoordnew = Y[overlay]
                     m1.scatter(xcoordnew, ycoordnew, marker='x', s=50, c='white', edgecolors='white', linewidth=1)
@@ -2803,7 +2813,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             #/// ANCILLARY PLOT FOR BASEMAP ///
             __basemap_ancillary(m1, latvalues=latvalues, lonvalues=lonvalues, drawparallels=drawparallels, drawcountries=drawcountries, land_color=land_color)
 
-    else: #use_basemap = False
+    else:  # use_basemap = False
 
         if x.gridtype == 'unstructured':
             #--- generate collection of patches for Basemap plot
@@ -2819,17 +2829,19 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                     im1 = ax.contourf(xm, cmap=cmap, **kwargs1)
                 else:
                     im1 = ax.contour(xm, cmap=cmap, **kwargs1)
-                    ax.clabel(im1, inline=1, fontsize=10) #contour label
+                    ax.clabel(im1, inline=1, fontsize=10)  # contour label
             else:
                 im1 = ax.imshow(xm, cmap=cmap, interpolation='nearest', **kwargs1)
 
         #--- overlay
-        if overlay != None:
+        if overlay is not None:
             ny, nx = xm.shape
-            xnew = arange(nx); ynew = arange(ny)
+            xnew = arange(nx)
+            ynew = arange(ny)
             XN, YN = np.meshgrid(xnew, ynew)
             del xnew, ynew
-            xcoordnew = XN[overlay]; ycoordnew = YN[overlay]
+            xcoordnew = XN[overlay]
+            ycoordnew = YN[overlay]
             pl.scatter(xcoordnew, ycoordnew, marker='.', s=1, c='white', edgecolors='white', alpha=1.)
 
         ax.set_xticks([])
@@ -2852,7 +2864,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         cax = caxh
         caxdummy = caxv
     else:
-        raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
+        raise ValueError('Invalid option for colorbar! %s' % colorbar_orientation)
 
     ax.figure.add_axes(cax)
 
@@ -2867,7 +2879,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
     if show_colorbar:
         #plot actual colorbar
-        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks, orientation=colorbar_orientation)
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks, orientation=colorbar_orientation)
         if cticklabels is not None:
           cb.set_ticklabels(cticklabels)
     else:
@@ -2882,7 +2894,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     # Zonal plot
     if show_zonal:
         if x._latitudecheckok:
-            add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal) #,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
+            add_zonal_plot(ax, x, timmean=zonal_timmean, vmin=vmin_zonal, vmax=vmax_zonal)  # ,vmin=im1.get_clim()[0],vmax=im1.get_clim()[1])
         else:
             print('WARNING: zonal plot not possible due to invalid latitude configurations')
 
@@ -2899,7 +2911,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         @param color: color to plot region
         @type color: str
         """
-        corners = r.get_corners() #get list of corner coordinates
+        corners = r.get_corners()  # get list of corner coordinates
         corners = np.asarray(corners)
         lons = corners[:, 0]
         lats = corners[:, 1]
@@ -2921,7 +2933,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         @param color: color to plot region
         @type color: str
         """
-        corners = r.get_corners() #get list of corner coordinates
+        corners = r.get_corners()  # get list of corner coordinates
         corners = np.asarray(corners)
         xcoords = corners[:, 0]
         ycoords = corners[:, 1]
@@ -2959,26 +2971,27 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             assert(len(st) == 1)
             me = me[0]
             st = st[0]
-            atitle = 'mean: $' + str(round(me, 2))  + ' \pm ' + str(round(st, 2)) + '$'
+            atitle = 'mean: $' + str(round(me, 2)) + ' \pm ' + str(round(st, 2)) + '$'
         elif stat_type == 'sum':  # area sum
             me = tmp_xm.areasum()
             assert(len(me) == 1)
             me = me[0]
-            atitle = 'sum: $' + str(round(me, 2))  + '$'
+            atitle = 'sum: $' + str(round(me, 2)) + '$'
         else:
             me = np.ma.median(tmp_xm.data)
             atitle = 'median: $' + str(round(me, 2)) + '$'
-        ax.set_title(atitle, size=titlefontsize-2, loc='left')
+        ax.set_title(atitle, size=titlefontsize - 2, loc='left')
 
     ax.set_title(title + '\n', size=titlefontsize, loc='center')
-    ax.set_title(x._get_unit(), size=titlefontsize-2, loc='right')
+    ax.set_title(x._get_unit(), size=titlefontsize - 2, loc='right')
 
     #/// show timeseries? ///
     if show_timeseries:
         ax2.plot(x.num2date(x.time), x.fldmean())
         ax2.grid()
-        ax2.set_ylim(im1.get_clim()[0]*scal_timeseries, im1.get_clim()[1]*scal_timeseries)
-        ti = ax2.get_yticks(); n = len(ti) / 2
+        ax2.set_ylim(im1.get_clim()[0] * scal_timeseries, im1.get_clim()[1] * scal_timeseries)
+        ti = ax2.get_yticks()
+        n = len(ti) / 2
         ax2.set_yticks([ti[0], ti[n], ti[-1]])
         ax2.set_ylabel(x._get_unit())
 
@@ -3053,7 +3066,8 @@ def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
         # symmetry if neg. and posiitve limits
         if (vmin < 0.) & (vmax > 0.):
             val = max(abs(vmin), abs(vmax))
-            vmin = -val; vmax = val
+            vmin = -val
+            vmax = val
 
     if vmin is None:
         vmin = zax.get_xlim()[0]
@@ -3114,12 +3128,12 @@ def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=No
         cax.set_frame_on(False)
     else:
         norm = mpl.colors.Normalize(vmin=im.get_clim()[0], vmax=im.get_clim()[1])
-        cb   = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks)
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks)
 
         for t in cb.ax.get_yticklabels():
             t.set_fontsize(fontsize)
 
-    if label != None:
+    if label is not None:
         cax.set_ylabel(label)
 
 
@@ -3135,33 +3149,36 @@ def hov_difference(x, y, climits=None, dlimits=None, data_cmap='jet', nclasses=1
     axextra: plot difference on separate axis
     """
 
-    if climits == None:
+    if climits is None:
         sys.exit('Please specify climits for hovmoeller')
-    if dlimits == None:
+    if dlimits is None:
         sys.exit('Please specify dlimits for hovmoeller')
 
     fig = plt.figure()
-    if ax1 == None:
+    if ax1 is None:
         ax1 = fig.add_subplot(311)
-    if ax2 == None:
+    if ax2 is None:
         ax2 = fig.add_subplot(312)
-    if ax3 == None:
+    if ax3 is None:
         ax3 = fig.add_subplot(313)
 
     #set all invalid data to NAN
-    xdata = x.data; ydata = y.data
+    xdata = x.data
+    ydata = y.data
 
     hov1 = hovmoeller(x.num2date(x.time), xdata, rescaley=rescaley, lat=x.lat, rescalex=rescalex)
     hov2 = hovmoeller(y.num2date(y.time), ydata, rescaley=rescaley, lat=y.lat, rescalex=rescalex)
 
-    hov1.time_to_lat(**kwargs); hov2.time_to_lat(**kwargs)
+    hov1.time_to_lat(**kwargs)
+    hov2.time_to_lat(**kwargs)
 
     cmap = plt.cm.get_cmap(data_cmap, nclasses)
 
     hov1.plot(title=x._get_label(), ylabel='lat', xlabel='time', origin='lower', xtickrotation=30, cmap=cmap, ax=ax1, showcolorbar=False, climits=climits, grid=grid)
     hov2.plot(title=y._get_label(), ylabel='lat', xlabel='time', origin='lower', xtickrotation=30, cmap=cmap, ax=ax2, showcolorbar=False, climits=climits, grid=grid)
 
-    add_nice_legend(ax1, hov1.im, cmap, cticks=cticks, label=clabel); add_nice_legend(ax2, hov2.im, cmap, cticks=cticks, label=clabel)
+    add_nice_legend(ax1, hov1.im, cmap, cticks=cticks, label=clabel)
+    add_nice_legend(ax2, hov2.im, cmap, cticks=cticks, label=clabel)
 
     if x.data.shape == y.data.shape:
         hov3 = hovmoeller(y.num2date(y.time), x.data - y.data, rescaley=rescaley, lat=y.lat, rescalex=rescalex)
@@ -3173,9 +3190,10 @@ def hov_difference(x, y, climits=None, dlimits=None, data_cmap='jet', nclasses=1
         msg = 'Difference plot not possible as data has different shape'
         ax3.text(0.5, 0.5, msg,
              horizontalalignment='center',
-             verticalalignment='center') #,
+             verticalalignment='center')  # ,
              #transform = ax.transAxes)
-        ax3.set_xticks([]); ax3.set_yticks([])
+        ax3.set_xticks([])
+        ax3.set_yticks([])
 
     return fig, hov1, hov2
 
@@ -3347,7 +3365,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
 
     # first minus second dataset (absolute difference)
-    adif = x.sub(y) #absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
+    adif = x.sub(y)  # absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
 
     if savefile is None:
         tmpoutname = None
@@ -3423,16 +3441,16 @@ def plot_hovmoeller(x, rescaley=10, rescalex=1, monthsamp=24, dlat=1., cmap=None
 
     """
 
-    if climits == None:
-        raise ValueError, 'climits need to be given!'
+    if climits is None:
+        raise ValueError('climits need to be given!')
 
-    if cmap == None:
+    if cmap is None:
         cmap = plt.cm.get_cmap('RdBu', 15)
-    if ax == None:
+    if ax is None:
         f = plt.figure()
         ax = f.add_subplot(111)
 
-    if title == None:
+    if title is None:
         tit = x._get_label()
     else:
         tit = title
@@ -3442,7 +3460,7 @@ def plot_hovmoeller(x, rescaley=10, rescalex=1, monthsamp=24, dlat=1., cmap=None
     else:
         xlab = None
 
-    if ylabel == None:
+    if ylabel is None:
         ylabel = 'lat'
 
     h = hovmoeller(x.num2date(x.time), x.data, rescaley=rescaley, lat=x.lat, rescalex=rescalex)
@@ -3461,9 +3479,10 @@ def calc_rms_error(x, y):
     x,y: masked arrays
     """
 
-    xdat = x.flatten(); ydat = y.flatten()
+    xdat = x.flatten()
+    ydat = y.flatten()
 
-    return np.sqrt(np.ma.mean((xdat-ydat)**2.))
+    return np.sqrt(np.ma.mean((xdat - ydat) ** 2.))
 
 
 def calc_centered_rms_error(x, y):
@@ -3473,9 +3492,11 @@ def calc_centered_rms_error(x, y):
     REFERENCES:
      * Taylor et al. (2001), eq. 2
     """
-    xdat = x.flatten(); ydat = y.flatten()
-    xm = np.ma.mean(xdat); ym = np.ma.mean(ydat)
+    xdat = x.flatten()
+    ydat = y.flatten()
+    xm = np.ma.mean(xdat)
+    ym = np.ma.mean(ydat)
 
-    anom = np.sqrt(np.ma.mean(((xdat-xm) - (ydat-ym))**2.))
+    anom = np.sqrt(np.ma.mean(((xdat - xm) - (ydat - ym)) ** 2.))
 
-    return xm-ym, anom
+    return xm - ym, anom
