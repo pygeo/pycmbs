@@ -61,8 +61,8 @@ class Grid(object):
 
         @todo: how to deal with latitudes across the dateline ?
         """
-        return np.arccos(np.sin(lat1)*np.sin(lat2)+np.cos(lat1)
-                         * np.cos(lat2)*np.cos(np.abs(lon2-lon1)))*self.radius
+        return np.arccos(np.sin(lat1) * np.sin(lat2) + np.cos(lat1)
+                         * np.cos(lat2) * np.cos(np.abs(lon2 - lon1))) * self.radius
 
     def calc_cell_area(self):
         """
@@ -103,21 +103,21 @@ class Grid(object):
         ny, nx = self._lon0.shape
         lons = []
         lats = []
-        for i in range(1, ny-1):   # todo revise this calculation method!!!
-            for j in range(1, nx-1):
+        for i in range(1, ny - 1):   # todo revise this calculation method!!!
+            for j in range(1, nx - 1):
                 #half way to corner neighbors?
 
                 #upper left
-                lons.append(self._lon0[i-1, j-1]+0.5
-                            * (self._lon0[i, j]-self._lon0[i-1, j-1]))
-                lats.append(self._lat0[i-1, j-1]+0.5
-                            * (self._lat0[i, j]-self._lat0[i-1, j-1]))
+                lons.append(self._lon0[i - 1, j - 1] + 0.5
+                            * (self._lon0[i, j] - self._lon0[i - 1, j - 1]))
+                lats.append(self._lat0[i - 1, j - 1] + 0.5
+                            * (self._lat0[i, j] - self._lat0[i - 1, j - 1]))
 
                 #lower right
-                lons.append(self._lon0[i, j]+0.5
-                            * (self._lon0[i+1, j+1]-self._lon0[i, j]))
-                lats.append(self._lat0[i, j]+0.5
-                            * (self._lat0[i+1, j+1]-self._lat0[i, j]))
+                lons.append(self._lon0[i, j] + 0.5
+                            * (self._lon0[i + 1, j + 1] - self._lon0[i, j]))
+                lats.append(self._lat0[i, j] + 0.5
+                            * (self._lat0[i + 1, j + 1] - self._lat0[i, j]))
 
                 #lower left
                 #lons.append(self._lon0[i-1,j]+0.5
@@ -146,8 +146,8 @@ class Grid(object):
         lats = []
         for e in self.edg:
             #half way position
-            plon = self.lon[e[0]] + 0.5*(self.lon[e[1]]-self.lon[e[0]])
-            plat = self.lat[e[0]] + 0.5*(self.lat[e[1]]-self.lat[e[0]])
+            plon = self.lon[e[0]] + 0.5 * (self.lon[e[1]] - self.lon[e[0]])
+            plat = self.lat[e[0]] + 0.5 * (self.lat[e[1]] - self.lat[e[0]])
             lons.append(plon)
             lats.append(plat)
         lons = np.asarray(lons)
@@ -195,7 +195,7 @@ class Grid(object):
         # construct library of all objects
         self._collection = PatchCollection(patches, cmap=cmap, norm=norm,
                                            alpha=1., match_original=False)
-        colors = 100*np.random.rand(len(patches))
+        colors = 100 * np.random.rand(len(patches))
         # assign data values here
         self._collection.set_array(np.array(colors))
 
