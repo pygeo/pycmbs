@@ -135,29 +135,29 @@ class Taylor(object):
         else:
             axmin = 0.
             addlist = [0.95, 0.99]
-        corrs = np.arange(axmin, 1.+step, step)
+        corrs = np.arange(axmin, 1. + step, step)
         if not self.r_equidistant:
             corrs = np.asarray(list(corrs) + addlist)
 
         for corr1 in corrs:  # arange(0.,1.+step,step):
-            c_theta = np.deg2rad((1.-corr1)*90.)
+            c_theta = np.deg2rad((1. - corr1) * 90.)
             c_r = nstdmax
             if self.r_equidistant:
-                self.ax.plot([0, c_r*np.cos(c_theta)], [0, c_r*np.sin(c_theta)], ':', color=color)
-                xa, ya = self.map2xy(corr1, 1.0*nstdmax)
+                self.ax.plot([0, c_r * np.cos(c_theta)], [0, c_r * np.sin(c_theta)], ':', color=color)
+                xa, ya = self.map2xy(corr1, 1.0 * nstdmax)
                 #self.ax.annotate(str(corr1), [c_theta, nstdmax*1.11], xycoords='polar',color=color)
                 self.ax.annotate(str(corr1), [xa, ya], color=color, horizontalalignment='center')
 
             else:
-                self.ax.plot([0, c_r*corr1], [0, c_r*np.sin(np.arccos(corr1))], ':', color=color)
-                xa, ya = self.map2xy(corr1, 1.0*nstdmax)
+                self.ax.plot([0, c_r * corr1], [0, c_r * np.sin(np.arccos(corr1))], ':', color=color)
+                xa, ya = self.map2xy(corr1, 1.0 * nstdmax)
                 #self.ax.annotate(str(corr1), [np.arccos(corr1), nstdmax*1.11], xycoords='polar',color=color)
                 self.ax.annotate(str(corr1), [xa, ya], color=color, horizontalalignment='center')
 
         if self.r_equidistant:
             pass
         else:
-            self.ax.annotate('Correlation coefficient $R$', [np.deg2rad(50.), nstdmax*1.1], xycoords='polar', rotation=-45., color=color)
+            self.ax.annotate('Correlation coefficient $R$', [np.deg2rad(50.), nstdmax * 1.1], xycoords='polar', rotation=-45., color=color)
 
     def plot_circle(self, x, y, r, color='grey', label=None, size=8):
         """
@@ -165,13 +165,13 @@ class Taylor(object):
         """
 
         X = np.linspace(-r, +r, 1000.)
-        Y = np.sqrt(r*r - X*X)
-        XN = X+x
-        YN = Y+y
+        Y = np.sqrt(r * r - X * X)
+        XN = X + x
+        YN = Y + y
         m = XN < 0.
         XN[m] = np.nan
         YN[m] = np.nan
-        m = (XN**2 + YN**2) >= self.stdmax**2
+        m = (XN ** 2 + YN ** 2) >= self.stdmax ** 2
         XN[m] = np.nan
         YN[m] = np.nan
 
@@ -182,7 +182,7 @@ class Taylor(object):
 
         self.ax.plot(XN, YN, '--', color=color)
         if label is not None:
-            if ylab < 0.9*self.stdmax:  # avoid labels at boundaries
+            if ylab < 0.9 * self.stdmax:  # avoid labels at boundaries
                 self.ax.annotate(label, [xlab, ylab], xycoords='data', rotation=30., color=color, backgroundcolor='white', verticalalignment='center', horizontalalignment='center', size=size)
 
     def plot_rms_meshlines(self):
@@ -210,14 +210,14 @@ class Taylor(object):
 
         nstdmax = self.stdmax
         if self.negative:
-            axmin = -np.pi/2.
+            axmin = -np.pi / 2.
         else:
             axmin = 0.
 
-        th = np.arange(axmin, np.pi/2, 0.01)
+        th = np.arange(axmin, np.pi / 2, 0.01)
 
-        for ra in np.arange(0, nstdmax+0.1*step, step):
-            self.ax.plot(ra*np.sin(th), ra*np.cos(th), ':', color=color)
+        for ra in np.arange(0, nstdmax + 0.1 * step, step):
+            self.ax.plot(ra * np.sin(th), ra * np.cos(th), ':', color=color)
 
         if self.normalize:
             self.ax.set_ylabel('$\sigma / \sigma_{obs}$', color=color)
@@ -236,7 +236,7 @@ class Taylor(object):
         plot reference circle of equal std which corresponds to ref_std
         """
         R = np.linspace(-1., 1., 1000)
-        S = np.ones(len(R))*self.ref_std
+        S = np.ones(len(R)) * self.ref_std
         self.plot(R, S, linestyle=linestyle, linewidth=linewidth, color=color, marker=marker)
 
     def plot_reference_point(self, color='orange', marker='o'):
@@ -327,19 +327,19 @@ class Taylor(object):
         if plot_mean:
             #mean of R/S data
             xmean, ymean = self.map2xy(self.R_mean, self.S_mean)
-            self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor='blue', markersize=markersize*2, markeredgewidth=markeredgewidth*2.)
+            self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor='blue', markersize=markersize * 2, markeredgewidth=markeredgewidth * 2.)
 
             if (self.R1_mean is not None) & (self.S1_mean is not None):
                 xmean, ymean = self.map2xy(self.R1_mean, self.S1_mean)
-                self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=shiftcolor, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor=shiftcolor, markersize=markersize*2, markeredgewidth=markeredgewidth*2)
+                self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=shiftcolor, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor=shiftcolor, markersize=markersize * 2, markeredgewidth=markeredgewidth * 2)
 
         #/// shift plot
         if show_shift:
             x1, y1 = self.map2xy(R1, S1)
             #self.ax.plot(x1,y1,'ro')
             for i in np.arange(len(x1)):
-                dx = x1[i]-x[i]
-                dy = y1[i]-y[i]
+                dx = x1[i] - x[i]
+                dy = y1[i] - y[i]
                 self.ax.arrow(x[i], y[i], dx, dy, edgecolor=shiftcolor, alpha=0.5, linewidth=2.)
 
                 #this is a nice looking more flexible arrow
@@ -360,14 +360,14 @@ class Taylor(object):
         map R and S coordinates into x and y
         """
 
-        theta = np.deg2rad((1.-R)*90.)
+        theta = np.deg2rad((1. - R) * 90.)
         r = S
         if self.r_equidistant:
-            x = r*np.cos(theta)
-            y = r*np.sin(theta)
+            x = r * np.cos(theta)
+            y = r * np.sin(theta)
         else:
-            x = S*R
-            y = S*np.sin(np.arccos(R))
+            x = S * R
+            y = S * np.sin(np.arccos(R))
         return x, y
 
     def set_legend_plot(self, label, color='black', marker='o'):
