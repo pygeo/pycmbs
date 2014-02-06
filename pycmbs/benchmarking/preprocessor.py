@@ -7,6 +7,7 @@ the pyCMBS licensing details.
 import os
 import glob
 
+
 class EnsemblePreprocessor(object):
     """
     class to perform preprocessing for model ensemble data.
@@ -31,7 +32,8 @@ class EnsemblePreprocessor(object):
             self.data_dir += os.sep
         if self.output_dir[-1] != os.sep:
             self.output_dir += os.sep
-        self.mergetime_files=[]
+        self.mergetime_files = []
+
 
 class CMIP5Preprocessor(EnsemblePreprocessor):
     def __init__(self, data_dir, outfile, variable, model, experiment):
@@ -45,12 +47,12 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         for x in l:
             r += x + ' '
         return r
-        
+
     def _log(self, s):
         logfile = self.output_dir + 'cmip5_preprocessor.log'
         o = open(logfile, 'a')
         o.write(s + '\n')
-        o.close()    
+        o.close()
 
     def mergetime(self, n, start_time=None, stop_time=None, delete=False):
         """
@@ -83,7 +85,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             selstr = ''
 
         ens_files = self.ensemble_files[n]
-        self._log(self.model + '\t' + str(n) + '\t' + str(len(ens_files))) #model name, ensemble nr., files per ensemble member
+        self._log(self.model + '\t' + str(n) + '\t' + str(len(ens_files)))  # model name, ensemble nr., files per ensemble member
 
         # create string with filenames
         fstr = self._filelist(ens_files)
@@ -103,28 +105,27 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
                 os.remove(tmpfile)
             cmd1 = 'cdo -f nc mergetime ' + fstr + ' ' + tmpfile
             os.system(cmd1)
-            
+
             if not os.path.exists(tmpfile):
-                tmp_s='Error in creating temporary file: ABORT! ' + self.model + ' ' + self.experiment + ' ' + tmpfile
+                tmp_s = 'Error in creating temporary file: ABORT! ' + self.model + ' ' + self.experiment + ' ' + tmpfile
                 print tmp_s
                 self._log(tmp_s)
-            
+
             cmd = 'cdo -f nc ' + selstr + ' ' + tmpfile + ' ' + ofile
 
-
-        # calculate final output file 
+        # calculate final output file
         if os.path.exists(ofile):
             if delete:
                 os.remove(ofile)
             else:
-                self.mergetime_files.append(ofile)        
+                self.mergetime_files.append(ofile)
                 print('File already existing ... no processing is done')
                 return
 
         print('Doing temporal preprocessing for ensemble member ... %s' % n)
         os.system(cmd)
         if os.path.exists(ofile):  # just ensure that everything wen well
-            self.mergetime_files.append(ofile)        
+            self.mergetime_files.append(ofile)
 
         if os.path.exists(tmpfile):
             os.remove(tmpfile)
@@ -152,7 +153,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             files = glob.glob(w1)
             cnt += len(files)
             if len(files) > 0:
-                res.update({i:files})
+                res.update({i: files})
 
         # check that all files were used
         if nfiles != cnt:
@@ -232,9 +233,3 @@ d=Data(E.output_dir + E.outfile, 'rsds', read=True)
 #~ tmp='/home/m300028/shared/temp/ensmean/rsds/amip/raw/testout/rsds_Amon_GFDL-HIRAM-C180_amip_r2_mergetime.nc'
 #~ d = Data(tmp, 'rsds', read=True)
 """
-
-
-
-
-
-
