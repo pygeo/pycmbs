@@ -54,9 +54,7 @@ import datetime
 import os
 
 
-
 #-----------------------------------------------------------------------
-
 def thin_xticks(ax, n):
     """
     thin xticks of axis
@@ -133,7 +131,7 @@ class CorrelationAnalysis(object):
 
             #--- calculate diagnostics
             D = Diagnostic(self.x, y=self.y)
-            D._mat2vec(mask = self.mask) #here is the point fo regional statistics
+            D._mat2vec(mask=self.mask) #here is the point fo regional statistics
             rmse = D.get_rmse_value()
             r    = D.get_correlation_value()
             n    = D. get_n()
@@ -144,6 +142,7 @@ class CorrelationAnalysis(object):
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
+
 
 class HovmoellerPlot(object):
     def __init__(self, D, rescaley=10, rescalex=10, yticksampling=1,
@@ -188,6 +187,7 @@ class HovmoellerPlot(object):
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
+
 class ReichlerPlot(object):
     """
     class for Reichler plot generation
@@ -210,7 +210,7 @@ class ReichlerPlot(object):
             self.ax = ax
 
         self.e2 = [] #list to store RMS error results
-        self.labels = []; self.colors=[]
+        self.labels = []; self.colors = []
 
 #-----------------------------------------------------------------------
 
@@ -252,22 +252,19 @@ class ReichlerPlot(object):
         @type title: str
         """
 
-
         if len(self.e2) == 0: #no valid data
             return self.ax.figure
 
         if self.e2[0] is None:
             return self.ax.figure
 
-
-
         #- normalize results (relative modle performance)
         self._normalize()
         x = np.arange(len(self.e_norm))
         y1 = self.e_norm*100.; y2 = self.e_norm*100.
 
-        y1 = np.ma.array(y1, mask=y1<0.) #positive values only
-        y2 = np.ma.array(y2, mask=y2>=0.) #negative values only
+        y1 = np.ma.array(y1, mask=y1 < 0.) #positive values only
+        y2 = np.ma.array(y2, mask=y2 >= 0.) #negative values only
 
         #print 'Reichler data for plotting: ', y1,y2
         #print 'Original Reichler data:'
@@ -275,18 +272,18 @@ class ReichlerPlot(object):
         #print self.e2_norm
 
         if 'color' in kwargs.keys():
-            upcolor  =kwargs.pop('color')
-            lowcolor =kwargs.pop('color')
+            upcolor  = kwargs.pop('color')
+            lowcolor = kwargs.pop('color')
         else:
-            upcolor='red'
-            lowcolor='blue'
+            upcolor = 'red'
+            lowcolor = 'blue'
 
         self.ax.bar(x, y1, color=upcolor , edgecolor='None', **kwargs)
         self.ax.bar(x, y2, color=lowcolor, edgecolor='None', **kwargs)
 
         self.ax.set_xticks(x+0.5)
         self.ax.set_xticklabels(self.labels, rotation=90.)
-        if (vmin !=None) & (vmax != None):
+        if (vmin != None) & (vmax != None):
             self.ax.set_ylim(vmin, vmax)
         else:
             vmin, vmax = self.ax.get_ylim() #equal axes
@@ -302,9 +299,7 @@ class ReichlerPlot(object):
 
         return self.ax.figure
 
-
 #-----------------------------------------------------------------------
-
     def simple_plot(self):
         """
         do a very simple plot of diagnostics
@@ -321,8 +316,8 @@ class ReichlerPlot(object):
         print 'Doing Reichler plot as circle plot ...'
         self._normalize()
 
-        dx=0.
-        tsize=10.
+        dx = 0.
+        tsize = 10.
         for i in np.arange(len(self.e2)): #over all timestamps
             print i, self.labels[i], self.e2_norm[i]*100.
             #~ print self.e2_norm
@@ -336,13 +331,12 @@ class ReichlerPlot(object):
 
             self.ax.text(0.1+dx, 0.5, self.labels[i], size=tsize, rotation=0.,
              ha="center", va="center",
-             bbox = dict(boxstyle="round",
+             bbox=dict(boxstyle="round",
                          ec=self.colors[i],
                          fc=self.colors[i],
-                         alpha = 0.4,
+                         alpha=0.4,
                          ))
             dx += 0.15
-
 
         self.ax.set_ylim(-1., 1.); self.ax.set_xlim(-1., 1.)
         self.ax.set_xlabel('$\\epsilon / \\bar{\\epsilon}$ [%]')
@@ -369,6 +363,7 @@ class ReichlerPlot(object):
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
+
 
 class ScatterPlot(object):
     """
@@ -432,9 +427,9 @@ class ScatterPlot(object):
         """
 
         if y.label is None:
-            label=''
+            label = ''
         else:
-            label=y.label
+            label = y.label
 
         if fldmean:
             xdat = self.x.fldmean()
@@ -533,6 +528,7 @@ class ScatterPlot(object):
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
+
 class LinePlot(object):
     """
     class for a pyCMBS Line Plot
@@ -583,7 +579,7 @@ class LinePlot(object):
         self.lines = []
         self.labels = []
         self.ticksize = ticksize
-        self.normx=normx
+        self.normx = normx
         self.show_equation = show_equation
         self.xtickrotation = xtickrotation
 
@@ -611,7 +607,7 @@ class LinePlot(object):
 
 #-----------------------------------------------------------------------
 
-    def plot(self, x, ax=None, vmin=None, vmax=None, label = None, norm_std = False, set_ytickcolor=True, **kwargs):
+    def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, **kwargs):
         """
         plot LinePlot data. If a spatial field is provided, this is aggregated
         using the fldmean() function of C{Data}
@@ -644,10 +640,10 @@ class LinePlot(object):
 
             if ax is None:
                 ax = self.ax
-                set_axiscolor=False
+                set_axiscolor = False
             else:
                 ax = ax
-                set_axiscolor=True
+                set_axiscolor = True
 
             if x.ndim == 1: #if a vector already provided
                 y = x.data * 1.
@@ -726,7 +722,7 @@ class GlobalMeanPlot(object):
         else:
             nplots = 1
         self.climatology = climatology
-        self.nplots=nplots
+        self.nplots = nplots
 
         if ax is None:
             #--- create new figure if needed
@@ -745,9 +741,9 @@ class GlobalMeanPlot(object):
                 else:
                     self.ax1 = ax1
 
-        self.labels=[]; self.plots=[]
-        self.pdata={}
-        self.pdata_clim={}
+        self.labels = []; self.plots = []
+        self.pdata = {}
+        self.pdata_clim = {}
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -772,16 +768,16 @@ class GlobalMeanPlot(object):
             d : difference in t (threshold)
             """
 
-            o=[]
+            o = []
             for xx in x:
-                m1=abs(x1-xx)<d
-                m2=~np.isnan(y1)
+                m1 = abs(x1-xx) < d
+                m2 = ~np.isnan(y1)
                 m = m1 & m2
-                if sum(m)>0:
+                if sum(m) > 0:
                     o.append(np.mean(y1[m]))
                 else:
                     o.append(np.nan)
-            o=np.asarray(o)
+            o = np.asarray(o)
             return o
 
         if hasattr(self, 'pdata'):
@@ -821,7 +817,7 @@ class GlobalMeanPlot(object):
 
                     m = ~np.isnan(yo)
 
-                    y[m]=y[m]+yo[m]
+                    y[m] = y[m]+yo[m]
                     ys[m] = ys[m] + yo[m]*yo[m]
                     n[m] += 1.
 
@@ -829,17 +825,16 @@ class GlobalMeanPlot(object):
                         pass
                     del m
 
-
             if len(n) > 0:
                 n = map(float, n)
                 ym = y / n
                 ys /=  n #squared values
                 std_data = np.sqrt(ys - ym*ym)
 
-                color=None
+                color = None
                 if colors is not None:
                     if g in colors.keys():
-                        color=colors[g]
+                        color = colors[g]
 
                 if plot_clim:
                     tval = tref
@@ -941,7 +936,7 @@ class GlobalMeanPlot(object):
         if group in self.pdata.keys():
             vdata = self.pdata[group]
         else:
-            vdata=[]
+            vdata = []
         vdata.append({'time': t, 'data': mdata, 'unit': m._get_unit()})
 
         #print 'vdata: ', t
@@ -979,7 +974,6 @@ class GlobalMeanPlot(object):
             else:
                 print 'WARNING: Global mean plot can not be generated due to missing time_cycle!'
 
-
         # store information for legend
         self.plots.append(p[0])
         if label is None:
@@ -1005,6 +999,7 @@ class GlobalMeanPlot(object):
         self.ax.grid()
 
 #-----------------------------------------------------------------------
+
 
 class HistogrammPlot(object):
     """
@@ -1075,15 +1070,15 @@ class HistogrammPlot(object):
             bb = kwargs.pop('bins')
 
         if shown:
-            show_legend=True
+            show_legend = True
 
             if label == '':
                 label = 'n='+str(sum(~np.isnan(x)))
             else:
-                label= label + '(n='+str(sum(~np.isnan(x))) + ')'
+                label = label + '(n='+str(sum(~np.isnan(x))) + ')'
 
         #--- calculate frequency distribution
-        f, b = np.histogram(x, bins = self.bins, **kwargs)
+        f, b = np.histogram(x, bins=self.bins, **kwargs)
         if self.normalize:
             f /= float(sum(f))
             if self.percent:
@@ -1249,7 +1244,6 @@ class GlecklerPlot(object):
         self.pos = {}  # store position of plot
         self.ndigits = 2  # number of digits for number plotting
 
-
     def add_model(self, label):
         """
         register a model in the class
@@ -1373,7 +1367,7 @@ class GlecklerPlot(object):
         #--- add value as text if required
         if self.show_value:
             if self.labelthreshold is None:
-                labelcolor=self.labelcolor
+                labelcolor = self.labelcolor
             else:
                 if np.abs(value) >= self.labelthreshold:
                     labelcolor = self.labelcolor
@@ -1381,9 +1375,7 @@ class GlecklerPlot(object):
                     labelcolor = 'black'
             ax.text(tpos[0], tpos[1], str(np.round(value, self.ndigits)), fontdict={'size': 6, 'color': labelcolor}, horizontalalignment='center', verticalalignment='center')
 
-
 #-----------------------------------------------------------------------
-
     def _normalize_data(self, method='median'):
         """
         calculate for each observational data set
@@ -1427,8 +1419,8 @@ class GlecklerPlot(object):
             elif p == 4:
                 return 'right'
 
-        r1=self._get_model_ranking(p1, var)  # ranking for first position
-        r2=self._get_model_ranking(p2, var)  # ranking for second position
+        r1 = self._get_model_ranking(p1, var)  # ranking for first position
+        r2 = self._get_model_ranking(p2, var)  # ranking for second position
 
         if len(r1) == 0:
             return None
@@ -1492,8 +1484,8 @@ class GlecklerPlot(object):
             return None
 
         x = []
-        y=[]
-        labels=[]
+        y = []
+        labels = []
         for k in d1.keys():
             labels.append(k)
             x.append(d1[k])
@@ -1528,7 +1520,7 @@ class GlecklerPlot(object):
         """
 
         fig = plt.figure()
-        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3, 1])
+        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios=[3, 1])
         ax = fig.add_subplot(gs[0])
 
         # 1 vs. 2
@@ -1610,7 +1602,7 @@ class GlecklerPlot(object):
             rank of key in list; NOTE that this is NOT the index!
             """
             if k not in x:
-                if len(x)==0:  # no observational data available
+                if len(x) == 0:  # no observational data available
                     return '-'
                 else:
                     # here observations are there, but model key is not in
@@ -1669,10 +1661,10 @@ class GlecklerPlot(object):
             annotate plot using text for models as labels
         """
 
-        tmp=self._get_model_ranking(1, var)
+        tmp = self._get_model_ranking(1, var)
 
         fig = plt.figure()
-        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios = [3, 1])
+        gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios=[3, 1])
         ax = fig.add_subplot(gs[0])
 
         # 1 vs. 2
@@ -1719,7 +1711,7 @@ class GlecklerPlot(object):
         NOTE: to obtain a relative model ranking, one needs to normalize the data before, otherwise the absolute values
               are used!
         """
-        x = []; keys=[]
+        x = []; keys = []
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
@@ -1730,10 +1722,7 @@ class GlecklerPlot(object):
 
         return dict(zip(keys, x))
 
-
 #-----------------------------------------------------------------------
-
-
     def _get_model_ranking(self, pos, var):
         """
         get ranking of each model for a certain variable and observation
@@ -1742,7 +1731,7 @@ class GlecklerPlot(object):
         are used!
         """
         x = []
-        keys=[]
+        keys = []
         for k in self.pos:
             if (self.pos[k] == pos) & ('_' + var + '_' in k):
                 x.append(self.data[k])
@@ -1755,9 +1744,7 @@ class GlecklerPlot(object):
 
         return keys[idx] #return list with keys which give ranked sequence
 
-
 #-----------------------------------------------------------------------
-
     def _get_mean_value(self, pos, var, method='median'):
         """
         calculate mean value for a given observational dataset
@@ -1786,13 +1773,7 @@ class GlecklerPlot(object):
         else:
             raise ValueError, 'Invalid option in _get_mean_value() ' + method
 
-
-
-
-
-
 #-----------------------------------------------------------------------
-
     def plot(self, cmap_name='RdBu_r', vmin=-1.0, vmax=1.0, nclasses=15,
              normalize=True, size=10, method='median', title=None,
              show_value=False, logscale=False, labelcolor='black',
@@ -1842,10 +1823,9 @@ class GlecklerPlot(object):
 
         """
 
-
-        self.show_value=show_value
-        self.labelcolor=labelcolor
-        self.labelthreshold=labelthreshold
+        self.show_value = show_value
+        self.labelcolor = labelcolor
+        self.labelthreshold = labelthreshold
         self.bounds = colorbar_boundaries
 
         if normalize:
@@ -1857,12 +1837,11 @@ class GlecklerPlot(object):
             ax.text(0.5, 0.5, 'no plot possible (missing model data)',
                     horizontalalignment='center',
                     verticalalignment='center',
-                    transform = ax.transAxes)
+                    transform=ax.transAxes)
             ax.set_xticks([])
             ax.set_yticks([])
             print '    Gleckler plot can not be generated, as no model data available!'
             return
-
 
         #- colormap
         if cmap is None:
@@ -1920,8 +1899,8 @@ class GlecklerPlot(object):
 
         left, right, bottom, top = get_subplot_boundaries(gs, self.fig)
         # draw legend
-        c=1.
-        width=(right-left)*c
+        c = 1.
+        width = (right-left)*c
         if show_colorbar:
             self._draw_colorbar(left, width, logscale=logscale, ticks=ticks)
 
@@ -2128,8 +2107,8 @@ class GlecklerPlot(object):
         pmax = max(self.pos.values())
 
         #generate separate figure for legend
-        f=plt.figure()
-        ax=f.add_subplot(111, frameon=True, aspect='equal', axisbg='grey')
+        f = plt.figure()
+        ax = f.add_subplot(111, frameon=True, aspect='equal', axisbg='grey')
         f.subplots_adjust(bottom=0.25, top=0.75, left=0.25, right=0.75)
 
         for k in labels.keys():
@@ -2145,14 +2124,14 @@ class GlecklerPlot(object):
                 raise ValueError, 'Can not draw Gleckler legend! Invalid position value! ' + str(k)
 
             oldval = self.show_value
-            self.show_value=False
+            self.show_value = False
             self.__plot_triangle(ax, np.random.random(), pos=pos)
-            self.show_value=oldval
+            self.show_value = oldval
             ax.set_xticks([])
             ax.set_yticks([])
 
-        fontsize=16
-        linewidth=3
+        fontsize = 16
+        linewidth = 3
 
         for k in labels.keys():
             if k == 1: #top
@@ -2171,7 +2150,8 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-def __basemap_ancillary(m, latvalues = None, lonvalues = None, drawparallels=True, drawcountries=True, land_color=0.8):
+
+def __basemap_ancillary(m, latvalues=None, lonvalues=None, drawparallels=True, drawcountries=True, land_color=0.8):
     """
     routine to plot ancillary data like coastlines
     or meridians on a basemap plot
@@ -2188,9 +2168,9 @@ def __basemap_ancillary(m, latvalues = None, lonvalues = None, drawparallels=Tru
     """
 
     if latvalues is None:
-        latvalues=np.arange(-90., 120., 30.)
+        latvalues = np.arange(-90., 120., 30.)
     if lonvalues is None:
-        lonvalues= np.arange(-180., 180., 90.)
+        lonvalues = np.arange(-180., 180., 90.)
     if drawcountries:
         m.drawcountries()
     m.drawcoastlines()
@@ -2201,6 +2181,7 @@ def __basemap_ancillary(m, latvalues = None, lonvalues = None, drawparallels=Tru
         m.drawmeridians(lonvalues, labels=[0, 0, 0, 1]) # draw meridians
 
 #-----------------------------------------------------------------------
+
 
 def pm_bar(x, y=None, pcolor='red', ncolor='blue', ax=None, **kwargs):
     """
@@ -2225,9 +2206,9 @@ def pm_bar(x, y=None, pcolor='red', ncolor='blue', ax=None, **kwargs):
         pass
 
     yp = y*1.
-    yp[y<0.] = 0.
+    yp[y < 0.] = 0.
     yn = y*1.
-    yn[y>0.] = 0.
+    yn[y > 0.] = 0.
 
     #--- plot
     ax.bar(x, yp, color=pcolor, edgecolor='None', **kwargs)
@@ -2236,6 +2217,7 @@ def pm_bar(x, y=None, pcolor='red', ncolor='blue', ax=None, **kwargs):
     return ax
 
 #-----------------------------------------------------------------------
+
 
 def map_season(x, figsize=(8, 6), **kwargs):
     """
@@ -2305,15 +2287,15 @@ def map_season(x, figsize=(8, 6), **kwargs):
     if 'savefile' in kwargs:
         savefile = kwargs.pop('savefile')
         if '.nc' in savefile:
-            savefile=savefile[:-3]
+            savefile = savefile[:-3]
     else:
         savefile = None
 
     # plot
     if year:
-        labels=['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+        labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
     else:
-        labels=['DJF', 'MAM', 'JJA', 'SON']
+        labels = ['DJF', 'MAM', 'JJA', 'SON']
 
     # check dates
     if year:
@@ -2322,7 +2304,7 @@ def map_season(x, figsize=(8, 6), **kwargs):
             if x.num2date(t).month != mo:
                 print x.num2date(t), mo
                 raise ValueError, 'Invalid monthly sequence! Can not plot results!'
-            mo +=1
+            mo += 1
 
     #/// in case that an overlay is provided, this needs to be processed for each timestep individually
     if 'overlay' in kwargs.keys():
@@ -2337,7 +2319,7 @@ def map_season(x, figsize=(8, 6), **kwargs):
             if i > 8:
                 show_colorbar = True
             else:
-                show_colorbar=False
+                show_colorbar = False
         else:
             ax = f.add_subplot(2, 2, i+1)
             if 'show_colorbar' in kwargs:
@@ -2355,7 +2337,7 @@ def map_season(x, figsize=(8, 6), **kwargs):
             overlay = overlays[i, :,:]
 
         if savefile is not None:
-            tmpoutname=savefile + '_' + labels[i]
+            tmpoutname = savefile + '_' + labels[i]
         else:
             tmpoutname = None
 
@@ -2377,10 +2359,10 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
              lonvalues=None, show_zonal=False,
              zonal_timmean=True, show_timeseries=False,
              scal_timeseries=1., vmin_zonal=None, vmax_zonal=None,
-             bluemarble = False, contours=False, overlay=None,
+             bluemarble=False, contours=False, overlay=None,
              titlefontsize=14, drawparallels=True, drawcountries=True,
              show_histogram=False,
-             contourf = False, land_color=(0.8, 0.8, 0.8),
+             contourf=False, land_color=(0.8, 0.8, 0.8),
              regionlinewidth=1, bins=10,
              colorbar_orientation='vertical', stat_type='mean',
              cax_rotation=0., cticklabels=None, proj='robin',
@@ -2520,8 +2502,8 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 vmsk[i] = False
                 continue
             if basemap_object is None:
-                xv=vlon[i, :]
-                yv=vlat[i, :]
+                xv = vlon[i, :]
+                yv = vlat[i, :]
             else:
                 xv, yv = basemap_object(vlon[i, :], vlat[i,:])    #todo: how to properly deal with boundary problem ????
             if (vlon[i, :].min() < -100.) & (vlon[i,:].max() > 100.): #todo
@@ -2530,7 +2512,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 vmsk[i] = False
                 continue
 
-            verts=np.asarray([xv, yv]).T
+            verts = np.asarray([xv, yv]).T
 
             #--- specify how vertices are interconnected (here simple connection by lines)
             codes = [Path.MOVETO, Path.LINETO, Path.LINETO]
@@ -2542,9 +2524,9 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         pdata = np.asarray(pdata)
 
         if vmin is None:
-            vmin=pdata.min()
+            vmin = pdata.min()
         if vmax is None:
-            vmax=pdata.max()
+            vmax = pdata.max()
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         collection = PatchCollection(patches, cmap=cmap, norm=norm, alpha=1., match_original=False, edgecolors='grey')  #construct library of all objects
@@ -2554,7 +2536,6 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
     if savegraphicfile is not None:
         savegraphicfile = savegraphicfile.replace(' ', '_')
-
 
     if 'vmin' in kwargs.keys():
         vmin = kwargs['vmin']
@@ -2594,7 +2575,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
         # with timeseries plot?
         if show_timeseries:
-            gs = gridspec.GridSpec(2, 1, wspace=0.05, hspace=0.05, bottom=0.2, height_ratios = [5, 1])
+            gs = gridspec.GridSpec(2, 1, wspace=0.05, hspace=0.05, bottom=0.2, height_ratios=[5, 1])
             ax = fig.add_subplot(gs[0])
             ax2 = fig.add_subplot(gs[1])
         else:
@@ -2642,8 +2623,8 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
     #--- set projection parameters
     if proj == 'robin': #todo: more flexible handling of projection parameters (dictionary ??)
-        lon_0=lon_0
-        lat_0=lat_0
+        lon_0 = lon_0
+        lat_0 = lat_0
     elif proj == 'npstere':
         lon_0 = lon_0
         lat_0 = lat_0
@@ -2657,27 +2638,27 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
     #--- plot using basemap
     if use_basemap:
-        llcrnrlon=None
-        llcrnrlat=None
-        urcrnrlon=None
-        urcrnrlat=None
+        llcrnrlon = None
+        llcrnrlat = None
+        urcrnrlon = None
+        urcrnrlat = None
 
         #if a region is specfied, then the plotting boundaries are set
-        if region !=None:
+        if region != None:
             if not hasattr(region, 'lonmin'):
                 print 'WARNING map boundaries can not be set, as region ' + region.label.upper() + ' has not lat/lon information'
             else:
                 dlat = (region.latmax-region.latmin)*0.25
                 dlon = (region.lonmax-region.lonmin)*0.25
                 di = 0. # with 0 it works; for other values problems may occur for negative lon!
-                llcrnrlon=region.lonmin - di; llcrnrlat=region.latmin - di
-                urcrnrlon=region.lonmax + di; urcrnrlat=region.latmax + di
-                proj='tmerc' #use mercator projection at regional scale as robinson does not work!
+                llcrnrlon = region.lonmin - di; llcrnrlat = region.latmin - di
+                urcrnrlon = region.lonmax + di; urcrnrlat = region.latmax + di
+                proj = 'tmerc' #use mercator projection at regional scale as robinson does not work!
 
         ############################################
         # generate Basemap map
         ############################################
-        m1=Basemap(projection=proj, lon_0=lon_0, lat_0=lat_0, ax=ax,
+        m1 = Basemap(projection=proj, lon_0=lon_0, lat_0=lat_0, ax=ax,
                    llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                    urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
                    boundinglat=boundinglat)
@@ -2700,7 +2681,6 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
         else: #unstructured gridtype
 
-
             #check if all longitudes are the same. If so, then a plotting with different options is possible.
             #otherwise, f_kdtree is activates as default option to ensure valid plotting
             #f_kdtree_act = f_kdtree
@@ -2710,8 +2690,6 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             #    else:
             #        print 'WARNING: longitudes are not all the same! f_kdtree=True is therefore used!'
             #        f_kdtree_act = True
-
-
             if f_kdtree:
                 #use KDTRee nearest neighbor resampling to avoid stripes in plotting
                 lons = np.unique(x.lon)
@@ -2719,8 +2697,8 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                 lons.sort(); lats.sort()
                 TLON, TLAT = np.meshgrid(lons, lats)  #generate target coordinates
                 XT, YT = m1(TLON, TLAT)
-                X=XT.copy()
-                Y=YT.copy()
+                X = XT.copy()
+                Y = YT.copy()
                 shape0 = np.shape(XT)
                 XT.shape = (-1)
                 YT.shape = (-1)  # ... vectorize them for inertpolation
@@ -2775,7 +2753,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                     else:
                         print '*** WARNING: not lon360 not validated yet, try KDTREE option if stripes in plot ***'
                         lon = x.lon
-                        lat=x.lat
+                        lat = x.lat
                         Z = xm
                 elif plot_method == 'scatter':
                         lon = x.lon
@@ -2792,9 +2770,9 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
         if not bluemarble:
 
-            if x.gridtype=='unstructured':
+            if x.gridtype == 'unstructured':
                 #--- do actual plotting
-                im1=m1.ax.add_collection(collection) #add unstructure grid plots (e.g. triangles)
+                im1 = m1.ax.add_collection(collection) #add unstructure grid plots (e.g. triangles)
             else:
                 if contours:
                     if 'levels' in kwargs1.keys():
@@ -2802,23 +2780,23 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                     else:
                         raise ValueError('When plotting with contours, you need to specify the levels option (see contour documnetation)')
                     if contourf:
-                        im1=m1.contourf(X, Y, Z, levels, cmap=cmap, **kwargs1)
+                        im1 = m1.contourf(X, Y, Z, levels, cmap=cmap, **kwargs1)
                     else:
-                        im1=m1.contour(X, Y, Z, levels, cmap=cmap, **kwargs1)
+                        im1 = m1.contour(X, Y, Z, levels, cmap=cmap, **kwargs1)
                         ax.clabel(im1, inline=1, fontsize=10)  # contour label
 
                 else:
                     if plot_method == 'colormesh':
-                        im1=m1.pcolormesh(X, Y, Z, cmap=cmap, **kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
+                        im1 = m1.pcolormesh(X, Y, Z, cmap=cmap, **kwargs1) #,vmin=vmin,vmax=vmax,cmap=ccmap,norm=norm)
                     elif plot_method == 'scatter':
-                        im1=m1.scatter(X, Y, c=Z, marker='8', edgecolor='None', cmap=cmap, **kwargs1)
+                        im1 = m1.scatter(X, Y, c=Z, marker='8', edgecolor='None', cmap=cmap, **kwargs1)
                     else:
                         raise ValueError, 'Invalid plotting option! ' + plot_method
 
                 if overlay != None:
                     #print 'Doing overlay plot! ...'
-                    xcoordnew=X[overlay]
-                    ycoordnew=Y[overlay]
+                    xcoordnew = X[overlay]
+                    ycoordnew = Y[overlay]
                     m1.scatter(xcoordnew, ycoordnew, marker='x', s=50, c='white', edgecolors='white', linewidth=1)
                     #todo: there is still a problem that the coordinates are not properly aligned with the grid cells!!!
 
@@ -2827,7 +2805,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
 
     else: #use_basemap = False
 
-        if x.gridtype=='unstructured':
+        if x.gridtype == 'unstructured':
             #--- generate collection of patches for Basemap plot
             collection = _get_unstructured_collection(x.vlon, x.vlat, xm, vmin, vmax, basemap_object=None)
             im1 = ax.add_collection(collection)
@@ -2843,7 +2821,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                     im1 = ax.contour(xm, cmap=cmap, **kwargs1)
                     ax.clabel(im1, inline=1, fontsize=10) #contour label
             else:
-                im1=ax.imshow(xm, cmap=cmap, interpolation='nearest', **kwargs1)
+                im1 = ax.imshow(xm, cmap=cmap, interpolation='nearest', **kwargs1)
 
         #--- overlay
         if overlay != None:
@@ -2851,13 +2829,11 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             xnew = arange(nx); ynew = arange(ny)
             XN, YN = np.meshgrid(xnew, ynew)
             del xnew, ynew
-            xcoordnew=XN[overlay]; ycoordnew=YN[overlay]
+            xcoordnew = XN[overlay]; ycoordnew = YN[overlay]
             pl.scatter(xcoordnew, ycoordnew, marker='.', s=1, c='white', edgecolors='white', alpha=1.)
 
         ax.set_xticks([])
         ax.set_yticks([])
-
-
 
     # set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
@@ -2879,8 +2855,6 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         raise ValueError, 'Invalid option for colorbar! ' + colorbar_orientation
 
     ax.figure.add_axes(cax)
-
-
 
     vmin = im1.get_clim()[0]
     vmax = im1.get_clim()[1]
@@ -2928,7 +2902,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         corners = r.get_corners() #get list of corner coordinates
         corners = np.asarray(corners)
         lons = corners[:, 0]
-        lats=corners[:, 1]
+        lats = corners[:, 1]
         x, y = m(lons, lats)
         xy = list(zip(x, y))
         mapboundary = Polygon(xy, edgecolor=color, linewidth=linewidth, fill=False, linestyle='dashed')
@@ -2950,7 +2924,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         corners = r.get_corners() #get list of corner coordinates
         corners = np.asarray(corners)
         xcoords = corners[:, 0]
-        ycoords=corners[:, 1]
+        ycoords = corners[:, 1]
         xy = list(zip(xcoords, ycoords))
         mapboundary = Polygon(xy, edgecolor=color, linewidth=linewidth, fill=False, linestyle='dashed')
         ax.add_patch(mapboundary)
@@ -2959,11 +2933,11 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     if regions_to_plot is not None:
         if use_basemap:
             for region in regions_to_plot:
-                if region.type=='latlon':
+                if region.type == 'latlon':
                     _add_region_basemap(m1, region, linewidth=regionlinewidth)
         else:
             for region in regions_to_plot:
-                if region.type=='index':
+                if region.type == 'index':
                     _add_region_standard(ax, region, linewidth=regionlinewidth)
 
     # set title
@@ -2984,7 +2958,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
             assert(len(me) == 1)
             assert(len(st) == 1)
             me = me[0]
-            st=st[0]
+            st = st[0]
             atitle = 'mean: $' + str(round(me, 2))  + ' \pm ' + str(round(st, 2)) + '$'
         elif stat_type == 'sum':  # area sum
             me = tmp_xm.areasum()
@@ -3004,7 +2978,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         ax2.plot(x.num2date(x.time), x.fldmean())
         ax2.grid()
         ax2.set_ylim(im1.get_clim()[0]*scal_timeseries, im1.get_clim()[1]*scal_timeseries)
-        ti = ax2.get_yticks(); n=len(ti) / 2
+        ti = ax2.get_yticks(); n = len(ti) / 2
         ax2.set_yticks([ti[0], ti[n], ti[-1]])
         ax2.set_ylabel(x._get_unit())
 
@@ -3016,6 +2990,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     return fig
 
 #-----------------------------------------------------------------------
+
 
 def add_histogram(ax, x, bins=10):
     """
@@ -3036,6 +3011,7 @@ def add_histogram(ax, x, bins=10):
     H.plot(x)
 
 #-----------------------------------------------------------------------
+
 
 def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
     """
@@ -3075,7 +3051,7 @@ def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
         vmin = zax.get_xlim()[0]
         vmax = zax.get_xlim()[1]
         # symmetry if neg. and posiitve limits
-        if (vmin < 0.) & (vmax>0.):
+        if (vmin < 0.) & (vmax > 0.):
             val = max(abs(vmin), abs(vmax))
             vmin = -val; vmax = val
 
@@ -3095,6 +3071,7 @@ def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
     return zax
 
 #-----------------------------------------------------------------------
+
 
 def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=None):
     """
@@ -3129,7 +3106,6 @@ def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=No
     #cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
 
     cax = divider.append_axes("right", "5%", pad=0.05)
-
 
     ax.figure.add_axes(cax, axisbg=ax.figure.get_facecolor())
     if dummy:
@@ -3210,11 +3186,11 @@ def hov_difference(x, y, climits=None, dlimits=None, data_cmap='jet', nclasses=1
 def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                    ax=None, title=None, cticks=None,
                    region=None, nclasses=10, cmap_data='jet',
-                   cmap_difference = 'RdBu_r', rmin=-1.,
+                   cmap_difference='RdBu_r', rmin=-1.,
                    rmax=1., absthres=None, show_stat=True,
                    show_zonal=True, zonal_timmean=False,
                    proj='robin', stat_type='mean', savefile=None,
-                   savegraphics_prefix = None,
+                   savegraphics_prefix=None,
                    **kwargs):
     """
     Given two datasets, this routine generates a map plot of each dataset as
@@ -3300,12 +3276,12 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     if 'colorbar_orientation' in kwargs:
         colorbar_orientation = kwargs.pop('colorbar_orientation')
     else:
-        colorbar_orientation='horizontal'
+        colorbar_orientation = 'horizontal'
 
     if 'drawparallels' in kwargs:
         drawparallels = kwargs.pop('drawparallels')
     else:
-        drawparallels=False
+        drawparallels = False
 
     fig = plt.figure()
     ax1 = fig.add_subplot(221)
@@ -3324,7 +3300,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
 
     #- plot first dataset
     if savefile is None:
-        tmpoutname=None
+        tmpoutname = None
     else:
         tmpoutname = savefile + '_xvar'
 
@@ -3426,10 +3402,10 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  zonal_timmean=zonal_timmean, stat_type='median', proj=proj, savefile=tmpoutname,
                  colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name)
 
-
     return fig
 
 #-----------------------------------------------------------------------
+
 
 def plot_hovmoeller(x, rescaley=10, rescalex=1, monthsamp=24, dlat=1., cmap=None, ax=None, climits=None, xtickrotation=0, showxticks=True, title=None, cticks=None, ylabel=None):
     """
@@ -3457,28 +3433,25 @@ def plot_hovmoeller(x, rescaley=10, rescalex=1, monthsamp=24, dlat=1., cmap=None
         ax = f.add_subplot(111)
 
     if title == None:
-        tit=x._get_label()
+        tit = x._get_label()
     else:
         tit = title
 
     if showxticks:
         xlab = 'time'
     else:
-        xlab=None
+        xlab = None
 
     if ylabel == None:
         ylabel = 'lat'
 
-
-
     h = hovmoeller(x.num2date(x.time), x.data, rescaley=rescaley, lat=x.lat, rescalex=rescalex)
-    h.time_to_lat(dlat=dlat, monthly = True, yearonly = True, monthsamp=monthsamp)
+    h.time_to_lat(dlat=dlat, monthly=True, yearonly=True, monthsamp=monthsamp)
     h.plot(title=tit, xlabel=xlab, ylabel=ylabel, origin='lower', xtickrotation=xtickrotation, cmap=cmap, ax=ax, showcolorbar=False, climits=climits, grid=False, showxticks=showxticks)
 
     add_nice_legend(ax, h.im, cmap, cticks=cticks)
 
     return h
-
 
 
 def calc_rms_error(x, y):
@@ -3488,9 +3461,10 @@ def calc_rms_error(x, y):
     x,y: masked arrays
     """
 
-    xdat = x.flatten(); ydat=y.flatten()
+    xdat = x.flatten(); ydat = y.flatten()
 
     return np.sqrt(np.ma.mean((xdat-ydat)**2.))
+
 
 def calc_centered_rms_error(x, y):
     """
@@ -3499,12 +3473,9 @@ def calc_centered_rms_error(x, y):
     REFERENCES:
      * Taylor et al. (2001), eq. 2
     """
-    xdat = x.flatten(); ydat=y.flatten()
+    xdat = x.flatten(); ydat = y.flatten()
     xm = np.ma.mean(xdat); ym = np.ma.mean(ydat)
 
     anom = np.sqrt(np.ma.mean(((xdat-xm) - (ydat-ym))**2.))
 
     return xm-ym, anom
-
-
-
