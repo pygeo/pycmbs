@@ -9,7 +9,8 @@ gridfile ='../..//example_data/icon/r2b4_amip.nc'
 datafile = '../../example_data/icon/rms0006_atm_phy_DOM01_ML_0001.nc'
 
 #/// read data ///
-IC = Icon(datafile,gridfile,'rsns'); IC.read() #todo: read as standard for Data
+IC = Icon(datafile,gridfile,'rsns')
+IC.read()
 IC.label='shortwave net flux at surface'
 IC.unit='$W/^2$'
 
