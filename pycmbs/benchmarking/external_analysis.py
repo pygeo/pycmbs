@@ -22,6 +22,7 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 
 import os
 
+
 class ExternalAnalysis():
     def __init__(self, executable, template, tags, output_directory='./', options=''):
         """
@@ -48,7 +49,7 @@ class ExternalAnalysis():
         """
 
         if not '<INPUTFILE>' in executable:
-            raise ValueError, 'The commmand needs to include <INPUTFILE> tag'
+            raise ValueError('The commmand needs to include <INPUTFILE> tag')
 
         self.exe = executable
         self.tags = tags
@@ -67,7 +68,7 @@ class ExternalAnalysis():
 
         #--- check if template file existing
         if not os.path.exists(self.template):
-            raise ValueError, '*** Template file not existing! ' + self.template
+            raise ValueError('*** Template file not existing! %s' % self.template)
 
         #--- copy template file
         filename = self.output_directory + os.path.basename(self.template)  # target file
@@ -86,7 +87,8 @@ class ExternalAnalysis():
 
         #--- write output
         of = open(filename, 'w')
-        of.writelines(s); of.close()
+        of.writelines(s)
+        of.close()
 
         return filename
 
@@ -109,13 +111,13 @@ class ExternalAnalysis():
         if remove_extension:
             filename = os.path.splitext(filename)[0]
 
-        #/// split filename into path and 
+        #/// split filename into path and
         thedir = os.path.dirname(filename)
         thefile = os.path.basename(filename)
         curdir = os.getcwd()
 
         #/// run script
-        cmd = self.exe.replace('<INPUTFILE>', thefile)+self.options
+        cmd = self.exe.replace('<INPUTFILE>', thefile) + self.options
 
         rstatus = False
         if execute:
@@ -125,7 +127,7 @@ class ExternalAnalysis():
             r = os.system(cmd)
 
             #check status of program execution if desired
-            if statusfile != None:
+            if statusfile is not None:
                 if os.path.exists(statusfile):
                     xxxx
                 else:
