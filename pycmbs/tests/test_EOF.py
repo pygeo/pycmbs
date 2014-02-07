@@ -1,6 +1,6 @@
 from unittest import TestCase
-from pyCMBS.data import *
-from pyCMBS.diagnostic import *
+from pycmbs.data import Data
+#~ from pycmbs.diagnostic import *
 import scipy as sc
 import pylab as pl
 import numpy as np

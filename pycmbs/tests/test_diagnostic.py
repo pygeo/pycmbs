@@ -3,13 +3,15 @@ from unittest import TestCase
 __author__ = 'm300028'
 
 
-from pyCMBS.data import *
-from pyCMBS.diagnostic import *
-from pyCMBS.plots import *
+### implicit imports
+from pycmbs.data import Data
+from pycmbs.diagnostic import PatternCorrelation
+from pycmbs.plots import GlecklerPlot
 import scipy as sc
+from scipy import stats
 import pylab as pl
 import numpy as np
-from pyCMBS.region import *
+#~ from pycmbs.region import *
 ####from pyCMBS import *
 
 class TestData(TestCase):

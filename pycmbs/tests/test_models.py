@@ -1,6 +1,6 @@
-from pyCMBS.framework.models import MeanModel, Model
+from pycmbs.benchmarking.models import MeanModel, Model
 import numpy as np
-from pyCMBS.data import Data
+from pycmbs.data import Data
 import numpy.testing as npt
 
 def test_mean_model():
