@@ -10,6 +10,7 @@ from pycmbs.data import Data
 from cdo import Cdo
 import numpy as np
 
+
 def get_data_pool_directory():
     """
     get data pool directory for /pool/SEP

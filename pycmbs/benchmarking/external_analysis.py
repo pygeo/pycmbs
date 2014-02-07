@@ -23,7 +23,7 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 import os
 
 class ExternalAnalysis():
-    def __init__(self,executable,template,tags,output_directory='./',options=''):
+    def __init__(self, executable, template, tags, output_directory='./', options=''):
         """
         constructor for ExternalAnalysis class
 
@@ -50,7 +50,6 @@ class ExternalAnalysis():
         if not '<INPUTFILE>' in executable:
             raise ValueError, 'The commmand needs to include <INPUTFILE> tag'
 
-
         self.exe = executable
         self.tags = tags
         self.output_directory = output_directory
@@ -58,7 +57,6 @@ class ExternalAnalysis():
             os.makedirs(self.output_directory)
         self.template = template
         self.options = options
-
 
     def _create_script(self):
         """
@@ -72,28 +70,27 @@ class ExternalAnalysis():
             raise ValueError, '*** Template file not existing! ' + self.template
 
         #--- copy template file
-        filename = self.output_directory + os.path.basename(self.template) #target file
+        filename = self.output_directory + os.path.basename(self.template)  # target file
         if os.path.exists(filename):
             os.remove(filename)
 
         #--- replace template content
-        f = open(self.template,'r')
+        f = open(self.template, 'r')
         s = []
         for l in f.readlines():
             d = l
-            for tag in self.tags: #replace all tags
-                d = d.replace(tag['tag'],tag['value'])
+            for tag in self.tags:  # replace all tags
+                d = d.replace(tag['tag'], tag['value'])
             s.append(d)
         f.close()
 
         #--- write output
-        of = open(filename,'w')
+        of = open(filename, 'w')
         of.writelines(s); of.close()
 
         return filename
 
-
-    def run(self,execute=True,remove_extension=False,statusfile = None):
+    def run(self, execute=True, remove_extension=False, statusfile=None):
         """
         run external program
         the execution of the program will be done in the directory where the modified script is located
@@ -111,33 +108,32 @@ class ExternalAnalysis():
         filename = self._create_script()
         if remove_extension:
             filename = os.path.splitext(filename)[0]
-            
+
         #/// split filename into path and 
         thedir = os.path.dirname(filename)
         thefile = os.path.basename(filename)
         curdir = os.getcwd()
 
         #/// run script
-        cmd = self.exe.replace('<INPUTFILE>',thefile)+self.options
-        
+        cmd = self.exe.replace('<INPUTFILE>', thefile)+self.options
+
         rstatus = False
         if execute:
-            
+
             #change to working directory and run script ...
-            os.chdir(thedir)  #change to directory where script is located
+            os.chdir(thedir)  # change to directory where script is located
             r = os.system(cmd)
-            
+
             #check status of program execution if desired
             if statusfile != None:
                 if os.path.exists(statusfile):
                     xxxx
                 else:
-                    rstatus=False
+                    rstatus = False
             else:
-                rstatus = True #no status file is used; baseline is that it is assumed that everything is o.k.
-                    
-            
-            os.chdir(curdir) #go back
+                rstatus = True  # no status file is used; baseline is that it is assumed that everything is o.k.
+
+            os.chdir(curdir)  # go back
         else:
             print cmd
 
@@ -150,4 +146,3 @@ class ExternalAnalysis():
 #~
 #~ E=ExternalAnalysis('matlab -r <INPUTFILE>',template,tags,output_directory='./tmp/')
 #~ E.run()
-
