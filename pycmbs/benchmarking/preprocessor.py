@@ -91,7 +91,11 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         fstr = self._filelist(ens_files)
 
         # output file
-        ofile = self.output_dir + os.path.basename(self._get_file_wildcard()) + str(n) + '_mergetime.nc'
+        ofile = self.output_dir + os.path.basename(self._get_file_wildcard()) + str(n) + '_mergetime'
+        if start_time is not None:
+            ofile += '_' + str(start_time)[0:10] + '_' + str(stop_time)[0:10]
+        ofile += '.nc'
+
         self.mergetime_files.append(ofile)
 
         # cdo
@@ -190,6 +194,11 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
 
         # ensemble mean calculation
         ofile = self.output_dir + self.outfile
+        ofile = os.path.splitext(ofile)[0]
+        if start_time is not None:
+            ofile += '_' + str(start_time)[0:10] + '_' + str(stop_time)[0:10]
+        ofile += '.nc'
+        self.outfile = ofile
         cmd = 'cdo -f nc ensmean ' + fstr + ' ' + ofile
         if os.path.exists(ofile):
             if delete:
@@ -197,22 +206,22 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
                 os.system(cmd)
             else:
                 print('File already existing ... no processing is done')
-                return
         else:
             os.system(cmd)
 
         # ensemble standard deviation
-        ofile = self.output_dir + self.outfile.replace('_ensmean', '_ensstd')
-        cmd = 'cdo -f nc ensstd ' + fstr + ' ' + ofile
-        if os.path.exists(ofile):
+        ofilestd = self.output_dir + self.outfile.replace('_ensmean', '_ensstd')
+        cmd = 'cdo -f nc ensstd ' + fstr + ' ' + ofilestd
+        if os.path.exists(ofilestd):
             if delete:
-                os.remove(ofile)
+                os.remove(ofilestd)
                 os.system(cmd)
             else:
                 print('File already existing ... no processing is done')
-                return
         else:
             os.system(cmd)
+
+        return ofile
 
 """
 import datetime as dt

@@ -166,7 +166,7 @@ class MedianModel(Model):
                     theD.label = 'Mean-model'
                     self.variables.update({k: theD})
                     nn = self.N[k]
-                    self.N.update({k: nn+1})
+                    self.N.update({k: nn + 1})
                 del hlp1, hlp2
 
 
@@ -236,7 +236,7 @@ class MeanModel(Model):
                     theD.label = 'Mean-model'
                     self.variables.update({k: theD})
                     nn = self.N[k]
-                    self.N.update({k: nn+1})
+                    self.N.update({k: nn + 1})
                 del hlp1, hlp2
 
         self.n += 1 #specifies only the number of models that were used in general, does NOT specify if the data is valid!
@@ -254,7 +254,7 @@ class MeanModel(Model):
                 pass
             else:
                 if self.variables[k] is not None:
-                    self.variables[k].mulc(1./float(self.N[k]), copy=False)  # weight with number of models
+                    self.variables[k].mulc(1. / float(self.N[k]), copy=False)  # weight with number of models
         self.ensmean_called = True
 
 #------------------------------------------------------------------------------
@@ -342,7 +342,7 @@ class CMIP5Data(Model):
                         (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
             elif self.type == 'CMIP3':
                 filename1 = ("%s/%s_%s_%s_%s.%s" %
-                        (custom_path, self.experiment, self.model, varname,  model_suffix, file_format))
+                        (custom_path, self.experiment, self.model, varname, model_suffix, file_format))
             else:
                 print self.type
                 raise ValueError('Can not generate filename: invalid model type!')
@@ -411,12 +411,14 @@ class CMIP5Data(Model):
             thetime_cylce = 4
         else:
             print interval
-            raise ValueError, 'Unsupported interval!'
+            raise ValueError('Unsupported interval!')
         mdata = Data(mdata_clim_file, varname, read=True, label=self.model, unit=units, lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel, time_cycle=thetime_cylce)
         mdata_std = Data(mdata_clim_std_file, varname, read=True, label=self.model + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, level=thelevel, time_cycle=thetime_cylce)
-        mdata.std = mdata_std.data.copy(); del mdata_std
+        mdata.std = mdata_std.data.copy()
+        del mdata_std
         mdata_N = Data(mdata_N_file, varname, read=True, label=self.model + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel)
-        mdata.n = mdata_N.data.copy(); del mdata_N
+        mdata.n = mdata_N.data.copy()
+        del mdata_N
 
         #ensure that climatology always starts with January, therefore set date and then sort
         mdata.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
@@ -488,7 +490,7 @@ class CMIP5Data(Model):
         """
 
         if interval != 'season':
-            raise ValueError, 'Other data than seasonal not supported at the moment for CMIP5 data and temperature!'
+            raise ValueError('Other data than seasonal not supported at the moment for CMIP5 data and temperature!')
 
         #original data
         filename1 = self.data_dir + 'tas/' + self.model + '/' + 'tas_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -518,13 +520,15 @@ class CMIP5Data(Model):
             raise ValueError, 'Timecycle of 12 expected here!'
 
         tasmean = tasall.fldmean()
-        retval = (tasall.time, tasmean, tasall); del tasall
+        retval = (tasall.time, tasmean, tasall)
+        del tasall
 
         tas.data = np.ma.array(tas.data, mask=tas.data < 0.)
 
         return tas, retval
 
 #-----------------------------------------------------------------------
+
     def get_surface_shortwave_radiation_down(self, interval='season', force_calc=False, **kwargs):
         """
         return data object of
@@ -538,9 +542,14 @@ class CMIP5Data(Model):
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsds/' + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self.data_dir + 'rsds/' + self.experiment + '/raw/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-            if not os.path.exists(filename1):
-                filename1 = self._preprocess_ensembles(filename1, delete=force_calc)  # do preprocessing of ensemble means and get name of resulting file
+            # perform preprocesing of CMIP5 data based on ensemble mean files
+            data_dir = self.data_dir
+            if data_dir[-1] != os.sep:
+                data_dir += os.sep
+            data_dir = data_dir + 'rsds' + os.sep + self.experiment + os.sep + 'raw'
+            outfile = get_temporary_directory() + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            C5PP = preprocessor.CMIP5Preprocessor(data_dir, outfile, 'rsds', self.model, self.experiment)
+            filename1 = C5PP.ensemble_mean(delete=False, start_time=self.start_time, stop_time=self.stop_time)
         else:
             raise ValueError('Unknown type! not supported here!')
 
@@ -639,9 +648,14 @@ class CMIP5Data(Model):
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsus/' + self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self.data_dir + 'rsus/' + self.experiment + '/raw/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-            if not os.path.exists(filename1):
-                filename1 = self._preprocess_ensembles(filename1, delete=force_calc)  # do preprocessing of ensemble means and get name of resulting file
+            # perform preprocesing of CMIP5 data based on ensemble mean files
+            data_dir = self.data_dir
+            if data_dir[-1] != os.sep:
+                data_dir += os.sep
+            data_dir = data_dir + 'rsus' + os.sep + self.experiment + os.sep + 'raw'
+            outfile = get_temporary_directory() + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            C5PP = preprocessor.CMIP5Preprocessor(data_dir, outfile, 'rsus', self.model, self.experiment)
+            filename1 = C5PP.ensemble_mean(delete=False, start_time=self.start_time, stop_time=self.stop_time)
         else:
             raise ValueError('Unknown type! not supported here!')
 
@@ -938,7 +952,8 @@ class JSBACH_BOT(Model):
 
         v = 'var176'
 
-        y1 = '1979-01-01'; y2 = '2006-12-31'
+        y1 = '1979-01-01'
+        y2 = '2006-12-31'
         rawfilename = self.data_dir + 'data/model/' + self.experiment + '_echam6_BOT_mm_1979-2006_srads.nc'
 
         if not os.path.exists(rawfilename):
@@ -947,7 +962,8 @@ class JSBACH_BOT(Model):
         #--- read data
         cdo = pyCDO(rawfilename, y1, y2)
         if interval == 'season':
-            seasfile = cdo.seasmean(); del cdo
+            seasfile = cdo.seasmean()
+            del cdo
             print 'seasfile: ', seasfile
             cdo = pyCDO(seasfile, y1, y2)
             filename = cdo.yseasmean()
@@ -1333,9 +1349,11 @@ class JSBACH_RAW2(Model):
             raise ValueError, 'Unsupported interval!'
         mdata = Data(mdata_clim_file, varname, read=True, label=self.model, unit=units, lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel, time_cycle=thetime_cylce)
         mdata_std = Data(mdata_clim_std_file, varname, read=True, label=self.model + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, level=thelevel, time_cycle=thetime_cylce)
-        mdata.std = mdata_std.data.copy(); del mdata_std
+        mdata.std = mdata_std.data.copy()
+        del mdata_std
         mdata_N = Data(mdata_N_file, varname, read=True, label=self.model + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel)
-        mdata.n = mdata_N.data.copy(); del mdata_N
+        mdata.n = mdata_N.data.copy()
+        del mdata_N
 
         #ensure that climatology always starts with J  anuary, therefore set date and then sort
         mdata.adjust_time(year=1700, day=15) #set arbitrary time for climatology
@@ -1407,7 +1425,8 @@ class JSBACH_RAW(Model):
 
         v = 'temp2'
 
-        y1 = '1979-01-01'; y2 = '2010-12-31'
+        y1 = '1979-01-01'
+        y2 = '2010-12-31'
         rawfilename = self.data_dir + self.name + '/ymonmean_mm_temp_' + self.experiment + '.nc'
 
         if not os.path.exists(rawfilename):
@@ -1472,7 +1491,8 @@ class JSBACH_RAW(Model):
         v = 'swdown_acc'
 
         #y1 = '1979-01-01'; y2 = '2010-12-31'
-        y1 = '1980-01-01'; y2 = '2010-12-31'
+        y1 = '1980-01-01'
+        y2 = '2010-12-31'
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
         #rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
 
@@ -1510,7 +1530,8 @@ class JSBACH_RAW(Model):
         v = 'swdown_reflect_acc'
 
         #y1 = '1979-01-01'; y2 = '2010-12-31'
-        y1 = '1980-01-01'; y2 = '2010-12-31'
+        y1 = '1980-01-01'
+        y2 = '2010-12-31'
         rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
         #rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
 
@@ -1548,7 +1569,8 @@ class JSBACH_RAW(Model):
 
         v = 'precip_acc'
 
-        y1 = '1979-01-01'; y2 = '2010-12-31'
+        y1 = '1979-01-01'
+        y2 = '2010-12-31'
         #rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
         rawfilename = self.data_dir + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
 
@@ -1580,19 +1602,19 @@ class JSBACH_RAW(Model):
         v = 'var167'
         y1 = str(self.start_time)[0:10]
         y2 = str(self.stop_time)[0:10]
-        rawfilename = self.data_dir + 'data/model/'+self.experiment + '_' + y1[0:4] + '-' + y2[0:4] + '.nc'
+        rawfilename = self.data_dir + 'data/model/' + self.experiment + '_' + y1[0:4] + '-' + y2[0:4] + '.nc'
         times_in_file = int(''.join(cdo.ntime(input=rawfilename)))
 
         if interval == 'season':
             if times_in_file != 4:
                 tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
-                cdo.yseasmean(options='-f nc -b 32 -r ', input='-selvar,'+v+' '+rawfilename, output=tmp_file[:-3] + '_yseasmean.nc')
+                cdo.yseasmean(options='-f nc -b 32 -r ', input='-selvar,' + v + ' ' + rawfilename, output=tmp_file[:-3] + '_yseasmean.nc')
                 rawfilename = tmp_file[:-3] + '_yseasmean.nc'
 
         if interval == 'monthly':
             if times_in_file != 12:
                 tmp_file = get_temporary_directory() + os.path.basename(rawfilename)
-                cdo.ymonmean(options='-f nc -b 32 -r ', input='-selvar,'+v+' '+rawfilename, output=tmp_file[:-3] + '_ymonmean.nc')
+                cdo.ymonmean(options = '-f nc -b 32 -r ', input='-selvar,' + v + ' ' + rawfilename, output=tmp_file[:-3] + '_ymonmean.nc')
                 rawfilename = tmp_file[:-3] + '_ymonmean.nc'
 
         if not os.path.exists(rawfilename):
@@ -1633,10 +1655,10 @@ class CMIP3Data(CMIP5Data):
         """
         super(CMIP3Data, self).__init__(None, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 
-        self.model = model; self.experiment = experiment
-        self.data_dir = data_dir; self.shift_lon = shift_lon
+        self.model = model
+        self.experiment = experiment
+        self.data_dir = data_dir
+        self.shift_lon = shift_lon
         self.type = 'CMIP3'
 
         self._unique_name = self._get_unique_name()
-
-
