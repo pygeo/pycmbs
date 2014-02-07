@@ -288,8 +288,8 @@ class SingleMap(MapPlotGeneric):
         unit = self.x._get_unit()
 
         self.pax.set_title(title + '\n', size=fontsize)
-        self.pax.set_title(unit, loc='right', size=fontsize-2)
-        self.pax.set_title(stat, loc='left', size=fontsize-2)
+        self.pax.set_title(unit, loc='right', size=fontsize - 2)
+        self.pax.set_title(stat, loc='left', size=fontsize - 2)
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
