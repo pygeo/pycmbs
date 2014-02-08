@@ -29,7 +29,7 @@ Code clean up and completion
 
 ### Prio 2
 
-* [AL,MI] PEP8 compliance of code
+* [AL,MI] :-) PEP8 compliance of code
 * [AL,MI] consistency of docstrings
 
 
