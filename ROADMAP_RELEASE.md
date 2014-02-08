@@ -20,6 +20,10 @@ Code clean up and completion
 * unittests for large parts of the code (at least as dummy tests) [MI]
 * objective of tests: avoid that there are still too much not working code
   parts because of missing import statements (not everything covered yet by tests)
+* put example data as TARBALL somewhere for download
+ * data required for testing
+ * data required for examples (note that this can also be automatically
+   downloaded)
 
 ### Prio 2
 
