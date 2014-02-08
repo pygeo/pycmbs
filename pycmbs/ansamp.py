@@ -51,19 +51,19 @@ def twoway_interaction(groups, format="html"):
     vr = 0.0  # variation between rows
     GT = 0
     for i in range(a):
-       vsx = 0.0
-       vrx = 0.0
-       for j in range(c):
-         vsx = sum(groups[i][j])
-         groupsums[j] += vsx
-         print "debug vsx", vsx
-         vrx += vsx
-         vs += vsx * vsx
-         for k in range(b):
-            x = groups[i][j][k]
-            v += x * x
-            GT += x
-       vr += vrx * vrx
+        vsx = 0.0
+        vrx = 0.0
+        for j in range(c):
+            vsx = sum(groups[i][j])
+            groupsums[j] += vsx
+            print "debug vsx", vsx
+            vrx += vsx
+            vs += vsx * vsx
+            for k in range(b):
+                x = groups[i][j][k]
+                v += x * x
+                GT += x
+        vr += vrx * vrx
 
     print "groupsums=", groupsums, vs
     print 'Total variation: ', v
@@ -98,7 +98,7 @@ def twoway_interaction(groups, format="html"):
     pvali = 1.0 - stats.f.cdf(Fi, dfvi, dfve)
 
     if format == "html":
-       output = """
+        output = """
     <table border="1">
     <tr><th>Variation  </th><th>Sum of Squares</th><th>  df</th><th>  Mean Sum of Squares</th><th>   F-value</th><th> p-value</th></tr>
     r><td>Rows(treatments) </td><td>%f</td><td>    %d</td><td>     %f</td> <td> %f</td> <td>%f</td></tr>
@@ -109,11 +109,11 @@ def twoway_interaction(groups, format="html"):
     <tr><td>Totals</td><td>%f.2 </td><td>%d </td></tr>
     </table>
     """ % (vr, dfvr, mvr, mvr / mve, pvalr,
-           vc, dfvc, mvc, mvc / mve, pvalc,
-           vi, dfvi, mvi, mvi / mve, pvali,
-           vs, dfvs,
-           ve, dfve, mve,
-           v, dfv)
+            vc, dfvc, mvc, mvc / mve, pvalc,
+            vi, dfvi, mvi, mvi / mve, pvali,
+            vs, dfvs,
+            ve, dfve, mve,
+            v, dfv)
     else:
         output = [[vr, dfvr, mvr, mvr / mve, pvalr],
          [vc, dfvc, mvc, mvc / mve, pvalc],

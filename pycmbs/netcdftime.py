@@ -314,7 +314,7 @@ Virginia. p. 63
         if year % 100 == 0 and year % 400 != 0:
             leap = 0
     if leap and month > 2:
-       dayofyr = dayofyr + leap
+        dayofyr = dayofyr + leap
 
     # Convert fractions of a day to time
     (dfrac, days) = math.modf(day / 1.0)
@@ -444,7 +444,7 @@ Julian Day is a fractional day with a resolution of 1 second.
     else:
         month = E - 13
     if month > 2:
-       dayofyr = dayofyr + 1
+        dayofyr = dayofyr + 1
 
     if month > 2:
         year = C - 4716
@@ -888,16 +888,16 @@ _illegal_s = re.compile(r"((^|[^%])(%%)*%s)")
 
 
 def _findall(text, substr):
-     # Also finds overlaps
-     sites = []
-     i = 0
-     while 1:
-         j = text.find(substr, i)
-         if j == -1:
-             break
-         sites.append(j)
-         i = j + 1
-     return sites
+    # Also finds overlaps
+    sites = []
+    i = 0
+    while 1:
+        j = text.find(substr, i)
+        if j == -1:
+            break
+        sites.append(j)
+        i = j + 1
+    return sites
 
 # Every 28 years the calendar repeats, except through century leap
 # years where it's 6 years.  But only if you're using the Gregorian
@@ -1047,7 +1047,7 @@ def _check_index(indices, times, nctime, calendar, select):
     """
     N = nctime.shape[0]
     if (indices < 0).any():
-       return False
+        return False
 
     if (indices >= N).any():
         return False

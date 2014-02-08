@@ -2707,17 +2707,17 @@ class koeppen(object):
 
 #-----------------------------------------------------------------------------------------------------------------------
     def koeppen_cmap(self):
-       """
-       Create a colormap with 14 discrete colors and register it
-       """
-       # define individual colors as hex values
-       cpool = ['#7f0000', '#ff0000', '#ff4c4c', '#ff9999', '#ffa500',
-                '#ffff4c', '#009900', '#00ff00', '#99ff99', '#990099',
-                '#e500e5', '#ff66ff', '#0000ff', '#9999ff', '#000000']
-       cmap3 = col.ListedColormap(cpool[0:14], 'koeppen')
+        """
+        Create a colormap with 14 discrete colors and register it
+        """
+        # define individual colors as hex values
+        cpool = ['#7f0000', '#ff0000', '#ff4c4c', '#ff9999', '#ffa500',
+                 '#ffff4c', '#009900', '#00ff00', '#99ff99', '#990099',
+                 '#e500e5', '#ff66ff', '#0000ff', '#9999ff', '#000000']
+        cmap3 = col.ListedColormap(cpool[0:14], 'koeppen')
 #       plt.cm.register_cmap(cmap=cmap3,name='koeppen',lut=15)
-       plt.cm.register_cmap(cmap=cmap3, name='koeppen')
-       return cmap3
+        plt.cm.register_cmap(cmap=cmap3, name='koeppen')
+        return cmap3
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -2725,127 +2725,127 @@ class koeppen(object):
         clim = -999
 
         if tmin > 18:
-          if pmin > 60:                 # A(B)
-            clim = 1                    # Af
-          else:
-            if pmin > (0.04 * (2500 - psum)):      # A(B)-msw
-              clim = 2                  # Am
+            if pmin > 60:                 # A(B)
+                clim = 1                    # Af
             else:
-              if (pminhs < 40) and (pminhs < (pmaxhw / 3)):   # A(B)-sw
-                if (psum / 10) < (2 * tavg):          # A(B)-s
-                  if (psum / 10) < (tavg):            # B
-                    clim = 6                    # BW
-                  else:
-                    clim = 5                    # BS
+                if pmin > (0.04 * (2500 - psum)):      # A(B)-msw
+                    clim = 2                  # Am
                 else:
-                  clim = 3                      # As
-              else:
-                if (psum / 10) < (2 * (tavg + 14)):       # A(B)-w
-                  if (psum / 10) < (tavg + 14):       # B
-                    clim = 6                    # BW
-                  else:
-                    clim = 5                    # BS
-                else:
-                  clim = 4                      # Aw
+                    if (pminhs < 40) and (pminhs < (pmaxhw / 3)):   # A(B)-sw
+                        if (psum / 10) < (2 * tavg):          # A(B)-s
+                            if (psum / 10) < (tavg):            # B
+                                clim = 6                    # BW
+                            else:
+                                clim = 5                    # BS
+                        else:
+                            clim = 3                      # As
+                    else:
+                        if (psum / 10) < (2 * (tavg + 14)):       # A(B)-w
+                            if (psum / 10) < (tavg + 14):       # B
+                                clim = 6                    # BW
+                            else:
+                                clim = 5                    # BS
+                        else:
+                            clim = 4                      # Aw
         else:
-          if (pminhs < 40) and (pminhs < (pmaxhw / 3)):   # CDE(B)
-            if (psum / 10) < (2 * tavg):          # CDE(B)-s
-              if (psum / 10) < (tavg):            # B
-                clim = 6                    # BW
-              else:
-                clim = 5                    # BS
+            if (pminhs < 40) and (pminhs < (pmaxhw / 3)):   # CDE(B)
+                if (psum / 10) < (2 * tavg):          # CDE(B)-s
+                    if (psum / 10) < (tavg):            # B
+                        clim = 6                    # BW
+                    else:
+                        clim = 5                    # BS
+                else:
+                    if tmax < 10:                # CDE-s
+                        if tmax < 0:                # E
+                            clim = 14                 # EF
+                        else:
+                            clim = 13                 # ET
+                    else:
+                        if (tmin > -3):             # CD-s
+                            clim = 8                  # Cs
+                        else:
+                            clim = 11                 # Ds
             else:
-              if tmax < 10:                # CDE-s
-                if tmax < 0:                # E
-                  clim = 14                 # EF
-                else:
-                  clim = 13                 # ET
-              else:
-                if (tmin > -3):             # CD-s
-                  clim = 8                  # Cs
-                else:
-                  clim = 11                 # Ds
-          else:
-            if pminhw < (pmaxhs / 10):            # CDE(B)-fw
-              if (psum / 10) < (2 * (tavg + 14)):     # CDE(B)-w
-                if (psum / 10) < (tavg + 14):         # B
-                  clim = 6                  # BW
-                else:
-                  clim = 5                  # BS
-              else:
-                if tmax < 10:               # CDE-w
+                if pminhw < (pmaxhs / 10):            # CDE(B)-fw
+                    if (psum / 10) < (2 * (tavg + 14)):     # CDE(B)-w
+                        if (psum / 10) < (tavg + 14):         # B
+                            clim = 6                  # BW
+                        else:
+                            clim = 5                  # BS
+                    else:
+                        if tmax < 10:               # CDE-w
 
-                  if (tmax < 0):                # E
-                    clim = 14               # EF
-                  else:
-                     clim = 13              # ET
+                            if (tmax < 0):                # E
+                                clim = 14               # EF
+                            else:
+                                clim = 13              # ET
+                        else:
+                            if (tmin > -3):               # CD-w
+                                clim = 9                # Cw
+                            else:
+                                clim = 12               # Dw
                 else:
-                  if (tmin > -3):               # CD-w
-                    clim = 9                # Cw
-                  else:
-                    clim = 12               # Dw
-            else:
-              if (psum / 10) < (2 * (tavg + 7)):      # CDE(B)-f
-                if (psum / 10) < (tavg + 7):          # B
-                  clim = 6                  # BW
-                else:
-                  clim = 5                  # BS
-              else:
-                if (tmax < 10):             # CDE-f
-                  if (tmax < 0):                # E
-                    clim = 14               # EF
-                  else:
-                     clim = 13              # ET
-                else:
-                  if (tmin > -3):               # CD-f
-                    clim = 7                # Cf
-                  else:
-                     clim = 10              # Df
+                    if (psum / 10) < (2 * (tavg + 7)):      # CDE(B)-f
+                        if (psum / 10) < (tavg + 7):          # B
+                            clim = 6                  # BW
+                        else:
+                            clim = 5                  # BS
+                    else:
+                        if (tmax < 10):             # CDE-f
+                            if (tmax < 0):                # E
+                                clim = 14               # EF
+                            else:
+                                clim = 13              # ET
+                        else:
+                            if (tmin > -3):               # CD-f
+                                clim = 7                # Cf
+                            else:
+                                clim = 10              # Df
         return clim
 
 #-----------------------------------------------------------------------------------------------------------------------
 
     def _check_resolution(self):
-     """
-          This routine just checks if all three array have a equal number of ny and nx values
-     """
-     nt_t, ny_t, nx_t = self.temp.data.data.shape
-     nt_p, ny_p, nx_p = self.precip.data.data.shape
-     ny_l, nx_l = self.lsm.data.data.shape
+        """
+             This routine just checks if all three array have a equal number of ny and nx values
+        """
+        nt_t, ny_t, nx_t = self.temp.data.data.shape
+        nt_p, ny_p, nx_p = self.precip.data.data.shape
+        ny_l, nx_l = self.lsm.data.data.shape
 
-     if (ny_t != ny_p) or (ny_t != ny_l):
-       sys.exit('ERROR: The resolution ot the three arrays differ in \
+        if (ny_t != ny_p) or (ny_t != ny_l):
+            sys.exit('ERROR: The resolution ot the three arrays differ in \
        Y-dimension: \n' + str(ny_t) + "(temp)  " + str(ny_p)
-       + "(precip) " + str(ny_l) + "(lsm) ")
-       return False
+            + "(precip) " + str(ny_l) + "(lsm) ")
+            return False
 
-     if (nx_t != nx_p) or (nx_t != nx_l):
-       sys.exit('ERROR: The resolution ot the three arrays differ in \
+        if (nx_t != nx_p) or (nx_t != nx_l):
+            sys.exit('ERROR: The resolution ot the three arrays differ in \
        X-dimension: \n' + str(nx_t) + "(temp)  " + str(nx_p)
-       + "(precip) " + str(nx_l) + "(lsm) ")
-       return False
+            + "(precip) " + str(nx_l) + "(lsm) ")
+            return False
 
-     return True
+        return True
 
 #-----------------------------------------------------------------------------------------------------------------------
 
     def _check_units(self):
-     """
-          This routine just checks if all three array have a equal number of ny and nx values
-     """
-     if self.precip.unit != "kg/m^2s":
-       sys.exit('ERROR: The unit of the precip is not [kg/m^2s] its set to [' + self.precip.unit + "]")
-       return False
+        """
+             This routine just checks if all three array have a equal number of ny and nx values
+        """
+        if self.precip.unit != "kg/m^2s":
+            sys.exit('ERROR: The unit of the precip is not [kg/m^2s] its set to [' + self.precip.unit + "]")
+            return False
 
-     if self.temp.unit != "K":
-       sys.exit('ERROR: The unit of the temperature is not [K] its set to [' + self.temp.unit + "]")
-       return False
+        if self.temp.unit != "K":
+            sys.exit('ERROR: The unit of the temperature is not [K] its set to [' + self.temp.unit + "]")
+            return False
 
-     if self.lsm.unit != "fractional":
-       sys.exit('ERROR: The unit of the temperature is not [fractional] its set to [' + self.temp.unit + "]")
-       return False
+        if self.lsm.unit != "fractional":
+            sys.exit('ERROR: The unit of the temperature is not [fractional] its set to [' + self.temp.unit + "]")
+            return False
 
-     return True
+        return True
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -2871,12 +2871,12 @@ class koeppen(object):
 
         #/// check consistency ///
         if temp is None:
-          sys.exit('No temperature given')
+            sys.exit('No temperature given')
 
         if precip is None:
-          sys.exit('No precipitation given')
+            sys.exit('No precipitation given')
         if temp is None:
-          sys.exit('No land-sea-mask given')
+            sys.exit('No land-sea-mask given')
 
         #/// set values of class ///
         self.temp = temp
@@ -2884,10 +2884,10 @@ class koeppen(object):
         self.lsm = lsm
 
         if not self._check_resolution():
-          sys.exit('ERROR:The three array differe in the resolution')
+            sys.exit('ERROR:The three array differe in the resolution')
 
         if not self._check_units():
-          sys.exit('ERROR:The units of one value is wrong')
+            sys.exit('ERROR:The units of one value is wrong')
 
         # Create new koeppen Color map
         self.koeppen_cmap()
@@ -2935,17 +2935,17 @@ class koeppen(object):
         self.Clim.units = "climate type"
 
         for lat in range(0, nlat):
-          for lon in range(0, nlon):
-            psum = Psum.data.data[lat][lon]
-            pmin = Pmin[lat][lon]
-            pminhs = PminHS[lat][lon]
-            pminhw = PminHW[lat][lon]
-            pmaxhs = PmaxHS[lat][lon]
-            pmaxhw = PmaxHW[lat][lon]
-            tavg = Tavg[lat][lon]
-            tmin = Tmin[lat][lon]
-            tmax = Tmax[lat][lon]
-            self.Clim.data.data[lat][lon] = self.set_clim(psum, pmin, pminhs, pminhw, pmaxhs, pmaxhw, tavg, tmin, tmax)
+            for lon in range(0, nlon):
+                psum = Psum.data.data[lat][lon]
+                pmin = Pmin[lat][lon]
+                pminhs = PminHS[lat][lon]
+                pminhw = PminHW[lat][lon]
+                pmaxhs = PmaxHS[lat][lon]
+                pmaxhw = PmaxHW[lat][lon]
+                tavg = Tavg[lat][lon]
+                tmin = Tmin[lat][lon]
+                tmax = Tmax[lat][lon]
+                self.Clim.data.data[lat][lon] = self.set_clim(psum, pmin, pminhs, pminhw, pmaxhs, pmaxhw, tavg, tmin, tmax)
 
         self.Clim.data.mask[less(self.lsm.data, 0.5)] = True
 

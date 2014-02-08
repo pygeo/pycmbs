@@ -87,59 +87,59 @@ def rotate_ticks(ax, angle):
 #-----------------------------------------------------------------------
 
 class CorrelationAnalysis(object):
+    """
+    perform correlation analysis between two datasets
+    and plot results
+    """
+
+    def __init__(self, X, Y, mask=None, ax=None):
         """
-        perform correlation analysis between two datasets
-        and plot results
+        constructor of class
+
+        @param X: x dataset (either [time,sample] or [time,sample,sample]
+        @type X: numpy array
+
+        @param Y: y dataset (either [time,sample] or [time,sample,sample]
+        @type Y: numpy array
+
+        @param mask: mask to be applied to the data
+        @type mask: numpy array(:,:) or (:)
+
+        @param ax: axis to plot results to; new figure will be generated if ax==None
+        @type ax: matplotlib axis
         """
 
-        def __init__(self, X, Y, mask=None, ax=None):
-            """
-            constructor of class
+        self.x = X
+        self.y = Y
+        self.mask = mask
 
-            @param X: x dataset (either [time,sample] or [time,sample,sample]
-            @type X: numpy array
-
-            @param Y: y dataset (either [time,sample] or [time,sample,sample]
-            @type Y: numpy array
-
-            @param mask: mask to be applied to the data
-            @type mask: numpy array(:,:) or (:)
-
-            @param ax: axis to plot results to; new figure will be generated if ax==None
-            @type ax: matplotlib axis
-            """
-
-            self.x = X
-            self.y = Y
-            self.mask = mask
-
-            if ax is None:
-                f = plt.figure()
-                self.ax = f.add_subplot(111)
-            else:
-                self.ax = ax
+        if ax is None:
+            f = plt.figure()
+            self.ax = f.add_subplot(111)
+        else:
+            self.ax = ax
 
 #-----------------------------------------------------------------------
 
-        def do_analysis(self):
-            """
-            perform correlation analysisglobal
+    def do_analysis(self):
+        """
+        perform correlation analysisglobal
 
-            @todo: implement area weighting
-            @todo: implement regional (condition) statisitcs based on a mask
-            @todo: return value
-            """
+        @todo: implement area weighting
+        @todo: implement regional (condition) statisitcs based on a mask
+        @todo: return value
+        """
 
-            #--- calculate diagnostics
-            D = Diagnostic(self.x, y=self.y)
-            D._mat2vec(mask=self.mask)  # here is the point fo regional statistics
-            rmse = D.get_rmse_value()
-            r = D.get_correlation_value()
-            n = D. get_n()
+        #--- calculate diagnostics
+        D = Diagnostic(self.x, y=self.y)
+        D._mat2vec(mask=self.mask)  # here is the point fo regional statistics
+        rmse = D.get_rmse_value()
+        r = D.get_correlation_value()
+        n = D. get_n()
 
-            #print 'RMSE: ', rmse
-            #print 'R   : ', r
-            #print 'N   : ', n
+        #print 'RMSE: ', rmse
+        #print 'R   : ', r
+        #print 'N   : ', n
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -520,7 +520,7 @@ class ScatterPlot(object):
 
     def _change_ticklabels(self):
         for tick in self.ax.xaxis.get_major_ticks():
-                tick.label.set_fontsize(self.ticksize)
+            tick.label.set_fontsize(self.ticksize)
         for tick in self.ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
 
@@ -2767,9 +2767,9 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
                         lat = x.lat
                         Z = xm
                 elif plot_method == 'scatter':
-                        lon = x.lon
-                        lat = x.lat
-                        Z = xm
+                    lon = x.lon
+                    lat = x.lat
+                    Z = xm
                 else:
                     raise ValueError('Invalid option')
 
@@ -2881,7 +2881,7 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         #plot actual colorbar
         cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks, orientation=colorbar_orientation)
         if cticklabels is not None:
-          cb.set_ticklabels(cticklabels)
+            cb.set_ticklabels(cticklabels)
     else:
         cax.set_xticks([])
         cax.set_yticks([])
