@@ -5,6 +5,7 @@ github move
 -----------
 
 * create github organization account [AL]
+ * Done: https://github.com/pygeo/pycmbs.git
 * familiarize with github tools for code deployment [MI]
 * move pycmbs from assembla to github [AL,MI]
 
