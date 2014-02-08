@@ -302,7 +302,7 @@ def main():
                                     'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
                                     'level': 0
                                    },
-                              },
+                                        },
 
                   'seaice_extent': {'CMIP5':
                                    {
