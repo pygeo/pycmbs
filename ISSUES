@@ -1,7 +1,0 @@
-o implement an automatic consistency check that avoids that inconsistent masks are used when reading model data and observational data; example: EVAP for land and ocean from HOAPS and LandFLux; when reading the model data, only a single mask can be applied. Better would be to make no masking at all when reading the model data, but only when making analysis. However, how to deal then with the global mean plots???
-
-Major next steps
-o improved map_plot (movie, more pythonic way of plotting, different backends: cartopy, basemap, NGL)
-o regional analysis
-o exclusive usage of generic_analysis --> make this also more flexible
-o more flexible model data reader

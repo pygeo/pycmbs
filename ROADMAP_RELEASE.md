@@ -41,7 +41,7 @@ Documentation
 * expert installation descritpion for developers [AL]; MI to review
 * test installation in clean environment (virtualenv??)
 * review general README [AL], MI to review
-* review LICENSE [AL]
+* :-) review LICENSE [AL]
 * put a copyright notice in every file. Perhaps git could do this
   automatically?? [MI to check]
 
