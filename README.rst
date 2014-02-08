@@ -1,8 +1,7 @@
-================================================
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
 
-Version: 0.1.4
+Version: 1.0
 
 Author: Alexander Loew
 
@@ -10,62 +9,59 @@ contact: Max-Planck-Institute for Meteorology
          eMail: alexander.loew@mpimet.mpg.de
 
 
-.. contents::
-
 What is pyCMBS?
 ---------------
 
-pyCMBS provides a suite of tools to process, analyze, visualize geoscientific data and climate model output.
+pyCMBS has two major objectives:
 
-It has been explicitly designed to facilitate the becnhmarking of scientific model output against each other or against observational reference data. It is in particular useful for analyzing in an efficient way output from climate model simulations.
+A) pyCMBS provides a suite of tools to process, analyze, visualize geoscientific data and climate model output.
+
+B) It has been explicitly designed to facilitate the becnhmarking of scientific model output against each other or against observational reference data. It is in particular useful for analyzing in an efficient way output from climate model simulations.
 
 
 Installation
 ------------
 
-pyCMBS can be obtained from various sources:
+pyCMBS can be installed in various ways:
 
-1. source code from the project website as tarball
-2. source code from development repository
+1. stable versions source code from the project website as tarball: https://code.zmaw.de/projects/pycmbs/files
+2. developer versions: https://github.com/pygeo/pycmbs
 3. in future: installation using pip
 
-The installation is easy, but not yet automatized. Details on the installation procedure is provided in the project Wiki
+The installation is easy, but not yet automatized. Details on the required installation procedure for the different approaches are provided here:
     https://code.zmaw.de/projects/pycmbs
-
 
 Documentation
 -------------
 
-pyCMBS documentation is available on the web:
+pyCMBS documentation is at the moment available on the following website:
     https://code.zmaw.de/projects/pycmbs
-
-
-Ressources
-----------
-
-The project website is:
-       https://code.zmaw.de/projects/pycmbs
+Additional documentation is provided as part of the source code in /docsrc
 
 
 Latest source code
 ------------------
 
 Latest source code is available from the development repository.
-        https://code.zmaw.de/projects/pycmbs
+        https://github.com/pygeo/pycmbs
 
 
-Issues
------------
+Issues and Bug reports
+----------------------
 
-Bug reports, ideas, wishes are very welcome. Please report any issues using the project website
-        https://code.zmaw.de/projects/pycmbs
+Bug reports, ideas, wishes are very welcome. Please report any issues using the github project website
+        https://github.com/pygeo/pycmbs
 
+Developer information
+---------------------
+
+TBD
 
 History
 -------
 
-For a detailed history of development and versions, please look at CHANGES
+For a detailed history of development and versions, please look at CHANGES.md
 
 License information
 -------------------
-see the file LICENSE for information of the software terms & conditions of usage and a DISCLAIMER OF ALL WARRANTIES
+see the file LICENSE.md for information of the software terms & conditions of usage and a DISCLAIMER OF ALL WARRANTIES

@@ -14,6 +14,11 @@ github move
 * decide for a version number: v1.0 ???
 * how is generation of tagged versions work
 
+### Prio 2
+
+* deployment using pip
+
+
 Code clean up and completion
 ----------------------------
 
