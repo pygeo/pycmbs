@@ -187,7 +187,7 @@ def main():
                                     'scale_factor': 86400.,
                                     'valid_mask': 'global'
                                 }
-                            },
+                           },
 
 
                   'evap': {'CMIP5':
@@ -202,7 +202,7 @@ def main():
                                      'scale_factor': 86400.,
                                      'valid_mask': 'ocean'
                                  }
-                            },
+                           },
 
                   'twpa': {'CMIP5':
                                  {
@@ -216,7 +216,7 @@ def main():
                                      'scale_factor': 1.,
                                      'valid_mask': 'ocean'
                                  }
-                  },
+                           },
 
                  'wind': {'CMIP5':
                                  {
@@ -230,7 +230,7 @@ def main():
                                      'scale_factor': 1.,
                                      'valid_mask': 'ocean'
                                  }
-                            },
+                          },
 
                   'wvpa': {'CMIP5':
                                  {
@@ -244,7 +244,7 @@ def main():
                                      'scale_factor': 1,
                                      'valid_mask': 'ocean'
                                  }
-                            },
+                           },
 
                   'late': {'CMIP5':
                                  {
@@ -258,7 +258,7 @@ def main():
                                      'scale_factor': 1,
                                      'valid_mask': 'ocean'
                                  }
-                            },
+                           },
 
                   'hair': {'CMIP5':
                                  {
@@ -272,7 +272,7 @@ def main():
                                      'scale_factor': 1,
                                      'valid_mask': 'ocean'
                                  }
-                            },
+                           },
 
                   'seaice_concentration': {'CMIP5':
                                    {
@@ -316,7 +316,7 @@ def main():
                                     'scale_factor': 1,
                                     'valid_mask': 'ocean',
                                     'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
-                                   },
+                                    },
 
                                'CMIP3':
                                    {
@@ -331,8 +331,8 @@ def main():
                                     'valid_mask': 'ocean',
                                     'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
                                     'level': 0
-                                   },
-                              },
+                                    },
+                                    },
 
                   'budg': {'CMIP5':
                                  {
@@ -347,7 +347,7 @@ def main():
                                     'valid_mask': 'ocean',
                                     'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
                                  }
-                            },
+                           },
 
 
                   'sis': {'JSBACH_RAW2':
@@ -365,7 +365,7 @@ def main():
                                     'valid_mask': 'land'
                                 }
 
-                            },
+                          },
 
                   'surface_upward_flux': {'JSBACH_RAW2':
                                  {
@@ -389,7 +389,7 @@ def main():
                                     'scale_factor': 1.,
                                     'valid_mask': 'land'
                                  }
-                            },
+                                 },
 
                   'albedo_nir': {'JSBACH_RAW2':
                                  {
@@ -401,7 +401,7 @@ def main():
                                     'scale_factor': 1.,
                                     'valid_mask': 'land'
                                  }
-                            },
+                                 },
 
                   'temperature': {
                                         'JSBACH_RAW2':

@@ -1632,7 +1632,7 @@ class JSBACH_RAW(Model):
           label=self.experiment + ' ' + v, unit='gC m-2 a-1', lat_name='lat', lon_name='lon',
           shift_lon=self.shift_lon,
           mask=ls_mask.data.data, scale_factor=3600. * 24. * 30. / 0.083
-        )
+                     )
 
         return gpp.sum_data4D()
 

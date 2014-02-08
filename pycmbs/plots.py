@@ -339,7 +339,7 @@ class ReichlerPlot(object):
                          ec=self.colors[i],
                          fc=self.colors[i],
                          alpha=0.4,
-                         ))
+                       ))
             dx += 0.15
 
         self.ax.set_ylim(-1., 1.)
