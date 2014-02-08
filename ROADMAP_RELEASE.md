@@ -4,9 +4,11 @@ Roadmap for pycmbs release on github
 github move
 -----------
 
-* create github organization account [AL]
- * Done: https://github.com/pygeo/pycmbs.git
+* :-) create github organization account [AL]
+ * :-) Done: https://github.com/pygeo/pycmbs.git
 * familiarize with github tools for code deployment [MI]
+* Jenkins integration? check whihc options for automatic code testing,
+  coverage testing and testing for different environments are possible [MI]
 * move pycmbs from assembla to github [AL,MI]
 
 
