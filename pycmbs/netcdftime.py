@@ -4,13 +4,16 @@
 """
 Performs conversions of netCDF time coordinate data to/from datetime objects.
 """
-import math, numpy, re, time
+import math
+import numpy
+import re
+import time
 from datetime import datetime as real_datetime
 from datetime import tzinfo, timedelta
 from calendar import monthrange
 
-_units = ['days','hours','minutes','seconds','day','hour','minute','second']
-_calendars = ['standard','gregorian','proleptic_gregorian','noleap','julian','all_leap','365_day','366_day','360_day']
+_units = ['days', 'hours', 'minutes', 'seconds', 'day', 'hour', 'minute', 'second']
+_calendars = ['standard', 'gregorian', 'proleptic_gregorian', 'noleap', 'julian', 'all_leap', '365_day', '366_day', '360_day']
 
 __version__ = '1.0'
 
@@ -20,6 +23,7 @@ ISO8601_REGEX = re.compile(r"(?P<year>[0-9]{1,4})(-(?P<month>[0-9]{1,2})(-(?P<da
     r"((?P<separator2>.?)(?P<timezone>Z|(([-+])([0-9]{1,2}):([0-9]{1,2}))))?)?)?)?"
 )
 TIMEZONE_REGEX = re.compile("(?P<prefix>[+-])(?P<hours>[0-9]{1,2}):(?P<minutes>[0-9]{1,2})")
+
 
 class datetime:
     """
@@ -34,31 +38,35 @@ of the string produced by __repr__ is controlled by self.format
 Instance variables are year,month,day,hour,minute,second,dayofwk,dayofyr
 and format.
     """
-    def __init__(self,year,month,day,hour=0,minute=0,second=0,dayofwk=-1,dayofyr=1):
+
+    def __init__(self, year, month, day, hour=0, minute=0, second=0, dayofwk=-1, dayofyr=1):
         """dayofyr set to 1 by default - otherwise time.strftime will complain"""
-        self.year=year
-        self.month=month
-        self.day=day
-        self.hour=hour
-        self.minute=minute
-        self.dayofwk=dayofwk
-        self.dayofyr=dayofyr
-        self.second=second
-        self.format='%Y-%m-%d %H:%M:%S'
-    def strftime(self,format=None):
+        self.year = year
+        self.month = month
+        self.day = day
+        self.hour = hour
+        self.minute = minute
+        self.dayofwk = dayofwk
+        self.dayofyr = dayofyr
+        self.second = second
+        self.format = '%Y-%m-%d %H:%M:%S'
+
+    def strftime(self, format=None):
         if format is None:
             format = self.format
-        return _strftime(self,format)
+        return _strftime(self, format)
+
     def timetuple(self):
-        return (self.year,self.month,self.day,self.hour,self.minute,self.second,self.dayofwk,self.dayofyr,-1)
+        return (self.year, self.month, self.day, self.hour, self.minute, self.second, self.dayofwk, self.dayofyr, -1)
+
     def __repr__(self):
         return self.strftime(self.format)
+
     def __eq__(self, date):
         return self.strftime('%Y-%m-%d %H:%M:%S') == date.strftime('%Y-%m-%d %H:%M:%S')
 
 
-def JulianDayFromDate(date,calendar='standard'):
-
+def JulianDayFromDate(date, calendar='standard'):
     """
 
 creates a Julian Day from a 'datetime-like' object.  Returns the fractional
@@ -80,38 +88,42 @@ Virginia. p. 63
 
     # based on redate.py by David Finlayson.
 
-    year=date.year; month=date.month; day=date.day
-    hour=date.hour; minute=date.minute; second=date.second
+    year = date.year
+    month = date.month
+    day = date.day
+    hour = date.hour
+    minute = date.minute
+    second = date.second
     # Convert time to fractions of a day
-    day = day + hour/24.0 + minute/1440.0 + second/86400.0
+    day = day + hour / 24.0 + minute / 1440.0 + second / 86400.0
 
     # Start Meeus algorithm (variables are in his notation)
     if (month < 3):
         month = month + 12
         year = year - 1
 
-    A = int(year/100)
+    A = int(year / 100)
 
     # MC
     # jd = int(365.25 * (year + 4716)) + int(30.6001 * (month + 1)) + \
     #      day - 1524.5
-    jd = 365.*year + int(0.25 * year + 2000.) + int(30.6001 * (month + 1)) + \
+    jd = 365. * year + int(0.25 * year + 2000.) + int(30.6001 * (month + 1)) + \
          day + 1718994.5
 
     # optionally adjust the jd for the switch from
     # the Julian to Gregorian Calendar
     # here assumed to have occurred the day after 1582 October 4
-    if calendar in ['standard','gregorian']:
+    if calendar in ['standard', 'gregorian']:
         if jd >= 2299170.5:
             # 1582 October 15 (Gregorian Calendar)
-            B = 2 - A + int(A/4)
+            B = 2 - A + int(A / 4)
         elif jd < 2299160.5:
             # 1582 October 5 (Julian Calendar)
             B = 0
         else:
             raise ValueError('impossible date (falls in gap between end of Julian calendar and beginning of Gregorian calendar')
     elif calendar == 'proleptic_gregorian':
-        B = 2 - A + int(A/4)
+        B = 2 - A + int(A / 4)
     elif calendar == 'julian':
         B = 0
     else:
@@ -122,8 +134,8 @@ Virginia. p. 63
 
     return jd
 
-def _NoLeapDayFromDate(date):
 
+def _NoLeapDayFromDate(date):
     """
 
 creates a Julian Day for a calendar with no leap years from a datetime
@@ -131,10 +143,14 @@ instance.  Returns the fractional Julian Day (resolution 1 second).
 
     """
 
-    year=date.year; month=date.month; day=date.day
-    hour=date.hour; minute=date.minute; second=date.second
+    year = date.year
+    month = date.month
+    day = date.day
+    hour = date.hour
+    minute = date.minute
+    second = date.second
     # Convert time to fractions of a day
-    day = day + hour/24.0 + minute/1440.0 + second/86400.0
+    day = day + hour / 24.0 + minute / 1440.0 + second / 86400.0
 
     # Start Meeus algorithm (variables are in his notation)
     if (month < 3):
@@ -146,8 +162,8 @@ instance.  Returns the fractional Julian Day (resolution 1 second).
 
     return jd
 
-def _AllLeapFromDate(date):
 
+def _AllLeapFromDate(date):
     """
 
 creates a Julian Day for a calendar where all years have 366 days from
@@ -156,10 +172,14 @@ Returns the fractional Julian Day (resolution 1 second).
 
     """
 
-    year=date.year; month=date.month; day=date.day
-    hour=date.hour; minute=date.minute; second=date.second
+    year = date.year
+    month = date.month
+    day = date.day
+    hour = date.hour
+    minute = date.minute
+    second = date.second
     # Convert time to fractions of a day
-    day = day + hour/24.0 + minute/1440.0 + second/86400.0
+    day = day + hour / 24.0 + minute / 1440.0 + second / 86400.0
 
     # Start Meeus algorithm (variables are in his notation)
     if (month < 3):
@@ -171,8 +191,8 @@ Returns the fractional Julian Day (resolution 1 second).
 
     return jd
 
-def _360DayFromDate(date):
 
+def _360DayFromDate(date):
     """
 
 creates a Julian Day for a calendar where all months have 30 daysfrom
@@ -181,16 +201,21 @@ Returns the fractional Julian Day (resolution 1 second).
 
     """
 
-    year=date.year; month=date.month; day=date.day
-    hour=date.hour; minute=date.minute; second=date.second
+    year = date.year
+    month = date.month
+    day = date.day
+    hour = date.hour
+    minute = date.minute
+    second = date.second
     # Convert time to fractions of a day
-    day = day + hour/24.0 + minute/1440.0 + second/86400.0
+    day = day + hour / 24.0 + minute / 1440.0 + second / 86400.0
 
     jd = int(360. * (year + 4716)) + int(30. * (month - 1)) + day
 
     return jd
 
-def DateFromJulianDay(JD,calendar='standard'):
+
+def DateFromJulianDay(JD, calendar='standard'):
     """
 
 returns a 'datetime-like' object given Julian Day. Julian Day is a
@@ -222,25 +247,25 @@ Virginia. p. 63
     if JD < 0:
         raise ValueError('Julian Day must be positive')
 
-    dayofwk = int(math.fmod(int(JD + 1.5),7))
+    dayofwk = int(math.fmod(int(JD + 1.5), 7))
     (F, Z) = math.modf(JD + 0.5)
     Z = int(Z)
-    if calendar in ['standard','gregorian']:
+    if calendar in ['standard', 'gregorian']:
         if JD < 2299160.5:
             A = Z
         else:
             # MC
             # alpha = int((Z - 1867216.25)/36524.25)
             # A = Z + 1 + alpha - int(alpha/4)
-            alpha = int(((Z - 1867216.)-0.25)/36524.25)
-            A = Z + 1 + alpha - int(0.25*alpha)
+            alpha = int(((Z - 1867216.) - 0.25) / 36524.25)
+            A = Z + 1 + alpha - int(0.25 * alpha)
 
     elif calendar == 'proleptic_gregorian':
         # MC
         # alpha = int((Z - 1867216.25)/36524.25)
         # A = Z + 1 + alpha - int(alpha/4)
-        alpha = int(((Z - 1867216.)-0.25)/36524.25)
-        A = Z + 1 + alpha - int(0.25*alpha)
+        alpha = int(((Z - 1867216.) - 0.25) / 36524.25)
+        A = Z + 1 + alpha - int(0.25 * alpha)
     elif calendar == 'julian':
         A = Z
     else:
@@ -250,17 +275,17 @@ Virginia. p. 63
     # MC
     # C = int((B - 122.1)/365.25)
     # D = int(365.25 * C)
-    C = int(6680.+((B-2439870.)-122.1)/365.25)
-    D = 365*C + int(0.25 * C)
-    E = int((B - D)/30.6001)
+    C = int(6680. + ((B - 2439870.) - 122.1) / 365.25)
+    D = 365 * C + int(0.25 * C)
+    E = int((B - D) / 30.6001)
 
     # Convert to date
     day = B - D - int(30.6001 * E) + F
-    nday = B-D-123
+    nday = B - D - 123
     if nday <= 305:
-        dayofyr = nday+60
+        dayofyr = nday + 60
     else:
-        dayofyr = nday-305
+        dayofyr = nday - 305
     # MC
     # if E < 14:
     #     month = E - 1
@@ -272,27 +297,30 @@ Virginia. p. 63
     # else:
     #     year = C - 4715
     month = E - 1
-    if month > 12: month -= 12
+    if month > 12:
+        month -= 12
     year = C - 4715
-    if month > 2: year -= 1
-    if year <= 0: year -= 1
+    if month > 2:
+        year -= 1
+    if year <= 0:
+        year -= 1
 
     # a leap year?
     leap = 0
     if year % 4 == 0:
         leap = 1
     if calendar == 'proleptic_gregorian' or \
-       (calendar in ['standard','gregorian'] and JD >= 2299160.5):
+       (calendar in ['standard', 'gregorian'] and JD >= 2299160.5):
         if year % 100 == 0 and year % 400 != 0:
             leap = 0
     if leap and month > 2:
        dayofyr = dayofyr + leap
 
     # Convert fractions of a day to time
-    (dfrac, days) = math.modf(day/1.0)
+    (dfrac, days) = math.modf(day / 1.0)
     (hfrac, hours) = math.modf(dfrac * 24.0)
     (mfrac, minutes) = math.modf(hfrac * 60.0)
-    seconds = round(mfrac * 60.0) # seconds are rounded
+    seconds = round(mfrac * 60.0)  # seconds are rounded
 
     if seconds > 59:
         seconds = 0
@@ -316,11 +344,12 @@ Virginia. p. 63
 
     # return a 'real' datetime instance if calendar is gregorian.
     if calendar == 'proleptic_gregorian' or \
-            (calendar in ['standard','gregorian'] and JD >= 2299160.5):
-        return real_datetime(year,month,int(days),int(hours),int(minutes),int(seconds))
+            (calendar in ['standard', 'gregorian'] and JD >= 2299160.5):
+        return real_datetime(year, month, int(days), int(hours), int(minutes), int(seconds))
     else:
     # or else, return a 'datetime-like' instance.
-        return datetime(year,month,int(days),int(hours),int(minutes),int(seconds),dayofwk,dayofyr)
+        return datetime(year, month, int(days), int(hours), int(minutes), int(seconds), dayofwk, dayofyr)
+
 
 def _DateFromNoLeapDay(JD):
     """
@@ -335,22 +364,22 @@ days. Julian Day is a fractional day with a resolution of 1 second.
     if JD < 0:
         raise ValueError('Julian Day must be positive')
 
-    dayofwk = int(math.fmod(int(JD + 1.5),7))
+    dayofwk = int(math.fmod(int(JD + 1.5), 7))
     (F, Z) = math.modf(JD + 0.5)
     Z = int(Z)
     A = Z
     B = A + 1524
-    C = int((B - 122.1)/365.)
+    C = int((B - 122.1) / 365.)
     D = int(365. * C)
-    E = int((B - D)/30.6001)
+    E = int((B - D) / 30.6001)
 
     # Convert to date
     day = B - D - int(30.6001 * E) + F
-    nday = B-D-123
+    nday = B - D - 123
     if nday <= 305:
-        dayofyr = nday+60
+        dayofyr = nday + 60
     else:
-        dayofyr = nday-305
+        dayofyr = nday - 305
     if E < 14:
         month = E - 1
     else:
@@ -362,10 +391,10 @@ days. Julian Day is a fractional day with a resolution of 1 second.
         year = C - 4715
 
     # Convert fractions of a day to time
-    (dfrac, days) = math.modf(day/1.0)
+    (dfrac, days) = math.modf(day / 1.0)
     (hfrac, hours) = math.modf(dfrac * 24.0)
     (mfrac, minutes) = math.modf(hfrac * 60.0)
-    seconds = round(mfrac * 60.0) # seconds are rounded
+    seconds = round(mfrac * 60.0)  # seconds are rounded
 
     if seconds > 59:
         seconds = 0
@@ -377,7 +406,8 @@ days. Julian Day is a fractional day with a resolution of 1 second.
         hours = 0
         days = days + 1
 
-    return datetime(year,month,int(days),int(hours),int(minutes),int(seconds), dayofwk, dayofyr)
+    return datetime(year, month, int(days), int(hours), int(minutes), int(seconds), dayofwk, dayofyr)
+
 
 def _DateFromAllLeap(JD):
     """
@@ -393,28 +423,28 @@ Julian Day is a fractional day with a resolution of 1 second.
     if JD < 0:
         raise ValueError('Julian Day must be positive')
 
-    dayofwk = int(math.fmod(int(JD + 1.5),7))
+    dayofwk = int(math.fmod(int(JD + 1.5), 7))
     (F, Z) = math.modf(JD + 0.5)
     Z = int(Z)
     A = Z
     B = A + 1524
-    C = int((B - 122.1)/366.)
+    C = int((B - 122.1) / 366.)
     D = int(366. * C)
-    E = int((B - D)/30.6001)
+    E = int((B - D) / 30.6001)
 
     # Convert to date
     day = B - D - int(30.6001 * E) + F
-    nday = B-D-123
+    nday = B - D - 123
     if nday <= 305:
-        dayofyr = nday+60
+        dayofyr = nday + 60
     else:
-        dayofyr = nday-305
+        dayofyr = nday - 305
     if E < 14:
         month = E - 1
     else:
         month = E - 13
     if month > 2:
-       dayofyr = dayofyr+1
+       dayofyr = dayofyr + 1
 
     if month > 2:
         year = C - 4716
@@ -422,10 +452,10 @@ Julian Day is a fractional day with a resolution of 1 second.
         year = C - 4715
 
     # Convert fractions of a day to time
-    (dfrac, days) = math.modf(day/1.0)
+    (dfrac, days) = math.modf(day / 1.0)
     (hfrac, hours) = math.modf(dfrac * 24.0)
     (mfrac, minutes) = math.modf(hfrac * 60.0)
-    seconds = round(mfrac * 60.0) # seconds are rounded
+    seconds = round(mfrac * 60.0)  # seconds are rounded
 
     if seconds > 59:
         seconds = 0
@@ -437,7 +467,8 @@ Julian Day is a fractional day with a resolution of 1 second.
         hours = 0
         days = days + 1
 
-    return datetime(year,month,int(days),int(hours),int(minutes),int(seconds), dayofwk, dayofyr)
+    return datetime(year, month, int(days), int(hours), int(minutes), int(seconds), dayofwk, dayofyr)
+
 
 def _DateFrom360Day(JD):
     """
@@ -453,16 +484,16 @@ Julian Day is a fractional day with a resolution of 1 second.
 
     #jd = int(360. * (year + 4716)) + int(30. * (month - 1)) + day
     (F, Z) = math.modf(JD)
-    year = int((Z-0.5)/360.) - 4716
-    dayofyr =  Z - (year+4716)*360
-    month = int((dayofyr-0.5)/30)+1
-    day = dayofyr - (month-1)*30 + F
+    year = int((Z - 0.5) / 360.) - 4716
+    dayofyr = Z - (year + 4716) * 360
+    month = int((dayofyr - 0.5) / 30) + 1
+    day = dayofyr - (month - 1) * 30 + F
 
     # Convert fractions of a day to time
-    (dfrac, days) = math.modf(day/1.0)
+    (dfrac, days) = math.modf(day / 1.0)
     (hfrac, hours) = math.modf(dfrac * 24.0)
     (mfrac, minutes) = math.modf(hfrac * 60.0)
-    seconds = round(mfrac * 60.0) # seconds are rounded
+    seconds = round(mfrac * 60.0)  # seconds are rounded
 
     if seconds > 59:
         seconds = 0
@@ -474,7 +505,8 @@ Julian Day is a fractional day with a resolution of 1 second.
         hours = 0
         days = days + 1
 
-    return datetime(year,month,int(days),int(hours),int(minutes),int(seconds),-1, int(dayofyr))
+    return datetime(year, month, int(days), int(hours), int(minutes), int(seconds), -1, int(dayofyr))
+
 
 def _dateparse(timestr):
     """parse a string of the form time-units since yyyy-mm-dd hh:mm:ss
@@ -486,9 +518,10 @@ def _dateparse(timestr):
     if timestr_split[1].lower() != 'since':
         raise ValueError("no 'since' in unit_string")
     # parse the date string.
-    n = timestr.find('since')+6
-    year,month,day,hour,minute,second,utc_offset = _parse_date(timestr[n:])
+    n = timestr.find('since') + 6
+    year, month, day, hour, minute, second, utc_offset = _parse_date(timestr[n:])
     return units, utc_offset, datetime(year, month, day, hour, minute, second)
+
 
 class utime:
     """
@@ -589,7 +622,8 @@ it should be noted that udunits treats 0 AD as identical to 1 AD."
 @ivar unit_string:  a string defining the the netCDF time variable.
 @ivar units:  the units part of C{unit_string} (i.e. 'days', 'hours', 'seconds').
     """
-    def __init__(self,unit_string,calendar='standard'):
+
+    def __init__(self, unit_string, calendar='standard'):
         """
 @param unit_string: a string of the form
 C{'time-units since <time-origin>'} defining the time units.
@@ -627,25 +661,25 @@ units to datetime objects.
         if calendar in _calendars:
             self.calendar = calendar
         else:
-            raise ValueError("calendar must be one of %s, got '%s'" % (str(_calendars),calendar))
+            raise ValueError("calendar must be one of %s, got '%s'" % (str(_calendars), calendar))
         units, tzoffset, self.origin = _dateparse(unit_string)
-        self.tzoffset = tzoffset # time zone offset in minutes
+        self.tzoffset = tzoffset  # time zone offset in minutes
         self.units = units
         self.unit_string = unit_string
-        if self.calendar in ['noleap','365_day'] and self.origin.month == 2 and self.origin.day == 29:
+        if self.calendar in ['noleap', '365_day'] and self.origin.month == 2 and self.origin.day == 29:
             raise ValueError('cannot specify a leap day as the reference time with the noleap calendar')
         if self.calendar == '360_day' and self.origin.day > 30:
             raise ValueError('there are only 30 days in every month with the 360_day calendar')
-        if self.calendar in ['noleap','365_day']:
+        if self.calendar in ['noleap', '365_day']:
             self._jd0 = _NoLeapDayFromDate(self.origin)
-        elif self.calendar in ['all_leap','366_day']:
+        elif self.calendar in ['all_leap', '366_day']:
             self._jd0 = _AllLeapFromDate(self.origin)
         elif self.calendar == '360_day':
             self._jd0 = _360DayFromDate(self.origin)
         else:
-            self._jd0 = JulianDayFromDate(self.origin,calendar=self.calendar)
+            self._jd0 = JulianDayFromDate(self.origin, calendar=self.calendar)
 
-    def date2num(self,date):
+    def date2num(self, date):
         """
 Returns C{time_value} in units described by L{unit_string}, using
 the specified L{calendar}, given a 'datetime-like' object.
@@ -672,12 +706,12 @@ Returns a scalar if input is a scalar, else returns a numpy array.
         if not isscalar:
             date = numpy.array(date)
             shape = date.shape
-        if self.calendar in ['julian','standard','gregorian','proleptic_gregorian']:
+        if self.calendar in ['julian', 'standard', 'gregorian', 'proleptic_gregorian']:
             if isscalar:
-                jdelta = JulianDayFromDate(date,self.calendar)-self._jd0
+                jdelta = JulianDayFromDate(date, self.calendar) - self._jd0
             else:
-                jdelta = [JulianDayFromDate(d,self.calendar)-self._jd0 for d in date.flat]
-        elif self.calendar in ['noleap','365_day']:
+                jdelta = [JulianDayFromDate(d, self.calendar) - self._jd0 for d in date.flat]
+        elif self.calendar in ['noleap', '365_day']:
             if isscalar:
                 if date.month == 2 and date.day == 29:
                     raise ValueError('there is no leap day in the noleap calendar')
@@ -687,12 +721,12 @@ Returns a scalar if input is a scalar, else returns a numpy array.
                 for d in date.flat:
                     if d.month == 2 and d.day == 29:
                         raise ValueError('there is no leap day in the noleap calendar')
-                    jdelta.append(_NoLeapDayFromDate(d)-self._jd0)
-        elif self.calendar in ['all_leap','366_day']:
+                    jdelta.append(_NoLeapDayFromDate(d) - self._jd0)
+        elif self.calendar in ['all_leap', '366_day']:
             if isscalar:
                 jdelta = _AllLeapFromDate(date) - self._jd0
             else:
-                jdelta = [_AllLeapFromDate(d)-self._jd0 for d in date.flat]
+                jdelta = [_AllLeapFromDate(d) - self._jd0 for d in date.flat]
         elif self.calendar == '360_day':
             if isscalar:
                 if date.day > 30:
@@ -703,24 +737,24 @@ Returns a scalar if input is a scalar, else returns a numpy array.
                 for d in date.flat:
                     if d.day > 30:
                         raise ValueError('there are only 30 days in every month with the 360_day calendar')
-                    jdelta.append(_360DayFromDate(d)-self._jd0)
+                    jdelta.append(_360DayFromDate(d) - self._jd0)
         if not isscalar:
             jdelta = numpy.array(jdelta)
         # convert to desired units, add time zone offset.
-        if self.units in ['second','seconds']:
-            jdelta = jdelta*86400. + self.tzoffset*60.
-        elif self.units in ['minute','minutes']:
-            jdelta = jdelta*1440. + self.tzoffset
-        elif self.units in ['hour','hours']:
-            jdelta = jdelta*24. + self.tzoffset/60.
-        elif self.units in ['day','days']:
-            jdelta = jdelta + self.tzoffset/1440.
+        if self.units in ['second', 'seconds']:
+            jdelta = jdelta * 86400. + self.tzoffset * 60.
+        elif self.units in ['minute', 'minutes']:
+            jdelta = jdelta * 1440. + self.tzoffset
+        elif self.units in ['hour', 'hours']:
+            jdelta = jdelta * 24. + self.tzoffset / 60.
+        elif self.units in ['day', 'days']:
+            jdelta = jdelta + self.tzoffset / 1440.
         if isscalar:
             return jdelta
         else:
-            return numpy.reshape(jdelta,shape)
+            return numpy.reshape(jdelta, shape)
 
-    def num2date(self,time_value):
+    def num2date(self, time_value):
         """
 Return a 'datetime-like' object given a C{time_value} in units
 described by L{unit_string}, using L{calendar}.
@@ -748,44 +782,44 @@ do not exist in any real world calendar.
         except:
             isscalar = True
         ismasked = False
-        if hasattr(time_value,'mask'):
+        if hasattr(time_value, 'mask'):
             mask = time_value.mask
             ismasked = True
         if not isscalar:
             time_value = numpy.array(time_value, dtype='d')
             shape = time_value.shape
         # convert to desired units, remove time zone offset.
-        if self.units in ['second','seconds']:
-            jdelta = time_value/86400. - self.tzoffset/1440.
-        elif self.units in ['minute','minutes']:
-            jdelta = time_value/1440. - self.tzoffset/1440.
-        elif self.units in ['hour','hours']:
-            jdelta = time_value/24. - self.tzoffset/1440.
-        elif self.units in ['day','days']:
-            jdelta = time_value - self.tzoffset/1440.
+        if self.units in ['second', 'seconds']:
+            jdelta = time_value / 86400. - self.tzoffset / 1440.
+        elif self.units in ['minute', 'minutes']:
+            jdelta = time_value / 1440. - self.tzoffset / 1440.
+        elif self.units in ['hour', 'hours']:
+            jdelta = time_value / 24. - self.tzoffset / 1440.
+        elif self.units in ['day', 'days']:
+            jdelta = time_value - self.tzoffset / 1440.
         jd = self._jd0 + jdelta
-        if self.calendar in ['julian','standard','gregorian','proleptic_gregorian']:
+        if self.calendar in ['julian', 'standard', 'gregorian', 'proleptic_gregorian']:
             if not isscalar:
                 if ismasked:
                     date = []
-                    for j,m in zip(jd.flat, mask.flat):
+                    for j, m in zip(jd.flat, mask.flat):
                         if not m:
-                            date.append(DateFromJulianDay(j,self.calendar))
+                            date.append(DateFromJulianDay(j, self.calendar))
                         else:
                             date.append(None)
                 else:
-                    date = [DateFromJulianDay(j,self.calendar) for j in jd.flat]
+                    date = [DateFromJulianDay(j, self.calendar) for j in jd.flat]
             else:
                 if ismasked and mask.item():
                     date = None
                 else:
-                    date = DateFromJulianDay(jd,self.calendar)
-        elif self.calendar in ['noleap','365_day']:
+                    date = DateFromJulianDay(jd, self.calendar)
+        elif self.calendar in ['noleap', '365_day']:
             if not isscalar:
                 date = [_DateFromNoLeapDay(j) for j in jd.flat]
             else:
                 date = _DateFromNoLeapDay(jd)
-        elif self.calendar in ['all_leap','366_day']:
+        elif self.calendar in ['all_leap', '366_day']:
             if not isscalar:
                 date = [_DateFromAllLeap(j) for j in jd.flat]
             else:
@@ -798,7 +832,8 @@ do not exist in any real world calendar.
         if isscalar:
             return date
         else:
-            return numpy.reshape(numpy.array(date),shape)
+            return numpy.reshape(numpy.array(date), shape)
+
 
 def _parse_timezone(tzstring):
     """Parses ISO 8601 time zone specs into tzinfo offsets
@@ -817,7 +852,8 @@ def _parse_timezone(tzstring):
     if prefix == "-":
         hours = -hours
         minutes = -minutes
-    return minutes + hours*60.
+    return minutes + hours * 60.
+
 
 def _parse_date(datestring):
     """Parses ISO 8601 dates into datetime objects
@@ -835,11 +871,11 @@ def _parse_date(datestring):
     groups = m.groupdict()
     tzoffset_mins = _parse_timezone(groups["timezone"])
     if groups["hour"] is None:
-        groups["hour"]=0
+        groups["hour"] = 0
     if groups["minute"] is None:
-        groups["minute"]=0
+        groups["minute"] = 0
     if groups["second"] is None:
-        groups["second"]=0
+        groups["second"] = 0
     #if groups["fraction"] is None:
     #    groups["fraction"] = 0
     #else:
@@ -850,6 +886,7 @@ def _parse_date(datestring):
 
 _illegal_s = re.compile(r"((^|[^%])(%%)*%s)")
 
+
 def _findall(text, substr):
      # Also finds overlaps
      sites = []
@@ -859,12 +896,13 @@ def _findall(text, substr):
          if j == -1:
              break
          sites.append(j)
-         i=j+1
+         i = j + 1
      return sites
 
 # Every 28 years the calendar repeats, except through century leap
 # years where it's 6 years.  But only if you're using the Gregorian
 # calendar.  ;)
+
 
 def _strftime(dt, fmt):
     if _illegal_s.search(fmt):
@@ -877,17 +915,17 @@ def _strftime(dt, fmt):
     # For every non-leap year century, advance by
     # 6 years to get into the 28-year repeat cycle
     delta = 2000 - year
-    off = 6*(delta // 100 + delta // 400)
+    off = 6 * (delta // 100 + delta // 400)
     year = year + off
 
     # Move to around the year 2000
-    year = year + ((2000 - year)//28)*28
+    year = year + ((2000 - year) // 28) * 28
     timetuple = dt.timetuple()
     s1 = time.strftime(fmt, (year,) + timetuple[1:])
     sites1 = _findall(s1, str(year))
 
-    s2 = time.strftime(fmt, (year+28,) + timetuple[1:])
-    sites2 = _findall(s2, str(year+28))
+    s2 = time.strftime(fmt, (year + 28,) + timetuple[1:])
+    sites2 = _findall(s2, str(year + 28))
 
     sites = []
     for site in sites1:
@@ -897,10 +935,11 @@ def _strftime(dt, fmt):
     s = s1
     syear = "%4d" % (dt.year,)
     for site in sites:
-        s = s[:site] + syear + s[site+4:]
+        s = s[:site] + syear + s[site + 4:]
     return s
 
-def date2num(dates,units,calendar='standard'):
+
+def date2num(dates, units, calendar='standard'):
     """
 date2num(dates,units,calendar='standard')
 
@@ -935,10 +974,11 @@ C{calendar = 'proleptic_gregorian'}.
 
 The maximum resolution of the numeric time values is 1 second.
     """
-    cdftime = utime(units,calendar=calendar)
+    cdftime = utime(units, calendar=calendar)
     return cdftime.date2num(dates)
 
-def num2date(times,units,calendar='standard'):
+
+def num2date(times, units, calendar='standard'):
     """
 num2date(times,units,calendar='standard')
 
@@ -980,8 +1020,9 @@ occured from the Julian calendar in 1582. The datetime instances
 do not contain a time-zone offset, even if the specified C{units}
 contains one.
     """
-    cdftime = utime(units,calendar=calendar)
+    cdftime = utime(units, calendar=calendar)
     return cdftime.num2date(times)
+
 
 def _check_index(indices, times, nctime, calendar, select):
     """Return True if the time indices given correspond to the given times,
@@ -1005,7 +1046,7 @@ def _check_index(indices, times, nctime, calendar, select):
     Index selection method.
     """
     N = nctime.shape[0]
-    if  (indices <0).any():
+    if (indices < 0).any():
        return False
 
     if (indices >= N).any():
@@ -1021,20 +1062,21 @@ def _check_index(indices, times, nctime, calendar, select):
         return numpy.all(t == times)
 
     elif select == 'before':
-        ta = nctime[numpy.clip(indices + 1, 0, N-1)]
+        ta = nctime[numpy.clip(indices + 1, 0, N - 1)]
         return numpy.all(t <= times) and numpy.all(ta > times)
 
     elif select == 'after':
-        tb = nctime[numpy.clip(indices - 1, 0, N-1)]
+        tb = nctime[numpy.clip(indices - 1, 0, N - 1)]
         return numpy.all(t >= times) and numpy.all(tb < times)
 
     elif select == 'nearest':
-        ta = nctime[numpy.clip(indices + 1, 0, N-1)]
-        tb = nctime[numpy.clip(indices - 1, 0, N-1)]
+        ta = nctime[numpy.clip(indices + 1, 0, N - 1)]
+        tb = nctime[numpy.clip(indices - 1, 0, N - 1)]
         delta_after = ta - t
         delta_before = t - tb
-        delta_check = numpy.abs(times-t)
+        delta_check = numpy.abs(times - t)
         return numpy.all(delta_check <= delta_after) and numpy.all(delta_check <= delta_before)
+
 
 def date2index(dates, nctime, calendar=None, select='exact'):
     """
@@ -1064,10 +1106,11 @@ def date2index(dates, nctime, calendar=None, select='exact'):
     correpond to the closest dates.
     """
     # Setting the calendar.
-    if calendar == None:
+    if calendar is None:
         calendar = getattr(nctime, 'calendar', 'standard')
-    times = date2num(dates,nctime.units,calendar=calendar)
+    times = date2num(dates, nctime.units, calendar=calendar)
     return time2index(times, nctime, calendar=calendar, select=select)
+
 
 def time2index(times, nctime, calendar=None, select='exact'):
     """
@@ -1096,7 +1139,7 @@ def time2index(times, nctime, calendar=None, select='exact'):
     correpond to the closest times.
     """
     # Setting the calendar.
-    if calendar == None:
+    if calendar is None:
         calendar = getattr(nctime, 'calendar', 'standard')
 
     num = numpy.atleast_1d(times)
@@ -1107,11 +1150,11 @@ def time2index(times, nctime, calendar=None, select='exact'):
     t0, t1 = nctime[:2]
     dt = t1 - t0
     if select in ['exact', 'before']:
-        index = numpy.array((num-t0)/dt, int)
+        index = numpy.array((num - t0) / dt, int)
     elif select == 'after':
-        index = numpy.array(numpy.ceil( (num-t0)/dt ), int)
+        index = numpy.array(numpy.ceil((num - t0) / dt), int)
     else:
-        index = numpy.array(numpy.around( (num-t0)/dt ), int)
+        index = numpy.array(numpy.around((num - t0) / dt), int)
 
     # Checking that the index really corresponds to the given time.
     # If the times do not correspond, then it means that the times
@@ -1132,11 +1175,10 @@ def time2index(times, nctime, calendar=None, select='exact'):
         if select in ['after', 'exact'] and numpy.any(after):
             raise ValueError('Some of the times given are after the last time in `nctime`.')
 
-
         # Find the times for which the match is not perfect.
         # Use list comprehension instead of the simpler `nctime[index]` since
         # not all time objects support numpy integer indexing (eg dap).
-        index[after] = N-1
+        index[after] = N - 1
         ncnum = numpy.squeeze([nctime[i] for i in index])
         mismatch = numpy.nonzero(ncnum != num)[0]
 
@@ -1152,12 +1194,11 @@ def time2index(times, nctime, calendar=None, select='exact'):
             pass
 
         elif select == 'nearest':
-            nearest_to_left = num[mismatch] < numpy.array( [nctime[i-1] + nctime[i] for i in index[mismatch]]) / 2.
+            nearest_to_left = num[mismatch] < numpy.array([nctime[i - 1] + nctime[i] for i in index[mismatch]]) / 2.
             index[mismatch] = index[mismatch] - 1 * nearest_to_left
 
         else:
-            raise ValueError("%s is not an option for the `select` argument."%select)
-
+            raise ValueError("%s is not an option for the `select` argument." % select)
 
         # Correct for indices equal to -1
         index[before] = 0
@@ -1167,7 +1208,7 @@ def time2index(times, nctime, calendar=None, select='exact'):
 
 
 def _toscalar(a):
-    if a.shape in [(),(1,)]:
+    if a.shape in [(), (1,)]:
         return a.item()
     else:
         return a

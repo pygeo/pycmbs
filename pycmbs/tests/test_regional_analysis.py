@@ -1,8 +1,8 @@
 from unittest import TestCase
 import unittest
 
-from pyCMBS.data import *
-from pyCMBS.diagnostic import RegionalAnalysis
+from pycmbs.data import *
+from pycmbs.diagnostic import RegionalAnalysis
 import scipy as sc
 import numpy as np
 

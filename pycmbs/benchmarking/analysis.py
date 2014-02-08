@@ -34,7 +34,6 @@ from pycmbs.benchmarking.utils import get_T63_landseamask, get_temporary_directo
 #///////////////////////////////////////////////////////////////////////
 
 
-
 def preprocess_seasonal_data(raw_file, interval=None, themask=None,
                              force=False, obs_var=None, label='',
                              shift_lon=None,
@@ -114,7 +113,7 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
         cdo.ymonsum(options='-f nc -b 32', output=obs_ymonsum_file, input=obs_mon_file, force=force)
         cdo.ymonstd(options='-f nc -b 32', output=obs_ymonstd_file, input=obs_mon_file, force=force)
         cdo.div(options='-f nc -b 32', output=obs_ymonN_file, input=obs_ymonsum_file + ' ' + obs_ymonmean_file,
-                force=force) #number of samples
+                force=force)  # number of samples
         time_cycle = 12
     elif interval == 'season':
         obs_ymonmean_file = obs_mon_file[:-3] + '_yseasmean.nc'
@@ -130,7 +129,6 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
     else:
         print interval
         raise ValueError('Unknown temporal interval. Can not perform preprocessing! ')
-
 
     #--- READ DATA ---
     obs = Data(obs_ymonmean_file, obs_var, read=True, label=label,
@@ -155,14 +153,14 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
     #/// read monthly data (needed for global means and hovmoeller plots) ///
     obs_monthly = Data(obs_mon_file, obs_var, read=True, label=label,
                        lat_name='lat', lon_name='lon',
-                       shift_lon=shift_lon) #,mask=ls_mask.data.data)
+                       shift_lon=shift_lon)  # ,mask=ls_mask.data.data)
 
     #try to ensure really monthly increasing time series
     if hasattr(obs_monthly, 'time_cycle'):
         if obs_monthly.time_cycle != 12:
             obs_monthly._pad_timeseries(fill_value=obs_monthly.fill_value)
     if obs_monthly.time_cycle != 12:
-        raise ValueError, 'Timecycle could still not be set!!!' + obs_mon_file
+        raise ValueError('Timecycle could still not be set!!! %s' % obs_mon_file)
 
     #/// center dates of months
     obs_monthly.adjust_time(day=15)
@@ -195,12 +193,14 @@ def seaice_extent_analysis(model_list, interval='season', GP=None, shift_lon=Fal
 
 #-----------------------------------------------------------------------------------------------------------------------
 
+
 def evaporation_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                          plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='evap', regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
+
 
 def rainfall_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                       plot_options=None, regions=None):
@@ -209,12 +209,14 @@ def rainfall_analysis(model_list, interval='season', GP=None, shift_lon=False, u
 
 #-----------------------------------------------------------------------------------------------------------------------
 
+
 def wind_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='wind', regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
+
 
 def twpa_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
@@ -223,12 +225,14 @@ def twpa_analysis(model_list, interval='season', GP=None, shift_lon=False, use_b
 
 #-----------------------------------------------------------------------------------------------------------------------
 
+
 def wvpa_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='wvpa', regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
+
 
 def hair_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
@@ -237,6 +241,7 @@ def hair_analysis(model_list, interval='season', GP=None, shift_lon=False, use_b
 
 #-----------------------------------------------------------------------------------------------------------------------
 
+
 def late_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
@@ -244,12 +249,14 @@ def late_analysis(model_list, interval='season', GP=None, shift_lon=False, use_b
 
 #-----------------------------------------------------------------------------------------------------------------------
 
+
 def budg_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='budg', regions=regions)
 
 #-------------------------------------------------------------------------------------------------------------
+
 
 def gpp_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                  plot_options=None, regions=None):
@@ -259,12 +266,14 @@ def gpp_analysis(model_list, interval='season', GP=None, shift_lon=False, use_ba
 
 #-----------------------------------------------------------------------------------------------------------------------
 
+
 def cfc_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                  plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='cfc', regions=regions)
 
 #-----------------------------------------------------------------------------------------------------------------------
+
 
 def nsJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
@@ -323,6 +332,7 @@ def scJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_
 # GENERIC - start
 #=======================================================================
 
+
 def generic_analysis(plot_options, model_list, obs_type, obs_name,
                      GP=None, GM=None, shift_lon=False,
                      use_basemap=False, report=None, interval=None,
@@ -345,10 +355,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
     #---- GENERAL CHECKS
     if interval not in ['monthly', 'season']:
-        raise ValueError, 'invalid interval in generic_analysis() ' + interval
+        raise ValueError('invalid interval in generic_analysis() %s' % interval)
 
     if obs_type not in plot_options.options.keys():
-        raise ValueError, 'No plot options available for the following data: ' + obs_type
+        raise ValueError('No plot options available for the following data: %s' % obs_type)
 
     if report is None:
         raise ReportError("Report option was not enabled")
@@ -358,7 +368,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     local_plot_options = plot_options.options[
         obs_type]  # gives a dictionary with all the options for the current variable
     if 'OPTIONS' not in local_plot_options.keys():
-        raise ValueError, 'No OPTIONS specified for analysis of variable ' + obs_type
+        raise ValueError('No OPTIONS specified for analysis of variable %s' % obs_type)
     if obs_name not in local_plot_options.keys():
         print 'Observational data not existing: ', obs_name, ' ... skipping analysis'
         return
@@ -511,7 +521,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     obs_monthly.unit = theunit
 
     #### IDENTIFY AREAS WHERE THERE IS AT LEAST SOME VALID DATA ####
-    valid_obs = ((~obs_orig.data.mask).sum(axis=0)) > 0 #find all data where there is at least SOME data
+    valid_obs = ((~obs_orig.data.mask).sum(axis=0)) > 0  # find all data where there is at least SOME data
     obs_orig._apply_mask(valid_obs)
     obs_monthly._apply_mask(valid_obs)
 
@@ -532,13 +542,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     else:
         stat_type = 'mean'
 
-
     #####################################################################
     # PLOTS
     #####################################################################
-
     # initialize Reichler plot
-    if f_reichler == True:
+    if f_reichler is True:
         Rplot = ReichlerPlot()  # needed here, as it might include multiple model results
 
     if f_pattern_correlation:  # init plot for PatternCorrelation
@@ -547,8 +555,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
     if f_globalmeanplot:
         if GM is None:
-            fG = plt.figure();
-            axg = fG.add_subplot(211);
+            fG = plt.figure()
+            axg = fG.add_subplot(211)
             axg1 = fG.add_subplot(212)
             GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True)  # global mean plot
         else:
@@ -562,7 +570,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     if GM is not None:
         GM.plot(obs_monthly, linestyle='--', show_std=False, group='observations', stat_type=stat_type)
 
-    if f_mapseasons == True:  # seasonal mean plot for observations
+    if f_mapseasons is True:  # seasonal mean plot for observations
         f_season = map_season(obs_orig, use_basemap=use_basemap,
                               cmap_data='jet',
                               show_zonal=False, zonal_timmean=True,
@@ -604,7 +612,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         GP.add_model(model._unique_name)  # register model name in GlecklerPlot
 
-        if for_report == True:
+        if for_report is True:
             #/// report results
             sys.stdout.write('\n *** Making report figures. \n')
             report.subsubsection(model._unique_name)
@@ -635,7 +643,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             print 'Observation: ', obs_orig.data.shape
             raise ValueError("Invalid geometries")
 
-        if f_mapdifference == True:
+        if f_mapdifference is True:
             sys.stdout.write('\n *** Map difference plotting. \n')
             # generate difference map
             savegraphics_prefix = os.environ['PYCMBS_OUTPUTDIR'] + obs_orig._get_label() + '___' + model_data._get_label() + '.' + os.environ['PYCMBS_OUTPUTFORMAT']
@@ -656,7 +664,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             del f_dif
 
         f_compare_timeseries = False  # todo
-        if f_compare_timeseries == True:
+        if f_compare_timeseries is True:
             """
             compare timeseries of two datasets
             1) apply same mask
@@ -668,15 +676,15 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             # in general, such a RegionalAnalysis is already implemented at 80% in pyCMBS, but not finished yet
             #I therefore propose to just use simple latitudinal bands here for the EvaClimod purposes at the moment
 
-            themask = np.ones(model_data.timmean().shape) #generate a mask with proper geometry
+            themask = np.ones(model_data.timmean().shape)  # generate a mask with proper geometry
 
             #1) lat-band 1
-            tmp = (model_data.lat > 30.) #extratropic 1
+            tmp = (model_data.lat > 30.)  # extratropic 1
             themask[tmp] = 2.
             del tmp
 
-            tmp = (model_data.lat < -30.) #extratropic 2
-            themask[tmp] = 3.;
+            tmp = (model_data.lat < -30.)  # extratropic 2
+            themask[tmp] = 3.
             del tmp
 
             fig_comp_time = time_series_regional_analysis(model_data, obs_orig, themask)
@@ -685,7 +693,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             del fig_comp_time
 
-        if f_mapseasons == True:
+        if f_mapseasons is True:
             sys.stdout.write('\n *** Seasonal maps plotting\n')
 
             # seasonal map
@@ -737,7 +745,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             PC = PatternCorrelation(obs_orig, model_data, ax=ax_pc)
             xxx = PC.plot(label=model.name.upper())
 
-        if f_hovmoeller == True:
+        if f_hovmoeller is True:
             print('    Doing Hovmoeller plot ...')
             f_hov = plt.figure(figsize=(8, 12))
             ax1 = f_hov.add_subplot(4, 1, 1)
@@ -745,7 +753,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             ax3 = f_hov.add_subplot(4, 1, 3)
             ax4 = f_hov.add_subplot(4, 1, 4)
 
-            s_start_time = '1979-01-01' #todo: use periods specified in options !!!!
+            s_start_time = '1979-01-01'  # todo: use periods specified in options !!!!
             s_stop_time = '2012-12-31'
             start_time = pylab.num2date(pylab.datestr2num(s_start_time))
             stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
@@ -819,30 +827,30 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             # save results
             sprefix = obs_type.upper() + '_' + obs_name.upper() + '_' + model._unique_name
-            REGSTAT.save(prefix = sprefix, dir = report.outdir, format='pkl')
-            REGSTAT.save(prefix = sprefix, dir = report.outdir, format='txt')
+            REGSTAT.save(prefix=sprefix, dir=report.outdir, format='pkl')
+            REGSTAT.save(prefix=sprefix, dir=report.outdir, format='txt')
 
             del REGSTAT
 
-        if f_reichler == True:
+        if f_reichler is True:
             sys.stdout.write('\n *** Computing diagnostics (Reichler index). \n')
             Diag = Diagnostic(obs_orig, model_data)
             e2 = Diag.calc_reichler_index()
             Rplot.add(e2, model_data.label, color='red')
 
-        if f_gleckler == True:
+        if f_gleckler is True:
             sys.stdout.write('\n *** Glecker plot. \n')
             e2a = GP.calc_index(obs_orig, model_data, model, obs_type)
             GP.add_data(obs_type, model._unique_name, e2a, pos=gleckler_pos)
 
     if f_pattern_correlation:
-        ax_pc.set_title('Pattern correlation: ' + obs_orig.label.upper()   )
+        ax_pc.set_title('Pattern correlation: ' + obs_orig.label.upper())
         report.figure(ax_pc.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
         report.newpage()
 
     del obs_monthly
 
-    if f_reichler == True:
+    if f_reichler is True:
         sys.stdout.write('\n *** Reichler plot.\n')
         f_reich = Rplot.bar(title='relative model error: %s' % obs_type.upper())
         report.figure(f_reich, caption='Relative model performance for ' + obs_type.upper())
@@ -878,7 +886,7 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
     """
 
     #/// OPTIONS
-    f_execute = True #execute scripts
+    f_execute = True  # execute scripts
 
     #script names
     template1 = './external/phenology_benchmarking/Greening_Phase_Analysis_I.m'
@@ -911,7 +919,6 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
         snowfilename = snow_data.filename
         snowvar = snow_data.varname
 
-
         #//////////////////////////////////////
         # GREENING PHASE ANALYSIS - STEP1
         #//////////////////////////////////////
@@ -921,7 +928,7 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
                 {'tag': '<INPUTDATAFILE>', 'value': data_file}, {'tag': '<DATAVARNAME>', 'value': varname},
                 {'tag': '<FFTMASKFILE>', 'value': outdir + '/fft_mask.mat'}]
         E = ExternalAnalysis('matlab -nosplash -nodesktop -r <INPUTFILE>', template1, tags, options=',quit',
-                             output_directory=rundir) #temporary scripts are stored in directories that have same name as model
+                             output_directory=rundir)  # temporary scripts are stored in directories that have same name as model
         E.run(execute=f_execute, remove_extension=True)
 
         #//////////////////////////////////////
@@ -940,7 +947,7 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
         tags.append(
             {'tag': '<SENSORMASKFILE>', 'value': os.getcwd() + '/external/phenology_benchmarking/sensor_mask.mat'})
         tags.append({'tag': '<RESULTDIR_AVHRR>',
-                     'value': '/net/nas2/export/eo/workspace/m300028/GPA/sensors/AVH_T63'}) #@todo this needs to compe from POOL SEP !!!!
+                     'value': '/net/nas2/export/eo/workspace/m300028/GPA/sensors/AVH_T63'})  # @todo this needs to compe from POOL SEP !!!!
         tags.append(
             {'tag': '<RESULTDIR_SEAWIFS>', 'value': '/net/nas2/export/eo/workspace/m300028/GPA/sensors/SEA_T63'})
         tags.append(
@@ -964,7 +971,7 @@ def phenology_faPAR_analysis(model_list, GP=None, shift_lon=None, use_basemap=Fa
 
         #/// Gleckler plot ///
         #~ e2a = GP.calc_index(gpcp,model_data,model,'pheno_faPAR')
-        e2a = 0. #@todo
+        e2a = 0.  # @todo
         GP.add_data('pheno_faPAR', model.name, e2a, pos=1)
 
 
@@ -975,7 +982,7 @@ def grass_fraction_analysis(model_list):
 
 def tree_fraction_analysis(model_list, pft='tree'):
     def fraction2netcdf(pft):
-        raise ValueError, 'try to avoid using Nio!'
+        raise ValueError('try to avoid using Nio!')
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/' + pft + '_05.dat'
         #save 0.5 degree data to netCDF file
         t = pl.loadtxt(filename)
@@ -997,13 +1004,12 @@ def tree_fraction_analysis(model_list, pft='tree'):
         var._FillValue = -99.
         var.assign_value(t)
         lat.assign_value(
-            np.linspace(90. - 0.25, -90. + 0.25, t.shape[0])) #todo: center coordinates or corner coordinates?
+            np.linspace(90. - 0.25, -90. + 0.25, t.shape[0]))  # todo: center coordinates or corner coordinates?
         lon.assign_value(np.linspace(-180. + 0.25, 180. - 0.25, t.shape[1]))
 
         F.close()
 
         return outname
-
 
     #//// load tree fraction observations ////
     #1) convert to netCDF
@@ -1021,7 +1027,6 @@ def tree_fraction_analysis(model_list, pft='tree'):
                   label='MODIS VCF ' + pft + ' fraction', unit='-',
                   lat_name='lat', lon_name='lon', shift_lon=shift_lon,
                   mask=ls_mask.data.data)
-
 
     #//// PERFORM ANALYSIS ///
     vmin = 0.
@@ -1050,24 +1055,24 @@ def tree_fraction_analysis(model_list, pft='tree'):
 
         #create net axis for zonal plot
         #http://old.nabble.com/manual-placement-of-a-colorbar-td28112662.html
-        divider1 = make_axes_locatable(ax1);
+        divider1 = make_axes_locatable(ax1)
         zax1 = divider1.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes, pack_start=True)
         dif.add_axes(zax1)
 
-        divider2 = make_axes_locatable(ax2);
+        divider2 = make_axes_locatable(ax2)
         zax2 = divider2.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes, pack_start=True)
         dif.add_axes(zax2)
 
-        divider3 = make_axes_locatable(ax3);
+        divider3 = make_axes_locatable(ax3)
         zax3 = divider3.new_horizontal("50%", pad=0.05, axes_class=maxes.Axes, pack_start=True)
         dif.add_axes(zax3)
 
         #--- calculate zonal statistics and plot
-        zon1 = ZonalPlot(ax=zax1);
+        zon1 = ZonalPlot(ax=zax1)
         zon1.plot(model_data, xlim=[vmin, vmax])
-        zon2 = ZonalPlot(ax=zax2);
+        zon2 = ZonalPlot(ax=zax2)
         zon2.plot(hansen, xlim=[vmin, vmax])
-        zon3 = ZonalPlot(ax=zax3);
+        zon3 = ZonalPlot(ax=zax3)
         zon3.plot(model_data.sub(hansen))
         zon3.ax.plot([0., 0.], zon3.ax.get_ylim(), color='k')
 
@@ -1079,9 +1084,6 @@ def tree_fraction_analysis(model_list, pft='tree'):
 #=======================================================================
 # VEGETATION COVER FRACTION -- end
 #=======================================================================
-
-
-
 
 
 #=======================================================================
@@ -1102,11 +1104,9 @@ def surface_upward_flux_analysis(model_list, interval='season', GP=None,
 #=======================================================================
 
 
-
 #=======================================================================
 # ALBEDO -- begin
 #=======================================================================
-
 def albedo_analysis_vis(model_list, interval='season', GP=None,
                         shift_lon=False, use_basemap=False,
                         report=None,
@@ -1115,6 +1115,7 @@ def albedo_analysis_vis(model_list, interval='season', GP=None,
                   shift_lon=shift_lon, use_basemap=use_basemap,
                   report=report,
                   plot_options=plot_options, actvar='albedo_vis', regions=regions)
+
 
 def albedo_analysis_nir(model_list, interval='season', GP=None,
                         shift_lon=False, use_basemap=False,
@@ -1126,6 +1127,7 @@ def albedo_analysis_nir(model_list, interval='season', GP=None,
                   plot_options=plot_options, actvar='albedo_nir',
                   regions=regions)
 
+
 def albedo_analysis(model_list, interval='season', GP=None,
                     shift_lon=False, use_basemap=False, report=None,
                     plot_options=None, regions=None):
@@ -1133,7 +1135,6 @@ def albedo_analysis(model_list, interval='season', GP=None,
                   shift_lon=shift_lon, use_basemap=use_basemap,
                   report=report, plot_options=plot_options,
                   actvar='albedo', regions=regions)
-
 
 
 def xxxxxalbedo_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report=None, interval='season',
@@ -1211,6 +1212,7 @@ def xxxxxalbedo_analysis(model_list, GP=None, shift_lon=None, use_basemap=False,
 # TEMPERATURE -- begin
 #=======================================================================
 
+
 def temperature_analysis(model_list, interval='season', GP=None,
                          shift_lon=False, use_basemap=False, report=None,
                          plot_options=None, regions=None):
@@ -1260,7 +1262,7 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
 
     thevar = actvar
     if thevar not in plot_options.options.keys():
-        raise ValueError, 'The variable is not existing in the plot_options: ' + thevar
+        raise ValueError('The variable is not existing in the plot_options: %s' % thevar)
     thelabel = plot_options.options[thevar]['OPTIONS']['label']
     thelabel = thelabel.upper()
 
@@ -1292,7 +1294,7 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
                     generic_analysis(plot_options, model_list, thevar, k, GP=GP, GM=GM, report=report,
                                      use_basemap=use_basemap, shift_lon=shift_lon, interval=interval, regions=regions)
     else:
-        raise ValueError, 'Can not do analysis for ' + thelabel + ' for some reason! Check config and plot option files!'
+        raise ValueError('Can not do analysis for %s  for some reason! Check config and plot option files!' % thelabel)
 
     report.figure(fG, caption='Global means for ' + thelabel, bbox_inches=None)
     fGa = GM.plot_mean_result(dt=5., colors={'observations': 'blue', 'models': 'red'})
@@ -1338,12 +1340,12 @@ def sis_analysis(model_list, interval='season', GP=None,
 
 def beer_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report=None, interval='season',
                   plot_options=None):
-    if shift_lon == None:
-        raise ValueError, 'You need to specify shift_lon option!'
-    if use_basemap == None:
-        raise ValueError, 'You need to specify use_basemap option!'
-    if report == None:
-        raise ValueError, 'You need to specify report option!'
+    if shift_lon is None:
+        raise ValueError('You need to specify shift_lon option!')
+    if use_basemap is None:
+        raise ValueError('You need to specify use_basemap option!')
+    if report is None:
+        raise ValueError('You need to specify report option!')
 
     print
     print '************************************************************'
@@ -1389,8 +1391,7 @@ def beer_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report
                     f = obs_mon_file + model.experiment + '_' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[
                                                                                                    0:4] + '_ymonmean.nc'
                     GPP_Model = Data4D(f, 'var167', read=True, lat_name='lat', lon_name='lon',
-                                       label=model.name + '(' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[
-                                                                                                   0:4] + ')',
+                                       label=model.name + '(' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4] + ')',
                                        unit='gC m-2 a-1',
                                        scale_factor=3600. * 24. * 30. / 0.083).sum_data4D()
 
@@ -1434,28 +1435,28 @@ def time_series_regional_analysis(x, y, msk):
     """
 
     if x.shape != y.shape:
-        raise ValueError, 'Datasets have not the same geometry'
+        raise ValueError('Datasets have not the same geometry')
 
     X = x.copy()
     Y = y.copy()
 
     #--- mask data as invalid ---
-    invalid = x.data.mask | y.data.mask #mask as invalid if one of the datasets is invalid
+    invalid = x.data.mask | y.data.mask  # mask as invalid if one of the datasets is invalid
     X.data.mask[invalid] = True
     Y.data.mask[invalid] = True
 
-    X.weighting_type = 'all' #whole globe for weighting
+    X.weighting_type = 'all'  # whole globe for weighting
     Y.weighting_type = 'all'
 
     L = LinePlot(title='mytitle')
 
-    for v in np.unique(msk): #analysis for all unique values in mask
+    for v in np.unique(msk):  # analysis for all unique values in mask
         # now do analysis for each region ---
         # 1) calculate mask
         m = msk == v
-        tmpx = X.copy();
+        tmpx = X.copy()
         tmpx._apply_mask(m)
-        tmpy = Y.copy();
+        tmpy = Y.copy()
         tmpy._apply_mask(m)
 
         # 2) plot results
@@ -1464,8 +1465,3 @@ def time_series_regional_analysis(x, y, msk):
 
         del tmpx, tmpy
     return L.figure
-
-
-
-
-

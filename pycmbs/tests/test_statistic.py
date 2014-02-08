@@ -2,7 +2,7 @@ from unittest import TestCase
 
 __author__ = 'm300028'
 
-from pyCMBS.statistic import *
+from pycmbs.statistic import *
 
 class TestStatistic(TestCase):
     def test_get_significance(self):

@@ -5,7 +5,7 @@ For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
 
-from pyCMBS.data import Data
+from pycmbs.data import Data
 import os
 from pycmbs.netcdf import *
 import numpy as np
