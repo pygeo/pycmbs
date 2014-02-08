@@ -1,7 +1,8 @@
 """
 Test map layouts
 """
-from pyCMBS import *
+from pycmbs.mapping import SingleMap
+from pycmbs.data import Data
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as grd

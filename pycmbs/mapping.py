@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This file is part of pyCMBS.
-For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
+For COPYRIGHT, LICENSE and AUTHORSHIP please refer to
 the pyCMBS licensing details.
 """
 
@@ -13,6 +13,7 @@ import os
 from mpl_toolkits.basemap import Basemap, shiftgrid
 
 from matplotlib import pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import matplotlib.gridspec as grd
 
@@ -26,7 +27,7 @@ class MapPlotGeneric(object):
     """
 
     def __init__(self, backend='imshow', format='png', savefile=None,
-                 show_statistic=True, stat_type='mean', figure=None):
+                 show_statistic=True, stat_type='mean', **kwargs):
 
         """
         Parameters
@@ -38,6 +39,7 @@ class MapPlotGeneric(object):
                        this is the fastest approach
             'basemap' : uses Basemap as backend for plotting
         """
+
         self.backend = backend
         self.format = format
         self.savefile = savefile
@@ -45,10 +47,13 @@ class MapPlotGeneric(object):
         self.stat_type = stat_type
         self._dummy_axes = []
 
-        if figure is None:
-            self.figure = plt.figure()
+        if 'ax' in kwargs.keys():
+            self.ax_main = ax
         else:
-            self.figure = figure
+            fig = plt.figure()
+            self.ax_main = fig.add_subplot(111)
+        self.figure = self.ax_main.figure
+        self._set_axis_invisible(self.ax_main, frame=False)
 
         # consistency checks
         self._check()
@@ -543,6 +548,9 @@ class MultipleMap(MapPlotGeneric):
             specifies number of subplots (nrows,mcols); e.g. geometry=(2,3)
             give a plot with 2 rows and 3 cols.
         """
+        if geometry is None:
+            raise ValueError('You need to specify a valid geometry.')
+        raise ValueError('MultipleMap not further implemented yet.')
         assert(isinstance(geometry, tuple))
         self.n = geometry[0]
         self.m = geometry[1]
