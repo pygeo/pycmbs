@@ -334,12 +334,12 @@ class ReichlerPlot(object):
             self.ax.add_artist(circle)
 
             self.ax.text(0.1 + dx, 0.5, self.labels[i], size=tsize, rotation=0.,
-             ha="center", va="center",
-             bbox=dict(boxstyle="round",
-                         ec=self.colors[i],
-                         fc=self.colors[i],
-                         alpha=0.4,
-                       ))
+                         ha="center", va="center",
+                         bbox=dict(boxstyle="round",
+                                   ec=self.colors[i],
+                                   fc=self.colors[i],
+                                   alpha=0.4,
+                                   ))
             dx += 0.15
 
         self.ax.set_ylim(-1., 1.)
@@ -1088,7 +1088,7 @@ class HistogrammPlot(object):
                 f *= 100.
 
         self.ax.plot(b[0:-1], f, color=color, linestyle=linestyle,
-                    linewidth=linewidth, label=label)
+                     linewidth=linewidth, label=label)
 
         if show_legend:
             self.ax.legend()
@@ -2088,10 +2088,10 @@ class GlecklerPlot(object):
         else:
             extend = 'neither'
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap,
-                                   norm=self.norm,
-                                   orientation='horizontal',
-                                   format=l_f, boundaries=self.bounds,
-                                   extend=extend, ticks=ticks)
+                                       norm=self.norm,
+                                       orientation='horizontal',
+                                       format=l_f, boundaries=self.bounds,
+                                       extend=extend, ticks=ticks)
 
     def _draw_legend(self, labels, title=None):
         """
@@ -2669,9 +2669,9 @@ def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         # generate Basemap map
         ############################################
         m1 = Basemap(projection=proj, lon_0=lon_0, lat_0=lat_0, ax=ax,
-                   llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                   urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
-                   boundinglat=boundinglat)
+                     llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat,
+                     boundinglat=boundinglat)
 
         if bluemarble:
             m1.bluemarble()
@@ -3189,8 +3189,8 @@ def hov_difference(x, y, climits=None, dlimits=None, data_cmap='jet', nclasses=1
     else:
         msg = 'Difference plot not possible as data has different shape'
         ax3.text(0.5, 0.5, msg,
-             horizontalalignment='center',
-             verticalalignment='center')  # ,
+                 horizontalalignment='center',
+                 verticalalignment='center')  # ,
              #transform = ax.transAxes)
         ax3.set_xticks([])
         ax3.set_yticks([])

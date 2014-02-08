@@ -338,13 +338,13 @@ class CMIP5Data(Model):
         else:
             if self.type == 'CMIP5':
                 filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
-                        (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
+                             (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
             if self.type == 'CMIP5RAW':
                 filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
-                        (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
+                             (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
             elif self.type == 'CMIP3':
                 filename1 = ("%s/%s_%s_%s_%s.%s" %
-                        (custom_path, self.experiment, self.model, varname, model_suffix, file_format))
+                             (custom_path, self.experiment, self.model, varname, model_suffix, file_format))
             else:
                 print self.type
                 raise ValueError('Can not generate filename: invalid model type!')
@@ -899,9 +899,9 @@ class JSBACH_BOT(Model):
         ls_mask = get_T63_landseamask(self.shift_lon)
 
         albedo = Data(filename, v, read=True,
-        label='MPI-ESM albedo ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
-        shift_lon=self.shift_lon,
-        mask=ls_mask.data.data)
+                      label='MPI-ESM albedo ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
+                      shift_lon=self.shift_lon,
+                      mask=ls_mask.data.data)
 
         return albedo
 
@@ -918,9 +918,9 @@ class JSBACH_BOT(Model):
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_forest_shrub.nc'
         v = 'var12'
         tree = Data(filename, v, read=True,
-        label='MPI-ESM tree fraction ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
-        shift_lon=self.shift_lon,
-        mask=ls_mask.data.data, start_time=pl.num2date(pl.datestr2num('2001-01-01')), stop_time=pl.num2date(pl.datestr2num('2001-12-31')))
+                    label='MPI-ESM tree fraction ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
+                    shift_lon=self.shift_lon,
+                    mask=ls_mask.data.data, start_time=pl.num2date(pl.datestr2num('2001-01-01')), stop_time=pl.num2date(pl.datestr2num('2001-12-31')))
 
         return tree
 
@@ -937,9 +937,9 @@ class JSBACH_BOT(Model):
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/historical_r1i1p1-LR_1850-2005_grass_crop_pasture_2001.nc'
         v = 'var12'
         grass = Data(filename, v, read=True,
-        label='MPI-ESM tree fraction ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
-        #shift_lon=shift_lon,
-        mask=ls_mask.data.data, start_time=pl.num2date(pl.datestr2num('2001-01-01')), stop_time=pl.num2date(pl.datestr2num('2001-12-31')), squeeze=True)
+                     label='MPI-ESM tree fraction ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
+                     #shift_lon=shift_lon,
+                     mask=ls_mask.data.data, start_time=pl.num2date(pl.datestr2num('2001-01-01')), stop_time=pl.num2date(pl.datestr2num('2001-12-31')), squeeze=True)
 
         return grass
 
@@ -978,9 +978,9 @@ class JSBACH_BOT(Model):
 
         #--- read SIS data
         sis = Data(filename, v, read=True,
-        label='MPI-ESM SIS ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
-        #shift_lon=shift_lon,
-        mask=ls_mask.data.data)
+                   label='MPI-ESM SIS ' + self.experiment, unit='-', lat_name='lat', lon_name='lon',
+                   #shift_lon=shift_lon,
+                   mask=ls_mask.data.data)
 
         return sis
 
@@ -1013,15 +1013,15 @@ class JSBACH_BOT(Model):
         try:
             v = 'var4'
             rain = Data(filename, v, read=True, scale_factor=86400.,
-            label='MPI-ESM ' + self.experiment, unit='mm/day', lat_name='lat', lon_name='lon',
-            shift_lon=self.shift_lon,
-            mask=ls_mask.data.data)
+                        label='MPI-ESM ' + self.experiment, unit='mm/day', lat_name='lat', lon_name='lon',
+                        shift_lon=self.shift_lon,
+                        mask=ls_mask.data.data)
         except:
             v = 'var142'
             rain = Data(filename, v, read=True, scale_factor=86400.,
-            label='MPI-ESM ' + self.experiment, unit='mm/day', lat_name='lat', lon_name='lon',
-            shift_lon=self.shift_lon,
-            mask=ls_mask.data.data)
+                        label='MPI-ESM ' + self.experiment, unit='mm/day', lat_name='lat', lon_name='lon',
+                        shift_lon=self.shift_lon,
+                        mask=ls_mask.data.data)
 
         return rain
 
@@ -1443,9 +1443,9 @@ class JSBACH_RAW(Model):
 
         #--- read SIS data
         t2m = Data(filename, v, read=True,
-            label=self.experiment + ' ' + v, unit='K', lat_name='lat', lon_name='lon',
-            shift_lon=self.shift_lon,
-            mask=ls_mask.data.data)
+                   label=self.experiment + ' ' + v, unit='K', lat_name='lat', lon_name='lon',
+                   shift_lon=self.shift_lon,
+                   mask=ls_mask.data.data)
 
         retval = (t2m.time, t2m, t2m)
 
@@ -1509,9 +1509,9 @@ class JSBACH_RAW(Model):
 
         #--- read SIS data
         sw_down = Data(filename, v, read=True,
-        label=self.experiment + ' ' + v, unit='W/m**2', lat_name='lat', lon_name='lon',
-        shift_lon=self.shift_lon,
-        mask=ls_mask.data.data)
+                       label=self.experiment + ' ' + v, unit='W/m**2', lat_name='lat', lon_name='lon',
+                       shift_lon=self.shift_lon,
+                       mask=ls_mask.data.data)
 
         return sw_down
 
@@ -1548,9 +1548,9 @@ class JSBACH_RAW(Model):
 
         #--- read SW up data
         sw_up = Data(filename, v, read=True,
-        label=self.experiment + ' ' + v, unit='W/m**2', lat_name='lat', lon_name='lon',
-        shift_lon=self.shift_lon,
-        mask=ls_mask.data.data)
+                     label=self.experiment + ' ' + v, unit='W/m**2', lat_name='lat', lon_name='lon',
+                     shift_lon=self.shift_lon,
+                     mask=ls_mask.data.data)
 
         return sw_up
 
@@ -1586,9 +1586,9 @@ class JSBACH_RAW(Model):
 
         #--- read SW up data
         rain = Data(filename, v, read=True,
-        label=self.experiment + ' ' + v, unit='mm/day', lat_name='lat', lon_name='lon',
-        shift_lon=self.shift_lon,
-        mask=ls_mask.data.data, scale_factor=86400.)
+                    label=self.experiment + ' ' + v, unit='mm/day', lat_name='lat', lon_name='lon',
+                    shift_lon=self.shift_lon,
+                    mask=ls_mask.data.data, scale_factor=86400.)
 
         return rain
 
@@ -1629,9 +1629,9 @@ class JSBACH_RAW(Model):
 
         #--- read SW up data
         gpp = Data4D(filename, v, read=True,
-          label=self.experiment + ' ' + v, unit='gC m-2 a-1', lat_name='lat', lon_name='lon',
-          shift_lon=self.shift_lon,
-          mask=ls_mask.data.data, scale_factor=3600. * 24. * 30. / 0.083
+                     label=self.experiment + ' ' + v, unit='gC m-2 a-1', lat_name='lat', lon_name='lon',
+                     shift_lon=self.shift_lon,
+                     mask=ls_mask.data.data, scale_factor=3600. * 24. * 30. / 0.083
                      )
 
         return gpp.sum_data4D()

@@ -726,7 +726,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                                       show_stat=True,
                                       drawparallels=False,
                                       cticks=[cticks_diff[0],
-                                      cticks_diff[-1]],
+                                              cticks_diff[-1]],
                                       titlefontsize=10)
 
             if len(model_data.data) == 4:
@@ -1138,7 +1138,7 @@ def albedo_analysis(model_list, interval='season', GP=None,
 
 
 def xxxxxalbedo_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report=None, interval='season',
-                    plot_options=None, regions=None):
+                         plot_options=None, regions=None):
     if shift_lon is None:
         raise ValueError('You need to specify shift_lon option!')
     if use_basemap is None:

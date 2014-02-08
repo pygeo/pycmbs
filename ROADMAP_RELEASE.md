@@ -12,6 +12,7 @@ github move
 * [AL,MI] move pycmbs from assembla to github
 * adapt CHANGES file
 * decide for a version number: v1.0 ???
+* how is generation of tagged versions work
 
 Code clean up and completion
 ----------------------------

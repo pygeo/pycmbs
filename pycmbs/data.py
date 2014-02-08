@@ -520,7 +520,7 @@ class Data(object):
         for i in xrange(len(self.time)):
             F.write(str(self.num2date(self.time[i])) + ' , '
                     + str(self.data[i, :].flatten())
-            .replace('[', '').replace(']', '') + '\n')
+                    .replace('[', '').replace(']', '') + '\n')
         F.close()
 
     #-----------------------------------------------------------------------

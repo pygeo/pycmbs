@@ -116,11 +116,11 @@ def twoway_interaction(groups, format="html"):
             v, dfv)
     else:
         output = [[vr, dfvr, mvr, mvr / mve, pvalr],
-         [vc, dfvc, mvc, mvc / mve, pvalc],
-            [vi, dfvi, mvi, mvi / mve, pvali],
-            [vs, dfvs],
-            [ve, dfve, mve],
-            [v, dfv]]
+                  [vc, dfvc, mvc, mvc / mve, pvalc],
+                  [vi, dfvi, mvi, mvi / mve, pvali],
+                  [vs, dfvs],
+                  [ve, dfve, mve],
+                  [v, dfv]]
 
     return output
 

@@ -360,10 +360,10 @@ class SingleMap(MapPlotGeneric):
             tick.label.set_fontsize(fontsize)
 
     def plot(self, show_zonal=False, show_histogram=False,
-            show_timeseries=False, show_colorbar=True,
-            colorbar_orientation='vertical', cmap='jet', ctick_prop=None,
-            vmin=None, vmax=None, nclasses=10,
-            title=None, proj_prop=None):
+             show_timeseries=False, show_colorbar=True,
+             colorbar_orientation='vertical', cmap='jet', ctick_prop=None,
+             vmin=None, vmax=None, nclasses=10,
+             title=None, proj_prop=None):
         """
         routine to plot a single map
 

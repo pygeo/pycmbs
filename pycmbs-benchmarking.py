@@ -218,7 +218,7 @@ def main():
                            }
                            },
 
-                 'wind': {'CMIP5':
+                  'wind': {'CMIP5':
                           {
                               'variable': 'sfcWind',
                               'unit': 'm/s',
@@ -230,7 +230,7 @@ def main():
                               'scale_factor': 1.,
                               'valid_mask': 'ocean'
                           }
-                          },
+                  },
 
                   'wvpa': {'CMIP5':
                            {
@@ -275,34 +275,34 @@ def main():
                            },
 
                   'seaice_concentration': {'CMIP5':
-                                   {
-                                       'variable': 'sic',
-                                       'unit': '-',
-                                       'lat_name': 'lat',
-                                       'lon_name': 'lon',
-                                       'model_suffix': 'ens_mean_185001-200512',
-                                       'file_format': 'nc',
-                                       'model_prefix': 'OImon',
-                                       'scale_factor': 1,
-                                       'valid_mask': 'ocean',
-                                       'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
-                                   },
+                                           {
+                                               'variable': 'sic',
+                                               'unit': '-',
+                                               'lat_name': 'lat',
+                                               'lon_name': 'lon',
+                                               'model_suffix': 'ens_mean_185001-200512',
+                                               'file_format': 'nc',
+                                               'model_prefix': 'OImon',
+                                               'scale_factor': 1,
+                                               'valid_mask': 'ocean',
+                                               'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
+                                           },
 
-                      'CMIP3':
-                      {
-                          'variable': 'SICOMO',
-                          'unit': '-',
-                          'lat_name': 'lat',
-                          'lon_name': 'lon',
-                          'model_suffix': '1860-2100.ext',
-                          'file_format': 'nc',
-                          'model_prefix': '',
-                          'scale_factor': 100.,
-                          'valid_mask': 'ocean',
-                          'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
-                          'level': 0
-                      },
-                  },
+                                           'CMIP3':
+                                           {
+                                               'variable': 'SICOMO',
+                                               'unit': '-',
+                                               'lat_name': 'lat',
+                                               'lon_name': 'lon',
+                                               'model_suffix': '1860-2100.ext',
+                                               'file_format': 'nc',
+                                               'model_prefix': '',
+                                               'scale_factor': 100.,
+                                               'valid_mask': 'ocean',
+                                               'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
+                                               'level': 0
+                                           },
+                                           },
 
                   'seaice_extent': {'CMIP5':
                                    {
@@ -318,21 +318,21 @@ def main():
                                     'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
                                     },
 
-                               'CMIP3':
+                                    'CMIP3':
                                    {
                                     'variable': 'SICOMO',
-                                    'unit': '-',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'model_suffix': '1860-2100.ext',
-                                    'file_format': 'nc',
-                                    'model_prefix': '',
-                                    'scale_factor': 100.,
-                                    'valid_mask': 'ocean',
-                                    'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
-                                    'level': 0
-                                    },
-                                    },
+                                       'unit': '-',
+                                       'lat_name': 'lat',
+                                       'lon_name': 'lon',
+                                       'model_suffix': '1860-2100.ext',
+                                       'file_format': 'nc',
+                                       'model_prefix': '',
+                                       'scale_factor': 100.,
+                                       'valid_mask': 'ocean',
+                                       'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
+                                       'level': 0
+                                   },
+                  },
 
                   'budg': {'CMIP5':
                            {
@@ -368,16 +368,16 @@ def main():
                           },
 
                   'surface_upward_flux': {'JSBACH_RAW2':
-                                 {
-                                     'variable': 'swdown_reflect_acc',
-                                     'unit': '$W/m^2$',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'file_format': 'nc',
-                                     'scale_factor': 1.,
-                                     'valid_mask': 'land'
-                                 }
-                  },
+                                          {
+                                              'variable': 'swdown_reflect_acc',
+                                              'unit': '$W/m^2$',
+                                              'lat_name': 'lat',
+                                              'lon_name': 'lon',
+                                              'file_format': 'nc',
+                                              'scale_factor': 1.,
+                                              'valid_mask': 'land'
+                                          }
+                                          },
 
                   'albedo_vis': {'JSBACH_RAW2':
                                  {
@@ -457,11 +457,11 @@ def main():
                                  shift_lon=shift_lon)
         elif CF.dtypes[i].upper() == 'CMIP5RAW':
             themodel = CMIP5RAWData(data_dir, model, experiment, varmethods,
-                                 intervals=CF.intervals, lat_name='lat',
-                                 lon_name='lon', label=model,
-                                 start_time=start_time,
-                                 stop_time=stop_time,
-                                 shift_lon=shift_lon)
+                                    intervals=CF.intervals, lat_name='lat',
+                                    lon_name='lon', label=model,
+                                    start_time=start_time,
+                                    stop_time=stop_time,
+                                    shift_lon=shift_lon)
         elif CF.dtypes[i].upper() == 'JSBACH_BOT':
             themodel = JSBACH_BOT(data_dir, varmethods, experiment,
                                   intervals=CF.intervals,

@@ -303,7 +303,7 @@ class RegionalAnalysis(object):
         #=======================================================================
         # A) calculate once correlation and then calculate regional statistics
         RO, PO = self.x.correlate(self.y, pthres=pthres,
-                        spearman=False, detrend=False)
+                                  spearman=False, detrend=False)
         corrstat1 = RO.condstat(self.region)  # gives a dictionary already
 
         correlations = []
@@ -388,16 +388,16 @@ class RegionalAnalysis(object):
             return r
 
         corrstat2 = {'id': vals, 'slope': slopes,
-            'correlation': correlations,
-            'pvalue': pvalues,
-            'intercept': intercepts,
-            'stdx': stdx,
-            'stdy': stdy}
+                     'correlation': correlations,
+                     'pvalue': pvalues,
+                     'intercept': intercepts,
+                     'stdx': stdx,
+                     'stdy': stdy}
 
         corrstat3 = {'id': vals, 'slope': slopes1,
-            'correlation': correlations1,
-            'pvalue': pvalues1,
-            'intercept': intercepts1}
+                     'correlation': correlations1,
+                     'pvalue': pvalues1,
+                     'intercept': intercepts1}
 
         #--- return result ---
         return {'analysis_A': corrstat1, 'analysis_B': _reshuffle(corrstat2), 'analysis_C': _reshuffle(corrstat3)}
@@ -2265,7 +2265,7 @@ class Diagnostic(object):
         print 'Calculating correlation with lag=', lag, nlags
 
         def NormCrossCorrSlow(x1, x2,
-                  nlags=400):
+                              nlags=400):
             res = []
             lags = []
             for i in range(-(nlags / 2), nlags / 2, 1):
@@ -2816,13 +2816,13 @@ class koeppen(object):
         if (ny_t != ny_p) or (ny_t != ny_l):
             sys.exit('ERROR: The resolution ot the three arrays differ in \
        Y-dimension: \n' + str(ny_t) + "(temp)  " + str(ny_p)
-            + "(precip) " + str(ny_l) + "(lsm) ")
+                     + "(precip) " + str(ny_l) + "(lsm) ")
             return False
 
         if (nx_t != nx_p) or (nx_t != nx_l):
             sys.exit('ERROR: The resolution ot the three arrays differ in \
        X-dimension: \n' + str(nx_t) + "(temp)  " + str(nx_p)
-            + "(precip) " + str(nx_l) + "(lsm) ")
+                     + "(precip) " + str(nx_l) + "(lsm) ")
             return False
 
         return True
@@ -3040,7 +3040,7 @@ class koeppen(object):
         at the color-bar
         """
         map_plot(self.Clim, cmap_data=self.cmap, colorbar_orientation='horizontal', vmin=0.5, vmax=14.5,
-        cticks=[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.],
-            cticklabels=["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
-                         "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
-            nclasses=15, **kwargs)
+                 cticks=[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.],
+                 cticklabels=["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
+                              "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
+                 nclasses=15, **kwargs)
