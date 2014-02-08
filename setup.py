@@ -1,22 +1,22 @@
 from distutils.core import setup
 import os
 
-import pyCMBS
+import pycmbs
 
 install_requires = ["numpy>0.1", "cdo>1.2", ]
 
-setup(name='pyCMBS',
-      version=pyCMBS.__version__,
-      packages=['pyCMBS', 'pyCMBS/framework', 'pyCMBS/tests',
-                'pyCMBS/logo', 'pyCMBS/examples', 'pyCMBS/tools'],
-      package_dir={'pyCMBS': 'pyCMBS'},
-      package_data={'pyCMBS': ['framework/configuration/*',
-                               'logo/*', 'LICENSE']},
+setup(name='pycmbs',
+      version=pycmbs.__version__,
+      packages=['pycmbs', 'pycmbs/benchmarking', 'pycmbs/tests',
+                'pycmbs/benchmarking/logo', 'pycmbs/examples'],
+      package_dir={'pycmbs': 'pycmbs'},
+      package_data={'pycmbs': ['benchmarking/configuration/*',
+                               'benchmarking/logo/*', 'LICENSE']},
       author="Alexander Loew",
       author_email='alexander.loew@mpimet.mpg.de',
       maintainer='Alexander Loew',
       maintainer_email='alexander.loew@mpimet.mpg.de',
-      url='https://code.zmaw.de/projects/pycmbs',
+      url='https://github.com/pygeo/pycmbs',
       description='pyCMBS - python Climate Model Benchmarking Suite',
       long_description='The pyCMBS project is a suite of tools to \
                         process, analyze, visualize and benchmark \
@@ -27,7 +27,7 @@ setup(name='pyCMBS',
       install_requires=install_requires,
       keywords=["data", "science", "climate", "meteorology",
                 "model evaluation", "benchmarking", "metrics"],
-      scripts=["pyCMBS/framework/pycmbs.py"],
+      scripts=["pycmbs-benchmarking.py"],
       license="XXXX")
 
 ########################################################################
