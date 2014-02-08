@@ -78,9 +78,9 @@ def create_dummy_configuration():
               vars=['albedo', 'sis'], start_date='2000-01-01',
               stop_date='2007-09-30',
               models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP',
-                            'path': '/this/is/the/root/path/to/the/model/data/'},
+                       'path': '/this/is/the/root/path/to/the/model/data/'},
                       {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST',
-                            'path': '/this/is/the/root/path/to/the/model/data/'}
+                       'path': '/this/is/the/root/path/to/the/model/data/'}
                       ])
 
     os.system('rm -rf ' + odir + '/.svn')
@@ -164,114 +164,114 @@ def main():
     stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
     model_dict = {'rain': {'CMIP5':
-                                {
-                                    'variable': 'pr',
-                                    'unit': 'mm/day',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'model_suffix': 'ensmean',
-                                    'model_prefix': 'Amon',
-                                    'file_format': 'nc',
-                                    'scale_factor': 86400.,
-                                    'valid_mask': 'ocean'
-                                },
+                           {
+                               'variable': 'pr',
+                               'unit': 'mm/day',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'model_suffix': 'ensmean',
+                               'model_prefix': 'Amon',
+                               'file_format': 'nc',
+                               'scale_factor': 86400.,
+                               'valid_mask': 'ocean'
+                           },
 
 
-                            'JSBACH_RAW2':
-                                {
-                                    'variable': 'precip_acc',
-                                    'unit': 'mm/day',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'file_format': 'nc',
-                                    'scale_factor': 86400.,
-                                    'valid_mask': 'global'
-                                }
+                           'JSBACH_RAW2':
+                           {
+                               'variable': 'precip_acc',
+                               'unit': 'mm/day',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'file_format': 'nc',
+                               'scale_factor': 86400.,
+                               'valid_mask': 'global'
+                           }
                            },
 
 
                   'evap': {'CMIP5':
-                                 {
-                                     'variable': 'evspsbl',
-                                     'unit': 'mm/day',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'model_suffix': 'ensmean',
-                                     'file_format': 'nc',
-                                     'model_prefix': 'Amon',
-                                     'scale_factor': 86400.,
-                                     'valid_mask': 'ocean'
-                                 }
+                           {
+                               'variable': 'evspsbl',
+                               'unit': 'mm/day',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'model_suffix': 'ensmean',
+                               'file_format': 'nc',
+                               'model_prefix': 'Amon',
+                               'scale_factor': 86400.,
+                               'valid_mask': 'ocean'
+                           }
                            },
 
                   'twpa': {'CMIP5':
-                                 {
-                                     'variable': 'clwvi',
-                                     'unit': 'kg/m^2',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'model_suffix': 'ensmean',
-                                     'file_format': 'nc',
-                                     'model_prefix': 'Amon',
-                                     'scale_factor': 1.,
-                                     'valid_mask': 'ocean'
-                                 }
+                           {
+                               'variable': 'clwvi',
+                               'unit': 'kg/m^2',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'model_suffix': 'ensmean',
+                               'file_format': 'nc',
+                               'model_prefix': 'Amon',
+                               'scale_factor': 1.,
+                               'valid_mask': 'ocean'
+                           }
                            },
 
                  'wind': {'CMIP5':
-                                 {
-                                     'variable': 'sfcWind',
-                                     'unit': 'm/s',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'model_suffix': 'ensmean',
-                                     'file_format': 'nc',
-                                     'model_prefix': 'Amon',
-                                     'scale_factor': 1.,
-                                     'valid_mask': 'ocean'
-                                 }
+                          {
+                              'variable': 'sfcWind',
+                              'unit': 'm/s',
+                              'lat_name': 'lat',
+                              'lon_name': 'lon',
+                              'model_suffix': 'ensmean',
+                              'file_format': 'nc',
+                              'model_prefix': 'Amon',
+                              'scale_factor': 1.,
+                              'valid_mask': 'ocean'
+                          }
                           },
 
                   'wvpa': {'CMIP5':
-                                 {
-                                     'variable': 'prw',
-                                     'unit': 'kg m^2',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'model_suffix': 'ensmean',
-                                     'file_format': 'nc',
-                                     'model_prefix': 'Amon',
-                                     'scale_factor': 1,
-                                     'valid_mask': 'ocean'
-                                 }
+                           {
+                               'variable': 'prw',
+                               'unit': 'kg m^2',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'model_suffix': 'ensmean',
+                               'file_format': 'nc',
+                               'model_prefix': 'Amon',
+                               'scale_factor': 1,
+                               'valid_mask': 'ocean'
+                           }
                            },
 
                   'late': {'CMIP5':
-                                 {
-                                     'variable': 'hfls',
-                                     'unit': 'W/m^2',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'model_suffix': 'ensmean',
-                                     'file_format': 'nc',
-                                     'model_prefix': 'Amon',
-                                     'scale_factor': 1,
-                                     'valid_mask': 'ocean'
-                                 }
+                           {
+                               'variable': 'hfls',
+                               'unit': 'W/m^2',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'model_suffix': 'ensmean',
+                               'file_format': 'nc',
+                               'model_prefix': 'Amon',
+                               'scale_factor': 1,
+                               'valid_mask': 'ocean'
+                           }
                            },
 
                   'hair': {'CMIP5':
-                                 {
-                                     'variable': 'huss',
-                                     'unit': '$kg/kg^2$',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'model_suffix': 'ensmean',
-                                     'file_format': 'nc',
-                                     'model_prefix': 'Amon',
-                                     'scale_factor': 1,
-                                     'valid_mask': 'ocean'
-                                 }
+                           {
+                               'variable': 'huss',
+                               'unit': '$kg/kg^2$',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'model_suffix': 'ensmean',
+                               'file_format': 'nc',
+                               'model_prefix': 'Amon',
+                               'scale_factor': 1,
+                               'valid_mask': 'ocean'
+                           }
                            },
 
                   'seaice_concentration': {'CMIP5':
@@ -335,35 +335,35 @@ def main():
                                     },
 
                   'budg': {'CMIP5':
-                                 {
-                                     'variable': 'budg',
-                                     'unit': 'mm/d',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'model_suffix': 'ensmean',
-                                     'file_format': 'nc',
-                                     'model_prefix': 'Amon',
-                                     'scale_factor': 86400.,
-                                     'valid_mask': 'ocean',
-                                     'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
-                                 }
+                           {
+                               'variable': 'budg',
+                               'unit': 'mm/d',
+                               'lat_name': 'lat',
+                               'lon_name': 'lon',
+                               'model_suffix': 'ensmean',
+                               'file_format': 'nc',
+                               'model_prefix': 'Amon',
+                               'scale_factor': 86400.,
+                               'valid_mask': 'ocean',
+                               'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
+                           }
                            },
 
 
                   'sis': {'JSBACH_RAW2':
-                                 {
-                                     'variable': 'swdown_acc',
-                                     'unit': '$W/m^2$',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'file_format': 'nc',
-                                     'scale_factor': 1.,
-                                     'valid_mask': 'land'
-                                 },
-                            'CMIP5':
-                                {
-                                    'valid_mask': 'land'
-                                }
+                          {
+                              'variable': 'swdown_acc',
+                              'unit': '$W/m^2$',
+                              'lat_name': 'lat',
+                              'lon_name': 'lon',
+                              'file_format': 'nc',
+                              'scale_factor': 1.,
+                              'valid_mask': 'land'
+                          },
+                          'CMIP5':
+                          {
+                              'valid_mask': 'land'
+                          }
 
                           },
 

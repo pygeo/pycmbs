@@ -859,8 +859,8 @@ class GlobalMeanPlot(object):
 #-----------------------------------------------------------------------------------------------------------------------
 
     def plot(self, D1, color=None, linewidth=1, show_std=False,
-                label=None, linestyle='-', mask=None, group='A',
-                stat_type='mean'):
+             label=None, linestyle='-', mask=None, group='A',
+             stat_type='mean'):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -3047,8 +3047,8 @@ def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
 
     divider = make_axes_locatable(ax)
     zax = divider.new_horizontal("15%", pad=0.1,
-                                    axes_class=maxes.Axes,
-                                    pack_start=True)
+                                 axes_class=maxes.Axes,
+                                 pack_start=True)
     ax.figure.add_axes(zax, axisbg=ax.figure.get_facecolor())
 
     ZP = ZonalPlot(ax=zax, dir='y')

@@ -2712,8 +2712,8 @@ class koeppen(object):
        """
        # define individual colors as hex values
        cpool = ['#7f0000', '#ff0000', '#ff4c4c', '#ff9999', '#ffa500',
-                 '#ffff4c', '#009900', '#00ff00', '#99ff99', '#990099',
-                 '#e500e5', '#ff66ff', '#0000ff', '#9999ff', '#000000']
+                '#ffff4c', '#009900', '#00ff00', '#99ff99', '#990099',
+                '#e500e5', '#ff66ff', '#0000ff', '#9999ff', '#000000']
        cmap3 = col.ListedColormap(cpool[0:14], 'koeppen')
 #       plt.cm.register_cmap(cmap=cmap3,name='koeppen',lut=15)
        plt.cm.register_cmap(cmap=cmap3, name='koeppen')
@@ -3042,5 +3042,5 @@ class koeppen(object):
         map_plot(self.Clim, cmap_data=self.cmap, colorbar_orientation='horizontal', vmin=0.5, vmax=14.5,
         cticks=[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.],
             cticklabels=["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
-                             "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
+                         "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
             nclasses=15, **kwargs)

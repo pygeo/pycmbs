@@ -108,7 +108,7 @@ Virginia. p. 63
     # jd = int(365.25 * (year + 4716)) + int(30.6001 * (month + 1)) + \
     #      day - 1524.5
     jd = 365. * year + int(0.25 * year + 2000.) + int(30.6001 * (month + 1)) + \
-         day + 1718994.5
+        day + 1718994.5
 
     # optionally adjust the jd for the switch from
     # the Julian to Gregorian Calendar
@@ -158,7 +158,7 @@ instance.  Returns the fractional Julian Day (resolution 1 second).
         year = year - 1
 
     jd = int(365. * (year + 4716)) + int(30.6001 * (month + 1)) + \
-         day - 1524.5
+        day - 1524.5
 
     return jd
 
@@ -187,7 +187,7 @@ Returns the fractional Julian Day (resolution 1 second).
         year = year - 1
 
     jd = int(366. * (year + 4716)) + int(30.6001 * (month + 1)) + \
-         day - 1524.5
+        day - 1524.5
 
     return jd
 
