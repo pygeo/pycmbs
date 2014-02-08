@@ -139,7 +139,7 @@ def main():
     os.environ['PYCMBS_OUTPUTDIR'] = CF.options['outputdir']
     os.environ['PYCMBS_OUTPUTFORMAT'] = CF.options['report_format']
 
-    os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_'
+    os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' \
                + CF.options['report'] + '.log'
     if os.path.exists(os.environ['DATA_WARNING_FILE']):
         os.remove(os.environ['DATA_WARNING_FILE'])
