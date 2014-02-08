@@ -633,8 +633,8 @@ class RegionalAnalysis(object):
                 if len(m) > 0:
                     if sum(m) == 1:
                         s += str(stat['correlation'][m][0]) + sep + str(stat['pvalue'][m][0]) \
-                             + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) \
-                             + sep + str(stat['stdx'][m][0]) + sep + str(stat['stdy'][m][0]) + sep
+                            + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) \
+                            + sep + str(stat['stdx'][m][0]) + sep + str(stat['stdy'][m][0]) + sep
                     else:
                         print id
                         print m
@@ -3043,4 +3043,4 @@ class koeppen(object):
         cticks=[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.],
             cticklabels=["Af", "Am", "As", "Aw", "BS", "BW", "Cf",
                              "Cs", "Cw", "Df", "Ds", "Dw", "ET", "EF"],
-                       nclasses=15, **kwargs)
+            nclasses=15, **kwargs)

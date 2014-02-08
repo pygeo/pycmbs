@@ -1389,7 +1389,7 @@ def beer_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report
                     ax_model = f_model.add_subplot(111)
                     obs_mon_file = get_temporary_directory()
                     f = obs_mon_file + model.experiment + '_' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[
-                                                                                                   0:4] + '_ymonmean.nc'
+                        0:4] + '_ymonmean.nc'
                     GPP_Model = Data4D(f, 'var167', read=True, lat_name='lat', lon_name='lon',
                                        label=model.name + '(' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[0:4] + ')',
                                        unit='gC m-2 a-1',
@@ -1405,7 +1405,7 @@ def beer_analysis(model_list, GP=None, shift_lon=None, use_basemap=False, report
                     report.subsection('Model (' + model.name + ')')
                     report.figure(f_model,
                                   caption=model.name + '(' + str(model.start_time)[0:4] + '-' + str(model.stop_time)[
-                                                                                                0:4] + ')',
+                                      0:4] + ')',
                                   bbox_inches=None)
 
     fontP = FontProperties()

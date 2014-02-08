@@ -4540,7 +4540,7 @@ class Data(object):
         def _runningMeanFast(x, N):
             N = float(N)
             return np.convolve(x, np.ones((N,)) / N)[
-                   (N - 1.):]  # returns average. The result is always on the first item!
+                (N - 1.):]  # returns average. The result is always on the first item!
 
         N = int(N)
         if N < 3:

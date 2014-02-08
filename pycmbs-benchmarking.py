@@ -276,33 +276,33 @@ def main():
 
                   'seaice_concentration': {'CMIP5':
                                    {
-                                    'variable': 'sic',
-                                    'unit': '-',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'model_suffix': 'ens_mean_185001-200512',
-                                    'file_format': 'nc',
-                                    'model_prefix': 'OImon',
-                                    'scale_factor': 1,
-                                    'valid_mask': 'ocean',
-                                    'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
+                                       'variable': 'sic',
+                                       'unit': '-',
+                                       'lat_name': 'lat',
+                                       'lon_name': 'lon',
+                                       'model_suffix': 'ens_mean_185001-200512',
+                                       'file_format': 'nc',
+                                       'model_prefix': 'OImon',
+                                       'scale_factor': 1,
+                                       'valid_mask': 'ocean',
+                                       'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
                                    },
 
-                               'CMIP3':
-                                   {
-                                    'variable': 'SICOMO',
-                                    'unit': '-',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'model_suffix': '1860-2100.ext',
-                                    'file_format': 'nc',
-                                    'model_prefix': '',
-                                    'scale_factor': 100.,
-                                    'valid_mask': 'ocean',
-                                    'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
-                                    'level': 0
-                                   },
-                                        },
+                      'CMIP3':
+                      {
+                          'variable': 'SICOMO',
+                          'unit': '-',
+                          'lat_name': 'lat',
+                          'lon_name': 'lon',
+                          'model_suffix': '1860-2100.ext',
+                          'file_format': 'nc',
+                          'model_prefix': '',
+                          'scale_factor': 100.,
+                          'valid_mask': 'ocean',
+                          'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
+                          'level': 0
+                      },
+                  },
 
                   'seaice_extent': {'CMIP5':
                                    {
@@ -336,29 +336,29 @@ def main():
 
                   'budg': {'CMIP5':
                                  {
-                                    'variable': 'budg',
-                                    'unit': 'mm/d',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'model_suffix': 'ensmean',
-                                    'file_format': 'nc',
-                                    'model_prefix': 'Amon',
-                                    'scale_factor': 86400.,
-                                    'valid_mask': 'ocean',
-                                    'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
+                                     'variable': 'budg',
+                                     'unit': 'mm/d',
+                                     'lat_name': 'lat',
+                                     'lon_name': 'lon',
+                                     'model_suffix': 'ensmean',
+                                     'file_format': 'nc',
+                                     'model_prefix': 'Amon',
+                                     'scale_factor': 86400.,
+                                     'valid_mask': 'ocean',
+                                     'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
                                  }
                            },
 
 
                   'sis': {'JSBACH_RAW2':
                                  {
-                                    'variable': 'swdown_acc',
-                                    'unit': '$W/m^2$',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'file_format': 'nc',
-                                    'scale_factor': 1.,
-                                    'valid_mask': 'land'
+                                     'variable': 'swdown_acc',
+                                     'unit': '$W/m^2$',
+                                     'lat_name': 'lat',
+                                     'lon_name': 'lon',
+                                     'file_format': 'nc',
+                                     'scale_factor': 1.,
+                                     'valid_mask': 'land'
                                  },
                             'CMIP5':
                                 {
@@ -369,52 +369,52 @@ def main():
 
                   'surface_upward_flux': {'JSBACH_RAW2':
                                  {
-                                    'variable': 'swdown_reflect_acc',
-                                    'unit': '$W/m^2$',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'file_format': 'nc',
-                                    'scale_factor': 1.,
-                                    'valid_mask': 'land'
+                                     'variable': 'swdown_reflect_acc',
+                                     'unit': '$W/m^2$',
+                                     'lat_name': 'lat',
+                                     'lon_name': 'lon',
+                                     'file_format': 'nc',
+                                     'scale_factor': 1.,
+                                     'valid_mask': 'land'
                                  }
-                            },
+                  },
 
                   'albedo_vis': {'JSBACH_RAW2':
                                  {
-                                    'variable': 'var14',
-                                    'unit': '-',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'file_format': 'nc',
-                                    'scale_factor': 1.,
-                                    'valid_mask': 'land'
+                                     'variable': 'var14',
+                                     'unit': '-',
+                                     'lat_name': 'lat',
+                                     'lon_name': 'lon',
+                                     'file_format': 'nc',
+                                     'scale_factor': 1.,
+                                     'valid_mask': 'land'
                                  }
                                  },
 
                   'albedo_nir': {'JSBACH_RAW2':
                                  {
-                                    'variable': 'var15',
-                                    'unit': '-',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'file_format': 'nc',
-                                    'scale_factor': 1.,
-                                    'valid_mask': 'land'
+                                     'variable': 'var15',
+                                     'unit': '-',
+                                     'lat_name': 'lat',
+                                     'lon_name': 'lon',
+                                     'file_format': 'nc',
+                                     'scale_factor': 1.,
+                                     'valid_mask': 'land'
                                  }
                                  },
 
                   'temperature': {
-                                        'JSBACH_RAW2':
-                                        {
-                                            'variable': 'temp2',
-                                            'unit': 'K',
-                                            'lat_name': 'lat',
-                                            'lon_name': 'lon',
-                                            'file_format': 'nc',
-                                            'scale_factor': 1.,
-                                            'valid_mask': 'global'
-                                        }
-                                    }
+                      'JSBACH_RAW2':
+                      {
+                          'variable': 'temp2',
+                          'unit': 'K',
+                          'lat_name': 'lat',
+                          'lon_name': 'lon',
+                          'file_format': 'nc',
+                          'scale_factor': 1.,
+                          'valid_mask': 'global'
+                      }
+                  }
 
                   }
 
