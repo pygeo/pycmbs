@@ -14,7 +14,9 @@ clean :
 	rm -rf build
 	rm -rf MANIFEST
 	rm -rf cover
-	rm -rf ./tmp
+	rm -rf tmp
+	rm -rf docs
+	rm -rf dist
 
 ship : dist
 	# XXX: should not remove non-pycmbs files
