@@ -9,9 +9,17 @@ github move
 * [MI] familiarize with github tools for code deployment
 * [MI] Jenkins integration? check whihc options for automatic code testing,
   coverage testing and testing for different environments are possible
+  * ** MI: ** Jenkins require our own running server. For publically available github projects
+    there is [coveralls.io][http://coveralls.io] for unittests and coverage, 
+    and [travis-ci.org](http://travis-ci.org) service builds the software and uploads it to pip.
+  
 * [AL,MI] move pycmbs from assembla to github
 * adapt CHANGES file
 * decide for a version number: v1.0 ???
+  * **MI**: Semantic versioning would be probably best. 
+    It uses the following version format: MAJOR.MINOR.PATCH. Check it out: [semver.org](http://semver.org) 
+    I would assign it version 1.0.0, there is nothing wrong giving it a solid number, 
+    and it tells something about the current API version.
 * how is generation of tagged versions work
 
 ### Prio 2
@@ -24,6 +32,7 @@ Code clean up and completion
 
 ### Prio 1
 
+* Remove machine/user specific information (.cfg, .ini, etc), use/develop sample config generator
 * [MI] unittests for large parts of the code (at least as dummy tests)
 * objective of tests: avoid that there are still too much not working code
   parts because of missing import statements (not everything covered yet by tests)
