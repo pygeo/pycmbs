@@ -4,7 +4,7 @@
 
 # XXX: machine specific paths
 # pep8, ignoring some errors like e.g. indention errors or linelength error
-PEP = pep8 --ignore=E501
+PEP = pep8
 TDIR = /tmp
 VERSION = 0.1.6
 

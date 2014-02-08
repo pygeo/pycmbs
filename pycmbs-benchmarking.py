@@ -13,7 +13,6 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 
 #============ IMPORTS ==================================================
 
-#--- always use plot backend which is not interactive for benchmarking framework
 import matplotlib as mpl
 mpl.rcParams['backend'] = 'Agg'
 
@@ -32,7 +31,10 @@ from pycmbs.benchmarking.utils import get_T63_landseamask
 from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
 from pycmbs.benchmarking import analysis
-from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, JSBACH_BOT, JSBACH_RAW, JSBACH_RAW2, CMIP3Data, MeanModel
+from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData
+from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
+from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data
+from pycmbs.benchmarking.models import MeanModel
 
 
 ########################################################################
@@ -44,7 +46,8 @@ Add a new variable:
 1) register variable in ./configuration/model_data_routines.json
 2) implement for each Data object a routine how to read the data
 3) implement an analysis script that performs the actual analysis
-4) register this analysis script in the file ./configuration/analysis_scripts.json
+4) register this analysis script in the file
+./configuration/analysis_scripts.json
 """
 
 
@@ -73,13 +76,15 @@ def create_dummy_configuration():
     shutil.copytree(d + '/framework/configuration', odir)
 
     # create dummy configuration file
-    CFGW = CFGWriter(cwd + '/template.cfg', generator='pyCMBS CONFIGURATION WRITER')
+    CFGW = CFGWriter(cwd + '/template.cfg',
+                     generator='pyCMBS CONFIGURATION WRITER')
     CFGW.save(temp_dir='<put here the temporary data processing directory>',
               vars=['albedo', 'sis'], start_date='2000-01-01',
               stop_date='2007-09-30',
               models=[{'id': 'MPI-ESM', 'type': 'CMIP5', 'experiment': 'AMIP',
                        'path': '/this/is/the/root/path/to/the/model/data/'},
-                      {'id': 'MPI-ESMv01', 'type': 'JSBACH', 'experiment': 'HIST',
+                      {'id': 'MPI-ESMv01', 'type': 'JSBACH',
+                       'experiment': 'HIST',
                        'path': '/this/is/the/root/path/to/the/model/data/'}
                       ])
 
@@ -113,9 +118,9 @@ def main():
         print('* Happy benchmarking ...                  *')
         print('*******************************************')
 
-    ########################################################################
+    ####################################################################
     # CONFIGURATION and OPTIONS
-    ########################################################################
+    ####################################################################
 
     # read configuration file
     CF = config.ConfigFile(file)
@@ -125,16 +130,17 @@ def main():
     PCFG.read(CF)
     plot_options = PCFG
 
-    ########################################################################
+    ####################################################################
     # REMOVE previous Data warnings
-    ########################################################################
+    ####################################################################
     outdir = CF.options['outputdir']
     if outdir[-1] != os.sep:
         outdir += os.sep
     os.environ['PYCMBS_OUTPUTDIR'] = CF.options['outputdir']
     os.environ['PYCMBS_OUTPUTFORMAT'] = CF.options['report_format']
 
-    os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' + CF.options['report'] + '.log'
+    os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_'
+               + CF.options['report'] + '.log'
     if os.path.exists(os.environ['DATA_WARNING_FILE']):
         os.remove(os.environ['DATA_WARNING_FILE'])
 
