@@ -37,10 +37,13 @@ Documentation
 ### Prio 1
 
 * review current sphinx documentation and put placeholders where still needed
-* [AL]; MI to review
+  [AL]; MI to review
 * expert installation descritpion for developers [AL]; MI to review
+* test installation in clean environment (virtualenv??)
 * review general README [AL], MI to review
 * review LICENSE [AL]
+* put a copyright notice in every file. Perhaps git could do this
+  automatically?? [MI to check]
 
 ### Prio 2
 
