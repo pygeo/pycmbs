@@ -29,7 +29,11 @@ class TestUtils(unittest.TestCase):
         ls = utils.get_generic_landseamask(True, area='ocean')
         ls = utils.get_generic_landseamask(True, area='global')
         ls = utils.get_generic_landseamask(False, mask_antarctica=False)
-
+        fname = ['land_sea_fractions_remapnn_t63grid.nc', 'land_sea_fractions_remapnn_t63grid_cell_area.nc']
+        self.assertTrue(os.path.exists(fname[0]))
+        for f in fname:
+            if os.path.exists(f):
+                os.remove(f)
 
 
 if __name__ == "__main__":

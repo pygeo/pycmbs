@@ -5,8 +5,8 @@ __author__ = 'Walter Sauf'
 
 #identify pyCMBS path and add it to pythonpath, as otherwise the modules are not found properly!
 
-from pycmbs.data import *
-from pycmbs.data4D import *
+from pyCMBS.data import *
+from pyCMBS.data4D import *
 #from diagnostic import *
 import scipy as sc
 #import pylab as pl
