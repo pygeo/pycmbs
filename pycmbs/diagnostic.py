@@ -17,7 +17,8 @@ import matplotlib.axes as maxes
 import matplotlib.cm as cm
 import matplotlib.colors as col
 import matplotlib as mpl
-from pycmbs.plots import map_plot, pm_bar, add_nice_legend
+from pycmbs.plots import pm_bar, add_nice_legend
+from pycmbs.mapping import map_plot
 from pycmbs.data import Data
 from scipy import linalg, dot
 import matplotlib.gridspec as gridspec

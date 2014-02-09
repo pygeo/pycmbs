@@ -54,6 +54,12 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 #- generic classes
 import matplotlib
 matplotlib.use('Agg')  # this is the first level import of Matplotlib. activate or deactivate here if you want to change the backend used
+
+from mapping import MultipleMap, SingleMap, MapPlotGeneric
+
+
+###
+
 # from matplotlib import pylab as pl
 # from netcdf import *
 #
@@ -84,7 +90,7 @@ matplotlib.use('Agg')  # this is the first level import of Matplotlib. activate 
 #
 # from taylor import *
 #
-# from mapping import MultipleMap, SingleMap
+#
 #
 # from hov import *
 # from region import *

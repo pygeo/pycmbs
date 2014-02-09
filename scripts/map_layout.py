@@ -3,6 +3,7 @@ Test map layouts
 """
 from pycmbs.mapping import SingleMap
 from pycmbs.data import Data
+from pycmbs.mapping import map_plot
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as grd
@@ -30,6 +31,12 @@ plt.close('all')
 #~ file='/home/m300028/shared/data/SEP/variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
 file='testdata.nc'
 d=Data(file,'tmp',read=True)
+
+map_plot(d, colorbar_orientation='horizontal', nclasses=34, cticks=[-20.,0., 10.], cticklabels=['A','B','C'], show_zonal=True, use_basemap=True)
+
+
+plt.show()
+stop
 
 #~ d=Data(None,None)
 #~ x = np.random.random((100,100))
