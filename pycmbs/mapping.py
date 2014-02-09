@@ -698,11 +698,11 @@ def map_plot(x, use_basemap=False, show_zonal=False,
     """
 
     if use_basemap:
-        raise ValueError('plotting for basemap not implemented again yet')
+        backend = 'basemap'
     else:
         backend = 'imshow'
 
-    proj_prop = {'proj': proj, 'lon_0': lon_0, 'lat_0': lat_0}
+    proj_prop = {'projection': proj, 'lon_0': lon_0, 'lat_0': lat_0}
     ctick_prop = {'ticks': cticks, 'labels': cticklabels}
 
     M = SingleMap(x, backend=backend, show_statistic=show_stat,
