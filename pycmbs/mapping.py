@@ -74,8 +74,12 @@ class MapPlotGeneric(object):
                                wcolorbar=0.03, hcolorbar=0.04,
                                wzonal=0.1):
         """
-        set default layout parameters for map plotting
+        set layout parameters for map plotting
         all parameters are given in relative figure units
+
+        If an axis 'ax_main' is already defined, then a scaling
+        factor is calculated that transforms the coordinates in such
+        a way that they are related to the ax_main position and size
 
         Parameters
         ----------
@@ -98,6 +102,20 @@ class MapPlotGeneric(object):
         wzonal : float
             width of zonal mean plot
         """
+
+        if self.ax_main is not None:
+            # rescale dimensions to current ax_main properties
+            b = self.ax_main.get_position()
+            left = b.x0   + left*b.width
+            right = b.x1 - (1.-right)*b.width
+            bottom = b.y0 + bottom*b.height
+            top = b.y1 - (1.-top)*b.height
+            wspace = wspace * b.width
+            hspace = hspace * b.height
+            wcolorbar = wcolorbar * b.width
+            hcolorbar = hcolorbar * b.height
+            wzonal = wzonal * b.width
+
         self._layout_parameters = {'left': left, 'right': right,
                                     'bottom': bottom, 'top': top,
                                     'wspace': wspace, 'hspace': hspace,
