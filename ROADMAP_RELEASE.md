@@ -24,7 +24,8 @@ github move
 
 ### Prio 2
 
-* deployment using pip
+* deployment using pip (information also using testing server can be found
+  here: https://pypi.python.org/pypi
 
 
 Code clean up and completion
