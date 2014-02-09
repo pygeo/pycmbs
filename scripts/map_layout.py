@@ -35,6 +35,7 @@ d=Data(file,'tmp',read=True)
 #~ x = np.random.random((100,100))
 #~ d.data = np.ma.array(x, mask = x != x)
 
+
 # map only with colorbars
 m = SingleMap(d, backend='basemap')
 m.plot(colorbar_orientation='horizontal', vmin=10., vmax=20., proj_prop={'projection':'robin', 'lon_0':0.})
@@ -43,16 +44,14 @@ mx = SingleMap(d, backend='imshow')
 mx.plot(colorbar_orientation='horizontal', vmin=10., vmax=20.)
 
 
-
-#~ divider = make_axes_locatable(m.pax)
-
-
-
 m1 = SingleMap(d)
 m1.plot(colorbar_orientation='vertical')
 
 m1 = SingleMap(d, backend='basemap')
 m1.plot(colorbar_orientation='vertical', proj_prop={'projection':'robin', 'lon_0':0.})
+
+
+
 
 # map with colorbar and zonal plot
 m2 = SingleMap(d)

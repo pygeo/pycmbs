@@ -27,7 +27,7 @@ class MapPlotGeneric(object):
     """
 
     def __init__(self, backend='imshow', format='png', savefile=None,
-                 show_statistic=True, stat_type='mean', **kwargs):
+                 show_statistic=True, stat_type='mean', figsize = (10,5), **kwargs):
 
         """
         Parameters
@@ -45,15 +45,17 @@ class MapPlotGeneric(object):
         self.savefile = savefile
         self.show_statistic = show_statistic
         self.stat_type = stat_type
-        self._dummy_axes = []
 
         if 'ax' in kwargs.keys():
             self.ax_main = ax
         else:
-            fig = plt.figure()
+            fig = plt.figure(figsize=figsize)
             self.ax_main = fig.add_subplot(111)
         self.figure = self.ax_main.figure
         self._set_axis_invisible(self.ax_main, frame=False)
+
+        # set default layout parameters for map
+        self._set_layout_parameters()
 
         # consistency checks
         self._check()
@@ -65,6 +67,34 @@ class MapPlotGeneric(object):
             self._draw = self._draw_basemap
         else:
             raise ValueError('Unknown backend!')
+
+    def _set_layout_parameters(self, left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.05, hspace=0.05, wcolorbar=0.03, hcolorbar=0.04, wzonal=0.1):
+        """
+        set default layout parameters for map plotting
+        all parameters are given in relative figure units
+
+        Parameters
+        ----------
+        left : float
+            position of leftmost axis
+        right : float
+            position of the rightmost edge of all axes
+        bottom : float
+            position of bottom position of lowes axis
+        top : float
+            position of upper edge of uppermost axis
+        wspace : float
+            width space between different axes
+        hspace : float
+            height space between different axes
+        wcolorbar : float
+            width of the colorbar axis (only used when vertical oriented)
+        hcolorbar : float
+            height of the colorbar axis (only used when horizontal oriented)
+        wzonal : float
+            width of zonal mean plot
+        """
+        self._layout_parameters = {'left':left,'right':right,'bottom':bottom,'top':top,'wspace':wspace,'hspace':hspace,'wcolorbar':wcolorbar,'hcolorbar':hcolorbar,'wzonal':wzonal}
 
     def _save_data_to_file(self, timmean=True):
         """
@@ -165,9 +195,6 @@ class MapPlotGeneric(object):
         """
         if self.pax is None:
             raise ValueError('Fatal Error: no axis for plotting specified')
-        # set dummy axes invisible
-        for ax in self._dummy_axes:
-            self._set_axis_invisible(ax, frame=False)
         if self.pax is not None:
             self._set_axis_invisible(self.pax, frame=True)
         if self.cax is not None:
@@ -469,6 +496,13 @@ class SingleMap(MapPlotGeneric):
         if self.show_timeseries and self.show_histogram:
             raise ValueError('Combination of histogram and timeseries not supported')
 
+
+        # case 1: only the standard plot is desired
+        if (not self.show_timeseries) and (not self.show_histogram) and (not self.show_colorbar):
+            self._set_layout0()
+
+
+
         if self.show_colorbar:
             # timeseries or histogram require an additional lower axis
             if (self.show_timeseries or self.show_histogram):
@@ -478,9 +512,13 @@ class SingleMap(MapPlotGeneric):
                     self._set_layout2()  # layout with colorbar and zonal plot
                 else:
                     self._set_layout1()  # layout with only colorbar
-
         else:
             raise ValueError('Layout without colorbar not supported yet')
+
+    def _set_layout0(self):
+        # TODO
+        raise ValueError('standard layout not implemented yet')
+        pass
 
     def _set_layout1(self):
         """
@@ -488,53 +526,129 @@ class SingleMap(MapPlotGeneric):
         vertically or horizontally
 
         vertical
-        ----------- +-+
-        |  pax      |c|
-        ----------- +-+
+        +----------+ +-+
+        |  pax     | |c|
+        +----------+ +-+
 
         horizontal
-        -----------
+        +---------+
         |  pax    |
         |         |
-        -----------
-        -----------
+        +---------+
+        +---------+
         |  cax    |
-        -----------
+        +---------+
         """
-
-        wspace = 0.05
 
         if not self.show_colorbar:
             raise ValueError('This routine was called by fault!')
+
         if self.colorbar_orientation == 'horizontal':
-            self.gs = grd.GridSpec(2, 1, height_ratios=[95, 5], wspace=wspace)
+            # main plot axis
+            left = self._layout_parameters['left']
+            bottom = self._layout_parameters['bottom'] + self._layout_parameters['hspace']
+            right = self._layout_parameters['right']
+            width = right -left
+            height = self._layout_parameters['top'] - bottom
+            self.pax = self.figure.add_axes([left, bottom, width, height], label="pax")
+
+            # colorbar axis
+            bottom = self._layout_parameters['bottom']
+            height = self._layout_parameters['hcolorbar']
+            self.cax = self.figure.add_axes([left, bottom, width, height], label="cax")
+
         elif self.colorbar_orientation == 'vertical':
-            self.gs = grd.GridSpec(1, 2, width_ratios=[95, 5], wspace=wspace)
+            # main plot axis
+            left = self._layout_parameters['left']
+            right = self._layout_parameters['right']
+            bottom = self._layout_parameters['bottom']
+            top = self._layout_parameters['top']
+            wcolorbar = self._layout_parameters['wcolorbar']
+            wspace = self._layout_parameters['wspace']
+            width = right - left - wspace - wcolorbar
+            height = top - bottom
+            self.pax = self.figure.add_axes([left, bottom, width, height], label="pax")
+
+            # colorbar axis
+            left = right - wcolorbar
+            rect = [left, bottom, wcolorbar, height]
+            self.cax = self.figure.add_axes(rect, label="cax")
+
         else:
             raise ValueError('Invalid option')
-        self.pax = self.figure.add_subplot(self.gs[0])
-        self.cax = self.figure.add_subplot(self.gs[1])
 
     def _set_layout2(self):
         """
         layout with zonal mean and colorbar
+
+        colorbar_orientation = 'vertical'
+        +--+ +----------------+ +-+
+        |  | |                | | |
+        |  | |                | | |
+        +--+ +----------------+ +-+
+
+        colorbar_orientation = 'horizontal'
+        +--+ +----------------+
+        |  | |                |
+        |  | |                |
+        +--+ +----------------+
+             +----------------+
+             |                |
+             +----------------+
+
         """
         if not self.show_zonal:
             raise ValueError('Only WITH zonal mean supported here!')
         if not self.show_colorbar:
             raise ValueError('Only WITH colorbar supported here!')
 
-        if self.colorbar_orientation == 'horizontal':
-            self.gs = grd.GridSpec(2, 2, height_ratios=[95, 5], width_ratios=[15, 85], wspace=0.05)
-            self.zax = self.figure.add_subplot(self.gs[0])
-            self.pax = self.figure.add_subplot(self.gs[1])
-            self.cax = self.figure.add_subplot(self.gs[3])
-            self._dummy_axes.append(self.figure.add_subplot(self.gs[2]))
-        elif self.colorbar_orientation == 'vertical':
-            self.gs = grd.GridSpec(1, 3, width_ratios=[15, 80, 5], wspace=0.05)
-            self.zax = self.figure.add_subplot(self.gs[0])
-            self.pax = self.figure.add_subplot(self.gs[1])
-            self.cax = self.figure.add_subplot(self.gs[2])
+        if self.colorbar_orientation == 'vertical':
+            # zonal axis
+            left = self._layout_parameters['left']
+            right = left + self._layout_parameters['wzonal']
+            zwidth = right - left
+
+            height = self._layout_parameters['top'] - self._layout_parameters['bottom']
+            bottom = self._layout_parameters['bottom']
+
+            rect = [left, bottom, zwidth, height]
+            self.zax = self.figure.add_axes(rect, label="zax")
+
+            # main plotting axis
+            left = self._layout_parameters['left'] + zwidth + self._layout_parameters['wspace']
+            right = self._layout_parameters['right'] - self._layout_parameters['wspace'] - self._layout_parameters['wcolorbar']
+            rect = [left, bottom, right-left, height]
+            self.pax = self.figure.add_axes(rect, label="pax")
+
+            # colorbar axis
+            left = self._layout_parameters['right'] - self._layout_parameters['wcolorbar']
+            right = self._layout_parameters['right']
+            rect = [left, bottom, right-left, height]
+            self.cax = self.figure.add_axes(rect, label="cax")
+
+        elif self.colorbar_orientation == 'horizontal':
+            # colorbar axis
+            left = self._layout_parameters['left'] + self._layout_parameters['wzonal'] + self._layout_parameters['wspace']
+            right = self._layout_parameters['right']
+            bottom = self._layout_parameters['bottom']
+            height = self._layout_parameters['hcolorbar']
+            rect = [left, bottom, right-left, height]
+            self.cax = self.figure.add_axes(rect, label="cax")
+
+            # main plotting axis
+            left = self._layout_parameters['left'] + self._layout_parameters['wzonal'] + self._layout_parameters['wspace']
+            right = self._layout_parameters['right']
+            bottom = self._layout_parameters['bottom'] + self._layout_parameters['hspace'] + self._layout_parameters['hcolorbar']
+            top = self._layout_parameters['top']
+            rect = [left, bottom, right-left, top-bottom]
+            self.pax = self.figure.add_axes(rect, label="pax")
+
+            # zonal axis
+            left = self._layout_parameters['left']
+            right = self._layout_parameters['left'] + self._layout_parameters['wzonal']
+            rect = [left, bottom, right-left, top-bottom]
+            self.zax = self.figure.add_axes(rect, label="zax")
+
         else:
             raise ValueError('Invalid colorbar option')
 
