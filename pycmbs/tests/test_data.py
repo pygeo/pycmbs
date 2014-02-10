@@ -317,18 +317,22 @@ class TestData(unittest.TestCase):
         r1 = np.mean(D.data[0:4])
         r2 = np.mean(D.data[4:8])
         r3=np.mean(D.data[8:])
-        #print 'Reference results: ', r1, r2, r3
+
         years, res = D.get_yearmean()
-        #print 'Result: ', res
-        # print 'years[0]: ',years[0]
-        # print 'Times: ', D.num2date(D.time)
-        # print 'Times2: ', pl.num2date(D.time)
-        # print pl.num2date(t1)
+
         self.assertEqual(years[0],2001)
         self.assertEqual(years[1],2005)
         self.assertEqual(res[0,0,0],r1)
         self.assertEqual(res[1,0,0],r2)
         self.assertEqual(res[2,0,0].mask,r3.mask)
+
+        R = D.get_yearmean(return_data=True)
+        self.assertEqual(R.date[0].year, 2001)
+        self.assertEqual(R.date[1].year, 2005)
+        self.assertEqual(R.data[0,0,0], r1)
+        self.assertEqual(R.data[1,0,0], r2)
+        self.assertEqual(R.data[2,0,0].mask, r3.mask)
+
 
     def test_get_yearsum(self):
         #check get_yeartime
