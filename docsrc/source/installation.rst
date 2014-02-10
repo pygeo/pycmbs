@@ -10,11 +10,28 @@ Below we describe how you properly install pyCMBS in your environment. Currently
 All three approaches are detailed below.
 
 
+Dependencies
+------------
+
+pyCMBS was built to have only a small number of external dependencies. However, there are certainly dependencies existing which are a requirement for using pyCMBS sucessfully.
+
+Mandatory dependencies
+~~~~~~~~~~~~~~~~~~~~~~
+
+- netCDF4 library is used as default for file I/O.
+- (Nio library could be installed as an alternative)
+
+Recommended dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- cartopy is highly recommended for the generation of high quality map plots.
+
+
 ZMAW users
 ----------
 
 For users working at the ZMAW (KlimaCampus, Hamburg), the usage of pyCMBS is straightforward. Nothing has to be installed! You just need to login into your shell and load the pyCMBS module as follows ::
-    
+
     module load pyCMBS/default
 
 That's it. This sets also automatically the settings for the *PYTHONPATH* and *SEP* environment variables which are needed.
@@ -32,7 +49,7 @@ Installation using PIP
 A very easy way to install python packages is by using PIP. If you have installed PIP on your environment,  pyCMBS installation is as simple as::
 
     pip install pycmbs
-    
+
 Check if everything is working,  like described below_.
 
 
@@ -42,14 +59,14 @@ Installation from a *tarball*
 If you have obtained the pyCMBS code from a *tarball*, then do the following::
 
     tar -xvf pycmbs-vx.x.x.tar.gz
-    
+
 This expands the tar file and you obtain a subdirectory,  called *pycmbs-vx.x.x*
 
 To install the package,  use::
 
     cd pycmbs-vx.x.x
     python setup.py install
-    
+
 This will install the package in your python environment. Check successful installation,  like described below_.
 
 
@@ -57,7 +74,7 @@ This will install the package in your python environment. Check successful insta
 Direct usage of code repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Another alternative to work with pyCMBS is to used the master branch of the code repository. Currently, pyCMBS code repository version control is based on ```svn```. The repository access is granted by the author to anybody interested to contribute to pyCMBS. 
+Another alternative to work with pyCMBS is to used the master branch of the code repository. Currently, pyCMBS code repository version control is based on ```svn```. The repository access is granted by the author to anybody interested to contribute to pyCMBS.
 
 The procedure to work with pyCMBS from development branch is as follows:
 
@@ -132,7 +149,7 @@ If you see the above, the installation has worked! Congratulations!
 
 3. Check also the proper installation of the cdo's and the cdo.py interface, as this is a prerequesite of beeing able to properly work with pyCMBS::
 
-     python -c "from cdo import *; cdo=Cdo(); print 'If you see this, everything went right ... have fun with pyCMBS and CDOs'" 
+     python -c "from cdo import *; cdo=Cdo(); print 'If you see this, everything went right ... have fun with pyCMBS and CDOs'"
 
 Again, this should give you a short welcome message. Any error message is a bad sign. In that case, please check your installation again. Have a look at the troublesolver_.
 
@@ -158,7 +175,7 @@ Some hints for trouble solving
 
     echo $PYTHONPATH
 
-This should give you the path where python is searching for modules. If it is empty you are most likely in trouble. Check if you have a valid python installation. 
+This should give you the path where python is searching for modules. If it is empty you are most likely in trouble. Check if you have a valid python installation.
 
 
 
