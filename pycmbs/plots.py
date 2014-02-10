@@ -54,6 +54,8 @@ import datetime
 import os
 
 
+
+
 #-----------------------------------------------------------------------
 def thin_xticks(ax, n):
     """
@@ -2250,6 +2252,8 @@ def map_season(x, figsize=(8, 6), **kwargs):
     returns a figure handler
     """
 
+    from pycmbs.mapping import map_plot
+
     nvals = len(x.data)
     if nvals == 12:
         year = True
@@ -3271,6 +3275,8 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
            /my_path/outputfilename_ADIFF.png
            /my_path/outputfilename_RDIFF.png
     """
+
+    from pycmbs.mapping import map_plot
 
     if savefile is not None:
         if '.nc' in savefile:
