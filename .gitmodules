@@ -1,3 +1,0 @@
-[submodule "pyconfig"]
-	path = pyconfig
-        url = https://git.assembla.com/pycmbs-config.git
