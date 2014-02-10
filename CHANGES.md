@@ -1,3 +1,21 @@
+version 1.0.0
+=============
+A huge amount of changes have been applied to the code for the release of v1.0.0.
+
+This includes also the change from SVN server to GIT and move of the development
+repository to github.
+
+Thus changes made during the last release are not documented completely here, but major differences are the following:
+* complete recoding of map plotting functionality using object oriented
+  approach
+* support of CARTOPY as a plotting backend
+* PEP8 compliance of whole project
+* several major bugfixes
+* restructuring of code
+* much better code testing (even if coverage not complete yet)
+* ...
+
+
 version 0.1.6
 =============
 * implementation of Hodrick-Prescott filter for *Data* object

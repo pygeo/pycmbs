@@ -2465,7 +2465,7 @@ class Data(object):
             res = self.data.copy()  # no temporal averaging
         else:
             print self.data.ndim
-            sys.exit('Temporal mean can not be calculated as dimensions do not match!')
+            raise ValueError('Temporal mean can not be calculated as dimensions do not match!')
 
         if return_object:
             tmp = self.copy()
@@ -2497,7 +2497,7 @@ class Data(object):
             res = self.data.copy()
         else:
             print self.data.ndim
-            sys.exit('Temporal minimum can not be calculated as dimensions do not match!')
+            raise ValueError('Temporal minimum can not be calculated as dimensions do not match!')
 
         if return_object:
             tmp = self.copy()
@@ -2528,7 +2528,7 @@ class Data(object):
             res = self.data.copy()
         else:
             print self.data.ndim
-            sys.exit('Temporal maximum can not be calculated as dimensions do not match!')
+            raise ValueError('Temporal maximum can not be calculated as dimensions do not match!')
 
         if return_object:
             tmp = self.copy()

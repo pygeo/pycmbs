@@ -2245,6 +2245,7 @@ class Diagnostic(object):
             for i in xrange(n):
                 d = weights[i, :] * ((x[i, :] - y[i, :]) ** 2.) / std_x[i, :]
                 e2[i] = np.sum(d)  # sum at end to avoid nan's   #it is important to use np.sum() !!
+                # TODO apply proper temporal weighting here as well!
 
         if np.any(np.isnan(e2)):
             print 'd: ', d
@@ -2253,7 +2254,6 @@ class Diagnostic(object):
             print('Reichler: e2 contains NAN, this happens most likely if STDV == 0')
             return None
         else:
-            #~ print e2
             return e2
 
 #-----------------------------------------------------------------------

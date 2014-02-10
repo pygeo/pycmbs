@@ -11,12 +11,8 @@ github move
     there is [coveralls.io][http://coveralls.io] for unittests and coverage, 
     and [travis-ci.org](http://travis-ci.org) service builds the software and uploads it to pip.
   
-* adapt CHANGES file
-* decide for a version number: v1.0 ???
-  * **MI**: Semantic versioning would be probably best. 
-    It uses the following version format: MAJOR.MINOR.PATCH. Check it out: [semver.org](http://semver.org) 
-    I would assign it version 1.0.0, there is nothing wrong giving it a solid number, 
-    and it tells something about the current API version.
+* set metadata attrributes in __init__.py
+
 
 ### Prio 2
 
@@ -49,6 +45,7 @@ Documentation
 
 ### Prio 1
 
+* [AL] create a file INSTALL.md
 * [AL] review current sphinx documentation and put placeholders where still needed
   ; MI to review
 * [MI] test again the examples scripts in /pycmbs/examples; would be good if Mikhail

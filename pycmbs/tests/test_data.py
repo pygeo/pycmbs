@@ -57,6 +57,11 @@ class TestData(unittest.TestCase):
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
 
+    def test_get_time_indices_InvalidDates(self):
+        i1, i2 = self.D._get_time_indices(None, None)
+        self.assertEqual(i1, 0)
+        self.assertEqual(i2, len(self.D.time)-1)
+
     def test_sub_sample(self):
         x = self.D.copy()
 
@@ -265,6 +270,16 @@ class TestData(unittest.TestCase):
         self.assertEqual(x.data[0,-1,0], y.data[0,0,0])
 
 
+    def test_flipud_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x._flipud()
+        x.data = np.random.random((10,))
+        with self.assertRaises(ValueError):
+            x._flipud()
+
+
     def test_correlate1(self):
         #test for correlation calculations
         r,p = self.D.correlate(self.D, pthres=1.01) #1) correlation with itself (returns data objects)
@@ -303,6 +318,28 @@ class TestData(unittest.TestCase):
         self.assertEqual(R[0,0], r_value)
         self.assertEqual(S[0,0], slope)
 
+        R, S, I, P = self.D.temporal_trend(return_object=True)  # TODO further tests for slope and significance
+        self.assertEqual(R.data[0, 0], r_value)
+        self.assertEqual(S.data[0,0], slope)
+
+    def test_timmean_InvalidDimension(self):
+        with self.assertRaises(ValueError):
+            d = self.D.copy()
+            d.data = np.random.random((10, 20, 30, 40))
+            d.timmean()
+
+    def test_timmin_InvalidDimension(self):
+        with self.assertRaises(ValueError):
+            d = self.D.copy()
+            d.data = np.random.random((10, 20, 30, 40))
+            d.timmin()
+
+    def test_timmax_InvalidDimension(self):
+        with self.assertRaises(ValueError):
+            d = self.D.copy()
+            d.data = np.random.random((10, 20, 30, 40))
+            d.timmax()
+
     def test_get_yearmean(self):
         #check get_yeartime
         D = self.D.copy()
@@ -317,18 +354,22 @@ class TestData(unittest.TestCase):
         r1 = np.mean(D.data[0:4])
         r2 = np.mean(D.data[4:8])
         r3=np.mean(D.data[8:])
-        #print 'Reference results: ', r1, r2, r3
+
         years, res = D.get_yearmean()
-        #print 'Result: ', res
-        # print 'years[0]: ',years[0]
-        # print 'Times: ', D.num2date(D.time)
-        # print 'Times2: ', pl.num2date(D.time)
-        # print pl.num2date(t1)
+
         self.assertEqual(years[0],2001)
         self.assertEqual(years[1],2005)
         self.assertEqual(res[0,0,0],r1)
         self.assertEqual(res[1,0,0],r2)
         self.assertEqual(res[2,0,0].mask,r3.mask)
+
+        R = D.get_yearmean(return_data=True)
+        self.assertEqual(R.date[0].year, 2001)
+        self.assertEqual(R.date[1].year, 2005)
+        self.assertEqual(R.data[0,0,0], r1)
+        self.assertEqual(R.data[1,0,0], r2)
+        self.assertEqual(R.data[2,0,0].mask, r3.mask)
+
 
     def test_get_yearsum(self):
         #check get_yeartime
@@ -1444,6 +1485,11 @@ class TestData(unittest.TestCase):
         x.time[2] += 4.
         self.assertFalse(x._is_daily())
 
+    def test_is_daily_WithOutTime(self):
+        x = self.D.copy()  # is already daily
+        del x.time
+        self.assertFalse(x._is_daily())
+
     def test_is_sorted(self):
         x = self.D.copy()
         self.assertTrue(x._is_sorted())
@@ -1476,6 +1522,11 @@ class TestData(unittest.TestCase):
         tmp = np.random.random(1000)
         x.data = np.ma.array(tmp, mask=tmp!=tmp)
 
+
+        # windowsize 2
+        with self.assertRaises(ValueError):
+            xxx = x.temporal_smooth(2)
+
         # windowsize 3
         y3a = x.temporal_smooth(3)
         y3b = x.temporal_smooth(3, return_object=False)
@@ -1498,6 +1549,23 @@ class TestData(unittest.TestCase):
         self.assertAlmostEqual(tmp[10:13,1,1].sum()/3., y3a.data[11,1,1], 8)
         self.assertAlmostEqual(tmp[10:13,1,0].sum()/3., y3a.data[11,1,0], 8)
 
+
+    def test_hp_filter_InvalidLambda(self):
+        with self.assertRaises(ValueError):
+            self.D.hp_filter(-10., return_object=True)
+
+    def test_hp_filter_Invalid2D(self):
+        x = self.D.copy()
+        x.data = np.random.random((20, 30))
+        with self.assertRaises(ValueError):
+            x.hp_filter(100, return_object=True)
+
+
+    def test_areasum_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x.areasum()
 
 if __name__ == '__main__':
     unittest.main()

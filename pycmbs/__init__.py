@@ -33,7 +33,7 @@ __license__ = "GNU General Public License"
 __url__ = "https://code.zmaw.de/projects/pycmbs"
 """The URL for pyCMBS's homepage."""
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 """Version number of pyCMBS."""
 
 __revision__ = filter(str.isdigit, "$Revision$")

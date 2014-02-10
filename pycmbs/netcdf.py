@@ -8,15 +8,20 @@ the pyCMBS licensing details.
 """
 This module allows a flexible choice of the netCDF backend
 """
-# specify backend type
-netcdf_backend = 'netCDF4'
-#~ netcdf_backend = 'Nio'
 
 import os
 
-
 class NetCDFHandler(object):
-    def __init__(self):
+    def __init__(self, netcdf_backend='netCDF4'):
+        """
+        general NetCDF handler
+        Currently two different backends are supported
+
+        netcdf_backend : str
+            ['netCDF4', 'Nio'] either netCDF4 or Nio can be used as
+            backends
+
+        """
         self.type = netcdf_backend
         if self.type.lower() == 'nio':
             import Nio as Cdf
