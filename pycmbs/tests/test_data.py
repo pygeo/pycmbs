@@ -308,6 +308,13 @@ class TestData(unittest.TestCase):
         self.assertEqual(R[0,0], r_value)
         self.assertEqual(S[0,0], slope)
 
+        R, S, I, P = self.D.temporal_trend(return_object=True)  # TODO further tests for slope and significance
+        self.assertEqual(R.data[0, 0], r_value)
+        self.assertEqual(S.data[0,0], slope)
+
+
+
+
     def test_get_yearmean(self):
         #check get_yeartime
         D = self.D.copy()
