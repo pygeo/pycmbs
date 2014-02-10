@@ -4,12 +4,13 @@
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
 
-Version: 1.0
+Version: 1.0.0
 
-Author: Alexander Loew
+## Authors
+Check `AUTHORS.md` file
 
-contact: Max-Planck-Institute for Meteorology
-         eMail: alexander.loew@mpimet.mpg.de
+## Contact
+Alexander Loew at Max-Planck-Institute for Meteorology: <alexander.loew@mpimet.mpg.de>
 
 
 What is pyCMBS?
