@@ -11,7 +11,6 @@ github move
     there is [coveralls.io][http://coveralls.io] for unittests and coverage, 
     and [travis-ci.org](http://travis-ci.org) service builds the software and uploads it to pip.
   
-* adapt CHANGES file
 * decide for a version number: v1.0 ???
   * **MI**: Semantic versioning would be probably best. 
     It uses the following version format: MAJOR.MINOR.PATCH. Check it out: [semver.org](http://semver.org) 
