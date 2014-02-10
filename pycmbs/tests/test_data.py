@@ -270,6 +270,16 @@ class TestData(unittest.TestCase):
         self.assertEqual(x.data[0,-1,0], y.data[0,0,0])
 
 
+    def test_flipud_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x._flipud()
+        x.data = np.random.random((10,))
+        with self.assertRaises(ValueError):
+            x._flipud()
+
+
     def test_correlate1(self):
         #test for correlation calculations
         r,p = self.D.correlate(self.D, pthres=1.01) #1) correlation with itself (returns data objects)
@@ -312,8 +322,23 @@ class TestData(unittest.TestCase):
         self.assertEqual(R.data[0, 0], r_value)
         self.assertEqual(S.data[0,0], slope)
 
+    def test_timmean_InvalidDimension(self):
+        with self.assertRaises(ValueError):
+            d = self.D.copy()
+            d.data = np.random.random((10, 20, 30, 40))
+            d.timmean()
 
+    def test_timmin_InvalidDimension(self):
+        with self.assertRaises(ValueError):
+            d = self.D.copy()
+            d.data = np.random.random((10, 20, 30, 40))
+            d.timmin()
 
+    def test_timmax_InvalidDimension(self):
+        with self.assertRaises(ValueError):
+            d = self.D.copy()
+            d.data = np.random.random((10, 20, 30, 40))
+            d.timmax()
 
     def test_get_yearmean(self):
         #check get_yeartime
@@ -1460,6 +1485,11 @@ class TestData(unittest.TestCase):
         x.time[2] += 4.
         self.assertFalse(x._is_daily())
 
+    def test_is_daily_WithOutTime(self):
+        x = self.D.copy()  # is already daily
+        del x.time
+        self.assertFalse(x._is_daily())
+
     def test_is_sorted(self):
         x = self.D.copy()
         self.assertTrue(x._is_sorted())
@@ -1491,6 +1521,11 @@ class TestData(unittest.TestCase):
         #--- TEST for 1D data ---
         tmp = np.random.random(1000)
         x.data = np.ma.array(tmp, mask=tmp!=tmp)
+
+
+        # windowsize 2
+        with self.assertRaises(ValueError):
+            xxx = x.temporal_smooth(2)
 
         # windowsize 3
         y3a = x.temporal_smooth(3)
