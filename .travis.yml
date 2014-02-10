@@ -8,6 +8,9 @@ before_install:
     - sudo apt-get install libhdf5-serial-dev libnetcdf-dev
     - sudo pip install netCDF4
     - sudo pip install cdo
+    - sudo pip install --use-mirrors coveralls
     - sudo apt-get install python-scipy
 script:
     nosetests
+after_success:
+    coveralls
