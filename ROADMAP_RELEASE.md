@@ -4,8 +4,6 @@ Roadmap for pycmbs release on github
 github move
 -----------
 
-* [AL] :-) create github organization account
- * :-) Done: https://github.com/pygeo/pycmbs.git
 * [MI] familiarize with github tools for code deployment
 * [MI] Jenkins integration? check whihc options for automatic code testing,
   coverage testing and testing for different environments are possible
@@ -13,20 +11,19 @@ github move
     there is [coveralls.io][http://coveralls.io] for unittests and coverage, 
     and [travis-ci.org](http://travis-ci.org) service builds the software and uploads it to pip.
   
-* [AL,MI] move pycmbs from assembla to github
 * adapt CHANGES file
 * decide for a version number: v1.0 ???
   * **MI**: Semantic versioning would be probably best. 
     It uses the following version format: MAJOR.MINOR.PATCH. Check it out: [semver.org](http://semver.org) 
     I would assign it version 1.0.0, there is nothing wrong giving it a solid number, 
     and it tells something about the current API version.
-* how is generation of tagged versions work
 
 ### Prio 2
 
 * deployment using pip (information also using testing server can be found
   here: https://pypi.python.org/pypi
-
+* generation of tagged versions?
+* adapt ZMAW WIKI
 
 Code clean up and completion
 ----------------------------
@@ -44,7 +41,6 @@ Code clean up and completion
 
 ### Prio 2
 
-* [AL,MI] :-) PEP8 compliance of code
 * [AL,MI] consistency of docstrings
 
 
@@ -60,7 +56,6 @@ Documentation
 * [AL] expert installation descritpion for developers; MI to review
 * test installation in clean environment (virtualenv??)
 * [AL] review general README, MI to review
-* [AL] :-) review LICENSE
 * [MI] put a copyright notice in every file. Perhaps git could do this
   automatically?? [MI to check]
 
