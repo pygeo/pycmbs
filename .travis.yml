@@ -15,6 +15,4 @@ before_install:
     - sudo pip install coveralls
     - sudo apt-get install python-scipy
 script:
-    nosetests
-after_success:
-    coveralls
+    nosetests && coveralls
