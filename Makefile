@@ -7,6 +7,8 @@
 PEP = pep8 --ignore=E501
 TDIR = ./tmp
 VERSION = 0.1.6
+TESTDIRS = pycmbs/benchmarking/tests pycmbs/tests
+
 
 clean :
 	find . -name "*.pyc" -exec rm -rf {} \;
@@ -27,6 +29,9 @@ ship : dist
 
 coverage:
 	nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs pycmbs/benchmarking/tests pycmbs/tests --cover-html
+
+tests:
+	nosetests $(TESTDIRS)
 
 dist : clean
 	python setup.py sdist

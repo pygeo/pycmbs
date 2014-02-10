@@ -27,6 +27,8 @@ class EnsemblePreprocessor(object):
             name of the output file to be generated
         """
         self.output_dir, self.outfile = os.path.split(outfile)
+        if len(self.output_dir) == 0:
+            self.output_dir = './'
         self.data_dir = data_dir
         if self.data_dir[-1] != os.sep:
             self.data_dir += os.sep
