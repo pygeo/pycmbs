@@ -54,8 +54,6 @@ import datetime
 import os
 
 
-
-
 #-----------------------------------------------------------------------
 def thin_xticks(ax, n):
     """
@@ -2357,8 +2355,6 @@ def map_season(x, figsize=(8, 6), **kwargs):
     return f
 
 #-----------------------------------------------------------------------
-
-
 
 
 def xx_map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,

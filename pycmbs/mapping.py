@@ -758,13 +758,12 @@ def map_plot(x, use_basemap=False, show_zonal=False,
     # unused keyword arguments! These are not further handled and are
     # just for compatability reasons with old map_plot routine
     if overlay is not None:
-        print('WARNING: overlay function not supported yet!') # TODO
+        print('WARNING: overlay function not supported yet!')  # TODO
     if zonal_timmean is not None:
         if not zonal_timmean:
-            print('WARNING: zonal_timmean option not supported yet!') # TODO
+            print('WARNING: zonal_timmean option not supported yet!')  # TODO
     if region is not None:
-        print('WARNING: region option not supported yet!') # TODO
-
+        print('WARNING: region option not supported yet!')  # TODO
 
     if use_basemap:
         backend = 'basemap'
