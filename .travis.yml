@@ -1,0 +1,11 @@
+language: python
+python:
+    2.7
+before_install:
+    - sudo apt-get update
+    - sudo apt-get install python-matplotlib
+    - sudo pip install netCDF4
+    - sudo pip install cdo
+    - sudo apt-get install python-scipy
+script:
+    nosetests
