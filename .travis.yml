@@ -4,6 +4,7 @@ python:
 before_install:
     - sudo apt-get update
     - sudo apt-get install python-matplotlib
+    - sudo apt-get install libhdf5-dev
     - sudo pip install netCDF4
     - sudo pip install cdo
     - sudo apt-get install python-scipy
