@@ -29,10 +29,14 @@ plt.close('all')
 
 
 #~ file='/home/m300028/shared/data/SEP/variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
+
+f=plt.figure()
+ax1=f.add_subplot(2,1,1)
+
 file='testdata.nc'
 d=Data(file,'tmp',read=True)
 
-map_plot(d, colorbar_orientation='horizontal', nclasses=34, cticks=[-20.,0., 10.], cticklabels=['A','B','C'], show_zonal=True, use_basemap=True)
+map_plot(d, ax=ax1, colorbar_orientation='vertical', nclasses=34, cticks=[-20.,0., 10.], cticklabels=['A','B','C'], show_zonal=True, use_basemap=True)
 
 
 plt.show()

@@ -39,6 +39,11 @@ class MapPlotGeneric(object):
             'basemap' : uses Basemap as backend for plotting
         """
 
+
+
+
+
+
         self.backend = backend
         self.format = format
         self.savefile = savefile
@@ -46,12 +51,14 @@ class MapPlotGeneric(object):
         self.stat_type = stat_type
 
         if 'ax' in kwargs.keys():
-            self.ax_main = ax
+            ax = kwargs['ax']
+            if ax is not None:
+                self.ax_main = ax
+            else:
+                self._set_default_axis(figsize)  # set ax_main
         else:
-            fig = plt.figure(figsize=figsize)
-            # full size axis in case of new figure
-            self.ax_main = fig.add_axes([0., 0., 1., 1.],
-                            label='ax_main')
+            self._set_default_axis(figsize)  # set ax_main
+
         self.figure = self.ax_main.figure
         self._set_axis_invisible(self.ax_main, frame=False)
 
@@ -68,6 +75,13 @@ class MapPlotGeneric(object):
             self._draw = self._draw_basemap
         else:
             raise ValueError('Unknown backend!')
+
+    def _set_default_axis(self, figsize):
+        fig = plt.figure(figsize=figsize)
+        # full size axis in case of new figure
+        self.ax_main = fig.add_axes([0., 0., 1., 1.],
+                        label='ax_main')
+
 
     def _set_layout_parameters(self, left=0.1, right=0.9, bottom=0.1,
                                top=0.9, wspace=0.05, hspace=0.05,
@@ -719,7 +733,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
              nclasses=10, colorbar_orientation='vertical',
              show_colorbar=True, cmap_data='jet', title=None,
              vmin=None, vmax=None, proj='robin', lon_0=0., lat_0=0.,
-             cticks=None, cticklabels=None):
+             cticks=None, cticklabels=None, ax=None):
 
     """
     This is a wrapper function to replace the old map_plot routine
@@ -741,7 +755,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
     ctick_prop = {'ticks': cticks, 'labels': cticklabels}
 
     M = SingleMap(x, backend=backend, show_statistic=show_stat,
-                  stat_type=stat_type, savefile=savefile)
+                  stat_type=stat_type, savefile=savefile, ax=ax)
     M.plot(title=title, show_zonal=show_zonal, show_histogram=False,
            show_timeseries=False, nclasses=nclasses,
            colorbar_orientation=colorbar_orientation,
