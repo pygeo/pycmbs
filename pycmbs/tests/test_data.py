@@ -57,6 +57,11 @@ class TestData(unittest.TestCase):
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
 
+    def test_get_time_indices_InvalidDates(self):
+        i1, i2 = self.D._get_time_indices(None, None)
+        self.assertEqual(i1, 0)
+        self.assertEqual(i2, len(self.D.time)-1)
+
     def test_sub_sample(self):
         x = self.D.copy()
 
