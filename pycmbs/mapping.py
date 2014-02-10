@@ -200,7 +200,12 @@ class MapPlotGeneric(object):
         if self.backend not in installed_backends:
             raise ValueError('Invalid plotting backend: %s' % self.backend)
         if self.backend == 'basemap':
-            print('INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
+            if 'cartopy' in installed_backends:
+                # use cartopy instead of Basemap, when possible
+                print('INFO: The backend has been automatically switched to CARTOPY as this provides higher quality and faster plotting on your machine')
+                self.backend = 'cartopy'
+            else:
+                print('INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
 
     def _draw_basemap(self, proj_prop=None, drawparallels=True, **kwargs):
         if proj_prop is None:
