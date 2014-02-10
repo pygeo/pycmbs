@@ -1,3 +1,6 @@
+[![Coverage Status](https://coveralls.io/repos/pygeo/pycmbs/badge.png)](https://coveralls.io/r/pygeo/pycmbs)
+
+
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
 
