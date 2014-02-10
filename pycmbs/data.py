@@ -355,7 +355,6 @@ class Data(object):
         return offset to convert to old time
         offset is one day *PLUS ONE* following pylab documentation
         This routine takes care of different time units
-        @return:
         """
         if not hasattr(self, 'time_str'):
             raise ValueError('ERROR: time offset can not be determined!')
@@ -790,6 +789,8 @@ class Data(object):
 
         """
 
+        # TODO unittest implementation
+
         if self.cell_area is not None:
             return
 
@@ -867,17 +868,20 @@ class Data(object):
         returns zonal statistics [time,ny]
 
         uses area weighting of data
-
         gives exact same results as function 'zonmean' in cdo's
 
-        @return: returns an array with zonal statistics
-        @rtype numpy array
+        Parameters
+        ----------
+        return_object : bool
+            if True, then returns a Data object
 
-        @param return_object: return Data object
-        @type return_object: bool
-
-        @todo: implement check if latitudes in y-axis direction are all the same! Otherwise the routine does not make sense
+        Returns
+        -------
+        r : ndarray, Data
+            array with zonal statistics
         """
+
+        # TODO implement check if latitudes in y-axis direction are all the same! Otherwise the routine does not make sense
 
         if self.cell_area is None:
             self._log_warning('WARNING: no cell area given, zonal means are based on equal weighting!')
@@ -920,20 +924,17 @@ class Data(object):
         """
         calculate percentile
 
-        uses:
-        scipy.stats.mstats.scoreatpercentile(data, per, limit=(), alphap=0.4, betap=0.4
-        http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.scoreatpercentile.html#scipy.stats.mstats.scoreatpercentile
+        Parameters
+        ----------
+        p : float
+            percentile value to obtain, e.g. 0.05 corresponds to 5% percentil
+        return_object : bool
+            specifies of a C{Data} object shall be returned [True] or a numpy array [False]
 
-        @param p: percentile value to obtain, e.g. 0.05 corresponds to 5% percentil
-        @type p: float
-
-        @param return_object: specifies of a C{Data} object shall be returned [True] or a numpy array [False]
-        @type return_object: bool
-
-        @return returns the percentiles as either C{Data} object or as numpy array
-        @rtype C{Data} object or numpy array
-
-        @todo: get mask of pixls with at least a few valid samples, so performance is better!
+        Returns
+        -------
+        r : ndarray, Data
+            returns the percentiles as either C{Data} object or as numpy array
         """
 
         if self.data.ndim != 3:
@@ -943,14 +944,14 @@ class Data(object):
         x = self.data.copy()
         x.shape = (nt, -1)
 
-        #--- calculate percentile ---
+        # calculate percentile
         res = stats.mstats.scoreatpercentile(x, p * 100.)
 
-        #--- reshape data array ---
+        # reshape data array
         res.shape = np.shape(self.data[0, :, :])
         res = np.ma.array(res, mask=np.isnan(res))
 
-        #--- return
+        # return
         if return_object:
             r = self.copy()
             r.label = self.label + '\n percentile: ' + str(round(p, 2))
@@ -1306,33 +1307,45 @@ class Data(object):
         """
         perform partial correlation analysis.
 
-        This function calculates the partial correlation between variables (self) and Y, removing
-        the effect of variable Z before (condition). The partial correlation represents the correlation
-        between X and Y, when the common effect, related to Z has been removed
+        This function calculates the partial correlation between
+        variables (self) and Y, removing the effect of variable Z before
+        (condition). The partial correlation represents the correlation
+        between X and Y, when the common effect, related to Z has been
+        removed.
 
-        The function allows to have two datasets used as a condition (Z,ZY). Lets say, you have two datasets
-        which were generated with a two different forcings which you want to remove from X/Y before analyzing
-        their relationship, then this is the right choice to specify a second independent variable ZY
-
-        (unittest)
+        The function allows to have two datasets used as a condition
+        (Z,ZY). Lets say, you have two datasets which were generated
+        with a two different forcings which you want to remove from
+        X/Y before analyzing their relationship, then this is the
+        right choice to specify a second independent variable ZY
 
         REFERENCES
-        ==========
+        ----------
         [1] http://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
 
-        @param Y: variable to calculate with
-        @type Y: Data
 
-        @param Z: condition for either both variables or if ZY is given, then Z is used for SELF only
-        @type Z: Data
+        Parameters
+        ----------
 
-        @param pthres: threshold to flag insignificant correlations
-        @type pthres: float
+        Y : Data
+            variable to calculate with
+        Z : Data
+            condition for either both variables or if ZY is given,
+            then Z is used for SELF only
+        pthres : float
+            threshold to flag insignificant correlations
+        return_object : bool
+            specifies if a C{Data} object shall be returned
 
-        @param return_object: specifies if a C{Data} object shall be returned
-        @type return_object: bool
+        Returns
+        -------
+        r : Data
+            returns C{Data} objects with partial correlation parameters
 
-        @return: returns C{Data} objects with partial correlation parameters
+        Tests
+        -----
+        unittest implemented
+
         """
 
         assert isinstance(Y, Data)
@@ -1369,18 +1382,22 @@ class Data(object):
         """
         correlate present data on a grid cell basis with another dataset
 
-        The routine currently supports to calculate either the Pearson product-moment
-        correlation coefficient (default) or to calculate the Spearman Rank correlation coefficient
+        The routine currently supports to calculate either the Pearson
+        product-moment correlation coefficient (default) or to calculate
+        the Spearman Rank correlation coefficient
 
         Parameters
         ----------
         Y : Data
-            dataset to correlate the present one with. The data set of self will be used as X in the calculation
+            dataset to correlate the present one with. The data set of
+            self will be used as X in the calculation
         phres : float
-            threshold for masking insignificant pixels. For a significance level of 95% pthres needs to be e.g. 0.05
+            threshold for masking insignificant pixels. For a
+            significance level of 95% pthres needs to be e.g. 0.05
             Then all results with p>pthres will be mased.
         spearman : bool
-            option that specifies if spearman correlation should be calculated
+            option that specifies if spearman correlation should be
+            calculated
         detrend : bool
             perform linear detrending before analysis
 
