@@ -37,7 +37,7 @@ __version__ = "0.2.0"
 """Version number of pyCMBS."""
 
 __revision__ = filter(str.isdigit, "$Revision$")
-"""SVN repository number, 
+"""SVN repository number,
 set SVN using svn propset
 (see here: http://stackoverflow.com/questions/1449935/getting-svn-revision-number-into-a-program-automatically)"""
 
@@ -52,4 +52,4 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 # set globally plotting backend
 import matplotlib
 matplotlib.use('Agg')
-from mapping import MultipleMap, SingleMap, MapPlotGeneric 
+from mapping import MultipleMap, SingleMap, MapPlotGeneric

@@ -9,7 +9,7 @@ the pyCMBS licensing details.
 This module implements generic map plotting capabilities
 """
 
-installed_backends=[]
+installed_backends = []
 
 import os
 try:
@@ -36,6 +36,7 @@ import matplotlib.gridspec as grd
 
 from pycmbs.data import Data
 from pycmbs.plots import ZonalPlot
+
 
 class MapPlotGeneric(object):
     """
@@ -222,7 +223,7 @@ class MapPlotGeneric(object):
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
         if proj_prop['projection'] == 'robin':
-           pass
+            pass
         else:
             raise ValueError('Unsupported projection type')
 
@@ -263,7 +264,6 @@ class MapPlotGeneric(object):
         self.pax.coastlines()
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
         self.pax.gridlines()
-
 
     def __basemap_ancillary(self, m, latvalues=None, lonvalues=None,
                             drawparallels=True, drawcountries=True,
