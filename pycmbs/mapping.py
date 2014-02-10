@@ -9,10 +9,27 @@ the pyCMBS licensing details.
 This module implements generic map plotting capabilities
 """
 
-import os
-from mpl_toolkits.basemap import Basemap, shiftgrid
+installed_backends=[]
 
-from matplotlib import pyplot as plt
+import os
+try:
+    from mpl_toolkits.basemap import Basemap
+    installed_backends.append('basemap')
+except:
+    print('WARNING: BASEMAP seems not to be installed and can therefore not be used as plotting backend')
+
+try:
+    import cartopy.crs as ccrs
+    installed_backends.append('cartopy')
+except:
+    print('WARNING: CARTOPY seems not to be installed and can therefore not be used as plotting backend')
+
+try:
+    from matplotlib import pyplot as plt
+    installed_backends.append('imshow')
+except:
+    raise ValueError('Fatal error: You need to have a valid matplotlib installation to be able to work with pycmbs')
+
 import matplotlib as mpl
 import numpy as np
 import matplotlib.gridspec as grd
@@ -20,14 +37,14 @@ import matplotlib.gridspec as grd
 from pycmbs.data import Data
 from pycmbs.plots import ZonalPlot
 
-
 class MapPlotGeneric(object):
     """
     Generic class to produce map plots
     """
 
     def __init__(self, backend='imshow', format='png', savefile=None,
-                 show_statistic=True, stat_type='mean', figsize=(10, 5), **kwargs):
+                 show_statistic=True, stat_type='mean', figsize=(10, 5),
+                 **kwargs):
         """
         Parameters
         ----------
@@ -68,6 +85,9 @@ class MapPlotGeneric(object):
             self._draw = self._draw_imshow
         elif self.backend == 'basemap':
             self._draw = self._draw_basemap
+        elif self.backend == 'cartopy':
+            self._draw = self._draw_cartopy
+
         else:
             raise ValueError('Unknown backend!')
 
@@ -176,8 +196,10 @@ class MapPlotGeneric(object):
     def _check(self):
         if self.stat_type not in ['mean', 'median', 'sum']:
             raise ValueError('Invalid statistic type: %s' % self.stat_type)
-        if self.backend not in ['imshow', 'basemap']:
+        if self.backend not in installed_backends:
             raise ValueError('Invalid plotting backend: %s' % self.backend)
+        if self.backend == 'basemap':
+            print('INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
 
     def _draw_basemap(self, proj_prop=None, drawparallels=True, **kwargs):
         if proj_prop is None:
@@ -194,6 +216,54 @@ class MapPlotGeneric(object):
         self.im = the_map.pcolormesh(X, Y, Z, **kwargs)
 
         self.__basemap_ancillary(the_map, drawparallels=drawparallels)
+
+    def _draw_cartopy(self, proj_prop=None, **kwargs):
+        if proj_prop is None:
+            raise ValueError('No projection properties are given! Please modify or choose a different backend!')
+
+        if proj_prop['projection'] == 'robin':
+           pass
+        else:
+            raise ValueError('Unsupported projection type')
+
+        xm = self.x.timmean()
+
+        Z = xm
+        lon = self.x.lon
+        lat = self.x.lat
+
+        # convert normal axis to GeoAxis
+        def _ax2geoax(ax, ccrs_obj):
+            """
+            This routine converts a given matplotlib axis to a GeoAxis.
+            It is ensured that the axis has the same position and size.
+
+            Parameters
+            ----------
+            ax : axis
+                matplotlib axis to be modified
+            ccrs_obj : cartopy.crs
+                reference system object
+
+            Example
+            -------
+            ax2 = _ax2geoax(ax2, ccrs.Robinson())
+
+            """
+
+            b = ax.get_position()
+            rect = [b.x0, b.y0, b.width, b.height]
+            ax.set_visible(False)
+            return ax.figure.add_axes(rect, label="pax", projection=ccrs_obj)
+
+        self.pax = _ax2geoax(self.pax, ccrs.Robinson())
+
+        # plot and ancillary plots
+        self.pax.set_global()  # ensure global plot
+        self.pax.coastlines()
+        self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
+        self.pax.gridlines()
+
 
     def __basemap_ancillary(self, m, latvalues=None, lonvalues=None,
                             drawparallels=True, drawcountries=True,
@@ -492,6 +562,8 @@ class SingleMap(MapPlotGeneric):
         # do plot using current backend
         if self.backend == 'basemap':
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels)
+        elif self.backend == 'cartopy':
+            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop)
         else:
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
 
