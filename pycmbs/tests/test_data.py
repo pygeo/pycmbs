@@ -1550,5 +1550,22 @@ class TestData(unittest.TestCase):
         self.assertAlmostEqual(tmp[10:13,1,0].sum()/3., y3a.data[11,1,0], 8)
 
 
+    def test_hp_filter_InvalidLambda(self):
+        with self.assertRaises(ValueError):
+            self.D.hp_filter(-10., return_object=True)
+
+    def test_hp_filter_Invalid2D(self):
+        x = self.D.copy()
+        x.data = np.random.random((20, 30))
+        with self.assertRaises(ValueError):
+            x.hp_filter(100, return_object=True)
+
+
+    def test_areasum_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x.areasum()
+
 if __name__ == '__main__':
     unittest.main()
