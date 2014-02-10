@@ -84,7 +84,6 @@ def rotate_ticks(ax, angle):
 
 
 #-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
 
 class CorrelationAnalysis(object):
     """
@@ -2251,6 +2250,8 @@ def map_season(x, figsize=(8, 6), **kwargs):
     returns a figure handler
     """
 
+    from pycmbs.mapping import map_plot
+
     nvals = len(x.data)
     if nvals == 12:
         year = True
@@ -2356,24 +2357,24 @@ def map_season(x, figsize=(8, 6), **kwargs):
 #-----------------------------------------------------------------------
 
 
-def map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
-             nclasses=10, cmap_data='jet',
-             title=None, regions_to_plot=None, logplot=False,
-             logoffset=None, show_stat=False,
-             f_kdtree=False, show_colorbar=True, latvalues=None,
-             lonvalues=None, show_zonal=False,
-             zonal_timmean=True, show_timeseries=False,
-             scal_timeseries=1., vmin_zonal=None, vmax_zonal=None,
-             bluemarble=False, contours=False, overlay=None,
-             titlefontsize=14, drawparallels=True, drawcountries=True,
-             show_histogram=False,
-             contourf=False, land_color=(0.8, 0.8, 0.8),
-             regionlinewidth=1, bins=10,
-             colorbar_orientation='vertical', stat_type='mean',
-             cax_rotation=0., cticklabels=None, proj='robin',
-             plot_method='colormesh', boundinglat=60.,
-             savefile=None, lon_0=0., lat_0=0., savegraphicfile=None,
-             **kwargs):
+def xx_map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
+                nclasses=10, cmap_data='jet',
+                title=None, regions_to_plot=None, logplot=False,
+                logoffset=None, show_stat=False,
+                f_kdtree=False, show_colorbar=True, latvalues=None,
+                lonvalues=None, show_zonal=False,
+                zonal_timmean=True, show_timeseries=False,
+                scal_timeseries=1., vmin_zonal=None, vmax_zonal=None,
+                bluemarble=False, contours=False, overlay=None,
+                titlefontsize=14, drawparallels=True, drawcountries=True,
+                show_histogram=False,
+                contourf=False, land_color=(0.8, 0.8, 0.8),
+                regionlinewidth=1, bins=10,
+                colorbar_orientation='vertical', stat_type='mean',
+                cax_rotation=0., cticklabels=None, proj='robin',
+                plot_method='colormesh', boundinglat=60.,
+                savefile=None, lon_0=0., lat_0=0., savegraphicfile=None,
+                **kwargs):
     """
     produce a nice looking map plot
 
@@ -3270,6 +3271,8 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
            /my_path/outputfilename_ADIFF.png
            /my_path/outputfilename_RDIFF.png
     """
+
+    from pycmbs.mapping import map_plot
 
     if savefile is not None:
         if '.nc' in savefile:

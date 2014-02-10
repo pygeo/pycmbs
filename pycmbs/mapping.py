@@ -27,8 +27,7 @@ class MapPlotGeneric(object):
     """
 
     def __init__(self, backend='imshow', format='png', savefile=None,
-                 show_statistic=True, stat_type='mean', figsize = (10,5), **kwargs):
-
+                 show_statistic=True, stat_type='mean', figsize=(10, 5), **kwargs):
         """
         Parameters
         ----------
@@ -47,15 +46,19 @@ class MapPlotGeneric(object):
         self.stat_type = stat_type
 
         if 'ax' in kwargs.keys():
-            self.ax_main = ax
+            ax = kwargs['ax']
+            if ax is not None:
+                self.ax_main = ax
+            else:
+                self._set_default_axis(figsize)  # set ax_main
         else:
-            fig = plt.figure(figsize=figsize)
-            self.ax_main = fig.add_subplot(111)
+            self._set_default_axis(figsize)  # set ax_main
+
         self.figure = self.ax_main.figure
         self._set_axis_invisible(self.ax_main, frame=False)
 
         # set default layout parameters for map
-        self._set_layout_parameters()
+        self._set_layout_parameters()  # TODO make this dependent on the ax_main size!
 
         # consistency checks
         self._check()
@@ -68,10 +71,23 @@ class MapPlotGeneric(object):
         else:
             raise ValueError('Unknown backend!')
 
-    def _set_layout_parameters(self, left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.05, hspace=0.05, wcolorbar=0.03, hcolorbar=0.04, wzonal=0.1):
+    def _set_default_axis(self, figsize):
+        fig = plt.figure(figsize=figsize)
+        # full size axis in case of new figure
+        self.ax_main = fig.add_axes([0., 0., 1., 1.],
+                                    label='ax_main')
+
+    def _set_layout_parameters(self, left=0.1, right=0.9, bottom=0.1,
+                               top=0.9, wspace=0.05, hspace=0.05,
+                               wcolorbar=0.03, hcolorbar=0.04,
+                               wzonal=0.1):
         """
-        set default layout parameters for map plotting
+        set layout parameters for map plotting
         all parameters are given in relative figure units
+
+        If an axis 'ax_main' is already defined, then a scaling
+        factor is calculated that transforms the coordinates in such
+        a way that they are related to the ax_main position and size
 
         Parameters
         ----------
@@ -94,7 +110,26 @@ class MapPlotGeneric(object):
         wzonal : float
             width of zonal mean plot
         """
-        self._layout_parameters = {'left':left,'right':right,'bottom':bottom,'top':top,'wspace':wspace,'hspace':hspace,'wcolorbar':wcolorbar,'hcolorbar':hcolorbar,'wzonal':wzonal}
+
+        if self.ax_main is not None:
+            # rescale dimensions to current ax_main properties
+            b = self.ax_main.get_position()
+            left = b.x0 + left * b.width
+            right = b.x1 - (1. - right) * b.width
+            bottom = b.y0 + bottom * b.height
+            top = b.y1 - (1. - top) * b.height
+            wspace = wspace * b.width
+            hspace = hspace * b.height
+            wcolorbar = wcolorbar * b.width
+            hcolorbar = hcolorbar * b.height
+            wzonal = wzonal * b.width
+
+        self._layout_parameters = {'left': left, 'right': right,
+                                   'bottom': bottom, 'top': top,
+                                   'wspace': wspace, 'hspace': hspace,
+                                   'wcolorbar': wcolorbar,
+                                   'hcolorbar': hcolorbar,
+                                   'wzonal': wzonal}
 
     def _save_data_to_file(self, timmean=True):
         """
@@ -118,7 +153,8 @@ class MapPlotGeneric(object):
             self.savefile += tok + '.nc'
         else:
             self.savefile = self.savefile[:-3] + tok + '.nc'
-        self.x.save(self.savefile, timmean=timmean, delete=True, mean=False)
+        self.x.save(self.savefile, timmean=timmean, delete=True,
+                    mean=False)
 
     def save(self, save_mean=True, save_all=False):
         """
@@ -143,7 +179,7 @@ class MapPlotGeneric(object):
         if self.backend not in ['imshow', 'basemap']:
             raise ValueError('Invalid plotting backend: %s' % self.backend)
 
-    def _draw_basemap(self, proj_prop=None, **kwargs):
+    def _draw_basemap(self, proj_prop=None, drawparallels=True, **kwargs):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
@@ -157,9 +193,11 @@ class MapPlotGeneric(object):
         X, Y = the_map(lon, lat)
         self.im = the_map.pcolormesh(X, Y, Z, **kwargs)
 
-        self.__basemap_ancillary(the_map)
+        self.__basemap_ancillary(the_map, drawparallels=drawparallels)
 
-    def __basemap_ancillary(self, m, latvalues=None, lonvalues=None, drawparallels=True, drawcountries=True, land_color=0.8):
+    def __basemap_ancillary(self, m, latvalues=None, lonvalues=None,
+                            drawparallels=True, drawcountries=True,
+                            land_color=0.8):
         """
         routine to plot ancillary data like coastlines
         or meridians on a basemap plot
@@ -203,7 +241,8 @@ class MapPlotGeneric(object):
             self._set_axis_invisible(self.zax, frame=True)
 
         # do plotting
-        self.im = self.pax.imshow(self.x.timmean(), interpolation='nearest', **kwargs)
+        self.im = self.pax.imshow(self.x.timmean(),
+                                  interpolation='nearest', **kwargs)
 
     def _get_cticks(self):
         """ get cticks from dictionary if available """
@@ -217,9 +256,12 @@ class MapPlotGeneric(object):
             return None
         if 'labels' in self.ctick_prop.keys():
             l = self.ctick_prop['labels']
-            if len(l) != len(self._get_cticks()):
-                raise ValueError('CTICKS and CTICKLABELS need to have the same length!')
-            return l
+            if l is None:
+                return None
+            else:
+                if len(l) != len(self._get_cticks()):
+                    raise ValueError('CTICKS and CTICKLABELS need to have the same length!')
+                return l
         else:
             return None
 
@@ -239,9 +281,14 @@ class MapPlotGeneric(object):
         vmax = im.get_clim()[1]
         self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 
-        cb = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap, norm=self.norm, ticks=self._get_cticks(), orientation=self.colorbar_orientation)
+        cb = mpl.colorbar.ColorbarBase(self.cax, cmap=self.cmap,
+                                       norm=self.norm,
+                                       ticks=self._get_cticks(),
+                                       orientation=self.colorbar_orientation)
         if self.ctick_prop is not None:
-            cb.set_ticklabels(self._get_cticklabels())
+            l = self._get_cticklabels()
+            if l is not None:
+                cb.set_ticklabels(l)
 
     def _set_axis_invisible(self, ax, frame=True):
         """
@@ -335,7 +382,7 @@ class SingleMap(MapPlotGeneric):
                 me = me[0]
                 st = st[0]
                 s = 'mean: $' + str(round(me, 2)) + ' \pm ' + str(round(st, 2)) + '$'
-            elif stat_type == 'sum':  # area sum
+            elif self.stat_type == 'sum':  # area sum
                 me = tmp_xm.areasum()
                 assert(len(me) == 1)
                 me = me[0]
@@ -345,7 +392,8 @@ class SingleMap(MapPlotGeneric):
                 s = 'median: $' + str(round(me, 2)) + '$'
         return s
 
-    def _draw_zonal_plot(self, timmean=True, vmin=None, vmax=None, fontsize=8):
+    def _draw_zonal_plot(self, timmean=True, vmin=None, vmax=None,
+                         fontsize=8):
         """
         calculate zonal statistics and add to zonal axis
 
@@ -386,16 +434,18 @@ class SingleMap(MapPlotGeneric):
 
         # set only first and last label
         self.zax.set_xticks([vmin, vmax])
-        self.zax.plot([0, 0], self.zax.get_ylim(), linestyle='-', color='grey')
+        self.zax.plot([0, 0], self.zax.get_ylim(), linestyle='-',
+                      color='grey')
 
         for tick in self.zax.xaxis.get_major_ticks():
             tick.label.set_fontsize(fontsize)
 
     def plot(self, show_zonal=False, show_histogram=False,
              show_timeseries=False, show_colorbar=True,
-             colorbar_orientation='vertical', cmap='jet', ctick_prop=None,
+             colorbar_orientation='vertical', cmap='jet',
+             ctick_prop=None,
              vmin=None, vmax=None, nclasses=10,
-             title=None, proj_prop=None):
+             title=None, proj_prop=None, drawparallels=True, titlefontsize=14):
         """
         routine to plot a single map
 
@@ -441,7 +491,7 @@ class SingleMap(MapPlotGeneric):
 
         # do plot using current backend
         if self.backend == 'basemap':
-            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop)
+            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels)
         else:
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
 
@@ -449,7 +499,7 @@ class SingleMap(MapPlotGeneric):
         if self.show_colorbar:
             self._set_colorbar(self.im)
         self._plot_zonal()
-        self._draw_title(title=title)
+        self._draw_title(title=title, fontsize=titlefontsize)
 
         # adjust plots to minimize spaces between subplots
         self._adjust_figure()
@@ -496,12 +546,10 @@ class SingleMap(MapPlotGeneric):
         if self.show_timeseries and self.show_histogram:
             raise ValueError('Combination of histogram and timeseries not supported')
 
-
         # case 1: only the standard plot is desired
         if (not self.show_timeseries) and (not self.show_histogram) and (not self.show_colorbar):
             self._set_layout0()
-
-
+            return
 
         if self.show_colorbar:
             # timeseries or histogram require an additional lower axis
@@ -510,15 +558,26 @@ class SingleMap(MapPlotGeneric):
             else:
                 if self.show_zonal:
                     self._set_layout2()  # layout with colorbar and zonal plot
+                    return
                 else:
                     self._set_layout1()  # layout with only colorbar
+                    return
         else:
             raise ValueError('Layout without colorbar not supported yet')
 
     def _set_layout0(self):
-        # TODO
-        raise ValueError('standard layout not implemented yet')
-        pass
+        """
+        set layout with only a plotting axis
+        +----------+
+        |  pax     |
+        +----------+
+        """
+        left = self._layout_parameters['left']
+        bottom = self._layout_parameters['bottom']
+        right = self._layout_parameters['right']
+        width = right - left
+        height = self._layout_parameters['top'] - bottom
+        self.pax = self.figure.add_axes([left, bottom, width, height], label="pax")
 
     def _set_layout1(self):
         """
@@ -548,7 +607,7 @@ class SingleMap(MapPlotGeneric):
             left = self._layout_parameters['left']
             bottom = self._layout_parameters['bottom'] + self._layout_parameters['hspace']
             right = self._layout_parameters['right']
-            width = right -left
+            width = right - left
             height = self._layout_parameters['top'] - bottom
             self.pax = self.figure.add_axes([left, bottom, width, height], label="pax")
 
@@ -617,13 +676,13 @@ class SingleMap(MapPlotGeneric):
             # main plotting axis
             left = self._layout_parameters['left'] + zwidth + self._layout_parameters['wspace']
             right = self._layout_parameters['right'] - self._layout_parameters['wspace'] - self._layout_parameters['wcolorbar']
-            rect = [left, bottom, right-left, height]
+            rect = [left, bottom, right - left, height]
             self.pax = self.figure.add_axes(rect, label="pax")
 
             # colorbar axis
             left = self._layout_parameters['right'] - self._layout_parameters['wcolorbar']
             right = self._layout_parameters['right']
-            rect = [left, bottom, right-left, height]
+            rect = [left, bottom, right - left, height]
             self.cax = self.figure.add_axes(rect, label="cax")
 
         elif self.colorbar_orientation == 'horizontal':
@@ -632,7 +691,7 @@ class SingleMap(MapPlotGeneric):
             right = self._layout_parameters['right']
             bottom = self._layout_parameters['bottom']
             height = self._layout_parameters['hcolorbar']
-            rect = [left, bottom, right-left, height]
+            rect = [left, bottom, right - left, height]
             self.cax = self.figure.add_axes(rect, label="cax")
 
             # main plotting axis
@@ -640,13 +699,13 @@ class SingleMap(MapPlotGeneric):
             right = self._layout_parameters['right']
             bottom = self._layout_parameters['bottom'] + self._layout_parameters['hspace'] + self._layout_parameters['hcolorbar']
             top = self._layout_parameters['top']
-            rect = [left, bottom, right-left, top-bottom]
+            rect = [left, bottom, right - left, top - bottom]
             self.pax = self.figure.add_axes(rect, label="pax")
 
             # zonal axis
             left = self._layout_parameters['left']
             right = self._layout_parameters['left'] + self._layout_parameters['wzonal']
-            rect = [left, bottom, right-left, top-bottom]
+            rect = [left, bottom, right - left, top - bottom]
             self.zax = self.figure.add_axes(rect, label="zax")
 
         else:
@@ -671,4 +730,81 @@ class MultipleMap(MapPlotGeneric):
         super(MultipleMap, self).__init__(**kwargs)
         self.fig = plt.figure()
         stop
-        #todo: define axes here !
+        # TODO : define axes here !
+
+
+def map_plot(x, use_basemap=False, show_zonal=False,
+             show_histogram=False, show_timeseries=False,
+             show_stat=False, stat_type='mean', savefile=None,
+             nclasses=10, colorbar_orientation='vertical',
+             show_colorbar=True, cmap_data='jet', title=None,
+             vmin=None, vmax=None, proj='robin', lon_0=0., lat_0=0.,
+             cticks=None, cticklabels=None, ax=None,
+             drawparallels=True, overlay=None, titlefontsize=14,
+             zonal_timmean=None, region=None, savegraphicfile=None):
+    """
+    This is a wrapper function to replace the old map_plot routine
+    It provides a similar interface, but makes usage of the new
+    SingleMap object for plotting
+
+    Parameters
+    ----------
+    x : Data
+        data object to be plotted
+    """
+
+    print('WARNING: usage of map_plot is depreciated. This routine will be removed in future versions. Please use SingleMap instead.')
+
+    # unused keyword arguments! These are not further handled and are
+    # just for compatability reasons with old map_plot routine
+    if overlay is not None:
+        print('WARNING: overlay function not supported yet!')  # TODO
+    if zonal_timmean is not None:
+        if not zonal_timmean:
+            print('WARNING: zonal_timmean option not supported yet!')  # TODO
+    if region is not None:
+        print('WARNING: region option not supported yet!')  # TODO
+
+    if use_basemap:
+        backend = 'basemap'
+    else:
+        backend = 'imshow'
+
+    proj_prop = {'projection': proj, 'lon_0': lon_0, 'lat_0': lat_0}
+    ctick_prop = {'ticks': cticks, 'labels': cticklabels}
+
+    M = SingleMap(x, backend=backend, show_statistic=show_stat,
+                  stat_type=stat_type, savefile=savefile, ax=ax)
+    M.plot(title=title, show_zonal=show_zonal, show_histogram=False,
+           show_timeseries=False, nclasses=nclasses,
+           colorbar_orientation=colorbar_orientation,
+           show_colorbar=show_colorbar, cmap=cmap_data, vmin=vmin,
+           vmax=vmax, proj_prop=proj_prop, ctick_prop=ctick_prop,
+           drawparallels=drawparallels, titlefontsize=titlefontsize)
+
+    if savegraphicfile is not None:  # save to graphics file
+        if os.path.exists(savegraphicfile):
+            os.remove(savegraphicfile)
+        M.figure.savefig(savegraphicfile, dpi=200)
+
+
+    # TODO
+    #arguments from original map plot which are not covered yet
+    #           ~  ax=None, , ,
+     #~ ,
+     #~ , regions_to_plot=None, logplot=False,
+     #~ logoffset=None,
+     #~ f_kdtree=False, latvalues=None,
+     #~ lonvalues=None
+     #~
+     #~ scal_timeseries=1., vmin_zonal=None, vmax_zonal=None,
+     #~ bluemarble=False, contours=False,
+     #~, drawcountries=True,
+     #~
+     #~ contourf=False, land_color=(0.8, 0.8, 0.8),
+     #~ regionlinewidth=1, bins=10,
+     #~
+     #~ cax_rotation=0.,
+     #~ plot_method='colormesh', boundinglat=60.,
+     #~  , , savegraphicfile=None,
+     #~ **kwargs):

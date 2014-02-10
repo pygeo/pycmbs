@@ -51,4 +51,5 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 
 # set globally plotting backend
 import matplotlib
-matplotlib.use('Agg') 
+matplotlib.use('Agg')
+from mapping import MultipleMap, SingleMap, MapPlotGeneric 
