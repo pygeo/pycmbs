@@ -12,6 +12,16 @@ class TestPycmbsNetcdf(unittest.TestCase):
         with self.assertRaises(ValueError):
             cdf = netcdf.NetCDFHandler(netcdf_backend='invalid_backend')
 
+    def test_netCDF_openFile_InvalidMode(self):
+        with self.assertRaises(ValueError):
+            cdf = netcdf.NetCDFHandler()
+            cdf.open_file('nix.nc', 'xxx')
+
+    def test_netCDF_openFile_InvalidFile(self):
+        with self.assertRaises(ValueError):
+            cdf = netcdf.NetCDFHandler()
+            cdf.open_file('nopefile.nc', 'r')
+
     def test_netCDFHandlerinit_Default(self):
         cdf = netcdf.NetCDFHandler()
 
