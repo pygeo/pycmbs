@@ -28,7 +28,7 @@ ship : dist
 	tar -C $(TDIR) -xvf $(TDIR)/pycmbs-$(VERSION).tar.gz
 
 coverage:
-	nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs pycmbs/benchmarking/tests pycmbs/tests --cover-html
+	nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs $(TESTDIRS) --cover-html
 
 tests:
 	nosetests $(TESTDIRS)
