@@ -4,29 +4,14 @@ Test map layouts
 from pycmbs.mapping import SingleMap
 from pycmbs.data import Data
 from pycmbs.mapping import map_plot
+from pycmbs.plots import map_difference
+
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as grd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 plt.close('all')
-
-
-#~ fig = plt.figure()
-#~
-#~ gs = grd.GridSpec(2, 1, height_ratios=[95,5], wspace=0.05)
-#~
-#~ pax = fig.add_subplot(gs[0])
-#~ cax = fig.add_subplot(gs[1])
-#~
-#~ cax.set_xticklabels([])
-#~ cax.set_xticks([])
-#~
-#~ plt.show()
-#~
-#~ stop
-
-
 
 #~ file='/home/m300028/shared/data/SEP/variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
 
@@ -36,15 +21,19 @@ ax1=f.add_subplot(2,1,1)
 file='testdata.nc'
 d=Data(file,'tmp',read=True)
 
+d1 = d.mulc(2., copy=True)
+
+
+
 map_plot(d, ax=ax1, colorbar_orientation='vertical', nclasses=34, cticks=[-20.,0., 10.], cticklabels=['A','B','C'], show_zonal=True, use_basemap=True)
+
+
+map_difference(d, d1, show_zonal=False, use_basemap=True)
+
 
 
 plt.show()
 stop
-
-#~ d=Data(None,None)
-#~ x = np.random.random((100,100))
-#~ d.data = np.ma.array(x, mask = x != x)
 
 
 # map only with colorbars

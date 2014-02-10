@@ -3304,11 +3304,18 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     else:
         drawparallels = False
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(8.,5.))
     ax1 = fig.add_subplot(221)
     ax2 = fig.add_subplot(222)
     ax3 = fig.add_subplot(223)
     ax4 = fig.add_subplot(224)
+
+    fig.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95,
+                      wspace=0.05, hspace=0.05)
+
+
+
+
 
     #--- get colormap
     cmap = plt.cm.get_cmap(cmap_data, nclasses)
