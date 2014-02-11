@@ -50,8 +50,12 @@ class TestMapPlotGeneric(unittest.TestCase):
         SM4 = mapping.SingleMap(self.D, backend='cartopy')
         SM1.plot(show_zonal=True)
         SM2.plot(show_zonal=True, colorbar_orientation='horizontal')
-        SM3.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop)
-        SM4.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop)
+        SM3.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop, stat_type='sum')
+        SM4.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop, stat_type='nix')
+
+    def test_SingleMap_WithoutColorbar(self):
+        SM = mapping.SingleMap(self.D)
+        SM.plot(show_colorbar=False)
 
     def test_SingleMap_WithPredefinedAxis(self):
         f = plt.figure()
