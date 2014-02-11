@@ -4,8 +4,6 @@
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
 
-Version: 1.0.0
-
 ## Authors
 Check `AUTHORS.md` file
 
@@ -32,8 +30,8 @@ pyCMBS can be installed in various ways:
 2. developer versions: https://github.com/pygeo/pycmbs
 3. in future: installation using pip
 
-The installation is easy, but not yet automatized. Details on the required installation procedure for the different approaches are provided here:
-    https://code.zmaw.de/projects/pycmbs
+The installation is easy, but not yet automatized. See INSTALL.md for further
+installation details. 
 
 Documentation
 -------------
@@ -55,11 +53,6 @@ Issues and Bug reports
 
 Bug reports, ideas, wishes are very welcome. Please report any issues using the github project website
         https://github.com/pygeo/pycmbs
-
-Developer information
----------------------
-
-TBD
 
 History
 -------
