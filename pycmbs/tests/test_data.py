@@ -62,6 +62,13 @@ class TestData(unittest.TestCase):
         self.assertEqual(i1, 0)
         self.assertEqual(i2, len(self.D.time)-1)
 
+    def test_sub_sample_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((3,4,5,6))
+        with self.assertRaises(ValueError):
+            x._sub_sample(3)
+
+
     def test_sub_sample(self):
         x = self.D.copy()
 
@@ -194,6 +201,18 @@ class TestData(unittest.TestCase):
         b.time = t
         self.assertEqual(a._is_monthly(), False)
         self.assertEqual(b._is_monthly(), True)
+
+    def test_is_monthly_MissingTime(self):
+        x = self.D.copy()
+        del x.time
+        self.assertFalse(x._is_monthly())
+
+
+    def test_detrend_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x.detrend()
 
     def test_cut_bounding_box(self):
         x = self.D.copy()
@@ -757,11 +776,12 @@ class TestData(unittest.TestCase):
         R = D.mul(D)
         self.assertTrue(np.all(ref-R.data < 1.E-6))
 
-    def test_divc(self):
+    def test_divc_Default(self):
         D = self.D.copy()
         R = D.divc(2.)
         d = D.data[:,0,0] *0.5
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
+
 
     def test_subc(self):
         D = self.D.copy()
@@ -895,12 +915,6 @@ class TestData(unittest.TestCase):
 
         #--- pearson
         slope, intercept, r, prob, sterrest = stats.linregress(y, x.data[:,0,0])
-
-        print('Reference solution')
-        print('r_value %f' % r)
-        print('p_value %f' % prob)
-
-
         Rout, Sout, Iout, Pout, Cout = x.corr_single(y)
 
         self.assertAlmostEqual(r,Rout.data[0,0], 8)
@@ -917,6 +931,20 @@ class TestData(unittest.TestCase):
         self.assertAlmostEqual(r,Rout.data[0,0],5)
         self.assertAlmostEqual(prob,Pout.data[0,0],8)
 
+    def test_corr_single_InvalidGeometry(self):
+        x = self.D.copy()
+        y = x.data[:,0,0].copy()*2.
+        y += np.random.random(len(y))
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x.corr_single(y)
+
+    def test_corr_single_InvalidMethod(self):
+        x = self.D.copy()
+        y = x.data[:,0,0].copy()*2.
+        y += np.random.random(len(y))
+        with self.assertRaises(ValueError):
+            x.corr_single(y, method='some_funky_method')
 
     def test_correlate(self):
         for n in [None,100,10,5]:  # different size
