@@ -15,4 +15,6 @@ before_install:
     - sudo pip install coveralls
     - sudo apt-get install python-scipy
 script:
-    nosetests && coveralls
+    nosetests pycmbs/tests/test_pycmbs.py
+after_success:
+    coveralls
