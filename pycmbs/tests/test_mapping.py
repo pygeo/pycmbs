@@ -44,14 +44,14 @@ class TestMapPlotGeneric(unittest.TestCase):
     def test_SingleMap_Init(self):
         # just test if things pass
         SM1 = mapping.SingleMap(self.D)
-        SM2 = mapping.SingleMap(self.D)
+        SM2 = mapping.SingleMap(self.D, stat_type='sum')
         proj_prop = {'projection': 'robin'}
-        SM3 = mapping.SingleMap(self.D, backend='basemap')
+        SM3 = mapping.SingleMap(self.D, backend='basemap', stat_type='median')
         SM4 = mapping.SingleMap(self.D, backend='cartopy')
         SM1.plot(show_zonal=True)
         SM2.plot(show_zonal=True, colorbar_orientation='horizontal')
-        SM3.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop, stat_type='sum')
-        SM4.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop, stat_type='nix')
+        SM3.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop)
+        SM4.plot(show_zonal=True, colorbar_orientation='horizontal', proj_prop=proj_prop)
 
     def test_SingleMap_WithoutColorbar(self):
         SM = mapping.SingleMap(self.D)
