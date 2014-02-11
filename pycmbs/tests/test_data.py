@@ -717,6 +717,18 @@ class TestData(unittest.TestCase):
         R = D.div(D)
         self.assertTrue(np.all(R.data == 1.))
 
+    def test_mul_CopyFalse(self):
+        D = self.D.copy()
+        ref = D.data*D.data
+        D.mul(D, copy=False)
+        self.assertTrue(np.all(ref-D.data < 1.E-6))
+
+    def test_mul_CopyTrue(self):
+        D = self.D.copy()
+        ref = D.data*D.data
+        R = D.mul(D)
+        self.assertTrue(np.all(ref-R.data < 1.E-6))
+
     def test_divc(self):
         D = self.D.copy()
         R = D.divc(2.)
@@ -732,7 +744,7 @@ class TestData(unittest.TestCase):
     def test_mulc(self):
         D = self.D.copy()
         R = D.mulc(2.)
-        d = D.data[:,0,0] *2.
+        d = D.data[:,0,0] * 2.
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
     def test_ConvertMonthlyTimeSeries_RaisesValueErrorForInvalidCalendar(self):
