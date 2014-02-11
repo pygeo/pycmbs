@@ -1,3 +1,3 @@
 [run]
-branch = False
-include = */pycmbs/*
+branch = True
+source = pycmbs
