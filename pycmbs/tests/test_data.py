@@ -712,10 +712,38 @@ class TestData(unittest.TestCase):
         d = yy - I.data[:,0,0]
         self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) ) #boundary effects at end of period, therefore last value not used
 
-    def test_div(self):
+    def test_div_Default(self):
         D = self.D.copy()
         R = D.div(D)
         self.assertTrue(np.all(R.data == 1.))
+
+    def test_div_InvalidGeometry(self):
+        D = self.D.copy()
+        B = D.copy()
+        B.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            R = D.div(B)
+
+    def test_mul_InvalidGeometry(self):
+        D = self.D.copy()
+        B = D.copy()
+        B.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            R = D.mul(B)
+
+    def test_add_InvalidGeometry(self):
+        D = self.D.copy()
+        B = D.copy()
+        B.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            R = D.add(B)
+
+    def test_sub_InvalidGeometry(self):
+        D = self.D.copy()
+        B = D.copy()
+        B.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            R = D.sub(B)
 
     def test_mul_CopyFalse(self):
         D = self.D.copy()
