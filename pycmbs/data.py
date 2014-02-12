@@ -2389,6 +2389,9 @@ class Data(object):
 
             if hasattr(tvar, 'calendar'):
                 self.calendar = tvar.calendar
+                # when climatology means, reset calendar to standard
+                if self.calendar == 'climatology_bounds':
+                    self.calendar = 'standard'
             else:
                 print 'WARNING: no calendar specified!'
                 self.calendar = 'standard'

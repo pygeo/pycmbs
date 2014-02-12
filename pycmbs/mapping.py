@@ -864,6 +864,8 @@ def map_plot(x, use_basemap=False, show_zonal=False,
             os.remove(savegraphicfile)
         M.figure.savefig(savegraphicfile, dpi=200)
 
+    return M.figure
+
 
     # TODO
     #arguments from original map plot which are not covered yet
