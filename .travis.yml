@@ -16,6 +16,7 @@ before_install:
     - sudo pip install pytest-cov
     - sudo apt-get install python-scipy
     - pushd .
+    - sudo apt-get install python-setuptools
     - git clone https://github.com/SciTools/cartopy.git && cd cartopy && sudo python setup.py install
     - popd
 script:
