@@ -25,14 +25,12 @@ class TestPycmbsNetcdf(unittest.TestCase):
     def test_netCDFHandlerinit_Default(self):
         cdf = netcdf.NetCDFHandler()
 
+    @unittest.skip('Nio will be deprecated')
     def test_netCDFHandlerinit_Nio(self):
         cdf = netcdf.NetCDFHandler(netcdf_backend='Nio')
         self.assertEqual(cdf.type, 'Nio')  # could be that this fails if Nio not existing!
         cdf = netcdf.NetCDFHandler(netcdf_backend='nio')
         self.assertEqual(cdf.type, 'nio')
-
-    def test_DummyTest(self):
-        pass
 
 if __name__ == "__main__":
     unittest.main()
