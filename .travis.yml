@@ -16,5 +16,6 @@ before_install:
     - sudo apt-get install python-scipy
 script:
     nosetests pycmbs/tests/test_pycmbs.py
+    nosetests pycmbs/tests/test_hov.py
 after_success:
     coveralls
