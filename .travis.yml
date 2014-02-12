@@ -13,9 +13,9 @@ before_install:
     - sudo pip install netCDF4
     - sudo pip install cdo
     - sudo pip install coveralls
+    - sudo pip install pytest-cov
     - sudo apt-get install python-scipy
 script:
-    nosetests pycmbs/tests/test_pycmbs.py
-    nosetests pycmbs/tests/test_hov.py
+    - py.test pycmbs/tests/test_pycmbs.py --doctest-modules --cov-report term-missing
 after_success:
-    coveralls
+    - coveralls
