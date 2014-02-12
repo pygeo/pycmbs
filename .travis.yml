@@ -15,7 +15,9 @@ before_install:
     - sudo pip install coveralls
     - sudo pip install pytest-cov
     - sudo apt-get install python-scipy
+    - pushd .
     - git clone https://github.com/SciTools/cartopy.git && cd cartopy && sudo python setup.py install
+    - popd
 script:
     - nosetests --with-coverage --cover-package=pycmbs
 after_success:
