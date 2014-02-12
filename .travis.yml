@@ -16,6 +16,6 @@ before_install:
     - sudo pip install pytest-cov
     - sudo apt-get install python-scipy
 script:
-    - nosetests --with-cov --cov pycmbs --cov-config .coveragerc --logging-level=INFO
+    - nosetests pycmbs/tests/test_pycmbs.py --with-coverage --cover-package=pycmbs
 after_success:
     - coveralls
