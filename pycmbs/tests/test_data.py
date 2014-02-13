@@ -348,6 +348,18 @@ class TestData(unittest.TestCase):
             d.data = np.random.random((10, 20, 30, 40))
             d.timmean()
 
+    def test_timstd_InvalidDimension(self):
+        with self.assertRaises(ValueError):
+            d = self.D.copy()
+            d.data = np.random.random((10, 20, 30, 40))
+            d.timstd()
+
+    def test_timstd_2D(self):
+        d = self.D.copy()
+        d.data = np.random.random((10, 20))
+        r = d.timstd()
+        self.assertEqual(r, None)
+
     def test_timmean_2D(self):
         d = self.D.copy()
         d.data = d.data[0,:,:]

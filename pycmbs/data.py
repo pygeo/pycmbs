@@ -2624,7 +2624,7 @@ class Data(object):
             # no temporal averaging
             res = None
         else:
-            sys.exit('Temporal standard deviation can not be calculated as dimensions do not match!')
+            raise ValueError('Temporal standard deviation can not be calculated as dimensions do not match!')
 
         if return_object:
             if res is None:
