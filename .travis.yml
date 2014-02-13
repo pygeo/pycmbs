@@ -14,7 +14,25 @@ before_install:
     - sudo pip install cdo
     - sudo pip install coveralls
     - sudo pip install pytest-cov
-    - sudo apt-get install python-scipy
+    - pushd .
+    - git clone https://github.com/SciTools/cartopy.git && cd cartopy
+    - sudo add-apt-repository -y ppa:pylab/stable
+    - sudo add-apt-repository -y ppa:tukss/ppa
+    - sudo apt-get update
+    - sudo apt-get install python-scipy python-pip cython
+    - sudo /usr/bin/pip install https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
+    # http://www.webupd8.org/2010/10/fix-nopubkey-error-for-extras-ubuntu.html
+    - ./.travis_no_output sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3E5C1192
+    - yes | ./.travis_no_output sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+    - sudo apt-get update
+    - sudo apt-get install libgeos-dev libproj-dev
+    - sudo /usr/bin/pip install --use-mirrors shapely nose pyshp pep8 mock
+    # its always version 2 currently
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then ./.travis_no_output sudo /usr/bin/pip install --use-mirrors PIL; fi
+    # install cartopy in the .local directory (in lieu of using virtual env...)
+    - sudo /usr/bin/python setup.py install
+    - popd
+
 script:
     - nosetests --with-coverage --cover-package=pycmbs
 after_success:
