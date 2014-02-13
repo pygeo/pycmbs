@@ -360,11 +360,24 @@ class TestData(unittest.TestCase):
         r = d.timstd()
         self.assertEqual(r, None)
 
-    def test_timmean_2D(self):
+    def test_timvar_2D(self):
         d = self.D.copy()
-        d.data = d.data[0,:,:]
-        r= d.timmean(return_object=False)
-        self.assertEqual(self.D.data[0,0,0], r[0,0])
+        d.data = np.random.random((10, 20))
+        r = d.timvar()
+        self.assertEqual(r, None)
+
+    def test_timstd_2D(self):
+        d = self.D.copy()
+        d.data = np.random.random((10, 20))
+        r = d.timstd()
+        self.assertEqual(r, None)
+
+    def test_timmean_timvar_consistency(self):
+        d = self.D.copy()
+        s = d.timstd(return_object=False)
+        v = d.timvar(return_object=False)
+        r = np.abs(1.- v / (s*s))
+        self.assertTrue(np.all(r < 1.E-6))
 
     def test_timmin_InvalidDimension(self):
         with self.assertRaises(ValueError):
@@ -463,6 +476,13 @@ class TestData(unittest.TestCase):
 #        print d
 #        print m
 #        stop
+
+
+    def test_weighting_matrix_InvalidType(self):
+        d = self.D.copy()
+        d.weighting_type = 'invalid_value'
+        with self.assertRaises(ValueError):
+            d._get_weighting_matrix()
 
     def test_weighting_matrix(self):
         D = self.D.copy()  # single pixel

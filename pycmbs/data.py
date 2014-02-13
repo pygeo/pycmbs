@@ -2657,7 +2657,6 @@ class Data(object):
         elif self.data.ndim == 2:
             # no temporal averaging
             res = None
-            sys.exit('Temporal variance can not be calculated as dimensions do not match!')
 
         if return_object:
             if res is None:
