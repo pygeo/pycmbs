@@ -757,7 +757,33 @@ class TestData(unittest.TestCase):
         os.remove(testfile)
 
 
-    def xxxtest_interp_time(self):
+    def test_interp_time_InvalidMethod(self):
+        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
+        with self.assertRaises(ValueError):
+            self.D.interp_time(tref, method='invalid_method')
+
+    def test_interp_time_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data = np.random.random((10,20,30,40))
+        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
+        with self.assertRaises(ValueError):
+            d.interp_time(tref)
+
+    def test_interp_time_TimeNotAscending(self):
+        d = self.D.copy()
+        d.time = np.random.random(d.nt)
+        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
+        with self.assertRaises(ValueError):
+            d.interp_time(tref)
+
+    def test_interp_time_TrefNotAscending(self):
+        d = self.D.copy()
+        tref = np.random.random(200)
+        with self.assertRaises(ValueError):
+            d.interp_time(tref)
+
+
+    def xxxxtest_interp_time(self):
         D = self.D
 
         #time is from 2001-01-01 for 1000 days as default
@@ -787,7 +813,7 @@ class TestData(unittest.TestCase):
             pl.show()
 
         d = yy - I.data[:,0,0]
-        self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) ) #boundary effects at end of period, therefore last value not used
+        self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) )  # boundary effects at end of period, therefore last value not used
 
     def test_div_Default(self):
         D = self.D.copy()

@@ -8,13 +8,15 @@ the pyCMBS licensing details.
 import os
 import sys
 
+from pycmbs.statistic import get_significance, ttest_ind
+from pycmbs.netcdf import NetCDFHandler
+
 import numpy as np
 from matplotlib import pylab as plt
 import matplotlib.pylab as pl
 from scipy import stats
 import pycmbs.netcdftime as netcdftime
-from pycmbs.statistic import get_significance, ttest_ind
-from pycmbs.netcdf import NetCDFHandler
+
 from calendar import monthrange
 from cdo import Cdo
 import datetime
@@ -1052,7 +1054,7 @@ class Data(object):
             check if latitude is in decreasing order (N ... S)
         """
         if not os.path.exists(self.filename):
-            sys.exit('Error: file not existing: ' + self.filename)
+            raise ValueError('Error: file not existing: %s' % self.filename)
         else:
             pass
 
@@ -1939,7 +1941,7 @@ class Data(object):
         """
 
         if i2 < i1:
-            sys.exit('Invalid indices _temporal_subsetting')
+            raise ValueError('Invalid indices _temporal_subsetting')
         i2 += 1  # incremet last index, as otherwise the last dataset is missing!
         if i2 > len(self.time):
             i2 = len(self.time)
@@ -1955,7 +1957,7 @@ class Data(object):
         elif self.data.ndim == 1:  # single temporal vector assumed
             self.data = self.data[i1:i2]
         else:
-            sys.exit('Error temporal subsetting: invalid dimension!')
+            raise ValueError('Error temporal subsetting: invalid dimension!')
 
 #-----------------------------------------------------------------------
 
@@ -2049,28 +2051,36 @@ class Data(object):
 
     def interp_time(self, t, method='linear'):
         """
-        interpolate data matrix in time. The existing data is interpolated to a new temporal spaceing that
-        is specified by the time vector argument 't'
-        The interpolation is done, by constructing a weighting matrix which basically performs a linear
-        interpolation as y = w*x(1) + (1-w)*x(2)
+        interpolate data matrix in time. The existing data is
+        interpolated to a new temporal spaceing that is specified by
+        the time vector argument 't'. The interpolation is done,
+        by constructing a weighting matrix which basically performs
+        a linear interpolation as y = w*x(1) + (1-w)*x(2)
 
-        @param t: vector of time where the data should be interpolated to. The vector is expected to correspond
-                  to numbers which correspond to the python standard for time (see datestr2num documentation). The array
-                  needs to be in ascending order, otherwise an error occurs.
-        @type t: numpy array
 
-        @param method: option to specify interpolation method. At the moment, only linear interpolation is supported!
-        @type method: str
+        Parameters
+        ----------
+        t : ndarray
+            vector of time where the data should be interpolated to.
+            he vector is expected to correspond to numbers which
+            correspond to the python standard for time
+            (see datestr2num documentation). The array needs to be
+            in ascending order, otherwise an error occurs.
 
-        @return: returns a new C{Data} object that contains the interpolated values
-        @rtype: Data
+        method : str
+            option to specify interpolation method. At the moment,
+            only linear interpolation is supported! ['linear']
 
-        @todo: still some boundary effects for last timestep
+        Returns
+        -------
+        returns a new C{Data} object that contains the interpolated values
+
+        # TODO : still some boundary effects for last timestep
         """
 
         d = np.asarray(pl.num2date(t))
 
-        if method != 'linear':
+        if method not in ['linear']:
             raise ValueError('Only linear interpolation supported at the moment so far!')
 
         #/// checks
@@ -2082,7 +2092,7 @@ class Data(object):
             raise ValueError('Time array of data is not in ascending order! This must not happen! Please ensure ascending order')
 
         nt0, ny, nx = self.shape  # original dimensions
-        nt = len(t)  # target length of time
+        nt = len(t)  # target length of reference time
 
         # copy data
         X = self.data.copy()
@@ -2093,7 +2103,7 @@ class Data(object):
         f_err = False
 
         # A) all data is BEFORE desired period
-        print self.date.max(), d.min(), type(self.date.max()), type(d.min())
+        #~ print self.date.max(), d.min(), type(self.date.max()), type(d.min())
         if self.date.max() < d.min():
             print self.date.max(), d.min()
             print 'WARNING: specified time period is BEFORE any data availability. NO INTERPOLATION CAN BE DONE!'
@@ -2112,7 +2122,7 @@ class Data(object):
             r.time = t  # return some dummy result
             return r
 
-        #/// construct weighting matrix
+        # construct weighting matrix
         W = np.zeros((nt, nt0))
         i1 = 0
         i2 = 1  # indices in original data
@@ -2156,7 +2166,6 @@ class Data(object):
                 break
 
             #... here we have valid data
-            #print i,i1,i2, nt0
             t1 = pl.date2num(self.date[i1])
             t2 = pl.date2num(self.date[i2])
             W[i, i1] = (t2 - t[i]) / (t2 - t1)
@@ -2181,7 +2190,6 @@ class Data(object):
         res.time = t
         res.time_str = 'days since 0001-01-01 00:00:00'
         res.calendar = 'standard'
-        #print 'res.date2: ', len(res.date)
         res.data = np.ma.array(N, mask=np.isnan(N))
         del N
 
@@ -2232,14 +2240,14 @@ class Data(object):
             assert (isinstance(stop, datetime.datetime))
             stop = _check_timezone(stop)
         if stop < start:
-            sys.exit('Error: startdate > stopdate')
+            raise ValueError('Error: startdate > stopdate')
 
         s1 = self.date2num(start)
         s2 = self.date2num(stop)
 
         #- check that time is increasing only
         if any(np.diff(self.time)) < 0.:
-            sys.exit('Error _get_time_indices: Time is not increasing')
+            raise ValueError('Error _get_time_indices: Time is not increasing')
 
         # determine indices
         m1 = abs(self.time - s1).argmin()
@@ -2250,7 +2258,7 @@ class Data(object):
         if self.time[m2] > s2:
             m2 -= 1
         if m2 < m1:
-            sys.exit('Something went wrong _get_time_indices')
+            raise ValueError('Something went wrong _get_time_indices')
         return m1, m2
 
 #-----------------------------------------------------------------------
@@ -2689,7 +2697,7 @@ class Data(object):
         elif self.data.ndim == 1:
             pass
         else:
-            sys.exit('Temporal sum can not be calculated as dimensions do not match!')
+            raise ValueError('Temporal sum can not be calculated as dimensions do not match!')
         res = self.data.sum(axis=0)
         if return_object:
             if res is None:
@@ -2949,7 +2957,7 @@ class Data(object):
             else:
                 raise ValueError('Undefined')
 
-        tmp = np.ma.array(tmp, mask = tmp != tmp)
+        tmp = np.ma.array(tmp, mask=tmp != tmp)
 
         #////
         if return_data:  # return data object
