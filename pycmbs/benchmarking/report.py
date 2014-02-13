@@ -121,7 +121,8 @@ class Report(object):
 
         if self.logofile is not None:
             # logo for report
-            self._write_single_figure(self.logofile, None)
+            if os.path.exists(self.logofile):
+                self._write_single_figure(self.logofile, None)
 
         self.write('\\newpage')
 
