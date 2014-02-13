@@ -82,6 +82,10 @@ class TestMapPlotGeneric(unittest.TestCase):
         SM.save(save_mean=True, save_all=True)
         self.assertTrue(os.path.exists('my_test_save_file.nc_timmean.nc'))
         self.assertTrue(os.path.exists('my_test_save_file.nc_timmean.nc_all.nc'))
+        if os.path.exists('my_test_save_file.nc_timmean.nc'):
+            os.remove('my_test_save_file.nc_timmean.nc')
+        if os.path.exists('my_test_save_file.nc_timmean.nc_all.nc'):
+            os.remove('my_test_save_file.nc_timmean.nc_all.nc')
 
 if __name__ == "__main__":
     unittest.main()
