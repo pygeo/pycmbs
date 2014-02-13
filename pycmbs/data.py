@@ -2950,6 +2950,8 @@ class Data(object):
             else:
                 raise ValueError('Undefined')
 
+        tmp = np.ma.array(tmp, mask = tmp != tmp)
+
         #////
         if return_data:  # return data object
             if self.data.ndim == 3:

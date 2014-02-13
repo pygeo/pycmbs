@@ -348,17 +348,37 @@ class TestData(unittest.TestCase):
             d.data = np.random.random((10, 20, 30, 40))
             d.timmean()
 
+    def test_timmean_2D(self):
+        d = self.D.copy()
+        d.data = d.data[0,:,:]
+        r= d.timmean(return_object=False)
+        self.assertEqual(self.D.data[0,0,0], r[0,0])
+
     def test_timmin_InvalidDimension(self):
         with self.assertRaises(ValueError):
             d = self.D.copy()
             d.data = np.random.random((10, 20, 30, 40))
             d.timmin()
 
+    def test_timmin_2D(self):
+        d = self.D.copy()
+        d.data = d.data[0,:,:]
+        r= d.timmin(return_object=False)
+        self.assertEqual(self.D.data[0,0,0], r[0,0])
+
     def test_timmax_InvalidDimension(self):
         with self.assertRaises(ValueError):
             d = self.D.copy()
             d.data = np.random.random((10, 20, 30, 40))
             d.timmax()
+
+    def test_timmax_2D(self):
+        d = self.D.copy()
+        d.data = d.data[0,:,:]
+        r= d.timmax(return_object=False)
+        self.assertEqual(self.D.data[0,0,0], r[0,0])
+
+
 
     def test_get_yearmean(self):
         #check get_yeartime
@@ -493,6 +513,10 @@ class TestData(unittest.TestCase):
         cv = st/me
         CV = D.timcv(return_object=True)
         self.assertEquals(cv[0],CV.data[0])
+
+        cv = st/me
+        CV = D.timcv(return_object=False)
+        self.assertEquals(cv[0],CV[0])
 
         va = D.data.var(axis=0)
         VA = D.timvar(return_object=True)
@@ -1047,6 +1071,11 @@ class TestData(unittest.TestCase):
         dif = np.abs(y.data[:, 0, 0]-r)
         self.assertTrue(np.all(dif == 0.))
 
+    def test_normalize_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x.normalize(return_object=False)
 
     def test_condstat(self):
         """
@@ -1351,38 +1380,47 @@ class TestData(unittest.TestCase):
     def test_areasum(self):
         """
         unittest for areasum() function
-        @return:
         """
 
-        #define testdata
+        # define testdata
         D = self.D
         x = np.ones((1,3,1))
         for i in [0]:
-            x [i,0,0] = 5.; x [i,1,0] = 10.; x [i,2,0] = 20.
-        D.data = np.ma.array(x,mask=x!=x)
+            x [i,0,0] = 5.
+            x [i,1,0] = 10.
+            x [i,2,0] = 20.
+        D.data = np.ma.array(x, mask=x!=x)
         y = np.ones((3,1))
-        y[0,0] = 75.; y[1,0] = 25.; y[2,0] = 25.  #total area = 125.
+        y[0,0] = 75.
+        y[1,0] = 25.
+        y[2,0] = 25.  # total area = 125.
         D.cell_area = y
 
-        D1=D.copy() #2D version
+        D1=D.copy()  # 2D version
         xx = np.ones((3,1))
-        xx[0,0]=5.; xx[1,0]=10.; xx[2,0]=20.
-        D1.data = np.ma.array(xx,mask=xx!=xx)
+        xx[0,0]=5.
+        xx[1,0]=10.
+        xx[2,0]=20.
+        D1.data = np.ma.array(xx, mask=xx!=xx)
 
-        #do test
+        # do test
         r1  = D .areasum()[0] #result should be 5.*75. + 10.*25. + 20.*25.
         r1a = D1.areasum()[0]
+        r1d  = D .areasum(return_data=True).data[0]
+        r1ad = D1.areasum(return_data=True).data[0]
 
-        self.assertEqual(r1,5.*75. + 10.*25. + 20.*25.)
-        self.assertEqual(r1a,5.*75. + 10.*25. + 20.*25.)
+        self.assertEqual(r1, 5.*75. + 10.*25. + 20.*25.)
+        self.assertEqual(r1a, 5.*75. + 10.*25. + 20.*25.)
+        self.assertEqual(r1d, 5.*75. + 10.*25. + 20.*25.)
+        self.assertEqual(r1ad, 5.*75. + 10.*25. + 20.*25.)
 
         r2 = D.areasum(apply_weights=False) #without weights
         r2a = D1.areasum(apply_weights=False)
-        self.assertEqual(r2[0],x.sum())
-        self.assertEqual(r2a[0],xx.sum())
+        self.assertEqual(r2[0], x.sum())
+        self.assertEqual(r2a[0], xx.sum())
 
 
-        #2D case
+        # 2D case
         D=self.D.copy()
         x=np.ones((1,4))
         x[0,1]=1.; x[0,2] = 5.
@@ -1393,32 +1431,32 @@ class TestData(unittest.TestCase):
         r = D.areasum()[0]
         self.assertEquals(r,8.)
 
-        #testcase where some of data is not valid and different weighting approaches are applied
+        # testcase where some of data is not valid and different weighting approaches are applied
         D = self.D.copy()
 
         x=np.ones((1,1,4))
-        D.data = np.ma.array(x,mask=x==0.)
+        D.data = np.ma.array(x, mask=x==0.)
         nt,ny,nx = x.shape
-        ca = np.ones((ny,nx))
-        D.cell_area = np.ma.array(ca,mask=ca < 0.)
+        ca = np.ones((ny, nx))
+        D.cell_area = np.ma.array(ca, mask=ca < 0.)
 
         D.weighting_type='valid'
         r = D.areasum()[0]
-        self.assertEquals(r,4.)
+        self.assertEquals(r, 4.)
         x[:,0,0] = np.nan
         D.data = np.ma.array(x,mask=np.isnan(x))
         r = D.areasum()[0]
-        self.assertEquals(r,3.)
+        self.assertEquals(r, 3.)
 
-        #... now check what happens if normalization factor is for ALL pixels and not only the valid ones! --> should give 0.75
+        # ... now check what happens if normalization factor is for ALL pixels and not only the valid ones! --> should give 0.75
         D.weighting_type='all'
         r = D.areasum()[0]
-        self.assertEquals(r,3.)
+        self.assertEquals(r, 3.)
 
     def test_set_timecycle(self):
         D = self.D
 
-        #set some monthly timeseries
+        # set some monthly timeseries
         s_start_time = '2003-01-01'
         s_stop_time  = '2005-12-31'
         start_time = pl.num2date(pl.datestr2num(s_start_time))
