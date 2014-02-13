@@ -1,6 +1,6 @@
-==========
-References
-==========
+=================
+References (o.k.)
+=================
 
 Publications where pyCMBS has been used
 ---------------------------------------

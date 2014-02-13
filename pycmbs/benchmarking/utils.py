@@ -34,7 +34,8 @@ def get_data_pool_directory():
             raise ValueError('Currently this routine is only tested \
                             for Linux!')
     else:
-        data_pool_directory = '/pool/data/SEP/'
+        data_pool_directory = '/pool/SEP/'
+        return data_pool_directory
 
     if not os.path.exists(data_pool_directory):
         print data_pool_directory

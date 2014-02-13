@@ -16,12 +16,12 @@ class TestUtils(unittest.TestCase):
         p = utils.get_data_pool_directory()
         self.assertEqual(p, os.getcwd())
 
-    #~ def test_get_data_pool_Default(self):
-        #~ if 'SEP' in os.environ.keys():
-            #~ xx = os.environ.pop('SEP')
-#~
-        #~ p = utils.get_data_pool_directory()
-        #~ self.assertEqual(p, '/pool/SEP')
+    def test_get_data_pool_Default(self):
+        if 'SEP' in os.environ.keys():
+            xx = os.environ.pop('SEP')
+        p = utils.get_data_pool_directory()
+        self.assertEqual(p, '/pool/SEP/')
+
 
     def test_get_generic_landseamask_DEFAULT(self):
         #XXX TODO analyze also correctness of results
