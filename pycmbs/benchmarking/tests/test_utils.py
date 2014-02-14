@@ -8,6 +8,24 @@ import pycmbs.benchmarking.utils as utils
 
 class TestUtils(unittest.TestCase):
 
+    def setUp(self):
+        # setup environment variables
+        os.environ['SEP'] = os.getcwd() + os.sep + 'SEP'
+        os.environ['CDOTEMPDIR'] = os.getcwd() + os.sep + 'CDOTEMPDIR'
+        if not os.path.exists(os.environ['SEP']):
+            os.makedirs(os.environ['SEP'])
+        if not os.path.exists(os.environ['CDOTEMPDIR']):
+            os.makedirs(os.environ['CDOTEMPDIR'])
+
+    def tearDown(self):
+        # remove temporary dirs
+        if os.path.exists(os.getcwd() + os.sep + 'SEP'):
+            cmd = 'rm -rf ' + os.getcwd() + os.sep + 'SEP'
+            os.system(cmd)
+        if os.path.exists(os.getcwd() + os.sep + 'CDOTEMPDIR'):
+            cmd = 'rm -rf ' + os.getcwd() + os.sep + 'CDOTEMPDIR'
+            os.system(cmd)
+
     def test_get_data_pool_OK(self):
         os.environ['SEP'] = os.getcwd()
         p = utils.get_data_pool_directory()
