@@ -40,14 +40,14 @@ class EnsemblePreprocessor(object):
 class CMIP5Preprocessor(EnsemblePreprocessor):
     def __init__(self, data_dir, outfile, variable, model, experiment, mip='Amon', realm='atmos', institute=None):
         super(CMIP5Preprocessor, self).__init__(data_dir, outfile)
-	if institute is None:
-		raise ValueError('An institute name needs to be provided!')
-	self.institute = institute
+        if institute is None:
+            raise ValueError('An institute name needs to be provided!')
+        self.institute = institute
         self.variable = variable
         self.model = model
         self.experiment = experiment
-	self.mip = mip
-	self.realm = realm
+        self.mip = mip
+        self.realm = realm
 
     def _filelist(self, l):
         r = ''
@@ -174,9 +174,8 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
 
     def _get_file_wildcard(self, ens):
         #return self.data_dir + self.variable + '_Amon_' + self.model + '_' + self.experiment + '_r'
-	p = self.data_dir + self.institute + os.sep + self.model + os.sep + self.experiment + os.sep + 'mon' + os.sep + self.realm + os.sep + self.mip + os.sep + 'r' + str(ens) + 'i1p1' + os.sep + self.variable + os.sep + self.variable + '_' + self.mip + '_' + self.model + '_' + self.experiment + '_r' + '*.nc'
-
-	return p
+        p = self.data_dir + self.institute + os.sep + self.model + os.sep + self.experiment + os.sep + 'mon' + os.sep + self.realm + os.sep + self.mip + os.sep + 'r' + str(ens) + 'i1p1' + os.sep + self.variable + os.sep + self.variable + '_' + self.mip + '_' + self.model + '_' + self.experiment + '_r' + '*.nc'
+        return p
 
     def mergetime_ensembles(self, delete=False, start_time=None, stop_time=None):
         self.get_ensemble_files()
@@ -234,15 +233,53 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         return ofile
 
 
+class CMIP5ModelParser(object):
+    """
+    a parser to retrieve model and institute names
+    """
+
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
+        if not os.path.exists(self.root_dir):
+            raise ValueError('Path not existing!')
+
+        self.institutes = None
+        self.models = None
+
+    def get_institutes(self):
+        return [os.path.basename(f) for f in glob.glob(self.root_dir + '*')]
+
+    def get_all_models(self):
+        """ get a list with all models and institutes """
+        r = {}
+        for i in self.get_institutes():
+            r.update({i: self._get_models4institute(i)})
+        return r
+
+    def _get_models4institute(self, institute):
+        return [os.path.basename(f) for f in glob.glob(self.root_dir + institute + os.sep + '*')]
+
 import datetime as dt
 # from pyCMBS import *
 
-output_file = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/dummy_out/rsds_Amon_GFDL-HIRAM-C180_amip_ensmean.nc'
-data_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/'
-E = CMIP5Preprocessor(data_dir, output_file, 'rsds', 'GFDL-HIRAM-C180', 'amip', institute='NOAA-GFDL')
+output_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/dummy_out/'
 
-E.get_ensemble_files()
-E.ensemble_mean(delete=False, start_time=dt.datetime(1982,3,10), stop_time=dt.datetime(2002,10,22))
+data_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/'
+
+the_experiment = 'amip'
+the_variable = 'rsds'
+
+
+# init parser that returns a list of institutes and models
+CP = CMIP5ModelParser(data_dir)
+model_list = CP.get_all_models()
+
+for institute in model_list.keys():
+    for model in model_list[institute]:
+        output_file = output_dir + the_variable + '_Amon_' + model + '_' + the_experiment + '_ensmean.nc'
+        E = CMIP5Preprocessor(data_dir, output_file, the_variable, model, the_experiment, institute=institute)
+        E.get_ensemble_files()
+        E.ensemble_mean(delete=False, start_time=dt.datetime(1979,1,1), stop_time=dt.datetime(2012,12,31))
 
 #d=Data(E.output_dir + E.outfile, 'rsds', read=True)
 
