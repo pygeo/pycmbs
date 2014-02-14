@@ -38,11 +38,16 @@ class EnsemblePreprocessor(object):
 
 
 class CMIP5Preprocessor(EnsemblePreprocessor):
-    def __init__(self, data_dir, outfile, variable, model, experiment):
+    def __init__(self, data_dir, outfile, variable, model, experiment, mip='Amon', realm='atmos', institute=None):
         super(CMIP5Preprocessor, self).__init__(data_dir, outfile)
+	if institute is None:
+		raise ValueError('An institute name needs to be provided!')
+	self.institute = institute
         self.variable = variable
         self.model = model
         self.experiment = experiment
+	self.mip = mip
+	self.realm = realm
 
     def _filelist(self, l):
         r = ''
@@ -93,7 +98,8 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         fstr = self._filelist(ens_files)
 
         # output file
-        ofile = self.output_dir + os.path.basename(self._get_file_wildcard()) + str(n) + '_mergetime'
+        ofile = self.output_dir + os.path.basename(ens_files[0]).split('r'+str(n)+'i1p1')[0] + 'r' + str(n) + 'i1p1' + '_mergetime.nc'
+
         if start_time is not None:
             ofile += '_' + str(start_time)[0:10] + '_' + str(stop_time)[0:10]
         ofile += '.nc'
@@ -136,7 +142,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         if os.path.exists(tmpfile):
             os.remove(tmpfile)
 
-    def get_ensemble_files(self, maxens=10):
+    def get_ensemble_files(self, maxens=50):
         """
         create a dictionary with filenames for the different ensemble
         members
@@ -148,27 +154,29 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         """
 
         # file wildcard
-        w = self._get_file_wildcard()
-        nfiles = len(glob.glob(w + '*.nc'))
+        #nfiles = len(glob.glob(w + '*.nc'))
 
         # create filelist for each ensemble
         res = {}
         cnt = 0
-        for i in xrange(maxens):
-            w1 = w + str(i) + '*.nc'
+        for i in xrange(1, maxens+1):
+            w1 = self._get_file_wildcard(i)
             files = glob.glob(w1)
             cnt += len(files)
             if len(files) > 0:
                 res.update({i: files})
 
         # check that all files were used
-        if nfiles != cnt:
-            print nfiles, cnt
-            raise ValueError('ERROR: not all files were processed!')
+        #if nfiles != cnt:
+        #    print nfiles, cnt
+        #    raise ValueError('ERROR: not all files were processed!')
         self.ensemble_files = res
 
-    def _get_file_wildcard(self):
-        return self.data_dir + self.variable + '_Amon_' + self.model + '_' + self.experiment + '_r'
+    def _get_file_wildcard(self, ens):
+        #return self.data_dir + self.variable + '_Amon_' + self.model + '_' + self.experiment + '_r'
+	p = self.data_dir + self.institute + os.sep + self.model + os.sep + self.experiment + os.sep + 'mon' + os.sep + self.realm + os.sep + self.mip + os.sep + 'r' + str(ens) + 'i1p1' + os.sep + self.variable + os.sep + self.variable + '_' + self.mip + '_' + self.model + '_' + self.experiment + '_r' + '*.nc'
+
+	return p
 
     def mergetime_ensembles(self, delete=False, start_time=None, stop_time=None):
         self.get_ensemble_files()
@@ -212,7 +220,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             os.system(cmd)
 
         # ensemble standard deviation
-        ofilestd = self.output_dir + self.outfile.replace('_ensmean', '_ensstd')
+        ofilestd = self.outfile.replace('_ensmean', '_ensstd')
         cmd = 'cdo -f nc ensstd ' + fstr + ' ' + ofilestd
         if os.path.exists(ofilestd):
             if delete:
@@ -225,17 +233,18 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
 
         return ofile
 
-"""
+
 import datetime as dt
-from pyCMBS import *
+# from pyCMBS import *
 
-
-fname='/home/m300028/shared/temp/ensmean/rsds/amip/raw/testout/rsds_Amon_GFDL-HIRAM-C180_amip_ensmean.nc'
-E = CMIP5Preprocessor('/home/m300028/shared/temp/ensmean/rsds/amip/raw', fname, 'rsds', 'GFDL-HIRAM-C180', 'amip')
+output_file = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/dummy_out/rsds_Amon_GFDL-HIRAM-C180_amip_ensmean.nc'
+data_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/'
+E = CMIP5Preprocessor(data_dir, output_file, 'rsds', 'GFDL-HIRAM-C180', 'amip', institute='NOAA-GFDL')
 
 E.get_ensemble_files()
 E.ensemble_mean(delete=False, start_time=dt.datetime(1982,3,10), stop_time=dt.datetime(2002,10,22))
-d=Data(E.output_dir + E.outfile, 'rsds', read=True)
+
+#d=Data(E.output_dir + E.outfile, 'rsds', read=True)
 
 
 #~ E.mergetime(2, delete=True, start_time=dt.datetime(1999,3,10), stop_time=dt.datetime(2003,5,16))
@@ -243,4 +252,3 @@ d=Data(E.output_dir + E.outfile, 'rsds', read=True)
 
 #~ tmp='/home/m300028/shared/temp/ensmean/rsds/amip/raw/testout/rsds_Amon_GFDL-HIRAM-C180_amip_r2_mergetime.nc'
 #~ d = Data(tmp, 'rsds', read=True)
-"""
