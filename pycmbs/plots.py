@@ -54,6 +54,8 @@ import datetime
 import os
 
 
+from pycmbs.data import Data
+
 #-----------------------------------------------------------------------
 def thin_xticks(ax, n):
     """
@@ -1026,7 +1028,7 @@ class HistogrammPlot(object):
 
         #- Figure init
         if ax is None:
-            self.figure = pl.figure()
+            self.figure = plt.figure()
             self.ax = self.figure.add_subplot(111)
         else:
             self.ax = ax
@@ -1040,25 +1042,23 @@ class HistogrammPlot(object):
         """
         plot data to histogram
 
-        @param X: data to be plotted as histogram
-        @type X: Data or np.array
-
-        @param color: color for line plot
-        @type color: str
-
-        @param linestyle: style of line to plot
-        @type linestyle: str
-
-        @param linewidth: width of line to plot
-        @type linewidth: float
-
-        @param shown: show number of used datasets in legend
-        @type shown: bool
-
-        @param kwargs: arguments for np.histogram function
+        Parameters
+        ----------
+        D : Data or ndarray
+            data to be plotted as histogram
+        color : str
+            color for line plot
+        linestyle : str
+            style of line to plot
+        linedwisth : float
+            width of line to plot
+        shown : bool
+            show number of used datasets in legend
+        kwargs : dict
+            arguments for np.histogram function
         """
 
-        #-check if Data object
+        # check if Data object
         if isinstance(X, Data):
             x = X.data
         else:
@@ -1069,35 +1069,30 @@ class HistogrammPlot(object):
 
         x = x[~np.isnan(x)]
 
-        #- REMOVE BINS ARGUMENT IF in kwargs, as global argument of class is used
+        # REMOVE BINS ARGUMENT IF in kwargs, as global argument of class is used
         if 'bins' in kwargs.keys():
             bb = kwargs.pop('bins')
 
         if shown:
             show_legend = True
-
             if label == '':
                 label = 'n=' + str(sum(~np.isnan(x)))
             else:
                 label = label + '(n=' + str(sum(~np.isnan(x))) + ')'
 
-        #--- calculate frequency distribution
+        # calculate frequency distribution
         f, b = np.histogram(x, bins=self.bins, **kwargs)
         if self.normalize:
             f /= float(sum(f))
             if self.percent:
                 f *= 100.
-
         self.ax.plot(b[0:-1], f, color=color, linestyle=linestyle,
                      linewidth=linewidth, label=label)
 
         if show_legend:
             self.ax.legend()
 
-
 #-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-
 
 class ZonalPlot(object):
     def __init__(self, ax=None, dir='y'):

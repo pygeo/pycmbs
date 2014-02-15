@@ -3,7 +3,9 @@
 import unittest
 from pycmbs import plots
 from pycmbs.data import Data
-from pycmbs.plots import ReichlerPlot, ScatterPlot
+from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, ZonalPlot
+from pycmbs.plots import map_difference, map_season
+
 import scipy
 import numpy as np
 import matplotlib.pylab as pl
@@ -41,10 +43,31 @@ class TestPycmbsPlots(unittest.TestCase):
         S = ScatterPlot(x)
         S.plot(x)
 
+    def test_LinePlot_General(self):
+        x = self.D
+        L = LinePlot()
+        L1 = LinePlot(regress=True)
+        L.plot(x)
+        L1.plot(x)
+
+    def test_HistogrammPlot_General(self):
+        H = HistogrammPlot()
+        H.plot(self.D)
+
+    def test_ZonalPlot(self):
+        Z = ZonalPlot()
+        Z.plot(self.D)
 
 
-    def test_DummyTest(self):
-        pass
+    def test_map_difference_General(self):
+        map_difference(self.D, self.D)
+
+
+# map_season
+# map difference
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
