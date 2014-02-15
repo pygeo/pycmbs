@@ -73,7 +73,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
 
     def _log(self, s):
         """ write string s to the logfile """
-        logfile = self.output_dir + 'cmip5_preprocessor.log'
+        logfile = self.output_dir + 'cmip5_preprocessor_' + self.experiment + '_' + self.variable + '.log'
         o = open(logfile, 'a')
         o.write(s + '\n')
         o.close()
