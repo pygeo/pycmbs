@@ -219,14 +219,16 @@ class ReichlerPlot(object):
         """
         register data to be plotted
 
-        @param e2: reichler index that was already calculated
-        @type e2: list
+        Parameters
+        ----------
+        e2 : list
+            reichler index that was already calculated
 
-        @param label: label to be used for plotting
-        @type label: str
+        label : str
+            label to be used for plotting
 
-        @param color: color to be used for plotting
-        @type color: str
+        color : str
+            color to be used for plotting
         """
         self.e2.append(e2)
         self.labels.append(label)
