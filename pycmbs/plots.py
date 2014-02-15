@@ -1576,12 +1576,17 @@ class GlecklerPlot(object):
             sep = ' & '
             eol = ' \\\  \n'
             sol = '            '
+            fileext = '.tex'
         elif fmt == 'markdown':
             sep = ' | '
             eol = ' | \n'
             sol = ''
+            fileext = '.md'
         else:
             raise ValueError('Unrecognized output format')
+
+        if filename[-len(fileext):] != fileext:
+            filename += fileext
 
         if os.path.exists(filename):
             os.remove(filename)

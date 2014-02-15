@@ -4,9 +4,10 @@ import unittest
 from pycmbs import plots
 from pycmbs.data import Data
 from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, ZonalPlot
-from pycmbs.plots import map_difference, map_season
+from pycmbs.plots import map_difference, map_season, GlecklerPlot
 
 import scipy
+import os
 import numpy as np
 import matplotlib.pylab as pl
 
@@ -37,11 +38,21 @@ class TestPycmbsPlots(unittest.TestCase):
             RP.add([i*12.], 'test'+str(i))
         RP.simple_plot()
         RP.bar(title='some title', vmin=-10., vmax=10.)
+        #~ RP.circle_plot()
 
     def test_ScatterPlotGeneral(self):
         x = self.D
         S = ScatterPlot(x)
         S.plot(x)
+
+    def test_ScatterPlot_InvalidShape(self):
+        x = self.D
+        S = ScatterPlot(x)
+        y = self.D.copy()
+        y.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            S.plot(y)
+
 
     def test_LinePlot_General(self):
         x = self.D
@@ -58,13 +69,37 @@ class TestPycmbsPlots(unittest.TestCase):
         Z = ZonalPlot()
         Z.plot(self.D)
 
-
     def test_map_difference_General(self):
         map_difference(self.D, self.D)
 
+    def test_GlecklerPlot(self):
+        G = GlecklerPlot()
+        G.add_model('echam5')
+        G.add_model('mpi-esm')
+        G.add_variable('ta')
+        G.add_variable('P')
+        G.add_data('ta', 'echam5', 0.5,pos=1)
+        G.add_data('P', 'echam5',0.25,pos=1)
+        G.add_data('P', 'echam5',-0.25,pos=2)
+        G.add_data('P', 'mpi-esm',-0.25,pos=1)
+        G.plot()
+
+        G.plot_model_error('ta')
+        G.plot_model_ranking('ta')
+        G.write_ranking_table('ta', 'nix.tex', fmt='latex')
+        self.assertTrue(os.path.exists('nix.tex'))
+        if os.path.exists('nix.tex'):
+            os.remove('nix.tex')
+        G.write_ranking_table('ta', 'nix1', fmt='latex')
+        self.assertTrue(os.path.exists('nix1.tex'))
+        if os.path.exists('nix1.tex'):
+            os.remove('nix1.tex')
+
+
 
 # map_season
-# map difference
+
+
 
 
 
