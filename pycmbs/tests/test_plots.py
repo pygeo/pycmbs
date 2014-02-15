@@ -5,6 +5,7 @@ from pycmbs import plots
 from pycmbs.data import Data
 from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, ZonalPlot
 from pycmbs.plots import map_difference, map_season, GlecklerPlot
+from pycmbs.plots import xx_map_plot
 
 import scipy
 import os
@@ -31,6 +32,8 @@ class TestPycmbsPlots(unittest.TestCase):
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
         self.D.cell_area = np.ones((1,1))
+        self.D.lon=np.ones((1,1)) * 20.
+        self.D.lat=np.ones((1,1)) * 10.
 
     def test_ReichlerPlotGeneral(self):
         RP = ReichlerPlot()
@@ -95,7 +98,9 @@ class TestPycmbsPlots(unittest.TestCase):
         if os.path.exists('nix1.tex'):
             os.remove('nix1.tex')
 
-
+    def test_old_map_plot(self):
+        xx_map_plot(self.D)
+        #~ xx_map_plot(self.D, use_basemap=True)
 
 # map_season
 
