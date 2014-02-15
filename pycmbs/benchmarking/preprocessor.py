@@ -269,32 +269,6 @@ class CMIP5ModelParser(object):
     def _get_models4institute(self, institute):
         return [os.path.basename(f) for f in glob.glob(self.root_dir + institute + os.sep + '*')]
 
-import datetime as dt
-
-output_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/dummy_out/amip_rsus/'
-
-data_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/'
-
-the_experiment = 'amip'
-the_variable = 'rsds'
 
 
-# init parser that returns a list of institutes and models
-CP = CMIP5ModelParser(data_dir)
-model_list = CP.get_all_models()
 
-for institute in model_list.keys():
-    for model in model_list[institute]:
-        output_file = output_dir + the_variable + '_Amon_' + model + '_' + the_experiment + '_ensmean.nc'
-        E = CMIP5Preprocessor(data_dir, output_file, the_variable, model, the_experiment, institute=institute)
-        E.get_ensemble_files()
-        E.ensemble_mean(delete=False, start_time=dt.datetime(1979,1,1), stop_time=dt.datetime(2012,12,31))
-
-#d=Data(E.output_dir + E.outfile, 'rsds', read=True)
-
-
-#~ E.mergetime(2, delete=True, start_time=dt.datetime(1999,3,10), stop_time=dt.datetime(2003,5,16))
-#~ E.mergetime(2, delete=True)
-
-#~ tmp='/home/m300028/shared/temp/ensmean/rsds/amip/raw/testout/rsds_Amon_GFDL-HIRAM-C180_amip_r2_mergetime.nc'
-#~ d = Data(tmp, 'rsds', read=True)
