@@ -4,6 +4,7 @@ This file is part of pyCMBS.
 For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
+
 import os
 import glob
 
@@ -23,8 +24,12 @@ class EnsemblePreprocessor(object):
         """
         Parameters
         ----------
+        data_dir : str
+            root directory where the data is located
         outfile : str
-            name of the output file to be generated
+            name of the output file to be generated. This then also
+            automatically specifies the output directory, which
+            will be generated in case it is not existing
         """
         self.output_dir, self.outfile = os.path.split(outfile)
         if len(self.output_dir) == 0:
@@ -41,7 +46,14 @@ class EnsemblePreprocessor(object):
 
 
 class CMIP5Preprocessor(EnsemblePreprocessor):
-    def __init__(self, data_dir, outfile, variable, model, experiment, mip='Amon', realm='atmos', institute=None):
+    """
+    preprocessor for CMIP5 raw data
+    it is assumed that data from the CMIP5 archive have been extracted
+    already for a particular version and that the version directroy
+    has been removed from the overall path.
+    """
+    def __init__(self, data_dir, outfile, variable, model, experiment,
+                  mip='Amon', realm='atmos', institute=None):
         super(CMIP5Preprocessor, self).__init__(data_dir, outfile)
         if institute is None:
             raise ValueError('An institute name needs to be provided!')
@@ -53,12 +65,14 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         self.realm = realm
 
     def _filelist(self, l):
+        """ generate a filelist as single string (e.g. for cdo usage """
         r = ''
         for x in l:
             r += x + ' '
         return r
 
     def _log(self, s):
+        """ write string s to the logfile """
         logfile = self.output_dir + 'cmip5_preprocessor.log'
         o = open(logfile, 'a')
         o.write(s + '\n')
@@ -110,7 +124,6 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         self.mergetime_files.append(ofile)
 
         # cdo
-
         if selstr == '':
             cmd = 'cdo -f nc mergetime ' + fstr + ' ' + ofile
         else:
@@ -156,9 +169,6 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             maximum ensemble member size
         """
 
-        # file wildcard
-        #nfiles = len(glob.glob(w + '*.nc'))
-
         # create filelist for each ensemble
         res = {}
         cnt = 0
@@ -169,14 +179,9 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             if len(files) > 0:
                 res.update({i: files})
 
-        # check that all files were used
-        #if nfiles != cnt:
-        #    print nfiles, cnt
-        #    raise ValueError('ERROR: not all files were processed!')
         self.ensemble_files = res
 
     def _get_file_wildcard(self, ens):
-        #return self.data_dir + self.variable + '_Amon_' + self.model + '_' + self.experiment + '_r'
         p = self.data_dir + self.institute + os.sep + self.model + os.sep + self.experiment + os.sep + 'mon' + os.sep + self.realm + os.sep + self.mip + os.sep + 'r' + str(ens) + 'i1p1' + os.sep + self.variable + os.sep + self.variable + '_' + self.mip + '_' + self.model + '_' + self.experiment + '_r' + '*.nc'
         return p
 
@@ -194,14 +199,16 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         stop_time : datetime
             end time of period
         """
-        print 'Doing ensemble mean calculation ...'
+        print('Doing ensemble mean calculation ...')
         # if temporal merged files are not yet there, do preprocessing
         if len(self.mergetime_files) < 2:
             self.mergetime_ensembles(delete=delete, start_time=start_time, stop_time=stop_time)
+
         if len(self.mergetime_files) < 2:
             print self.mergetime_files
             print 'No ensemble mean calculation possible as not enough files!'
             self._log('No ensemble mean calculation possible as not enough files! ' + self.institute + ' ' + self.model + ' ' + self.experiment)
+
         fstr = self._filelist(self.mergetime_files)
 
         # ensemble mean calculation
@@ -263,7 +270,6 @@ class CMIP5ModelParser(object):
         return [os.path.basename(f) for f in glob.glob(self.root_dir + institute + os.sep + '*')]
 
 import datetime as dt
-# from pyCMBS import *
 
 output_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/dummy_out/amip_rsus/'
 
