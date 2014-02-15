@@ -36,6 +36,9 @@ class EnsemblePreprocessor(object):
             self.output_dir += os.sep
         self.mergetime_files = []
 
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
 
 class CMIP5Preprocessor(EnsemblePreprocessor):
     def __init__(self, data_dir, outfile, variable, model, experiment, mip='Amon', realm='atmos', institute=None):
@@ -198,7 +201,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         if len(self.mergetime_files) < 2:
             print self.mergetime_files
             print 'No ensemble mean calculation possible as not enough files!'
-            self._log('No ensemble mean calculation possible as not enough files! ' + self.model + ' ' + self.experiment)
+            self._log('No ensemble mean calculation possible as not enough files! ' + self.institute + ' ' + self.model + ' ' + self.experiment)
         fstr = self._filelist(self.mergetime_files)
 
         # ensemble mean calculation
@@ -262,7 +265,7 @@ class CMIP5ModelParser(object):
 import datetime as dt
 # from pyCMBS import *
 
-output_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/dummy_out/'
+output_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/dummy_out/amip_rsus/'
 
 data_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/'
 
