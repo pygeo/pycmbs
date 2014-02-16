@@ -556,40 +556,12 @@ class CMIP5Data(Model):
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsds/' + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-
-            # use model parser to generate a list of available institutes and
-            # models from data directory
-
-            data_dir = self.data_dir
-            if data_dir[-1] != os.sep:
-                data_dir += os.sep
-
-            CMP = preprocessor.CMIP5ModelParser(self.data_dir)
-            model_list = CMP.get_all_models()
-
-            institute = self.model.split(':')[0]
-            model = self.model.split(':')[1]
-
-            # TODO why is the institute not in the model output name ???
-            output_file = get_temporary_directory() + the_variable + '_Amon_' + model + '_' + self.experiment + '_ensmean.nc'
-
-            if institute not in model_list.keys():
-                raise ValueError('Data for this institute is not existing: %s' % institute)
-
-            # do preprocessing of data from multiple ensembles if file
-            # already existing, then no processing is done
-            C5PP = preprocessor.CMIP5Preprocessor(data_dir, output_file, 
-                                                  the_variable, model,
-                                                  self.experiment,
-                                                  institute=institute)
-            filename1 = C5PP.ensemble_mean(delete=False,
-                                           start_time=self.start_time,
-                                           stop_time=self.stop_time)
-            if not os.path.exists(filename1):
-                raise ValueError('FATAL ERROR: file not existing: %s' % filename1)
-
+            filename1 = self._get_ensemble_filename('rsds') 
         else:
             raise ValueError('Unknown model type! not supported here!')
+
+        if not os.path.exists(filename1):
+            raise ValueError('FATAL ERROR: file not existing: %s' % filename1)
 
         #/// PREPROCESSING ///
         cdo = Cdo()
@@ -679,14 +651,7 @@ class CMIP5Data(Model):
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsus/' + self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            # perform preprocesing of CMIP5 data based on ensemble mean files
-            data_dir = self.data_dir
-            if data_dir[-1] != os.sep:
-                data_dir += os.sep
-            data_dir = data_dir + 'rsus' + os.sep + self.experiment + os.sep + 'raw'
-            outfile = get_temporary_directory() + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-            C5PP = preprocessor.CMIP5Preprocessor(data_dir, outfile, 'rsus', self.model, self.experiment)
-            filename1 = C5PP.ensemble_mean(delete=False, start_time=self.start_time, stop_time=self.stop_time)
+            filename1 = self._get_ensemble_filename('rsus') 
         else:
             raise ValueError('Unknown type! not supported here!')
 
@@ -694,6 +659,9 @@ class CMIP5Data(Model):
             raise ValueError('Start time needs to be specified')
         if self.stop_time is None:
             raise ValueError('Stop time needs to be specified')
+
+        if not os.path.exists(filename1):
+            raise ValueError('Fatal error: file not existing: %s' % filename1 )
 
         # PREPROCESSING
         cdo = Cdo()
@@ -839,6 +807,55 @@ class CMIP5RAWData(CMIP5Data):
         self.shift_lon = shift_lon
         self.type = 'CMIP5RAW'
         self._unique_name = self._get_unique_name()
+
+    def _get_ensemble_filename(self, the_variable):
+        """
+        get filename of ensemble mean file
+        if required, then all pre-processing steps are done
+
+        Parameters
+        ----------
+        the_variable : str
+            variable name to be processed
+
+        Returns
+        -------
+        returns filename of file with multiensemble means
+        """
+
+        # use model parser to generate a list of available institutes and
+        # models from data directory
+        data_dir = self.data_dir
+        if data_dir[-1] != os.sep:
+            data_dir += os.sep
+
+        CMP = preprocessor.CMIP5ModelParser(self.data_dir)
+        model_list = CMP.get_all_models()
+
+        # model name in configuration file is assumed to be INSTITUTE:MODEL
+        institute = self.model.split(':')[0]
+        model = self.model.split(':')[1]
+
+        # TODO why is the institute not in the model output name ???
+        output_file = get_temporary_directory() + the_variable + '_Amon_' + model + '_' + self.experiment + '_ensmean.nc'
+
+        if institute not in model_list.keys():
+            raise ValueError('Data for this institute is not existing: %s' % institute)
+
+        # do preprocessing of data from multiple ensembles if file
+        # already existing, then no processing is done
+        C5PP = preprocessor.CMIP5Preprocessor(data_dir, output_file, 
+                                                the_variable, model,
+                                                self.experiment,
+                                                institute=institute)
+        res_file = C5PP.ensemble_mean(delete=False,
+                                        start_time=self.start_time,
+                                        stop_time=self.stop_time)
+
+        return res_file
+
+
+
 
     def xxxx_preprocess_times(self, filename, delete=False):
         """
