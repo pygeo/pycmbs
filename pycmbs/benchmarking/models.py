@@ -539,36 +539,60 @@ class CMIP5Data(Model):
         b) global mean timeseries for SIS at original temporal resolution
         """
 
+
+        the_variable = 'rsds'
+
         locdict = kwargs[self.type]
         valid_mask = locdict.pop('valid_mask')
-
-        if self.type == 'CMIP5':
-            filename1 = self.data_dir + 'rsds/' + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-
-            raise ValueError('This is not implemented yet!')
-
-            # perform preprocesing of CMIP5 data based on ensemble mean files
-            data_dir = self.data_dir
-            if data_dir[-1] != os.sep:
-                data_dir += os.sep
-            # data directory of file
-            data_dir = data_dir + 'rsds' + os.sep + self.experiment + os.sep + 'raw'
-            outfile = get_temporary_directory() + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-            C5PP = preprocessor.CMIP5Preprocessor(data_dir, outfile, 'rsds', self.model, self.experiment)
-            filename1 = C5PP.ensemble_mean(delete=False, start_time=self.start_time, stop_time=self.stop_time)
-        else:
-            raise ValueError('Unknown type! not supported here!')
 
         if self.start_time is None:
             raise ValueError('Start time needs to be specified')
         if self.stop_time is None:
             raise ValueError('Stop time needs to be specified')
 
-        #/// PREPROCESSING ///
-        cdo = Cdo()
         s_start_time = str(self.start_time)[0:10]
         s_stop_time = str(self.stop_time)[0:10]
+
+        if self.type == 'CMIP5':
+            filename1 = self.data_dir + 'rsds/' + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
+
+            # use model parser to generate a list of available institutes and
+            # models from data directory
+
+            data_dir = self.data_dir
+            if data_dir[-1] != os.sep:
+                data_dir += os.sep
+
+            CMP = preprocessor.CMIP5ModelParser(self.data_dir)
+            model_list = CMP.get_all_models()
+
+            institute = self.model.split(':')[0]
+            model = self.model.split(':')[1]
+
+            # TODO why is the institute not in the model output name ???
+            output_file = get_temporary_directory() + the_variable + '_Amon_' + model + '_' + self.experiment + '_ensmean.nc'
+
+            if institute not in model_list.keys():
+                raise ValueError('Data for this institute is not existing: %s' % institute)
+
+            # do preprocessing of data from multiple ensembles if file
+            # already existing, then no processing is done
+            C5PP = preprocessor.CMIP5Preprocessor(data_dir, output_file, 
+                                                  the_variable, model,
+                                                  self.experiment,
+                                                  institute=institute)
+            filename1 = C5PP.ensemble_mean(delete=False,
+                                           start_time=self.start_time,
+                                           stop_time=self.stop_time)
+            if not os.path.exists(filename1):
+                raise ValueError('FATAL ERROR: file not existing: %s' % filename1)
+
+        else:
+            raise ValueError('Unknown model type! not supported here!')
+
+        #/// PREPROCESSING ///
+        cdo = Cdo()
 
         #1) select timeperiod and generatget_she monthly mean file
         file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
