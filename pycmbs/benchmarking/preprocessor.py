@@ -4,6 +4,7 @@ This file is part of pyCMBS.
 For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
+
 import os
 import glob
 
@@ -23,8 +24,12 @@ class EnsemblePreprocessor(object):
         """
         Parameters
         ----------
+        data_dir : str
+            root directory where the data is located
         outfile : str
-            name of the output file to be generated
+            name of the output file to be generated. This then also
+            automatically specifies the output directory, which
+            will be generated in case it is not existing
         """
         self.output_dir, self.outfile = os.path.split(outfile)
         if len(self.output_dir) == 0:
@@ -36,22 +41,39 @@ class EnsemblePreprocessor(object):
             self.output_dir += os.sep
         self.mergetime_files = []
 
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
 
 class CMIP5Preprocessor(EnsemblePreprocessor):
-    def __init__(self, data_dir, outfile, variable, model, experiment):
+    """
+    preprocessor for CMIP5 raw data
+    it is assumed that data from the CMIP5 archive have been extracted
+    already for a particular version and that the version directroy
+    has been removed from the overall path.
+    """
+    def __init__(self, data_dir, outfile, variable, model, experiment,
+                  mip='Amon', realm='atmos', institute=None):
         super(CMIP5Preprocessor, self).__init__(data_dir, outfile)
+        if institute is None:
+            raise ValueError('An institute name needs to be provided!')
+        self.institute = institute
         self.variable = variable
         self.model = model
         self.experiment = experiment
+        self.mip = mip
+        self.realm = realm
 
     def _filelist(self, l):
+        """ generate a filelist as single string (e.g. for cdo usage """
         r = ''
         for x in l:
             r += x + ' '
         return r
 
     def _log(self, s):
-        logfile = self.output_dir + 'cmip5_preprocessor.log'
+        """ write string s to the logfile """
+        logfile = self.output_dir + 'cmip5_preprocessor_' + self.experiment + '_' + self.variable + '.log'
         o = open(logfile, 'a')
         o.write(s + '\n')
         o.close()
@@ -93,7 +115,8 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         fstr = self._filelist(ens_files)
 
         # output file
-        ofile = self.output_dir + os.path.basename(self._get_file_wildcard()) + str(n) + '_mergetime'
+        ofile = self.output_dir + os.path.basename(ens_files[0]).split('r'+str(n)+'i1p1')[0] + 'r' + str(n) + 'i1p1' + '_mergetime.nc'
+
         if start_time is not None:
             ofile += '_' + str(start_time)[0:10] + '_' + str(stop_time)[0:10]
         ofile += '.nc'
@@ -101,7 +124,6 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         self.mergetime_files.append(ofile)
 
         # cdo
-
         if selstr == '':
             cmd = 'cdo -f nc mergetime ' + fstr + ' ' + ofile
         else:
@@ -136,7 +158,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         if os.path.exists(tmpfile):
             os.remove(tmpfile)
 
-    def get_ensemble_files(self, maxens=10):
+    def get_ensemble_files(self, maxens=50):
         """
         create a dictionary with filenames for the different ensemble
         members
@@ -147,28 +169,21 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             maximum ensemble member size
         """
 
-        # file wildcard
-        w = self._get_file_wildcard()
-        nfiles = len(glob.glob(w + '*.nc'))
-
         # create filelist for each ensemble
         res = {}
         cnt = 0
-        for i in xrange(maxens):
-            w1 = w + str(i) + '*.nc'
+        for i in xrange(1, maxens+1):
+            w1 = self._get_file_wildcard(i)
             files = glob.glob(w1)
             cnt += len(files)
             if len(files) > 0:
                 res.update({i: files})
 
-        # check that all files were used
-        if nfiles != cnt:
-            print nfiles, cnt
-            raise ValueError('ERROR: not all files were processed!')
         self.ensemble_files = res
 
-    def _get_file_wildcard(self):
-        return self.data_dir + self.variable + '_Amon_' + self.model + '_' + self.experiment + '_r'
+    def _get_file_wildcard(self, ens):
+        p = self.data_dir + self.institute + os.sep + self.model + os.sep + self.experiment + os.sep + 'mon' + os.sep + self.realm + os.sep + self.mip + os.sep + 'r' + str(ens) + 'i1p1' + os.sep + self.variable + os.sep + self.variable + '_' + self.mip + '_' + self.model + '_' + self.experiment + '_r' + '*.nc'
+        return p
 
     def mergetime_ensembles(self, delete=False, start_time=None, stop_time=None):
         self.get_ensemble_files()
@@ -184,14 +199,16 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         stop_time : datetime
             end time of period
         """
-        print 'Doing ensemble mean calculation ...'
+        print('Doing ensemble mean calculation ...')
         # if temporal merged files are not yet there, do preprocessing
         if len(self.mergetime_files) < 2:
             self.mergetime_ensembles(delete=delete, start_time=start_time, stop_time=stop_time)
+
         if len(self.mergetime_files) < 2:
             print self.mergetime_files
             print 'No ensemble mean calculation possible as not enough files!'
-            self._log('No ensemble mean calculation possible as not enough files! ' + self.model + ' ' + self.experiment)
+            self._log('No ensemble mean calculation possible as not enough files! ' + self.institute + ' ' + self.model + ' ' + self.experiment)
+
         fstr = self._filelist(self.mergetime_files)
 
         # ensemble mean calculation
@@ -212,7 +229,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             os.system(cmd)
 
         # ensemble standard deviation
-        ofilestd = self.output_dir + self.outfile.replace('_ensmean', '_ensstd')
+        ofilestd = self.outfile.replace('_ensmean', '_ensstd')
         cmd = 'cdo -f nc ensstd ' + fstr + ' ' + ofilestd
         if os.path.exists(ofilestd):
             if delete:
@@ -225,22 +242,43 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
 
         return ofile
 
-"""
-import datetime as dt
-from pyCMBS import *
+
+class CMIP5ModelParser(object):
+    """
+    a parser to retrieve model and institute names
+    """
+
+    def __init__(self, root_dir):
+        """
+        Parameters
+        ----------
+        root_dir : str
+            directory where the model data is located. A similar structure like
+            in the CMIP5 archive of DKRZ is assumed (MiKlip server)
+            Thus below the root directory needs to be first subdirectories
+            of individual institutes.
+        """
+        self.root_dir = root_dir
+        if not os.path.exists(self.root_dir):
+            raise ValueError('Path not existing!')
+        self.institutes = None
+        self.models = None
+
+    def get_institutes(self):
+        """ get a list with all institutes """
+        return [os.path.basename(f) for f in glob.glob(self.root_dir + '*')]
+
+    def get_all_models(self):
+        """ get a list with all models and institutes """
+        r = {}
+        for i in self.get_institutes():
+            r.update({i: self._get_models4institute(i)})
+        return r
+
+    def _get_models4institute(self, institute):
+        """ return a list of models from a particular institute """
+        return [os.path.basename(f) for f in glob.glob(self.root_dir + institute + os.sep + '*')]
 
 
-fname='/home/m300028/shared/temp/ensmean/rsds/amip/raw/testout/rsds_Amon_GFDL-HIRAM-C180_amip_ensmean.nc'
-E = CMIP5Preprocessor('/home/m300028/shared/temp/ensmean/rsds/amip/raw', fname, 'rsds', 'GFDL-HIRAM-C180', 'amip')
-
-E.get_ensemble_files()
-E.ensemble_mean(delete=False, start_time=dt.datetime(1982,3,10), stop_time=dt.datetime(2002,10,22))
-d=Data(E.output_dir + E.outfile, 'rsds', read=True)
 
 
-#~ E.mergetime(2, delete=True, start_time=dt.datetime(1999,3,10), stop_time=dt.datetime(2003,5,16))
-#~ E.mergetime(2, delete=True)
-
-#~ tmp='/home/m300028/shared/temp/ensmean/rsds/amip/raw/testout/rsds_Amon_GFDL-HIRAM-C180_amip_r2_mergetime.nc'
-#~ d = Data(tmp, 'rsds', read=True)
-"""
