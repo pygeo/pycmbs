@@ -12,7 +12,6 @@ from cdo import Cdo
 from pycmbs.data import Data
 import tempfile as tempfile
 import copy
-import pickle
 import glob
 import os
 import sys
@@ -457,6 +456,7 @@ class CMIP5Data(Model):
         return mdata, retval
 
 #-----------------------------------------------------------------------
+
     def get_snow_fraction(self):
         """
         Specifies for CMIP5 class how to read SNOWFRACTION
@@ -470,14 +470,15 @@ class CMIP5Data(Model):
         return Data(data_file, 'snow_fract')
 
 #-----------------------------------------------------------------------
+
     def get_faPAR(self):
         """
         Specifies how to read faPAR information for CMIP5 data
         @return: C{Data} object for faPAR
         """
 
-        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'  # <<< todo: change this output directory !!!
-        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc'  # todo set inputfilename interactiveley !!!! DUMMY so far for testnig
+        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'  # TODO <<< todo: change this output directory !!!
+        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc'  # TODO todo set inputfilename interactiveley !!!! DUMMY so far for testnig
 
         #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
         return Data(data_file, 'fapar')
@@ -544,10 +545,14 @@ class CMIP5Data(Model):
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsds/' + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
+
+            raise ValueError('This is not implemented yet!')
+
             # perform preprocesing of CMIP5 data based on ensemble mean files
             data_dir = self.data_dir
             if data_dir[-1] != os.sep:
                 data_dir += os.sep
+            # data directory of file
             data_dir = data_dir + 'rsds' + os.sep + self.experiment + os.sep + 'raw'
             outfile = get_temporary_directory() + 'rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
             C5PP = preprocessor.CMIP5Preprocessor(data_dir, outfile, 'rsds', self.model, self.experiment)
@@ -811,7 +816,7 @@ class CMIP5RAWData(CMIP5Data):
         self.type = 'CMIP5RAW'
         self._unique_name = self._get_unique_name()
 
-    def _preprocess_times(self, filename, delete=False):
+    def xxxx_preprocess_times(self, filename, delete=False):
         """
         preprocess different files for a single ensemble member
         """
@@ -819,11 +824,11 @@ class CMIP5RAWData(CMIP5Data):
         print root
         stop
 
-    def _preprocess_ensembles(self, filename, delete=False):
+    def xxxxx_preprocess_ensembles(self, filename, delete=False):
         """
         do preprocessing of the CMIP5 rawdata based on the individual
         model ensemble members. Output is written to the processing
-        directory, sepcified by get_temporary_directory()
+        directory, specified by get_temporary_directory()
 
         Parameters
         ----------
@@ -838,7 +843,6 @@ class CMIP5RAWData(CMIP5Data):
 
         # calculate ensemble mean
         root = filename.split('_ensmean')[0]
-        #~ print 'Rootname: ', root
 
         # write output to processing directory!
         outputfile = get_temporary_directory() + os.path.basename(filename)

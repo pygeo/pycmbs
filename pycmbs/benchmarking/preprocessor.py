@@ -249,14 +249,23 @@ class CMIP5ModelParser(object):
     """
 
     def __init__(self, root_dir):
+        """
+        Parameters
+        ----------
+        root_dir : str
+            directory where the model data is located. A similar structure like
+            in the CMIP5 archive of DKRZ is assumed (MiKlip server)
+            Thus below the root directory needs to be first subdirectories
+            of individual institutes.
+        """
         self.root_dir = root_dir
         if not os.path.exists(self.root_dir):
             raise ValueError('Path not existing!')
-
         self.institutes = None
         self.models = None
 
     def get_institutes(self):
+        """ get a list with all institutes """
         return [os.path.basename(f) for f in glob.glob(self.root_dir + '*')]
 
     def get_all_models(self):
@@ -267,6 +276,7 @@ class CMIP5ModelParser(object):
         return r
 
     def _get_models4institute(self, institute):
+        """ return a list of models from a particular institute """
         return [os.path.basename(f) for f in glob.glob(self.root_dir + institute + os.sep + '*')]
 
 

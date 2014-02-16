@@ -16,7 +16,6 @@ import matplotlib
 matplotlib.rcParams['backend'] = 'Agg'
 
 from matplotlib.font_manager import FontProperties
-import pickle
 import sys
 import os
 
@@ -94,8 +93,8 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
 
     if (start_date is not None) and (stop_date is not None):
         print 'Temporal subsetting for ' + raw_file + ' will be performed! ', start_date, stop_date
-        seldate_str = ' -seldate,' + str(start_date)[0:10] + ',' + str(stop_date)[0:10]
-        obs_mon_file = obs_mon_file[:-3] + '_' + str(start_date)[0:10] + '_' + str(stop_date)[0:10] + '_monmean.nc'
+        seldate_str = ' -seldate,' + str(start_date)[0 : 10] + ',' + str(stop_date)[0 : 10]
+        obs_mon_file = obs_mon_file[:-3] + '_' + str(start_date)[0 : 10] + '_' + str(stop_date)[0 : 10] + '_monmean.nc'
     else:
         seldate_str = ''
         obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
@@ -157,9 +156,9 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
 
     #try to ensure really monthly increasing time series
     if hasattr(obs_monthly, 'time_cycle'):
-        if obs_monthly.time_cycle != 12:
+        if obs_monthly.time_cycle != 12 :
             obs_monthly._pad_timeseries(fill_value=obs_monthly.fill_value)
-    if obs_monthly.time_cycle != 12:
+    if obs_monthly.time_cycle != 12 :
         raise ValueError('Timecycle could still not be set!!! %s' % obs_mon_file)
 
     #/// center dates of months
@@ -361,9 +360,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         raise ValueError('No plot options available for the following data: %s' % obs_type)
 
     if report is None:
-        raise ReportError("Report option was not enabled")
+        raise ValueError("Report option was not enabled")
 
-    #---- PLOT OPTIONS
+    # PLOT OPTIONS
 
     local_plot_options = plot_options.options[
         obs_type]  # gives a dictionary with all the options for the current variable
