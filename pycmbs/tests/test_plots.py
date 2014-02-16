@@ -11,6 +11,7 @@ import scipy
 import os
 import numpy as np
 import matplotlib.pylab as pl
+import matplotlib.pyplot as plt
 
 class TestPycmbsPlots(unittest.TestCase):
 
@@ -47,6 +48,13 @@ class TestPycmbsPlots(unittest.TestCase):
         x = self.D
         S = ScatterPlot(x)
         S.plot(x)
+        S.legend()
+
+    def test_ScatterPlot_FldemeanFalse(self):
+        x = self.D
+        S = ScatterPlot(x)
+        S.plot(x, fldmean=False)
+        S.legend()
 
     def test_ScatterPlot_InvalidShape(self):
         x = self.D
@@ -63,6 +71,16 @@ class TestPycmbsPlots(unittest.TestCase):
         L1 = LinePlot(regress=True)
         L.plot(x)
         L1.plot(x)
+
+    def test_LinePlot_WithAxis(self):
+        x = self.D
+        f = plt.figure()
+        ax = f.add_subplot(111)
+        L = LinePlot(ax=ax)
+        L.plot(x)
+
+
+
 
     def test_HistogrammPlot_General(self):
         H = HistogrammPlot()

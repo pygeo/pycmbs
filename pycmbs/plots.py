@@ -1728,6 +1728,7 @@ class GlecklerPlot(object):
         return dict(zip(keys, x))
 
 #-----------------------------------------------------------------------
+
     def _get_model_ranking(self, pos, var):
         """
         get ranking of each model for a certain variable and observation
@@ -1750,6 +1751,7 @@ class GlecklerPlot(object):
         return keys[idx]  # return list with keys which give ranked sequence
 
 #-----------------------------------------------------------------------
+
     def _get_mean_value(self, pos, var, method='median'):
         """
         calculate mean value for a given observational dataset
@@ -1779,6 +1781,7 @@ class GlecklerPlot(object):
             raise ValueError('Invalid option in _get_mean_value() %s' % method)
 
 #-----------------------------------------------------------------------
+
     def plot(self, cmap_name='RdBu_r', vmin=-1.0, vmax=1.0, nclasses=15,
              normalize=True, size=10, method='median', title=None,
              show_value=False, logscale=False, labelcolor='black',
@@ -1890,7 +1893,7 @@ class GlecklerPlot(object):
                 cnt += 1
                 cnt_v += 1
 
-        #--- legend
+        # legend
         #- get positions of subplots to determine optimal position for legend
         def get_subplot_boundaries(g, f):
             x = g.get_grid_positions(f)
@@ -1904,6 +1907,7 @@ class GlecklerPlot(object):
             self.fig.set_size_inches(3. + 0.5 * nv, 4. + 0.5 * nm)  # important to have this *before* drawring the colorbar
 
         left, right, bottom, top = get_subplot_boundaries(gs, self.fig)
+
         # draw legend
         c = 1.
         width = (right - left) * c
@@ -1953,14 +1957,14 @@ class GlecklerPlot(object):
         generate a unique key for dictionaries
         comprised of model name, variable name and position
 
-        @param v: name of variable
-        @type v: str
-
-        @param m: model name
-        @type m: str
-
-        @param p: position
-        @type p: int
+        Parameters
+        ----------
+        v : str
+            name of variable
+        m : str
+            model name
+        p : int
+            position
         """
         if m is None:
             return None
@@ -2005,26 +2009,25 @@ class GlecklerPlot(object):
         the model and the variable need to have been registered
         already using add_model and add_variable
 
-        @param x: reference data (observation)
-        @type x: C{Data} object
+        Parameters
+        ----------
+        x : Data
+            reference data (observation)
+        y : Data
+            data to benchmark (e.g. model)
+        model : str
+            model name
+        variable : str
+            variable name
 
-        @param y: data to benchmark (e.g. model)
-        @type y: C{Data} object
+        weights : ndarray
+            weights to be applied to the data before index
+            calculation; dedicated for spatial area weights
 
-        @param model: model name
-        @type model: str
-
-        @param variable: variable name
-        @type variable: str
-
-        @param weights: weights to be applied to the data before index
-        calculation; dedicated for spatial area weights
-        @type weights: numpy array
-
-        @return: returns performance index aggregated over time
+        Returns
+        -------
+        returns performance index aggregated over time
         (NOTE: this is still E**2 !!!)
-        @rtype float
-
         """
 
         if weights is None:
@@ -2045,10 +2048,10 @@ class GlecklerPlot(object):
         e2 = D.calc_reichler_index(weights)  # returns [time, index]
         if e2 is not None:
             e2 = np.ma.masked_where(np.isnan(e2), e2)
+
         # Note that the returned value is E**2 for each timestep!
         # When doing the normalization, one needs to take the sqrt(E++2)
         # to obtain the actual RMSE
-
         if e2 is None:
             return None
         else:
