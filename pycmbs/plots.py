@@ -54,6 +54,8 @@ import datetime
 import os
 
 
+from pycmbs.data import Data
+
 #-----------------------------------------------------------------------
 def thin_xticks(ax, n):
     """
@@ -219,14 +221,16 @@ class ReichlerPlot(object):
         """
         register data to be plotted
 
-        @param e2: reichler index that was already calculated
-        @type e2: list
+        Parameters
+        ----------
+        e2 : list
+            reichler index that was already calculated
 
-        @param label: label to be used for plotting
-        @type label: str
+        label : str
+            label to be used for plotting
 
-        @param color: color to be used for plotting
-        @type color: str
+        color : str
+            color to be used for plotting
         """
         self.e2.append(e2)
         self.labels.append(label)
@@ -441,8 +445,8 @@ class ScatterPlot(object):
             ydat = y.fldmean()
         else:
             if self.x.data.shape != y.data.shape:
-                print self.x.data.shape
-                print self.y.data.shape
+                print self.x.shape
+                print y.shape
                 raise ValueError('Invalid geometry between X and Y. fldmean=True option therefore not possible!')
             else:
                 xdat = self.x.data.flatten()
@@ -463,9 +467,6 @@ class ScatterPlot(object):
         #- calculate linear regression
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat, ydat)
-            #~ print 'r_value: ', r_value
-            #~ print xdat
-            #~ print ydat
             nval = (~(xdat - ydat).mask).sum()  # number of valid datasets used for comparison
 
             assert(isinstance(xdat, np.ma.core.MaskedArray))
@@ -531,7 +532,6 @@ class ScatterPlot(object):
         """
         self.ax.legend(self.lines, self.labels, prop={'size': size})
 
-#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 
@@ -1024,7 +1024,7 @@ class HistogrammPlot(object):
 
         #- Figure init
         if ax is None:
-            self.figure = pl.figure()
+            self.figure = plt.figure()
             self.ax = self.figure.add_subplot(111)
         else:
             self.ax = ax
@@ -1038,25 +1038,23 @@ class HistogrammPlot(object):
         """
         plot data to histogram
 
-        @param X: data to be plotted as histogram
-        @type X: Data or np.array
-
-        @param color: color for line plot
-        @type color: str
-
-        @param linestyle: style of line to plot
-        @type linestyle: str
-
-        @param linewidth: width of line to plot
-        @type linewidth: float
-
-        @param shown: show number of used datasets in legend
-        @type shown: bool
-
-        @param kwargs: arguments for np.histogram function
+        Parameters
+        ----------
+        D : Data or ndarray
+            data to be plotted as histogram
+        color : str
+            color for line plot
+        linestyle : str
+            style of line to plot
+        linedwisth : float
+            width of line to plot
+        shown : bool
+            show number of used datasets in legend
+        kwargs : dict
+            arguments for np.histogram function
         """
 
-        #-check if Data object
+        # check if Data object
         if isinstance(X, Data):
             x = X.data
         else:
@@ -1067,35 +1065,30 @@ class HistogrammPlot(object):
 
         x = x[~np.isnan(x)]
 
-        #- REMOVE BINS ARGUMENT IF in kwargs, as global argument of class is used
+        # REMOVE BINS ARGUMENT IF in kwargs, as global argument of class is used
         if 'bins' in kwargs.keys():
             bb = kwargs.pop('bins')
 
         if shown:
             show_legend = True
-
             if label == '':
                 label = 'n=' + str(sum(~np.isnan(x)))
             else:
                 label = label + '(n=' + str(sum(~np.isnan(x))) + ')'
 
-        #--- calculate frequency distribution
+        # calculate frequency distribution
         f, b = np.histogram(x, bins=self.bins, **kwargs)
         if self.normalize:
             f /= float(sum(f))
             if self.percent:
                 f *= 100.
-
         self.ax.plot(b[0:-1], f, color=color, linestyle=linestyle,
                      linewidth=linewidth, label=label)
 
         if show_legend:
             self.ax.legend()
 
-
 #-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-
 
 class ZonalPlot(object):
     def __init__(self, ax=None, dir='y'):
@@ -1579,12 +1572,17 @@ class GlecklerPlot(object):
             sep = ' & '
             eol = ' \\\  \n'
             sol = '            '
+            fileext = '.tex'
         elif fmt == 'markdown':
             sep = ' | '
             eol = ' | \n'
             sol = ''
+            fileext = '.md'
         else:
             raise ValueError('Unrecognized output format')
+
+        if filename[-len(fileext):] != fileext:
+            filename += fileext
 
         if os.path.exists(filename):
             os.remove(filename)
@@ -1726,6 +1724,7 @@ class GlecklerPlot(object):
         return dict(zip(keys, x))
 
 #-----------------------------------------------------------------------
+
     def _get_model_ranking(self, pos, var):
         """
         get ranking of each model for a certain variable and observation
@@ -1748,6 +1747,7 @@ class GlecklerPlot(object):
         return keys[idx]  # return list with keys which give ranked sequence
 
 #-----------------------------------------------------------------------
+
     def _get_mean_value(self, pos, var, method='median'):
         """
         calculate mean value for a given observational dataset
@@ -1777,6 +1777,7 @@ class GlecklerPlot(object):
             raise ValueError('Invalid option in _get_mean_value() %s' % method)
 
 #-----------------------------------------------------------------------
+
     def plot(self, cmap_name='RdBu_r', vmin=-1.0, vmax=1.0, nclasses=15,
              normalize=True, size=10, method='median', title=None,
              show_value=False, logscale=False, labelcolor='black',
@@ -1888,7 +1889,7 @@ class GlecklerPlot(object):
                 cnt += 1
                 cnt_v += 1
 
-        #--- legend
+        # legend
         #- get positions of subplots to determine optimal position for legend
         def get_subplot_boundaries(g, f):
             x = g.get_grid_positions(f)
@@ -1902,6 +1903,7 @@ class GlecklerPlot(object):
             self.fig.set_size_inches(3. + 0.5 * nv, 4. + 0.5 * nm)  # important to have this *before* drawring the colorbar
 
         left, right, bottom, top = get_subplot_boundaries(gs, self.fig)
+
         # draw legend
         c = 1.
         width = (right - left) * c
@@ -1951,14 +1953,14 @@ class GlecklerPlot(object):
         generate a unique key for dictionaries
         comprised of model name, variable name and position
 
-        @param v: name of variable
-        @type v: str
-
-        @param m: model name
-        @type m: str
-
-        @param p: position
-        @type p: int
+        Parameters
+        ----------
+        v : str
+            name of variable
+        m : str
+            model name
+        p : int
+            position
         """
         if m is None:
             return None
@@ -2003,26 +2005,25 @@ class GlecklerPlot(object):
         the model and the variable need to have been registered
         already using add_model and add_variable
 
-        @param x: reference data (observation)
-        @type x: C{Data} object
+        Parameters
+        ----------
+        x : Data
+            reference data (observation)
+        y : Data
+            data to benchmark (e.g. model)
+        model : str
+            model name
+        variable : str
+            variable name
 
-        @param y: data to benchmark (e.g. model)
-        @type y: C{Data} object
+        weights : ndarray
+            weights to be applied to the data before index
+            calculation; dedicated for spatial area weights
 
-        @param model: model name
-        @type model: str
-
-        @param variable: variable name
-        @type variable: str
-
-        @param weights: weights to be applied to the data before index
-        calculation; dedicated for spatial area weights
-        @type weights: numpy array
-
-        @return: returns performance index aggregated over time
+        Returns
+        -------
+        returns performance index aggregated over time
         (NOTE: this is still E**2 !!!)
-        @rtype float
-
         """
 
         if weights is None:
@@ -2043,10 +2044,10 @@ class GlecklerPlot(object):
         e2 = D.calc_reichler_index(weights)  # returns [time, index]
         if e2 is not None:
             e2 = np.ma.masked_where(np.isnan(e2), e2)
+
         # Note that the returned value is E**2 for each timestep!
         # When doing the normalization, one needs to take the sqrt(E++2)
         # to obtain the actual RMSE
-
         if e2 is None:
             return None
         else:
