@@ -20,6 +20,12 @@ class TestData(unittest.TestCase):
         self.R.open()
         self.assertTrue(os.path.exists(self.R.filename))
 
+    def test_open_report_MissingDirectory(self):
+        self.R = Report('testfile', 'myreport', 'Alex Loew', outdir='/tmp/nixdir')
+        self.R.open()
+        self.assertTrue(os.path.exists(self.R.filename))
+        self.assertTrue(os.path.exists('/tmp/nixdir'))
+
     def test_report_features(self):
         if os.path.exists(self.R.filename):
             os.remove(self.R.filename)
@@ -51,6 +57,34 @@ class TestData(unittest.TestCase):
             os.remove(self.R.filename)
         if os.path.exists(self.R.filename[:-3]+'.pdf'):
             os.remove(self.R.filename[:-3]+'.pdf')
+
+    def test_report_InvalidFigure(self):
+        f = None
+        r = self.R.figure(f, caption='My figure caption')
+        self.assertEqual(r, None)
+
+    def test_report_CaptureFigures(self):
+        if os.path.exists(self.R.outdir + 'fig_00001.png'):
+            os.remove(self.R.outdir + 'fig_00001.png')
+        if os.path.exists(self.R.outdir + 'fig_00002.png'):
+            os.remove(self.R.outdir + 'fig_00002.png')
+        if os.path.exists(self.R.outdir + 'fig_00003.png'):
+            os.remove(self.R.outdir + 'fig_00003.png')
+
+        f1 = plt.figure()
+        ax1 = f1.add_subplot(111)
+        ax1.plot(np.random.random(100))
+        f2 = plt.figure()
+        ax2 = f2.add_subplot(111)
+        ax2.plot(np.random.random(200))
+        f3 = plt.figure()
+        ax3 = f3.add_subplot(111)
+        ax3.plot(np.random.random(300))
+        self.R.capture_figures()
+
+        self.assertTrue(os.path.exists(self.R.outdir + 'fig_00001.png'))
+        self.assertTrue(os.path.exists(self.R.outdir + 'fig_00002.png'))
+        self.assertTrue(os.path.exists(self.R.outdir + 'fig_00003.png'))
 
     def test_input(self):
         self.R.input('testname')

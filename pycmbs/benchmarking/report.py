@@ -251,6 +251,7 @@ class Report(object):
 
         print 'Capturing figures and writing to report ...'
         for i in pl.get_fignums():
+            print 'Captunring figure #: ', i
             f = pl.figure(i)
             self.figure(f)
             self.newpage()

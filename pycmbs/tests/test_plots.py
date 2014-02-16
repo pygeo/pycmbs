@@ -44,9 +44,15 @@ class TestPycmbsPlots(unittest.TestCase):
         RP.bar(title='some title', vmin=-10., vmax=10.)
         #~ RP.circle_plot()
 
-    def test_ScatterPlotGeneral(self):
+    def test_ScatterPlot_General(self):
         x = self.D
         S = ScatterPlot(x)
+        S.plot(x)
+        S.legend()
+
+    def test_ScatterPlot_GeneralWithNormalization(self):
+        x = self.D
+        S = ScatterPlot(x, normalize_data=True)
         S.plot(x)
         S.legend()
 
@@ -62,8 +68,7 @@ class TestPycmbsPlots(unittest.TestCase):
         y = self.D.copy()
         y.data = np.random.random((10,20,30,40))
         with self.assertRaises(ValueError):
-            S.plot(y)
-
+            S.plot(y, fldmean=False)
 
     def test_LinePlot_General(self):
         x = self.D

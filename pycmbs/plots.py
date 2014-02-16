@@ -445,8 +445,8 @@ class ScatterPlot(object):
             ydat = y.fldmean()
         else:
             if self.x.data.shape != y.data.shape:
-                print self.x.data.shape
-                print self.y.data.shape
+                print self.x.shape
+                print y.shape
                 raise ValueError('Invalid geometry between X and Y. fldmean=True option therefore not possible!')
             else:
                 xdat = self.x.data.flatten()
@@ -467,9 +467,6 @@ class ScatterPlot(object):
         #- calculate linear regression
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat, ydat)
-            #~ print 'r_value: ', r_value
-            #~ print xdat
-            #~ print ydat
             nval = (~(xdat - ydat).mask).sum()  # number of valid datasets used for comparison
 
             assert(isinstance(xdat, np.ma.core.MaskedArray))
@@ -535,7 +532,6 @@ class ScatterPlot(object):
         """
         self.ax.legend(self.lines, self.labels, prop={'size': size})
 
-#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 
