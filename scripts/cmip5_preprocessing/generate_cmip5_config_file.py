@@ -19,7 +19,9 @@ def main():
         os.remove(ofile)
     o = open(ofile, 'w')
 
-    data_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation/'
+    data_dir = '/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/CMIP5_RAWDATA_NEW/radiation'
+    if data_dir[-1] != os.sep:
+        data_dir += os.sep
     CMP = preprocessor.CMIP5ModelParser(data_dir)
     model_list = CMP.get_all_models()
 
@@ -32,9 +34,8 @@ def main():
         o.write('##############################\n')
         for institute in model_list.keys():
             for model in model_list[institute]:
-                s = institute + ':' + model + ',' + 'CMIP5RAW' + experiment
-                print s
-
+                s = institute + ':' + model + ',' + 'CMIP5RAW' + ',' + experiment + ',' + data_dir + '\n'
+                o.write(s)
     o.close()
 
 

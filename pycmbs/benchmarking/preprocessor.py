@@ -259,6 +259,8 @@ class CMIP5ModelParser(object):
             of individual institutes.
         """
         self.root_dir = root_dir
+        if self.root_dir[-1] != os.sep:
+            self.root_dir += os.sep
         if not os.path.exists(self.root_dir):
             raise ValueError('Path not existing!')
         self.institutes = None
