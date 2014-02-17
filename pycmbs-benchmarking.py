@@ -587,7 +587,7 @@ def main():
     # GLECKLER PLOT finalization ...
     ########################################################################
     #/// generate Gleckler analysis plot for all variables and models analyzed ///
-    global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=True, ticks=[-0.1, -0.05, 0., 0.05, 0.1])
+    global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=False, ticks=[-0.1, -0.05, 0., 0.05, 0.1])
     oname = outdir + 'gleckler.pkl'
     if os.path.exists(oname):
         os.remove(oname)
@@ -623,13 +623,13 @@ def main():
                     thelabels.update({int(varoptions[k]['gleckler_position']): k})
         fl = global_gleckler._draw_legend(thelabels, title=variable.upper())
         rep.figure(fl, width='8cm', bbox_inches=None)
-        del fl, thelabels
+        del fl
 
     #/// plot model ranking between different observational datasets ///
     rep.subsection('Model ranking consistency')
     for v in global_gleckler.variables:
         rep.subsubsection(v.upper())
-        tmpfig = global_gleckler.plot_model_ranking(v, show_text=True)
+        tmpfig = global_gleckler.plot_model_ranking(v, show_text=True, obslabels=thelabels)
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model RANKING for different observational \
                    datasets: ' + v.upper())
@@ -638,7 +638,7 @@ def main():
         # write a table with model ranking
         tmp_filename = outdir + 'ranking_table_' + v + '.tex'
         rep.open_table()
-        global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex')
+        global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex', obslabels=thelabels)
         rep.input(tmp_filename)
         rep.close_table(caption='Model rankings for variable ' + v.upper())
 

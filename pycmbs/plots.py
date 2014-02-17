@@ -17,10 +17,6 @@ Module that contains relevant classes for diagnostic plots
 import matplotlib as mpl
 mpl.use('agg')
 
-# XXX: implicit imports
-# from pycmbs.data import *
-# from pycmbs.hov import *
-
 from matplotlib import pyplot as plt
 from matplotlib import pylab
 
@@ -187,7 +183,6 @@ class HovmoellerPlot(object):
             self.ax.set_title(self.x.label)
 
 #-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
 
 
 class ReichlerPlot(object):
@@ -272,11 +267,6 @@ class ReichlerPlot(object):
         y1 = np.ma.array(y1, mask=y1 < 0.)  # positive values only
         y2 = np.ma.array(y2, mask=y2 >= 0.)  # negative values only
 
-        #print 'Reichler data for plotting: ', y1,y2
-        #print 'Original Reichler data:'
-        #print self.e2
-        #print self.e2_norm
-
         if 'color' in kwargs.keys():
             upcolor = kwargs.pop('color')
             lowcolor = kwargs.pop('color')
@@ -307,6 +297,7 @@ class ReichlerPlot(object):
         return self.ax.figure
 
 #-----------------------------------------------------------------------
+
     def simple_plot(self):
         """
         do a very simple plot of diagnostics
@@ -370,7 +361,6 @@ class ReichlerPlot(object):
         EM = E.mean()  # take square root, as e2 is still the squared error!
         self.e_norm = (E - EM) / EM  # see Glecker et al, eq.2
 
-#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 
@@ -1242,8 +1232,11 @@ class GlecklerPlot(object):
     def add_model(self, label):
         """
         register a model in the class
-        @param label: string of the model
-        @type label: str
+
+        Parameters
+        ----------
+        label : str
+            string of the model
         """
         s = label.replace(' ', '_')
         if s not in self.models:
@@ -1258,16 +1251,17 @@ class GlecklerPlot(object):
         return seq
 
     def _model2short_label(self, m):
-        """
-        given a model key a short label for plotting is returned
-        """
+        """ given a model key a short label is returned """
         return str(self._get_model_sequence()[m])
 
     def add_variable(self, label):
         """
-        register a variable in the class
-        @param label: string of variable
-        @type label: str
+        register a variable
+
+        Parameters
+        ----------
+        label : str
+            string of variable
         """
         self.variables.append(label)
 
@@ -1399,12 +1393,14 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def __draw_ranking_scatter(self, p1, p2, var, ax=None, marker='o', color='red', show_text=False):
-        """
-        ranking scatterplot between two positions
-        """
-
-        def _pos2label(p):
+    def _pos2label(self, p, labels):
+        """ return label for a certain position in Portraet legend """
+        if labels is not None:
+            if p in labels.keys():
+                return labels[p]
+            else:
+                raise ValueError('Fatal ERROR: no label for this position in label dictionary!')
+        else:
             if p == 1:
                 return 'top'
             elif p == 2:
@@ -1414,6 +1410,11 @@ class GlecklerPlot(object):
             elif p == 4:
                 return 'right'
 
+
+    def __draw_ranking_scatter(self, p1, p2, var, ax=None, marker='o', color='red', show_text=False, obslabels=None):
+        """
+        ranking scatterplot between two positions
+        """
         r1 = self._get_model_ranking(p1, var)  # ranking for first position
         r2 = self._get_model_ranking(p2, var)  # ranking for second position
 
@@ -1433,14 +1434,14 @@ class GlecklerPlot(object):
         # Spearman correlation coefficient based on ranks
         spear = np.corrcoef(np.asarray(x), np.asarray(y))[0][1]
 
-        #--- generate plot ---
+        # generate plot
         if ax is None:
             f = pl.figure()
             ax = f.add_subplot(1, 2, 1)
         else:
             f = ax.figure
 
-        ax.plot(x, y, marker=marker, color=color, label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r_s$=' + str(round(spear, 2)) + ')', linestyle='None')
+        ax.plot(x, y, marker=marker, color=color, label=self._pos2label(p1, obslabels=obslabels) + ' vs. ' + self._pos2label(p2, obslabels=obslabels) + ' ($r_s$=' + str(round(spear, 2)) + ')', linestyle='None')
         if show_text:
             for i in xrange(len(x)):
                 xy = (x[i], y[i])
@@ -1451,21 +1452,11 @@ class GlecklerPlot(object):
 
 #-----------------------------------------------------------------------
 
-    def _draw_error_scatter(self, p1, p2, var, color='red', marker='*', ax=None):
+    def _draw_error_scatter(self, p1, p2, var, color='red', marker='*', ax=None, obslabels=None):
         """
         draw scatterplot of errors for a combination
         of two different observations p1,p2
         """
-
-        def _pos2label(p):
-            if p == 1:
-                return 'top'
-            elif p == 2:
-                return 'bottom'
-            elif p == 3:
-                return 'left'
-            elif p == 4:
-                return 'right'
 
         if ax is None:
             f = pl.figure()
@@ -1500,7 +1491,7 @@ class GlecklerPlot(object):
         if r_value is None:
             return ax
         else:
-            ax.plot(x, y, marker=marker, color=color, label=_pos2label(p1) + ' vs. ' + _pos2label(p2) + ' ($r$=' + str(round(r_value, 2)) + ')', linestyle='None')
+            ax.plot(x, y, marker=marker, color=color, label=self._pos2label(p1, obslabels) + ' vs. ' + self._pos2label(p2, obslabels) + ' ($r$=' + str(round(r_value, 2)) + ')', linestyle='None')
         return ax
 
     def plot_model_error(self, var):
@@ -1551,7 +1542,7 @@ class GlecklerPlot(object):
             ax.plot(ax.get_xlim(), ax.get_xlim(), 'k--')  # 1:1 line
         return fig
 
-    def write_ranking_table(self, var, filename, fmt='latex'):
+    def write_ranking_table(self, var, filename, fmt='latex', obslabels=None):
         """
         write results of model ranking to an ASCII table
 
@@ -1563,6 +1554,8 @@ class GlecklerPlot(object):
             name of file to write table to
         fmt : str
             specifies output format for table ['latex','markdown']
+        obslabels : dict
+            labels of observations used for table caption
         """
 
         if fmt not in ['latex', 'markdown']:
@@ -1623,7 +1616,7 @@ class GlecklerPlot(object):
         if fmt == 'latex':
             o.write('        \\begin{tabular}{lcccc} \n')
             o.write(sol + '\\hline \n')
-            s = sol + 'model' + sep + 'obs-top' + sep + 'obs-bott' + sep + 'obs-left' + sep + 'obs-right' + eol
+            s = sol + 'model' + sep + self._pos2label(1, obslabels) + sep + self._pos2label(2, obslabels) + sep + self._pos2label(3, obslabels) + sep + self._pos2label(4, obslabels) + eol
             o.write(s)
             o.write(sol + '\\hline \n')
         for m in self.models:
@@ -1644,7 +1637,7 @@ class GlecklerPlot(object):
             o.write('        \end{tabular}')
         o.close()
 
-    def plot_model_ranking(self, var, show_text=False):
+    def plot_model_ranking(self, var, show_text=False, obslabels=None):
         """
         plots a model ranking scatterplot, indicating
         if models have similar ranks between different observational
@@ -1659,6 +1652,8 @@ class GlecklerPlot(object):
             name of variable to analyze
         show_text : bool
             annotate plot using text for models as labels
+        obslabels : dict
+            observation labels to be used for the legend
         """
 
         tmp = self._get_model_ranking(1, var)
@@ -1668,17 +1663,17 @@ class GlecklerPlot(object):
         ax = fig.add_subplot(gs[0])
 
         # 1 vs. 2
-        self.__draw_ranking_scatter(1, 2, var, color='red', marker='o', show_text=show_text, ax=ax)
+        self.__draw_ranking_scatter(1, 2, var, color='red', marker='o', show_text=show_text, ax=ax, obslabels=obslabels)
         # 1 vs. 3
-        self.__draw_ranking_scatter(1, 3, var, color='green', marker='*', ax=ax, show_text=show_text)
+        self.__draw_ranking_scatter(1, 3, var, color='green', marker='*', ax=ax, show_text=show_text, obslabels=obslabels)
         # 1 vs. 4
-        self.__draw_ranking_scatter(1, 4, var, color='blue', marker='^', ax=ax, show_text=show_text)
+        self.__draw_ranking_scatter(1, 4, var, color='blue', marker='^', ax=ax, show_text=show_text, obslabels=obslabels)
         # 2 vs. 3
-        self.__draw_ranking_scatter(2, 3, var, color='grey', marker='x', ax=ax, show_text=show_text)
+        self.__draw_ranking_scatter(2, 3, var, color='grey', marker='x', ax=ax, show_text=show_text, obslabels=obslabels)
         # 2 vs 4
-        self.__draw_ranking_scatter(2, 4, var, color='m', marker='+', ax=ax, show_text=show_text)
+        self.__draw_ranking_scatter(2, 4, var, color='m', marker='+', ax=ax, show_text=show_text, obslabels=obslabels)
         # 3 vs 4
-        self.__draw_ranking_scatter(3, 4, var, color='c', marker='h', ax=ax, show_text=show_text)
+        self.__draw_ranking_scatter(3, 4, var, color='c', marker='h', ax=ax, show_text=show_text, obslabels=obslabels)
 
         if ax is not None:
             ax.legend(prop={'size': 8}, ncol=1, fancybox=True, loc='upper left')
@@ -1787,44 +1782,34 @@ class GlecklerPlot(object):
         """
         plot Gleckler diagram
 
-        @param cmap_name: name of the colormap to be used
-        @type cmap_name: str
-
-        @param vmin: lower boundary for plotting
-        @type vmin: float
-
-        @param vmax: upper boundary for plotting
-        @type vmax: float
-
-        @param nclasses: number of classes for colormap
-        @type nclasses: int
-
-        @param size: size of labels
-        @type size: int
-
-        @param normalize: normalize data relative to multimodel mean (affects self.data)
-        @type normalize: bool
-
-        @param method: specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
-                       uses the median, that's why it is the default. another option is to use the 'mean'
-                       ['median','mean']
-        @type method: str
-
-        @param logscale: reformats labels of colorbar to log with base 10. NOTE, this does NOT change the data! The data needs to be added in log10() scale already in function add_data() !!!
-        @type logscale: bool
-
-        @param labelcolor: color of text labels
-        @type labelcolor: str
-
-        @param labelthreshold: allows for plotting of labels in different colors. if abs(data)>= labelthreshold, then the label is plotted in labelcolor, else it is plotted in black
-        @type labelthreshold: float
-
-        @param show_colorbar: show colorbar plot
-        @type show_colorbar: bool
-
-        @param autoscale: autoscale figure size
-        @type autoscale: bool
-
+        Parameters
+        ----------
+        cmap_name : str
+            name of the colormap to be used
+        vmin : float
+            lower boundary for plotting
+        vmax : float
+            upper boundary for plotting
+        nclasses : int
+            number of classes for colormap
+        size : int
+            size of labels
+        normalize : bool
+            normalize data relative to multimodel mean (affects self.data)
+        method : str
+            specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
+            uses the median, that's why it is the default. another option is to use the 'mean'
+            ['median','mean']
+        logscale : bool
+            reformats labels of colorbar to log with base 10. NOTE, this does NOT change the data! The data needs to be added in log10() scale already in function add_data() !!!
+        labelcolor : str
+            color of text labels
+        labelthreshold : float
+            allows for plotting of labels in different colors. if abs(data)>= labelthreshold, then the label is plotted in labelcolor, else it is plotted in black
+        show_colorbar : bool
+            show colorbar plot
+        autoscale : bool
+            autoscale figure size
         """
 
         self.show_value = show_value
@@ -1837,7 +1822,8 @@ class GlecklerPlot(object):
 
         nm = len(self.models)
         nv = len(self.variables)
-        if nm == 0:
+
+        if nm == 0:  # add dummy figure in case of no data
             ax = self.fig.add_subplot(111, frameon=True, aspect='equal', axisbg='grey')
             ax.text(0.5, 0.5, 'no plot possible (missing model data)',
                     horizontalalignment='center',
@@ -1845,10 +1831,10 @@ class GlecklerPlot(object):
                     transform=ax.transAxes)
             ax.set_xticks([])
             ax.set_yticks([])
-            print '    Gleckler plot can not be generated, as no model data available!'
+            print('    Gleckler plot can not be generated, as no model data available!')
             return
 
-        #- colormap
+        # colormap
         if cmap is None:
             self.cmap = plt.cm.get_cmap(cmap_name, nclasses)
             self.norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -1865,8 +1851,7 @@ class GlecklerPlot(object):
         cnt = 0
         cnt_m = 0
 
-#        model_list = self.models.sort()
-
+        # model_list = self.models.sort()
         for model in self.models:
             cnt_m += 1
             cnt_v = 0
@@ -1880,17 +1865,15 @@ class GlecklerPlot(object):
                 if cnt_m == nm:
                     ax.set_xlabel(variable, size=size)
 
-                self.__plot_triangle(ax, self.get_data(variable, model, 1), pos='top')    # upper triangle
+                self.__plot_triangle(ax, self.get_data(variable, model, 1), pos='top')     # upper triangle
                 self.__plot_triangle(ax, self.get_data(variable, model, 2), pos='bottom')  # lower triangle
-                #~ if variable == 'albedo':
-                    #~ print 'POS 2: ', self.get_data(variable,model,2)
-                self.__plot_triangle(ax, self.get_data(variable, model, 3), pos='left')   # left triangle
-                self.__plot_triangle(ax, self.get_data(variable, model, 4), pos='right')  # right triangle
+                self.__plot_triangle(ax, self.get_data(variable, model, 3), pos='left')    # left triangle
+                self.__plot_triangle(ax, self.get_data(variable, model, 4), pos='right')   # right triangle
                 cnt += 1
                 cnt_v += 1
 
         # legend
-        #- get positions of subplots to determine optimal position for legend
+        # get positions of subplots to determine optimal position for legend
         def get_subplot_boundaries(g, f):
             x = g.get_grid_positions(f)
             b = x[0]
@@ -1907,9 +1890,9 @@ class GlecklerPlot(object):
         # draw legend
         c = 1.
         width = (right - left) * c
+
         if show_colorbar:
             self._draw_colorbar(left, width, logscale=logscale, ticks=ticks)
-
         if title is not None:
             self.fig.suptitle(title)
 
@@ -1933,7 +1916,6 @@ class GlecklerPlot(object):
         if k in self.data.keys():
             r = self.data[k]
         else:
-            #print 'NOT FOUND!!', k
             pass
         return r
 
@@ -2027,7 +2009,7 @@ class GlecklerPlot(object):
         """
 
         if weights is None:
-            #set weights according to cell area
+            # set weights according to cell area
             if x.cell_area is not None:
                 weights = x._get_weighting_matrix()
             else:
@@ -2111,7 +2093,7 @@ class GlecklerPlot(object):
 
         pmax = max(self.pos.values())
 
-        #generate separate figure for legend
+        # generate separate figure for legend
         f = plt.figure()
         ax = f.add_subplot(111, frameon=True, aspect='equal', axisbg='grey')
         f.subplots_adjust(bottom=0.25, top=0.75, left=0.25, right=0.75)
