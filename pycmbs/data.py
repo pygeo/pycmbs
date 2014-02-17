@@ -3301,18 +3301,14 @@ class Data(object):
         self.adjust_time(day=15,year=2000) #sets year to a dummy = 2000 and day = 15
         self.timsort() #results in a sorted climatology
 
-        (unittest)
-
-        @param return_object: return a C{Data} object as result
-        @type return_object: bool
-
-        @return: either a C{Data} object is returned or the current data object is modified
-
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a Data object shall be returned
 
         Test
         ----
         unittest implemented
-
         """
 
         # checks
@@ -3343,9 +3339,7 @@ class Data(object):
 #-----------------------------------------------------------------------
 
     def get_aoi(self, region):
-        """
-        region of class Region
-        """
+        """ region of class Region """
 
         # copy self
         d = self.copy()
@@ -3661,8 +3655,10 @@ class Data(object):
         """
         shift data array in x direction by nx steps
 
-        @param nx: shift by nx steps
-        @type nx: int
+        Parameters
+        ----------
+        nx : int
+            shift by nx steps
         """
         if self.data.ndim == 3:
             self.data = self.__shift3D(self.data, nx)
@@ -3702,13 +3698,15 @@ class Data(object):
         a dataset with the data ordered as follows
         [1981,1982,1980]
 
-        @param n: lag to shift data (n>=0)
-        @type n: int
+        Parameters
+        ----------
+        n : int
+            lag to shift data (n>=0)
 
-        @param return_data: specifies if a NEW C{Data} object shall be returned
-        @type return_data: bool
+        return_data : bool
+            specifies if a NEW C{Data} object shall be returned
 
-        @todo: support for n < 0
+        # TODO support for n < 0
         """
 
         if n == 0:
@@ -3877,11 +3875,12 @@ class Data(object):
         in case of different variances. Independent samples are assumed!
         (unittest test_diff)
 
-        @param x: C{Data} object which will be substracted from self
-        @type  x: Data object
-
-        @param axis: axis along which the data will be aggregated (typically axis=0 corresponds to time)
-        @type axis: int
+        Parameters
+        ----------
+        x : Data
+            Data object which will be substracted from self
+        axis : int
+            axis along which the data will be aggregated (typically axis=0 corresponds to time)
 
         @param equal_var: specifies if the two input datasets (self,x) are expected to have same variance.
                           dependent on this parameter. If the variance is equal, then a t-test is applied,
