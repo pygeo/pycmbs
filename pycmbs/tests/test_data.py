@@ -769,62 +769,78 @@ class TestData(unittest.TestCase):
 
 
     def test_interp_time_InvalidMethod(self):
-        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
+        tref = self.D.num2date(pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25)
         with self.assertRaises(ValueError):
             self.D.interp_time(tref, method='invalid_method')
 
     def test_interp_time_InvalidGeometry(self):
         d = self.D.copy()
         d.data = np.random.random((10,20,30,40))
-        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
+        tref = d.num2date(pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25)
         with self.assertRaises(ValueError):
             d.interp_time(tref)
 
     def test_interp_time_TimeNotAscending(self):
         d = self.D.copy()
         d.time = np.random.random(d.nt)
-        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
+        tref = d.num2date(pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25)
         with self.assertRaises(ValueError):
             d.interp_time(tref)
 
     def test_interp_time_TrefNotAscending(self):
         d = self.D.copy()
-        tref = np.random.random(200)
+        tref = d.num2date(np.random.random(200))
         with self.assertRaises(ValueError):
             d.interp_time(tref)
 
+    def test_interp_time(self):
+        D = self.D.copy()
+        import datetime
 
-    def xxxxtest_interp_time(self):
-        D = self.D
+        start_date = datetime.datetime(2001,6,5)
+        stop_date = datetime.datetime(2001,7,31)
+        D.apply_temporal_subsetting(start_date, stop_date)
 
         #time is from 2001-01-01 for 1000 days as default
 
         #case 1: interpolate to half daily values for a small timeperiod
-        tref = pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25
-        #print 'Minimum/Maximum ' \
-        #      ' date target: ', pl.num2date(tref.min()), pl.num2date(tref.max())
-        #print 'Minimum/Maximum  date source: ', pl.num2date(D.time.min()), pl.num2date(D.time.max())
+        tref = D.num2date(pl.datestr2num('2001-07-05') + np.arange(20)*0.5+0.25)
+        # 5.July ... 14.July
+        #~ print tref
 
         #... interpolate data object for time period specified by tref
         I = D.interp_time(tref)
 
         #... original data
-        y = D.data[:,0,0]
-
+        y = D.data[:, 0, 0]
         #... generate reference solution using numpy
-        yy = np.interp(tref, D.time, y)
+        yy = np.interp(D.date2num(tref), D.time, y)
 
         #... optional: plotting (good for validation of test routine)
-        if False:
+        if True:
             pl.figure()
-            pl.plot(D.time,y,color='blue')
-            pl.plot(I.time,I.data[:,0,0],color='red',label='interpolated')
-            pl.plot(tref,yy,color='green',label='reference interp',linestyle='--')
+            pl.plot(D.date, y, color='blue', label='original data')
+            pl.plot(I.date, I.data[:,0,0], color='red', label='interpolated')
+            pl.plot(tref, yy, color='green',label='reference interp',linestyle='--')
             pl.legend()
             pl.show()
 
-        d = yy - I.data[:,0,0]
+        d = yy - I.data[:, 0, 0]
+        print d
         self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) )  # boundary effects at end of period, therefore last value not used
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def test_div_Default(self):
         D = self.D.copy()
@@ -1656,6 +1672,38 @@ class TestData(unittest.TestCase):
         self.assertEqual(x1.date[0], y1.date[0])
         self.assertEqual(x1.date[-1], y1.date[-1])
         self.assertTrue(np.all(np.abs(d.data) < 0.00000001))
+
+    def test_align_unsorted_X(self):
+        x = self.D.copy()
+        y = self.D.copy()
+        y.subc(2.5, copy=False)
+        y._temporal_subsetting(500, 750)  # generate a subset dataset
+        x.time = np.random.random(x.nt)  # generate unsorted time
+        with self.assertRaises(ValueError):
+            x1, y1 = x.align(y, base='day')  # do temporal alignment
+
+    def test_align_unsorted_X(self):
+        x = self.D.copy()
+        y = self.D.copy()
+        y.subc(2.5, copy=False)
+        y._temporal_subsetting(500, 750)  # generate a subset dataset
+        y.time = np.random.random(y.nt)  # generate unsorted time
+        with self.assertRaises(ValueError):
+            x1, y1 = x.align(y, base='day')  # do temporal alignment
+
+    def test_align_InvalidBase(self):
+        """test temporal alignment of two datasets"""
+        x = self.D.copy()
+        y = self.D.copy()
+        y.subc(2.5, copy=False)
+        y._temporal_subsetting(500, 750)  # generate a subset dataset
+        with self.assertRaises(ValueError):
+            x1, y1 = x.align(y, base='some_invalid_base')
+        with self.assertRaises(ValueError):
+            x1, y1 = x.align(y, base=None)
+
+
+
 
     def test_is_daily(self):
         x = self.D.copy()  # is already daily

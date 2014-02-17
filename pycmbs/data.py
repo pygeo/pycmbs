@@ -2049,7 +2049,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def interp_time(self, t, method='linear'):
+    def interp_time(self, d, method='linear'):
         """
         interpolate data matrix in time. The existing data is
         interpolated to a new temporal spaceing that is specified by
@@ -2060,12 +2060,8 @@ class Data(object):
 
         Parameters
         ----------
-        t : ndarray
+        d : ndarray of datetime objects
             vector of time where the data should be interpolated to.
-            he vector is expected to correspond to numbers which
-            correspond to the python standard for time
-            (see datestr2num documentation). The array needs to be
-            in ascending order, otherwise an error occurs.
 
         method : str
             option to specify interpolation method. At the moment,
@@ -2078,21 +2074,24 @@ class Data(object):
         # TODO : still some boundary effects for last timestep
         """
 
-        d = np.asarray(pl.num2date(t))
+        # check if timezone information available. If not, then
+        # set to UTC as default
+        d = np.asarray([datetime.datetime(x.year, x.month, x.day, x.hour, x.minute, x.second, 0, pytz.UTC) for x in d])
+
 
         if method not in ['linear']:
             raise ValueError('Only linear interpolation supported at the moment so far!')
 
-        #/// checks
+        # checks
         if self.data.ndim != 3:
             raise ValueError('Interpolation currently only supported for 3D arrays!')
-        if not np.all(np.diff(t) > 0):
+        if not np.all(np.diff(self.date2num(d)) > 0):
             raise ValueError('Input time array is not in ascending order! This must not happen! Please ensure ascending order')
         if not np.all(np.diff(self.time) > 0):
             raise ValueError('Time array of data is not in ascending order! This must not happen! Please ensure ascending order')
 
         nt0, ny, nx = self.shape  # original dimensions
-        nt = len(t)  # target length of reference time
+        nt = len(d)  # target length of reference time
 
         # copy data
         X = self.data.copy()
@@ -2103,23 +2102,22 @@ class Data(object):
         f_err = False
 
         # A) all data is BEFORE desired period
-        #~ print self.date.max(), d.min(), type(self.date.max()), type(d.min())
         if self.date.max() < d.min():
             print self.date.max(), d.min()
-            print 'WARNING: specified time period is BEFORE any data availability. NO INTERPOLATION CAN BE DONE!'
+            print('WARNING: specified time period is BEFORE any data availability. NO INTERPOLATION CAN BE DONE!')
             f_err = True
 
         # B) all data is AFTER desired period
         if self.date.min() > d.max():
             print self.date.min(), d.max()
-            print 'WARNING: specified time period is AFTER any data availability. NO INTERPOLATION CAN BE DONE!'
+            print('WARNING: specified time period is AFTER any data availability. NO INTERPOLATION CAN BE DONE!')
             f_err = True
 
         if f_err:
             tmp = np.zeros((nt, ny, nx))
             r = self.copy()
             r.data = np.ma.array(tmp, mask=tmp > 0.)
-            r.time = t  # return some dummy result
+            r.time = self.date2num(d)  # return some dummy result
             return r
 
         # construct weighting matrix
@@ -2138,7 +2136,7 @@ class Data(object):
             if i1 < 0:
                 raise ValueError('Invalid index i1')
 
-            #/// increment
+            # increment
             if i2 < nt0:
                 if self.date[i2] < d[i]:
                     if i2 <= nt0 - 1:
@@ -2166,14 +2164,15 @@ class Data(object):
                 break
 
             #... here we have valid data
-            t1 = pl.date2num(self.date[i1])
-            t2 = pl.date2num(self.date[i2])
-            W[i, i1] = (t2 - t[i]) / (t2 - t1)
+            t1 = self.date2num(self.date[i1])
+            t2 = self.date2num(self.date[i2])
+
+            W[i, i1] = (t2 - self.date2num(d[i])) / (t2 - t1)
             W[i, i2] = 1. - W[i, i1]
 
             #... now increment if needed
             if i < (nt0 - 1):
-                if t2 < t[i + 1]:
+                if t2 < self.date2num(d[i + 1]):
                     i1 += 1
                     i2 += 1
 
@@ -2187,9 +2186,9 @@ class Data(object):
 
         res = self.copy()
 
-        res.time = t
-        res.time_str = 'days since 0001-01-01 00:00:00'
-        res.calendar = 'standard'
+        res.time = self.date2num(d)
+        res.time_str = self.time_str
+        res.calendar = self.calendar
         res.data = np.ma.array(N, mask=np.isnan(N))
         del N
 
