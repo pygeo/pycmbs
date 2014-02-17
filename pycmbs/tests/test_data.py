@@ -857,11 +857,23 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.D.date2num(t)
 
+    def test_date2num_InvalidTimeStr(self):
+        self.D.time_str=None
+        t = np.arange(10).astype('float')
+        with self.assertRaises(ValueError):
+            self.D.date2num(t)
+
     def test_num2date_NoTimeStr(self):
         del self.D.time_str
         t = np.arange(10).astype('float')
         with self.assertRaises(ValueError):
-            self.D.date2num(t)
+            self.D.num2date(t)
+
+    def test_num2date_InvalidTimeStr(self):
+        self.D.time_str=None
+        t = np.arange(10).astype('float')
+        with self.assertRaises(ValueError):
+            self.D.num2date(t)
 
     def test_save_ascii(self):
         self.D._save_ascii('testexport.txt', delete=True)
