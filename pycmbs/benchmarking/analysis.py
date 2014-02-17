@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 
 from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, Diagnostic
-from pycmbs.plots import GlobalMeanPlot, map_season, map_difference, ReichlerPlot
+from pycmbs.plots import GlobalMeanPlot, map_season, map_difference, ReichlerPlot, HstackTimeseries
 from pycmbs.data import Data
 
 
@@ -548,8 +548,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         Rplot = ReichlerPlot()  # needed here, as it might include multiple model results
 
     if f_pattern_correlation:  # init plot for PatternCorrelation
-        fig_pc = plt.figure()
-        ax_pc = fig_pc.add_subplot(111)
+        #~ fig_pc = plt.figure()
+        #~ ax_pc = fig_pc.add_subplot(111)
+        PC_plot = HstackTimeseries()
 
     if f_globalmeanplot:
         if GM is None:
@@ -740,8 +741,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         if f_pattern_correlation:
             # perform pattern correlation
-            PC = PatternCorrelation(obs_orig, model_data, ax=ax_pc)
-            xxx = PC.plot(label=model.name.upper())
+            PC = PatternCorrelation(obs_orig, model_data)
+            # store data for final plot
+            PC_plot.add_data(PC.r_value, model_data.label)
+            #~ xxx = PC.plot(label=model.name.upper())
 
         if f_hovmoeller is True:
             print('    Doing Hovmoeller plot ...')
@@ -841,10 +844,15 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             e2a = GP.calc_index(obs_orig, model_data, model, obs_type)
             GP.add_data(obs_type, model._unique_name, e2a, pos=gleckler_pos)
 
+
+    ### final plotting ###
     if f_pattern_correlation:
-        ax_pc.set_title('Pattern correlation: ' + obs_orig.label.upper())
-        report.figure(ax_pc.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
-        report.newpage()
+        if PC_plot.get_n() > 0:
+            PC_plot.plot(cmap='RdBu_r', interpolation='nearest', vmin=-1., vmax=1., nclasses=16)
+            PC_plot.figure.suptitle('Pattern correlation: ' + obs_orig.label.upper())
+
+            report.figure(PC_plot.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
+            report.newpage()
 
     del obs_monthly
 

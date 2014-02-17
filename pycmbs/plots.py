@@ -175,6 +175,7 @@ class HstackTimeseries(object):
                 self._set_axis_prop(ax, remove_xticks=False)
             else:
                 self._set_axis_prop(ax)
+
         self._add_colorbar()
 
     def _add_axes(self, n):
