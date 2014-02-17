@@ -83,6 +83,160 @@ def rotate_ticks(ax, angle):
 
 #-----------------------------------------------------------------------
 
+class HstackTimeseries(object):
+    """
+    provides functionality to generate nice looking
+    timeseries plots from multiple sources. It is an
+    alternative way to vizualize multiple lines instead of
+    using simple line plots
+    """
+    def __init__(self):
+        """
+        provides functionality to generate nice looking
+        timeseries plots from multiple sources. It is an
+        alternative way to vizualize multiple lines instead of
+        using simple line plots
+        """
+        self.x = {}
+        self.len = 0
+
+    def get_n(self):
+        return len(self.x.keys())
+
+    def add_data(self, x, id):
+        """
+        add data
+
+        Parameters
+        ----------
+        x : ndarray
+            array with data
+        id : str
+            identifier for dataset. Will be used for legend plotting
+        """
+
+        if x.ndim != 1:
+            raise ValueError('Only vectors allowed!')
+
+        if self.get_n() == 0:
+            self.len = len(x)  # reference length
+        else:
+            if len(x) != self.len:
+                raise ValueError('The geometry of add data needs to match!')
+
+        if id in self.x.keys():
+            raise ValueError('ID already existing. This must not happen: %s' % id)
+
+        self.x.update({id : x})  # store data for later plotting
+
+    def plot(self, figure=None, fontsize=8, vmin=None, vmax=None, cmap='jet', nclasses=10, **kwargs):
+        """
+        do final plotting
+
+        Parameters
+        ----------
+        figure : figure
+            figure to plot to
+        fontsize : int
+            fontsize for labels e.g. for labeling the different
+            datasets
+        """
+        self.top = 0.9
+        self.bottom = 0.3
+        self.left = 0.2
+        self.right = 0.9
+
+        self.cmap = plt.cm.get_cmap(cmap, nclasses)
+        self.fontsize=fontsize
+
+        if vmin is None:
+            raise ValueError('vmin needs to be specified!')
+        if vmax is None:
+            raise ValueError('vmax needs to be specified!')
+
+        if figure is None:
+            self.figure = plt.figure()
+        else:
+            figure = self.figure
+
+        n = self.get_n()  # number of plots
+        keys = self.x.keys()
+        keys.sort()
+        for i in xrange(n):
+            ax = self._add_axes(i)
+            self.im = ax.imshow(np.asarray([self.x[keys[i]]]), aspect='auto', vmin=vmin, vmax=vmax, cmap=self.cmap, **kwargs)
+            ax.set_ylabel(keys[i], fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='right')
+            if i == 0:
+                self._set_axis_prop(ax, remove_xticks=False)
+            else:
+                self._set_axis_prop(ax)
+
+        self._add_colorbar()
+
+
+    def _add_axes(self, n):
+        """ add a single axis """
+        height = (self.top-self.bottom) / float(self.get_n()-1)
+        print height
+        width = self.right-self.left
+        ax = self.figure.add_axes([self.left, self.bottom + (n-1)*height, width, height])
+        return ax
+
+    def _set_axis_prop(self, ax, remove_xticks=True):
+        ax.set_yticks([])
+        if remove_xticks:
+            ax.set_xticks([])
+        else:
+            for t in ax.get_xticklabels():
+                t.set_fontsize(self.fontsize)
+
+    def _add_colorbar(self):
+        if not hasattr(self, 'im'):
+            raise ValueError('FATAL ERROR: no image object available!')
+
+        width = self.right-self.left
+        height = 0.05
+        cax = self.figure.add_axes([self.left, 0.05, width, height])
+        norm = mpl.colors.Normalize(vmin=self.im.get_clim()[0], vmax=self.im.get_clim()[1])
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap, norm=norm, orientation='horizontal')
+        for t in cb.ax.get_xticklabels():
+            t.set_fontsize(self.fontsize)
+
+
+
+        #~ self.figure.add_axes(cax, axisbg=ax.figure.get_facecolor())
+
+    #~ if dummy:
+        #~ cax.set_xticks([])
+        #~ cax.set_yticks([])
+        #~ cax.set_frame_on(False)
+    #~ else:
+#~
+        #~ cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks)
+#~
+        #~ for t in cb.ax.get_yticklabels():
+            #~ t.set_fontsize(fontsize)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class CorrelationAnalysis(object):
     """
     perform correlation analysis between two datasets
@@ -134,11 +288,6 @@ class CorrelationAnalysis(object):
         r = D.get_correlation_value()
         n = D. get_n()
 
-        #print 'RMSE: ', rmse
-        #print 'R   : ', r
-        #print 'N   : ', n
-
-#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
 
@@ -164,7 +313,7 @@ class HovmoellerPlot(object):
 
         self.hov = hovmoeller(D.num2date(D.time), None,
                               rescaley=rescaley, rescalex=rescalex)
-        #self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
+        # self.hov.time_to_lat(dlat=dlat,yticksampling=yticksampling,monthly=monthly)
         self.x = D
 
     def plot(self, title=None, climits=None, showxticks=True,
@@ -3192,7 +3341,6 @@ def hov_difference(x, y, climits=None, dlimits=None, data_cmap='jet', nclasses=1
 
 
 #-----------------------------------------------------------------------
-
 
 def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                    ax=None, title=None, cticks=None,

@@ -331,7 +331,6 @@ def scJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_
 # GENERIC - start
 #=======================================================================
 
-
 def generic_analysis(plot_options, model_list, obs_type, obs_name,
                      GP=None, GM=None, shift_lon=False,
                      use_basemap=False, report=None, interval=None,
@@ -352,7 +351,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     INI file e.g. HOAPS, CMSAF ...
     """
 
-    #---- GENERAL CHECKS
+    # GENERAL CHECKS
     if interval not in ['monthly', 'season']:
         raise ValueError('invalid interval in generic_analysis() %s' % interval)
 
