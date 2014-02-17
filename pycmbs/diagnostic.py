@@ -42,7 +42,7 @@ class PatternCorrelation(DiagnosticMaster):
     it calculates for each timestep the correlations between the spatial
     fields and allows to vizualize results in different ways
     """
-    def __init__(self, x, y, ax=None, figsize=(10, 3), **kwargs):
+    def __init__(self, x, y, ax=None, figure=None, figsize=(10, 3), **kwargs):
         """
         Parameters
         ----------
@@ -66,10 +66,20 @@ class PatternCorrelation(DiagnosticMaster):
             print(y.shape)
             raise ValueError('Invalid geometries!')
 
-        if ax is None:
+        if (ax is not None) and (figure is not None):
+            raise ValueError('You can either specify the axis OR the figure, but not both!')
+
+        if (ax is None) and (figure is None):
             f = plt.figure(figsize=figsize)
-            ax = f.add_subplot(111)
-        self.ax = ax
+            self.ax = f.add_subplot(111)
+        elif (ax is None) and (figure is not None):
+            self.ax = figure.add_subplot(111)
+        elif (ax is not None) and (figure is None):
+            self.ax = ax
+        else:
+            raise ValueError('This option was not foreseen so far')
+
+        self.figure = self.ax.figure
 
         self.x = x
         self.y = y
@@ -137,11 +147,12 @@ class PatternCorrelation(DiagnosticMaster):
         else:
             raise ValueError('Invalid plot type!')
 
-        self.ax.legend(loc='lower left', prop={'size': 10})
-        self.ax.set_xlabel('timestep #')
-        self.ax.set_ylabel('$r_{pears}$')
-        self.ax.grid()
-        self.ax.set_ylim(0.5, 1.)
+        if plot in ['polar', 'line']:
+            self.ax.legend(loc='lower left', prop={'size': 10})
+            self.ax.set_xlabel('timestep #')
+            self.ax.set_ylabel('$r_{pears}$')
+            self.ax.grid()
+            self.ax.set_ylim(0.5, 1.)
 
         return self.ax.figure
 
