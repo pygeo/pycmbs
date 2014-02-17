@@ -271,10 +271,9 @@ class TestData(unittest.TestCase):
         self.D.addc(666.,copy=False)
         self.assertEqual(ref+666.,self.D.data[5,0,0])
 
-#    def test_get_percentile(self):
-#        #print self.D.data
-#        r = self.D.get_percentile(0.5,return_object = False)[0,0]
-#        self.assertAlmostEqual(r,0.,delta = 0.5)
+    def test_get_percentile(self):
+        r = self.D.get_percentile(0.5, return_object = False)[0,0]
+        self.assertAlmostEqual(r, 0., delta = 0.5)
 
     def test_timn(self):
         A = self.D.copy()
