@@ -34,6 +34,7 @@ class TestData(unittest.TestCase):
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
+        self.D.oldtime=False
 
     def test_DataInitLabelNotNone(self):
         d = Data(None,None, label='testlabel')
