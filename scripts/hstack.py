@@ -17,9 +17,4 @@ for i in xrange(5):
 
 ht.plot(cmap='RdBu_r', interpolation='nearest', vmin=-1., vmax=1., nclasses=15)
 
-
-#~ f=plt.figure()
-#~ ax=f.add_subplot(111)
-
-
 plt.show()

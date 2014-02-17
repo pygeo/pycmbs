@@ -796,7 +796,6 @@ class Data(object):
 
         # TODO unittest implementation
 
-    
         if hasattr(self, 'cell_area'):
             if self.cell_area is not None:
                 return
@@ -2082,7 +2081,6 @@ class Data(object):
         # check if timezone information available. If not, then
         # set to UTC as default
         d = np.asarray([datetime.datetime(x.year, x.month, x.day, x.hour, x.minute, x.second, 0, pytz.UTC) for x in d])
-
 
         if method not in ['linear']:
             raise ValueError('Only linear interpolation supported at the moment so far!')

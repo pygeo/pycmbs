@@ -53,6 +53,8 @@ import os
 from pycmbs.data import Data
 
 #-----------------------------------------------------------------------
+
+
 def thin_xticks(ax, n):
     """
     thin xticks of axis
@@ -80,8 +82,8 @@ def rotate_ticks(ax, angle):
     for t in ts:
         t.label.set_rotation(angle)
 
-
 #-----------------------------------------------------------------------
+
 
 class HstackTimeseries(object):
     """
@@ -127,9 +129,10 @@ class HstackTimeseries(object):
         if id in self.x.keys():
             raise ValueError('ID already existing. This must not happen: %s' % id)
 
-        self.x.update({id : x})  # store data for later plotting
+        self.x.update({id: x})  # store data for later plotting
 
-    def plot(self, figure=None, fontsize=8, vmin=None, vmax=None, cmap='jet', nclasses=10, **kwargs):
+    def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
+             cmap='jet', nclasses=10, **kwargs):
         """
         do final plotting
 
@@ -147,7 +150,7 @@ class HstackTimeseries(object):
         self.right = 0.9
 
         self.cmap = plt.cm.get_cmap(cmap, nclasses)
-        self.fontsize=fontsize
+        self.fontsize = fontsize
 
         if vmin is None:
             raise ValueError('vmin needs to be specified!')
@@ -164,22 +167,22 @@ class HstackTimeseries(object):
         keys.sort()
         for i in xrange(n):
             ax = self._add_axes(i)
-            self.im = ax.imshow(np.asarray([self.x[keys[i]]]), aspect='auto', vmin=vmin, vmax=vmax, cmap=self.cmap, **kwargs)
+            self.im = ax.imshow(np.asarray([self.x[keys[i]]]),
+                                aspect='auto', vmin=vmin, vmax=vmax,
+                                cmap=self.cmap, **kwargs)
             ax.set_ylabel(keys[i], fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='right')
             if i == 0:
                 self._set_axis_prop(ax, remove_xticks=False)
             else:
                 self._set_axis_prop(ax)
-
         self._add_colorbar()
-
 
     def _add_axes(self, n):
         """ add a single axis """
-        height = (self.top-self.bottom) / float(self.get_n()-1)
+        height = (self.top - self.bottom) / float(self.get_n() - 1)
         print height
-        width = self.right-self.left
-        ax = self.figure.add_axes([self.left, self.bottom + (n-1)*height, width, height])
+        width = self.right - self.left
+        ax = self.figure.add_axes([self.left, self.bottom + (n - 1) * height, width, height])
         return ax
 
     def _set_axis_prop(self, ax, remove_xticks=True):
@@ -194,47 +197,13 @@ class HstackTimeseries(object):
         if not hasattr(self, 'im'):
             raise ValueError('FATAL ERROR: no image object available!')
 
-        width = self.right-self.left
+        width = self.right - self.left
         height = 0.05
         cax = self.figure.add_axes([self.left, 0.05, width, height])
         norm = mpl.colors.Normalize(vmin=self.im.get_clim()[0], vmax=self.im.get_clim()[1])
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap, norm=norm, orientation='horizontal')
         for t in cb.ax.get_xticklabels():
             t.set_fontsize(self.fontsize)
-
-
-
-        #~ self.figure.add_axes(cax, axisbg=ax.figure.get_facecolor())
-
-    #~ if dummy:
-        #~ cax.set_xticks([])
-        #~ cax.set_yticks([])
-        #~ cax.set_frame_on(False)
-    #~ else:
-#~
-        #~ cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=cticks)
-#~
-        #~ for t in cb.ax.get_yticklabels():
-            #~ t.set_fontsize(fontsize)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class CorrelationAnalysis(object):
@@ -1229,6 +1198,7 @@ class HistogrammPlot(object):
 
 #-----------------------------------------------------------------------
 
+
 class ZonalPlot(object):
     def __init__(self, ax=None, dir='y'):
         """
@@ -1567,7 +1537,6 @@ class GlecklerPlot(object):
                 return 'left'
             elif p == 4:
                 return 'right'
-
 
     def __draw_ranking_scatter(self, p1, p2, var, ax=None, marker='o', color='red', show_text=False, obslabels=None):
         """

@@ -167,6 +167,7 @@ class PatternCorrelation(DiagnosticMaster):
 
 #-----------------------------------------------------------------------
 
+
 class RegionalAnalysis(object):
     """
     a class to perform comparisons between two datasets on a regional basis
