@@ -162,21 +162,20 @@ class Report(object):
 
 #-----------------------------------------------------------------------
 
-    def figure(self, f, caption='', width=None, bbox_inches='tight'):
+    def figure(self, f, caption='', width='\\textwidth', height='\\textheight,keepaspectratio', bbox_inches='tight'):
         """
         add a figure string to the report
 
-        @param f: figure that will be incuded into the report
-        @type f: matplotlib figure object
-
-        @param caption: caption for the figure to be put in the report
-        @type caption: str
-
-        @param width: width as string like in latext e.g. width='12cm'
-        @type width: str
-
-        @param bbox_inches: option for savefig
-        @type bbox_inches: str
+        Parameters
+        ----------
+        f : figure
+            figure that will be incuded into the report
+        caption : str
+            caption for the figure to be put in the report
+        width : str
+            width as string like in latext e.g. width='12cm'
+        bbox_inches : str
+            option for savefig
         """
 
         if f is None:
@@ -185,13 +184,10 @@ class Report(object):
         self.figure_counter += 1
         figname = 'fig_' + str(self.figure_counter).zfill(5) + '.' + self.format
 
-        if width is None:
-            width = '12cm'
-
         self._write_separator()
         self.write('\\begin{figure}[htp]')
         self.write('   \centering')
-        self.write('   \includegraphics[width=' + width + ']{'
+        self.write('   \includegraphics[width=' + width + ', height=' + height + ']{'
                    + figname + '} ')
         if len(caption) > 0:
             self.write('   \caption{' + caption.replace('_', '-') + '}')

@@ -1268,8 +1268,11 @@ class GlecklerPlot(object):
     def __set_ax_prop(self, ax):
         """
         set axis properties of a subplot
-        @param ax: subplot axis
-        @type ax: matplotlib axis
+
+        Parameters
+        ----------
+        ax : axis
+            subplot axis
         """
         ax.set_xticks([])
         ax.set_yticks([])
@@ -1280,8 +1283,10 @@ class GlecklerPlot(object):
         the information on the colormap and its
         normalization is used for that purpose
 
-        @param v: value of data
-        @type v: float
+        Parameters
+        ----------
+        v : float
+            value of data
         """
         if np.isscalar(v):
             r = self.cmap(self.norm(np.asarray([v])))
@@ -1295,15 +1300,15 @@ class GlecklerPlot(object):
         with the value given. Information on colormap
         will be obtained from class information
 
-        @param ax: axis to plot to
-        @type ax:  matplotlib axis object
-
-        @param value: value to plot
-        @type value: float
-
-        @param pos: position of the triangle which will be plotted
-                    top = plot an upper triangle, else = plot a lower triangle
-        @type pos: str
+        Parameters
+        ----------
+        ax : axis
+            axis to plot to
+        value : float
+            value to plot
+        pos : str
+            position of the triangle which will be plotted
+            top = plot an upper triangle, else = plot a lower triangle
         """
         if value is None:
             return
@@ -1350,10 +1355,11 @@ class GlecklerPlot(object):
                 raise ValueError('Invalid position for plot: %s pmax: %s' % (str(pos), str(pmax)))
 
         xy = list(zip(x, y))
-        p = Polygon(xy, edgecolor='white', linewidth=1, fill=True, linestyle='solid', facecolor=color)
+        p = Polygon(xy, edgecolor='white', linewidth=1, fill=True,
+                    linestyle='solid', facecolor=color)
         ax.add_patch(p)
 
-        #--- add value as text if required
+        # add value as text if required
         if self.show_value:
             if self.labelthreshold is None:
                 labelcolor = self.labelcolor
@@ -1362,7 +1368,10 @@ class GlecklerPlot(object):
                     labelcolor = self.labelcolor
                 else:
                     labelcolor = 'black'
-            ax.text(tpos[0], tpos[1], str(np.round(value, self.ndigits)), fontdict={'size': 6, 'color': labelcolor}, horizontalalignment='center', verticalalignment='center')
+            ax.text(tpos[0], tpos[1], str(np.round(value, self.ndigits)),
+                    fontdict={'size': 6, 'color': labelcolor},
+                    horizontalalignment='center',
+                    verticalalignment='center')
 
 #-----------------------------------------------------------------------
     def _normalize_data(self, method='median'):
