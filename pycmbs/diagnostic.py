@@ -154,8 +154,8 @@ class PatternCorrelation(DiagnosticMaster):
     def _draw_line(self, **kwargs):
         self.ax.plot(self.t, self.r_value, **kwargs)
 
-
 #-----------------------------------------------------------------------
+
 class RegionalAnalysis(object):
     """
     a class to perform comparisons between two datasets on a regional basis
@@ -184,6 +184,19 @@ class RegionalAnalysis(object):
         self.f_standard = f_standard
         self.f_correlation = f_correlation
         self.statistics = {}
+
+
+        if x is not None:
+            if not isinstance(x, Data):
+                raise ValueError('Error: RegionalAnalysis - X \
+                                    is not of type Data!')
+        if y is not None:
+            if not isinstance(y, Data):
+                raise ValueError('Error: RegionalAnalysis - Y \
+                               is not of type Data!')
+
+
+
 
         if (x is None) or (y is None):
             # in case of dummy data, do not perform data check
@@ -237,12 +250,6 @@ class RegionalAnalysis(object):
                 raise ValueError('Unknown geometry!')
 
         #--- check datatypes
-        if not isinstance(self.x, Data):
-            raise ValueError('Error: RegionalAnalysis - X \
-                               is not of type Data!')
-        if not isinstance(self.y, Data):
-            raise ValueError('Error: RegionalAnalysis - Y \
-                               is not of type Data!')
         #if not isinstance(self.region,Region):
         #    raise ValueError, 'Error: RegionalAnalysis
         #- region is not of type Region!'
