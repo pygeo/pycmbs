@@ -461,14 +461,17 @@ class TestData(unittest.TestCase):
         r2 = np.sum(D.data[4:8])
         r3 = np.sum(D.data[8:])
         years, res = D.get_yearsum()
-        res = D.get_yearsum(return_data=True)
+        resobj = D.get_yearsum(return_data=True)
 
         self.assertEqual(years[0],2001)
-        self.assertEqual(res.date[0].year,2001)
+        self.assertEqual(resobj.date[0].year,2001)
 
         self.assertEqual(years[1],2005)
+        self.assertEqual(resobj.date[1].year,2005)
         self.assertEqual(res[0,0,0],r1)
+        self.assertEqual(resobj.data[0,0,0],r1)
         self.assertEqual(res[1,0,0],r2)
+        self.assertEqual(resobj.data[1,0,0],r2)
         #~ self.assertEqual(res[2,0,0].mask,r3)
 
 
