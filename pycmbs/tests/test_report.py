@@ -9,10 +9,16 @@ import matplotlib.pyplot as plt
 class TestData(unittest.TestCase):
 
     def setUp(self):
-        self.R = Report('testfile', 'myreport', 'Alex Loew', outdir='/tmp/')
+        if not os.path.exists('./tmp'):
+            os.makedirs('./tmp')
+        self.R = Report('testfile', 'myreport', 'Alex Loew', outdir='./tmp/')
+
+    def tearDown(self):
+        if os.path.exists('./tmp/'):
+            os.system('rm -rf ./tmp/')
 
     def test_ReportInit(self):
-        self.assertEqual(self.R.filename, '/tmp/testfile.tex')
+        self.assertEqual(self.R.filename, './tmp/testfile.tex')
         self.assertEqual(self.R.format, 'png')
         self.assertEqual(self.R.author, 'Alex Loew')
 
@@ -21,10 +27,10 @@ class TestData(unittest.TestCase):
         self.assertTrue(os.path.exists(self.R.filename))
 
     def test_open_report_MissingDirectory(self):
-        self.R = Report('testfile', 'myreport', 'Alex Loew', outdir='/tmp/nixdir')
+        self.R = Report('testfile', 'myreport', 'Alex Loew', outdir='./tmp/nixdir')
         self.R.open()
         self.assertTrue(os.path.exists(self.R.filename))
-        self.assertTrue(os.path.exists('/tmp/nixdir'))
+        self.assertTrue(os.path.exists('./tmp/nixdir'))
 
     def test_report_features(self):
         if os.path.exists(self.R.filename):
@@ -80,6 +86,7 @@ class TestData(unittest.TestCase):
         f3 = plt.figure()
         ax3 = f3.add_subplot(111)
         ax3.plot(np.random.random(300))
+        
         self.R.capture_figures()
 
         self.assertTrue(os.path.exists(self.R.outdir + 'fig_00001.png'))
