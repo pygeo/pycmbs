@@ -107,6 +107,27 @@ class TestData(unittest.TestCase):
         self.assertEqual(nx, 18+1)
 
 
+    def test_oldtimeoffset_Invalid(self):
+        d = self.D.copy()
+        del d.time_str
+        with self.assertRaises(ValueError):
+            d._oldtimeoffset()
+
+    def test_oldtimeoffset_InvalidTimeStr(self):
+        d = self.D.copy()
+        d.time_str = 'no_time_str'
+        with self.assertRaises(ValueError):
+            d._oldtimeoffset()
+
+    def test_oldtimeoffset_Invalid(self):
+        d = self.D.copy()
+        d.time_str = 'hours'
+        self.assertEqual(d._oldtimeoffset(), 24.)
+        d.time_str = 'seconds'
+        self.assertEqual(d._oldtimeoffset(), 86400.)
+        d.time_str = 'days'
+        self.assertEqual(d._oldtimeoffset(), 1.)
+
 
 
     def test_get_temporal_mask(self):
@@ -259,8 +280,8 @@ class TestData(unittest.TestCase):
         y = self.D.copy()
         y.data += 3.
         c = x.sub(y)
-        self.assertEqual(c.data[0,0,0], -3.)
-        self.assertTrue(1.-c.data[100,0,0]/-3. < 1.E-6)
+        self.assertTrue(np.abs(1.-c.data[0,0,0]/-3.) < 1.E-6)
+        self.assertTrue(np.abs(1.-c.data[100,0,0]/-3.) < 1.E-6)
 
     def test_addc(self):
         r1 = self.D.addc(5.,copy=True)
@@ -845,10 +866,6 @@ class TestData(unittest.TestCase):
         self.D._save_ascii('testexport.txt', delete=True)
         self.assertTrue(os.path.exists('testexport.txt'))
         os.remove('testexport.txt')
-
-
-
-
 
     def test_div_Default(self):
         D = self.D.copy()

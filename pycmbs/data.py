@@ -352,12 +352,15 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def __oldtimeoffset(self):
+    def _oldtimeoffset(self):
         """
         return offset to convert to old time
         offset is one day *PLUS ONE* following pylab documentation
         This routine takes care of different time units
         """
+
+        print('This routine is depreciated!')  # TODO
+
         if not hasattr(self, 'time_str'):
             raise ValueError('ERROR: time offset can not be determined!')
 
@@ -390,7 +393,7 @@ class Data(object):
         """
 
         if self._oldtime:  # see documentation in __init__ of self
-            offset = self.__oldtimeoffset()
+            offset = self._oldtimeoffset()
         else:
             offset = 0.
         if not hasattr(self, 'time_str'):
@@ -423,7 +426,7 @@ class Data(object):
         """
 
         if self._oldtime:  # see documentation in __init__ of self
-            offset = self.__oldtimeoffset()
+            offset = self._oldtimeoffset()
         else:
             offset = 0.
         if not hasattr(self, 'time_str'):
