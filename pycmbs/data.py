@@ -796,8 +796,10 @@ class Data(object):
 
         # TODO unittest implementation
 
-        if self.cell_area is not None:
-            return
+    
+        if hasattr(self, 'cell_area'):
+            if self.cell_area is not None:
+                return
 
         if (self.lat is None) or (self.lon is None):
             self._log_warning("WARNING: cell area can not be calculated (missing coordinates)!")
