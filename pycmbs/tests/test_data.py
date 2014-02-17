@@ -826,17 +826,25 @@ class TestData(unittest.TestCase):
             pl.show()
 
         d = yy - I.data[:, 0, 0]
-        print d
         self.assertFalse(np.any(np.abs(d[0:-1]) > 1.E-10 ) )  # boundary effects at end of period, therefore last value not used
 
 
+    def test_date2num_NoTimeStr(self):
+        del self.D.time_str
+        t = np.arange(10).astype('float')
+        with self.assertRaises(ValueError):
+            self.D.date2num(t)
 
+    def test_num2date_NoTimeStr(self):
+        del self.D.time_str
+        t = np.arange(10).astype('float')
+        with self.assertRaises(ValueError):
+            self.D.date2num(t)
 
-
-
-
-
-
+    def test_save_ascii(self):
+        self.D._save_ascii('testexport.txt', delete=True)
+        self.assertTrue(os.path.exists('testexport.txt'))
+        os.remove('testexport.txt')
 
 
 
