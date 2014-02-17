@@ -5,9 +5,6 @@ For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
 
-# XXX: implicit imports
-# from pycmbs.benchmarking import *
-# from pycmbs.benchmarking.utils import *
 from cdo import Cdo
 from pycmbs.data import Data
 import tempfile as tempfile
@@ -661,7 +658,8 @@ class CMIP5Data(Model):
             raise ValueError('Stop time needs to be specified')
 
         if not os.path.exists(filename1):
-            raise ValueError('Fatal error: file not existing: %s' % filename1 )
+            print ('Fatal error: file not existing: %s' % filename1 )
+            return None
 
         # PREPROCESSING
         cdo = Cdo()
