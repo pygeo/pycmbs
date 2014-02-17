@@ -84,12 +84,9 @@ class TestPycmbsPlots(unittest.TestCase):
         L = LinePlot(ax=ax)
         L.plot(x)
 
-
-
-
     def test_HistogrammPlot_General(self):
-        H = HistogrammPlot()
-        H.plot(self.D)
+        H = HistogrammPlot(normalize=True)
+        H.plot(self.D, bins=10, shown=True)
 
     def test_ZonalPlot(self):
         Z = ZonalPlot()
@@ -97,6 +94,36 @@ class TestPycmbsPlots(unittest.TestCase):
 
     def test_map_difference_General(self):
         map_difference(self.D, self.D)
+
+
+    def test_GlecklerPlot_InvalidNumberOfObservations(self):
+        G = GlecklerPlot()
+        G.add_model('echam5')
+        G.add_model('mpi-esm')
+        G.add_variable('ta')
+        G.add_data('ta', 'echam5', 0.5,pos=1)
+        G.add_data('ta', 'echam5',0.25,pos=2)
+        G.add_data('ta', 'echam5',-0.25,pos=3)
+        G.add_data('ta', 'mpi-esm',-0.25,pos=4)
+        G.add_data('ta', 'mpi-esm',-0.25,pos=5)
+        with self.assertRaises(ValueError):
+            G.plot()
+
+
+    def test_GlecklerPlot_4obs(self):
+        G = GlecklerPlot()
+        G.add_model('echam5')
+        G.add_model('mpi-esm')
+        G.add_variable('ta')
+        G.add_variable('P')
+        G.add_data('P', 'echam5', 0.5,pos=1)
+        G.add_data('P', 'echam5',0.25,pos=2)
+        G.add_data('P', 'echam5',-0.25,pos=3)
+        G.add_data('P', 'mpi-esm',-0.25,pos=4)
+        G.plot()
+
+
+
 
     def test_GlecklerPlot(self):
         G = GlecklerPlot()

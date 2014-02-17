@@ -68,6 +68,12 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             x._sub_sample(3)
 
+    def test_squeeze(self):
+        self.D.squeezed = False
+        self.D._squeeze()
+        self.assertTrue(self.D.squeezed)
+
+
 
     def test_sub_sample(self):
         x = self.D.copy()

@@ -185,7 +185,6 @@ class RegionalAnalysis(object):
         self.f_correlation = f_correlation
         self.statistics = {}
 
-
         if x is not None:
             if not isinstance(x, Data):
                 raise ValueError('Error: RegionalAnalysis - X \
@@ -194,9 +193,6 @@ class RegionalAnalysis(object):
             if not isinstance(y, Data):
                 raise ValueError('Error: RegionalAnalysis - Y \
                                is not of type Data!')
-
-
-
 
         if (x is None) or (y is None):
             # in case of dummy data, do not perform data check
