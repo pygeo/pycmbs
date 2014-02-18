@@ -14,31 +14,34 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 plt.close('all')
 
 #~ file='/home/m300028/shared/data/SEP/variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
-
-f=plt.figure()
-ax1=f.add_subplot(2,1,1)
-
+#~
+#~ f=plt.figure()
+#~ ax1=f.add_subplot(2,1,1)
+#~
 file='testdata.nc'
 d=Data(file,'tmp',read=True)
-
-d1 = d.mulc(2., copy=True)
-
-
-
-map_plot(d, ax=ax1, colorbar_orientation='vertical', nclasses=34, cticks=[-20.,0., 10.], cticklabels=['A','B','C'], show_zonal=True, use_basemap=True)
-
-
-map_difference(d, d1, show_zonal=False, use_basemap=True)
-
-
-
-plt.show()
-stop
+#~
+#~ d1 = d.mulc(2., copy=True)
+#~
+#~
+#~
+#~ map_plot(d, ax=ax1, colorbar_orientation='vertical', nclasses=34, cticks=[-20.,0., 10.], cticklabels=['A','B','C'], show_zonal=True, use_basemap=True)
+#~
+#~
+#~ map_difference(d, d1, show_zonal=False, use_basemap=True)
+#~
+#~
+#~
+#~ plt.show()
+#~ stop
 
 
 # map only with colorbars
 m = SingleMap(d, backend='basemap')
-m.plot(colorbar_orientation='horizontal', vmin=10., vmax=20., proj_prop={'projection':'robin', 'lon_0':0.})
+m.plot(colorbar_orientation='horizontal', vmin=10., vmax=30., proj_prop={'projection':'robin', 'lon_0':0.})
+
+stop
+
 
 mx = SingleMap(d, backend='imshow')
 mx.plot(colorbar_orientation='horizontal', vmin=10., vmax=20.)

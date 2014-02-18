@@ -5,7 +5,7 @@ from pycmbs import plots
 from pycmbs.data import Data
 from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, ZonalPlot
 from pycmbs.plots import map_difference, map_season, GlecklerPlot
-from pycmbs.plots import xx_map_plot
+from pycmbs.plots import xx_map_plot, HstackTimeseries
 
 import scipy
 import os
@@ -151,6 +151,17 @@ class TestPycmbsPlots(unittest.TestCase):
     def test_old_map_plot(self):
         xx_map_plot(self.D)
         #~ xx_map_plot(self.D, use_basemap=True)
+
+
+    def test_HstackTimeSeries(self):
+        HT = HstackTimeseries()
+        for i in xrange(15):
+            x = np.random.random(100)*2.-1.
+            HT.add_data(x, 'model' + str(i).zfill(3) )
+        HT.plot(cmap='RdBu_r', interpolation='nearest', vmin=-1., vmax=1., nclasses=15, title='Testtitle')
+
+
+
 
 # map_season
 
