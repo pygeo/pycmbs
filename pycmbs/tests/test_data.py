@@ -1273,15 +1273,11 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             res = D.condstat(msk)
 
-
-
     def test_temporal_subsettingInvalidGeometry(self):
         x = self.D.copy()
         x.data = np.random.random((10,20,30,40))
         with self.assertRaises(ValueError):
             x._temporal_subsetting(2, 5)
-
-
 
     def test_apply_temporal_subsetting(self):
         # checks only if the right time is subsetted
@@ -1766,6 +1762,10 @@ class TestData(unittest.TestCase):
         self.assertEqual(x1.date[0], y1.date[0])
         self.assertEqual(x1.date[-1], y1.date[-1])
         self.assertTrue(np.all(np.abs(d.data) < 0.00000001))
+
+        # test monthly with invalid data
+        with self.assertRaises(ValueError):
+            y1, x1 = y.align(x, base='month')
 
     def test_align_unsorted_X(self):
         x = self.D.copy()
