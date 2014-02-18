@@ -19,10 +19,13 @@ class TestData(unittest.TestCase):
         self.file = 'air.mon.mean.nc' # testfilename
         if not os.path.exists(self.file):
             self._download_sample()
-
-        self.D = Data(self.file, 'air', read=True)
-        self.areafile = self.file[:-3] + '_cell_area.nc'
-
+        if os.path.exists(self.file):
+            # check if download was sucessfull
+            self.D = Data(self.file, 'air', read=True)
+            self.areafile = self.file[:-3] + '_cell_area.nc'
+        else:
+            # download failed for some reason
+            self.file = None
 
     def _download_sample(self):
         if not os.path.exists(self.file):
@@ -36,36 +39,40 @@ class TestData(unittest.TestCase):
                 raise ValueError('Something with the file download went wrong!')
 
     def test_cell_area(self):
-        del self.D.cell_area
-        os.remove(self.areafile)
-        self.D._set_cell_area()
+        if self.file is not None:
+            del self.D.cell_area
+            os.remove(self.areafile)
+            self.D._set_cell_area()
 
-        # check if cell area file is existing
-        self.assertTrue(os.path.exists(self.areafile))
+            # check if cell area file is existing
+            self.assertTrue(os.path.exists(self.areafile))
 
-        # now remove the cell area file to force calculation
-        os.remove(self.areafile)
-        del self.D.cell_area
-        self.D._set_cell_area()
-        self.assertTrue(os.path.exists(self.areafile))
+            # now remove the cell area file to force calculation
+            os.remove(self.areafile)
+            del self.D.cell_area
+            self.D._set_cell_area()
+            self.assertTrue(os.path.exists(self.areafile))
 
     def test_cell_area_InvalidLatLon(self):
-        self.D.lon = None
-        self.D.lat = None
-        self.D.cell_area = None
+        if self.file is not None:
+            self.D.lon = None
+            self.D.lat = None
+            self.D.cell_area = None
 
-        os.remove(self.areafile)
-        self.D._set_cell_area()
-        self.assertTrue(np.all(self.D.cell_area == 1.))
+            os.remove(self.areafile)
+            self.D._set_cell_area()
+            self.assertTrue(np.all(self.D.cell_area == 1.))
 
     def test_zonal_mean(self):
-        zm = self.D.get_zonal_mean()
-        ZM = self.D.get_zonal_mean(return_object=True)
-        self.assertTrue(np.all(np.abs(1.-zm / ZM.data.T) < 1.E-6 ))
+        if self.file is not None:
+            zm = self.D.get_zonal_mean()
+            ZM = self.D.get_zonal_mean(return_object=True)
+            self.assertTrue(np.all(np.abs(1.-zm / ZM.data.T) < 1.E-6 ))
 
     def test_get_deseasonalized_anomaly(self):
-        c = self.D.get_deseasonalized_anomaly(base='current')
-        c = self.D.get_deseasonalized_anomaly(base='all')
+        if self.file is not None:
+            c = self.D.get_deseasonalized_anomaly(base='current')
+            c = self.D.get_deseasonalized_anomaly(base='all')
 
 if __name__ == '__main__':
     unittest.main()
