@@ -1236,7 +1236,6 @@ class TestData(unittest.TestCase):
     def test_condstat(self):
         """
         conditional statistics unittest
-        @return:
         """
 
         #sample data
@@ -1258,6 +1257,30 @@ class TestData(unittest.TestCase):
         rm = rs = D.data[:,2,0]
         self.assertTrue(np.all( (res[3]['mean']-rm) == 0. ))
         self.assertTrue(np.all( (res[3]['sum']-rs) == 0. ))
+
+
+    def test_condstat_InvalidGeometry(self):
+        D = self.D.copy()
+        D.data = np.random.random((10,20,30,40))
+        msk = np.asarray([[1,1,3],]).T
+        with self.assertRaises(ValueError):
+            res = D.condstat(msk)
+
+    def test_condstat_InvalidGeometryMask(self):
+        D = self.D.copy()
+        D.data = pl.randn(100,3,1)
+        msk = np.asarray([[1,2,4,5],]).T
+        with self.assertRaises(ValueError):
+            res = D.condstat(msk)
+
+
+
+    def test_temporal_subsettingInvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            x._temporal_subsetting(2, 5)
+
 
 
     def test_apply_temporal_subsetting(self):
