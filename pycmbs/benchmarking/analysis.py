@@ -742,6 +742,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         if f_pattern_correlation:
             # perform pattern correlation
             PC = PatternCorrelation(obs_orig, model_data)
+            PC._correlate()
             # store data for final plot
             PC_plot.add_data(PC.r_value, model_data.label)
             #~ xxx = PC.plot(label=model.name.upper())
