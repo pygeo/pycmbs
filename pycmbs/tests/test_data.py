@@ -780,7 +780,7 @@ class TestData(unittest.TestCase):
 
         del F
 
-        #read data from default, this should then have the same variable name as self.D
+        # read data from default, this should then have the same variable name as self.D
         self.D.save(testfile, format='nc', delete=True)
         F = Data(testfile, 'testvarname', read=True, verbose=False)
 
@@ -878,6 +878,20 @@ class TestData(unittest.TestCase):
     def test_save_ascii(self):
         self.D._save_ascii('testexport.txt', delete=True)
         self.assertTrue(os.path.exists('testexport.txt'))
+        os.remove('testexport.txt')
+
+    def test_save_ascii_FileExistingAlreadyDelete(self):
+        if not os.path.exists('testexport.txt'):
+            os.system('touch testexport.txt')
+        self.D._save_ascii('testexport.txt', delete=True)
+        self.assertTrue(os.path.exists('testexport.txt'))
+        os.remove('testexport.txt')
+
+    def test_save_ascii_FileExistingAlreadyNoDelete(self):
+        if not os.path.exists('testexport.txt'):
+            os.system('touch testexport.txt')
+        with self.assertRaises(ValueError):
+            self.D._save_ascii('testexport.txt', delete=False)
         os.remove('testexport.txt')
 
     def test_div_Default(self):
@@ -1025,14 +1039,33 @@ class TestData(unittest.TestCase):
         self.assertTrue(D._equal_lon())
 
     def test__get_unique_lon(self):
-        D = self.D
-        #equal longitudes
+        D = self.D.copy()
+        # equal longitudes
         x=np.arange(100)
         D.lon = np.zeros((2,100))
-        D.lon[0,:] = x; D.lon[1,:] = x
+        D.lon[0,:] = x
+        D.lon[1,:] = x
 
         r = D._get_unique_lon()
         self.assertTrue(np.all((x-r) == 0.))
+
+    def test_get_unique_lon_Invalid(self):
+        D = self.D.copy()
+        D.lon = None
+        with self.assertRaises(ValueError):
+            r = D._get_unique_lon()
+
+    def test_get_unique_lon_InvalidDimension(self):
+        D = self.D.copy()
+        D.lon = np.random.random((10,20,30))
+        with self.assertRaises(ValueError):
+            r = D._get_unique_lon()
+
+    def test_get_unique_lon_InvalidLons(self):
+        D = self.D.copy()
+        D.lon = np.random.random((10,20))
+        with self.assertRaises(ValueError):
+            r = D._get_unique_lon()
 
 
 
