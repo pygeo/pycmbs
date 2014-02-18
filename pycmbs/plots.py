@@ -1338,8 +1338,10 @@ class GlecklerPlot(object):
         """
         constructor of C{GlecklerPlot}
 
-        @param fig: figure to which to plot to. If None, then a new figure will be generated
-        @type fig: matplotlib figure
+        Parameters
+        ----------
+        fig : matplotlib figure
+            figure to which to plot to. If None, then a new figure will be generated
         """
         if fig is None:
             color = 'grey'
@@ -1497,15 +1499,16 @@ class GlecklerPlot(object):
                     verticalalignment='center')
 
 #-----------------------------------------------------------------------
+
     def _normalize_data(self, method='median'):
         """
         calculate for each observational data set
         the relative deviation from the average
 
-        @param method: specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
-                       uses the median, that's why it is the default. another option is to use the 'mean'
-                       ['median','mean']
-        @type method: str
+        method : str
+            specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
+            uses the median, that's why it is the default. another option is to use the 'mean'
+            ['median','mean']
         """
         pos = np.unique(self.pos.values())
         if hasattr(self, '_raw_data'):
@@ -1542,7 +1545,9 @@ class GlecklerPlot(object):
             elif p == 4:
                 return 'right'
 
-    def __draw_ranking_scatter(self, p1, p2, var, ax=None, marker='o', color='red', show_text=False, obslabels=None):
+    def __draw_ranking_scatter(self, p1, p2, var, ax=None, marker='o',
+                               color='red', show_text=False,
+                               obslabels=None):
         """
         ranking scatterplot between two positions
         """
@@ -1572,7 +1577,11 @@ class GlecklerPlot(object):
         else:
             f = ax.figure
 
-        ax.plot(x, y, marker=marker, color=color, label=self._pos2label(p1, obslabels) + ' vs. ' + self._pos2label(p2, obslabels) + ' ($r_s$=' + str(round(spear, 2)) + ')', linestyle='None')
+        ax.plot(x, y, marker=marker, color=color,
+                label=self._pos2label(p1, obslabels)
+                + ' vs. ' + self._pos2label(p2, obslabels)
+                + ' ($r_s$=' + str(round(spear, 2)) + ')',
+                linestyle='None')
         if show_text:
             for i in xrange(len(x)):
                 xy = (x[i], y[i])
@@ -1745,23 +1754,40 @@ class GlecklerPlot(object):
         # now write a table with different columns for each dataset
         o = open(filename, 'w')
         if fmt == 'latex':
-            o.write('        \\begin{tabular}{lcccc} \n')
+            optstr = ''
+            for i in xrange(4):
+                if self._pos2label(i+1, obslabels) != '':
+                    optstr += 'c'
+
+            o.write('        \\begin{tabular}{l' + optstr + '} \n')
             o.write(sol + '\\hline \n')
-            s = sol + 'model' + sep + self._pos2label(1, obslabels) + sep + self._pos2label(2, obslabels) + sep + self._pos2label(3, obslabels) + sep + self._pos2label(4, obslabels) + eol
+            s = sol + 'model'
+            for i in xrange(4):
+                if self._pos2label(i+1, obslabels) != '':
+                    s += sep + self._pos2label(i+1, obslabels)
+            s += eol
+
             o.write(s)
             o.write(sol + '\\hline \n')
         for m in self.models:
-            rnk1 = _get_model_rank(m, r1)
-            rnk2 = _get_model_rank(m, r2)
-            rnk3 = _get_model_rank(m, r3)
-            rnk4 = _get_model_rank(m, r4)
-
-            rnk1 = _rnk2str(rnk1)
-            rnk2 = _rnk2str(rnk2)
-            rnk3 = _rnk2str(rnk3)
-            rnk4 = _rnk2str(rnk4)
-
-            s = sol + m.replace('_', '-') + sep + rnk1 + sep + rnk2 + sep + rnk3 + sep + rnk4 + eol
+            s = sol + m.replace('_', '-')
+            if self._pos2label(1, obslabels) != '':
+                rnk1 = _get_model_rank(m, r1)
+                rnk1 = _rnk2str(rnk1)
+                s += sep + rnk1
+            if self._pos2label(2, obslabels) != '':
+                rnk2 = _get_model_rank(m, r2)
+                rnk2 = _rnk2str(rnk2)
+                s += sep + rnk2
+            if self._pos2label(3, obslabels) != '':
+                rnk3 = _get_model_rank(m, r3)
+                rnk3 = _rnk2str(rnk3)
+                s += sep + rnk3
+            if self._pos2label(4, obslabels) != '':
+                rnk4 = _get_model_rank(m, r4)
+                rnk4 = _rnk2str(rnk4)
+                s += sep + rnk4
+            s += eol
             o.write(s)
         if fmt == 'latex':
             o.write(sol + '\\hline \n')
