@@ -1528,7 +1528,8 @@ class GlecklerPlot(object):
             if p in labels.keys():
                 return labels[p]
             else:
-                raise ValueError('Fatal ERROR: no label for this position in label dictionary!')
+                return ''
+                # raise ValueError('Fatal ERROR: no label for this position in label dictionary!')
         else:
             if p == 1:
                 return 'top'
