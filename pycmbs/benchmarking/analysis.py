@@ -556,6 +556,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             axg = fG.add_subplot(211)
             axg1 = fG.add_subplot(212)
             GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True)  # global mean plot
+
+            # alternative way of plotting timeseries using Hstacktimeseries
+            #~ GM_HT = HstackTimeseries()
+            #~ GM_HT_clim = HstackTimeseries()
         else:
             if isinstance(GM, GlobalMeanPlot):
                 pass
@@ -757,7 +761,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             start_time = pylab.num2date(pylab.datestr2num(s_start_time))
             stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
-            #generate a reference monthly timeseries (datetime)
+            # generate a reference monthly timeseries (datetime)
             tref = np.asarray(
                 rrule(MONTHLY, dtstart=start_time).between(start_time, stop_time, inc=True))  # monthly timeseries
 
