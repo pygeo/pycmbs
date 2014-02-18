@@ -176,7 +176,8 @@ class HstackTimeseries(object):
             else:
                 self._set_axis_prop(ax)
 
-        self._add_colorbar()
+        if n > 0:
+            self._add_colorbar()
 
         if title is not None:
             self.figure.suptitle(title)
@@ -905,7 +906,7 @@ class GlobalMeanPlot(object):
         ax = f.add_subplot(111)
         if plot_clim:
             pdata = self.pdata_clim
-            print('GlobalMeanPlot climdata: %s ' % pdata)
+            #~ print('GlobalMeanPlot climdata: %s ' % pdata)
         else:
             pdata = self.pdata
 

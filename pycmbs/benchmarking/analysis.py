@@ -334,7 +334,7 @@ def scJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_
 def generic_analysis(plot_options, model_list, obs_type, obs_name,
                      GP=None, GM=None, shift_lon=False,
                      use_basemap=False, report=None, interval=None,
-                     regions=None):
+                     regions=None, GM_HT_clim=None):
     """
     function for performing common analysis actions
     it is not a parameter specific function
@@ -557,9 +557,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             axg1 = fG.add_subplot(212)
             GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True)  # global mean plot
 
-            # alternative way of plotting timeseries using Hstacktimeseries
-            #~ GM_HT = HstackTimeseries()
-            #~ GM_HT_clim = HstackTimeseries()
         else:
             if isinstance(GM, GlobalMeanPlot):
                 pass
@@ -568,8 +565,25 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     else:
         GM = None
 
+    if f_globalmeanplot:
+        if GM_HT_clim is None:
+            GM_HT_clim = HstackTimeseries()
+        else:
+            pass
+    else:
+        GM_HT_clim = None
+
+
+    # global mean plot of observational data
     if GM is not None:
         GM.plot(obs_monthly, linestyle='--', show_std=False, group='observations', stat_type=stat_type)
+
+    if GM_HT_clim is not None:
+        # alternative way of plotting timeseries using Hstacktimeseries
+        tmp = obs_monthly.get_climatology(return_object=True)
+        GM_HT_clim.add_data(tmp.fldmean(), 'obs:' + obs_monthly.label)  # global mean climatology
+        del tmp
+
 
     if f_mapseasons is True:  # seasonal mean plot for observations
         f_season = map_season(obs_orig, use_basemap=use_basemap,
@@ -846,8 +860,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             e2a = GP.calc_index(obs_orig, model_data, model, obs_type)
             GP.add_data(obs_type, model._unique_name, e2a, pos=gleckler_pos)
 
-
-    ### final plotting ###
+    # final plotting
     if f_pattern_correlation:
         if PC_plot.get_n() > 0:
             PC_plot.plot(cmap='RdBu_r', interpolation='nearest', vmin=-1., vmax=1., nclasses=32)
@@ -1290,6 +1303,8 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
     axg1 = fG.add_subplot(212)
     GM = GlobalMeanPlot(ax=axg, ax1=axg1, climatology=True)
 
+    GM_HT_clim = HstackTimeseries()  # alternative way to plot global mean timeseries
+
     if thevar in plot_options.options.keys():
         #do analysis for all observational datasets specified in INI file
         for k in plot_options.options[thevar].keys():
@@ -1300,10 +1315,12 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
                 if plot_options.options[thevar][k]['add_to_report']:
                     report.subsection(k)
                     generic_analysis(plot_options, model_list, thevar, k, GP=GP, GM=GM, report=report,
-                                     use_basemap=use_basemap, shift_lon=shift_lon, interval=interval, regions=regions)
+                                     use_basemap=use_basemap, shift_lon=shift_lon, interval=interval, regions=regions, GM_HT_clim=GM_HT_clim)
     else:
         raise ValueError('Can not do analysis for %s  for some reason! Check config and plot option files!' % thelabel)
 
+    # global mean plots
+    # a) standard way to plot it
     report.figure(fG, caption='Global means for ' + thelabel, bbox_inches=None)
     fGa = GM.plot_mean_result(dt=5., colors={'observations': 'blue', 'models': 'red'})
     fGb = GM.plot_mean_result(dt=0., colors={'observations': 'blue', 'models': 'red'}, plot_clim=True)
@@ -1316,6 +1333,13 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
     plt.close(fG.number)
     plt.close(fGa.number)
     plt.close(fGb.number)
+
+    #b) alternative way to plot it
+    if GM_HT_clim.get_n() > 0:
+        GM_HT_clim.plot(cmap='jet', interpolation='nearest', vmin=plot_options.options[thevar]['OPTIONS']['vmin']*0.2, vmax=plot_options.options[thevar]['OPTIONS']['vmax']*0.2, nclasses=15)
+        report.figure(GM_HT_clim.figure, caption='Global means climatology for ' + thelabel, bbox_inches=None)
+        plt.close(GM_HT_clim.figure.number)
+        del GM_HT_clim
 
     del GM, fG, fGa, fGb
 
