@@ -643,7 +643,7 @@ def main():
         rep.close_table(caption='Model rankings for variable ' + v.upper())
 
         # plot absolute model error
-        tmpfig = global_gleckler.plot_model_error(v)
+        tmpfig = global_gleckler.plot_model_error(v, obslabels=thelabels)
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model ERROR for different observational \
                    datasets: ' + v.upper())

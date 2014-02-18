@@ -1635,7 +1635,7 @@ class GlecklerPlot(object):
             ax.plot(x, y, marker=marker, color=color, label=self._pos2label(p1, obslabels) + ' vs. ' + self._pos2label(p2, obslabels) + ' ($r$=' + str(round(r_value, 2)) + ')', linestyle='None')
         return ax
 
-    def plot_model_error(self, var):
+    def plot_model_error(self, var, obslabels=None):
         """
         plots a scatterplot of errors of different models
         for a particular variable
@@ -1651,22 +1651,22 @@ class GlecklerPlot(object):
         ax = fig.add_subplot(gs[0])
 
         # 1 vs. 2
-        self._draw_error_scatter(1, 2, var, color='red', marker='o', ax=ax)
+        self._draw_error_scatter(1, 2, var, color='red', marker='o', ax=ax, obslabels=obslabels)
 
         # 1 vs. 3
-        self._draw_error_scatter(1, 3, var, color='green', marker='*', ax=ax)
+        self._draw_error_scatter(1, 3, var, color='green', marker='*', ax=ax, obslabels=obslabels)
 
         # 1 vs. 4
-        self._draw_error_scatter(1, 4, var, color='blue', marker='^', ax=ax)
+        self._draw_error_scatter(1, 4, var, color='blue', marker='^', ax=ax, obslabels=obslabels)
 
         # 2 vs. 3
-        self._draw_error_scatter(2, 3, var, color='grey', marker='x', ax=ax)
+        self._draw_error_scatter(2, 3, var, color='grey', marker='x', ax=ax, obslabels=obslabels)
 
         # 2 vs 4
-        self._draw_error_scatter(2, 4, var, color='m', marker='+', ax=ax)
+        self._draw_error_scatter(2, 4, var, color='m', marker='+', ax=ax, obslabels=obslabels)
 
         # 3 vs 4
-        self._draw_error_scatter(3, 4, var, color='c', marker='h', ax=ax)
+        self._draw_error_scatter(3, 4, var, color='c', marker='h', ax=ax, obslabels=obslabels)
 
         if ax is not None:
             ax.legend(prop={'size': 8}, ncol=1, fancybox=True, loc='upper left')
