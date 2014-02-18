@@ -9,9 +9,9 @@ the pyCMBS licensing details.
 """
 Module that contains relevant classes for diagnostic plots
 
-@todo: implement writing of statistics to an ASCII file as export
-@todo: implement taylor plots
-@todo: faster implementation of Basemap plots. For large number of grid cells, the current KTree implementation is by far too slow!
+# TODO implement writing of statistics to an ASCII file as export
+# TODO implement taylor plots
+# TODO faster implementation of Basemap plots. For large number of grid cells, the current KTree implementation is by far too slow!
 
 """
 import matplotlib as mpl
@@ -132,7 +132,7 @@ class HstackTimeseries(object):
         self.x.update({id: x})  # store data for later plotting
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
-             cmap='jet', nclasses=10, **kwargs):
+             cmap='jet', nclasses=10, title=None, **kwargs):
         """
         do final plotting
 
@@ -160,7 +160,7 @@ class HstackTimeseries(object):
         if figure is None:
             self.figure = plt.figure()
         else:
-            figure = self.figure
+            self.figure = figure
 
         n = self.get_n()  # number of plots
         keys = self.x.keys()
@@ -170,13 +170,16 @@ class HstackTimeseries(object):
             self.im = ax.imshow(np.asarray([self.x[keys[i]]]),
                                 aspect='auto', vmin=vmin, vmax=vmax,
                                 cmap=self.cmap, **kwargs)
-            ax.set_ylabel(keys[i], fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='right')
+            ax.set_ylabel(keys[i], fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='right', verticalalignment='center')
             if i == 0:
                 self._set_axis_prop(ax, remove_xticks=False)
             else:
                 self._set_axis_prop(ax)
 
         self._add_colorbar()
+
+        if title is not None:
+            self.figure.suptitle(title)
 
     def _add_axes(self, n):
         """ add a single axis """
