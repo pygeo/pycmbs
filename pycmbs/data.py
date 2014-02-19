@@ -1665,7 +1665,7 @@ class Data(object):
         if m.sum() == 0:
             n = 0
         elif m.sum() == 1:  # a single breakpoint
-            n = m.argmax() +1  # position where the break in timeseries occurs
+            n = m.argmax() + 1  # position where the break in timeseries occurs
         else:
             raise ValueError('More than a single breakpoint found. Can not process this data as it is not in cyclic ascending order')
 
@@ -3766,7 +3766,7 @@ class Data(object):
         del tmp
 
         if shift_time:  # shift also timevector
-            tmp = res.time *1.
+            tmp = res.time * 1.
             res.time[:-n:] = tmp[n:]
             res.time[-n:] = tmp[0:n]
 

@@ -84,8 +84,8 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
 
     if (start_date is not None) and (stop_date is not None):
         print 'Temporal subsetting for ' + raw_file + ' will be performed! ', start_date, stop_date
-        seldate_str = ' -seldate,' + str(start_date)[0 : 10] + ',' + str(stop_date)[0 : 10]
-        obs_mon_file = obs_mon_file[:-3] + '_' + str(start_date)[0 : 10] + '_' + str(stop_date)[0 : 10] + '_monmean.nc'
+        seldate_str = ' -seldate,' + str(start_date)[0: 10] + ',' + str(stop_date)[0: 10]
+        obs_mon_file = obs_mon_file[:-3] + '_' + str(start_date)[0: 10] + '_' + str(stop_date)[0: 10] + '_monmean.nc'
     else:
         seldate_str = ''
         obs_mon_file = obs_mon_file[:-3] + '_monmean.nc'
@@ -147,9 +147,9 @@ def preprocess_seasonal_data(raw_file, interval=None, themask=None,
 
     #try to ensure really monthly increasing time series
     if hasattr(obs_monthly, 'time_cycle'):
-        if obs_monthly.time_cycle != 12 :
+        if obs_monthly.time_cycle != 12:
             obs_monthly._pad_timeseries(fill_value=obs_monthly.fill_value)
-    if obs_monthly.time_cycle != 12 :
+    if obs_monthly.time_cycle != 12:
         raise ValueError('Timecycle could still not be set!!! %s' % obs_mon_file)
 
     #/// center dates of months
@@ -321,6 +321,7 @@ def scJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_
 #=======================================================================
 # GENERIC - start
 #=======================================================================
+
 
 def generic_analysis(plot_options, model_list, obs_type, obs_name,
                      GP=None, GM=None, shift_lon=False,
@@ -564,7 +565,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     else:
         GM_HT_clim = None
 
-
     # global mean plot of observational data
     if GM is not None:
         GM.plot(obs_monthly, linestyle='--', show_std=False, group='observations', stat_type=stat_type)
@@ -574,7 +574,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         tmp = obs_monthly.get_climatology(return_object=True)
         GM_HT_clim.add_data(tmp.fldmean(), 'obs:' + obs_monthly.label)  # global mean climatology
         del tmp
-
 
     if f_mapseasons is True:  # seasonal mean plot for observations
         f_season = map_season(obs_orig, use_basemap=use_basemap,
@@ -593,7 +592,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     ####################################################################################################################
     # MAIN LIST OVER MODELS
     ####################################################################################################################
-
 
     for model in model_list:
         sys.stdout.write('\n *** %s Analysis of model: ' % (obs_type.upper()) + model.name + "\n")
@@ -1340,7 +1338,7 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
 
     #b) alternative way to plot it
     if GM_HT_clim.get_n() > 0:
-        GM_HT_clim.plot(cmap='jet', interpolation='nearest', vmin=plot_options.options[thevar]['OPTIONS']['vmin']*0.2, vmax=plot_options.options[thevar]['OPTIONS']['vmax']*0.2, nclasses=15)
+        GM_HT_clim.plot(cmap='jet', interpolation='nearest', vmin=plot_options.options[thevar]['OPTIONS']['vmin'] * 0.2, vmax=plot_options.options[thevar]['OPTIONS']['vmax'] * 0.2, nclasses=15)
         report.figure(GM_HT_clim.figure, caption='Global means climatology for ' + thelabel, bbox_inches=None)
         plt.close(GM_HT_clim.figure.number)
         del GM_HT_clim

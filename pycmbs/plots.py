@@ -181,7 +181,6 @@ class HstackTimeseries(object):
         if self.maxheight <= 0.:
             raise ValueError('maxheight must not be smaller or equal zero : %s' % self.maxheight)
 
-
         self.cmap = plt.cm.get_cmap(cmap, nclasses)
         self.fontsize = fontsize
 
@@ -215,7 +214,6 @@ class HstackTimeseries(object):
         if title is not None:
             self.figure.suptitle(title)
 
-
     def _calc_figure_size(self):
         """ calculate optimum size of figure """
 
@@ -223,7 +221,6 @@ class HstackTimeseries(object):
         minsize = 0.025 * figheight_default  # minimum size of an axis
 
         axheight = min(minsize, self.maxheight * figheight_default)
-
 
         w = 8.  # inches
         # colorbar, gap, title + individual axes
@@ -257,7 +254,7 @@ class HstackTimeseries(object):
         norm = mpl.colors.Normalize(vmin=self.im.get_clim()[0],
                                     vmax=self.im.get_clim()[1])
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap, norm=norm,
-                                        orientation='horizontal')
+                                       orientation='horizontal')
         for t in cb.ax.get_xticklabels():
             t.set_fontsize(self.fontsize)
 
