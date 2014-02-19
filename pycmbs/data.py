@@ -3706,7 +3706,7 @@ class Data(object):
         n : int
             lag to shift data (n>=0)
         shift_time : bool
-            shioft also timevector
+            shift also timevector
 
         return_data : bool
             specifies if a NEW C{Data} object shall be returned
@@ -3735,7 +3735,12 @@ class Data(object):
         res.data[:-n:, :, :] = tmp[n:, :, :]
         res.data[-n:, :, :] = tmp[0:n, :, :]
         res.data = np.ma.array(res.data, mask=np.isnan(res.data))
+        del tmp
 
+        if shift_time:  # shift also timevector
+            tmp = res.time*1.
+            res.time[:-n:] = tmp[n:]
+            res.time[-n:] = tmp[0:n]
 
         if return_data:
             return res

@@ -113,6 +113,21 @@ class TestData(unittest.TestCase):
         self.assertEqual(d.data[0,0,0], r.data[-1,0,0])
         self.assertEqual(d.data[1,0,0], r.data[0,0,0])
         self.assertEqual(d.data[2,0,0], r.data[1,0,0])
+        # time remains unchanged ??
+        self.assertTrue(np.all(np.abs(1.- d.time / r.time) < 1.E-6))
+
+
+    def test_timeshift_WithTimeShift(self):
+        d = self.D.copy()
+        r = d.timeshift(1, return_data=True, shift_time=True)
+
+        self.assertEqual(d.data[0,0,0], r.data[-1,0,0])
+        self.assertEqual(d.data[1,0,0], r.data[0,0,0])
+        self.assertEqual(d.data[2,0,0], r.data[1,0,0])
+        # time also shifted?
+        self.assertEqual(d.time[0], r.time[-1])
+        self.assertEqual(d.time[1], r.time[0])
+        self.assertEqual(d.time[2], r.time[1])
 
     def test_timeshift_ManipulateSelf(self):
         d = self.D.copy()
