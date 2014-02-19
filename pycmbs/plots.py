@@ -169,7 +169,7 @@ class HstackTimeseries(object):
         self.cb_height = 0.05
 
         self.top = 0.9
-        self.bottom = self.cb_bottom + self.cb_height*2.
+        self.bottom = self.cb_bottom + self.cb_height * 2.
         self.left = 0.2
         self.right = 0.9
         self.maxheight = maxheight
@@ -199,7 +199,7 @@ class HstackTimeseries(object):
         keys = self.x.keys()
         keys.sort()
         for i in xrange(n):
-            ax = self._add_axes(i+1)
+            ax = self._add_axes(i + 1)
             self.im = ax.imshow(np.asarray([self.x[keys[i]]]),
                                 aspect='auto', vmin=vmin, vmax=vmax,
                                 cmap=self.cmap, **kwargs)
@@ -222,12 +222,12 @@ class HstackTimeseries(object):
         figheight_default = 6.125
         minsize = 0.025 * figheight_default  # minimum size of an axis
 
-        axheight = min(minsize, self.maxheight*figheight_default)
+        axheight = min(minsize, self.maxheight * figheight_default)
 
 
         w = 8.  # inches
         # colorbar, gap, title + individual axes
-        h = self.cb_height*figheight_default*3. + self.get_n() * axheight
+        h = self.cb_height * figheight_default * 3. + self.get_n() * axheight
 
         return (w, h)
 
@@ -1809,15 +1809,15 @@ class GlecklerPlot(object):
         if fmt == 'latex':
             optstr = ''
             for i in xrange(4):
-                if self._pos2label(i+1, obslabels) != '':
+                if self._pos2label(i + 1, obslabels) != '':
                     optstr += 'c'
 
             o.write('        \\begin{tabular}{l' + optstr + '} \n')
             o.write(sol + '\\hline \n')
             s = sol + 'model'
             for i in xrange(4):
-                if self._pos2label(i+1, obslabels) != '':
-                    s += sep + self._pos2label(i+1, obslabels)
+                if self._pos2label(i + 1, obslabels) != '':
+                    s += sep + self._pos2label(i + 1, obslabels)
             s += eol
 
             o.write(s)
