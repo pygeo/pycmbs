@@ -191,7 +191,7 @@ class HstackTimeseries(object):
             raise ValueError('vmax needs to be specified!')
 
         if figure is None:
-            self.figure = plt.figure()
+            self.figure = plt.figure(figsize=self._calc_figure_size())
         else:
             self.figure = figure
 
@@ -214,6 +214,22 @@ class HstackTimeseries(object):
 
         if title is not None:
             self.figure.suptitle(title)
+
+
+    def _calc_figure_size(self):
+        """ calculate optimum size of figure """
+
+        figheight_default = 6.125
+        minsize = 0.025 * figheight_default  # minimum size of an axis
+
+        axheight = min(minsize, self.maxheight*figheight_default)
+
+
+        w = 8.  # inches
+        # colorbar, gap, title + individual axes
+        h = self.cb_height*figheight_default*3. + self.get_n() * axheight
+
+        return (w, h)
 
     def _add_axes(self, n):
         """ add a single axis """
