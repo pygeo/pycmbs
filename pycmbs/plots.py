@@ -205,8 +205,10 @@ class HstackTimeseries(object):
         width = self.right - self.left
         height = 0.05
         cax = self.figure.add_axes([self.left, 0.05, width, height])
-        norm = mpl.colors.Normalize(vmin=self.im.get_clim()[0], vmax=self.im.get_clim()[1])
-        cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap, norm=norm, orientation='horizontal')
+        norm = mpl.colors.Normalize(vmin=self.im.get_clim()[0],
+                                    vmax=self.im.get_clim()[1])
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap, norm=norm,
+                                        orientation='horizontal')
         for t in cb.ax.get_xticklabels():
             t.set_fontsize(self.fontsize)
 

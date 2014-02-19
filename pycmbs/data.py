@@ -3696,6 +3696,8 @@ class Data(object):
         a dataset with the data ordered as follows
         [1981,1982,1980]
 
+        Note that the timevector remains UNCHANGED!
+
         Parameters
         ----------
         n : int
@@ -3709,6 +3711,8 @@ class Data(object):
 
         if n == 0:
             return
+        if n < 0:
+            raise ValueError('Negative timeshifts are not supported yet!')
         if self.data.ndim != 3:
             raise ValueError('array of size [time,ny,nx] is needed for temporal shifting!')
 

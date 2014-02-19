@@ -5,11 +5,6 @@ For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
 the pyCMBS licensing details.
 """
 
-# XXX: implicit imports
-# from benchmarking.utils import *
-# from pycmbs.external_analysis import *
-# from datetime import *
-# from dateutil.rrule import *
 from cdo import Cdo
 
 import matplotlib
@@ -19,15 +14,11 @@ from matplotlib.font_manager import FontProperties
 import sys
 import os
 
-
 import matplotlib.pyplot as plt
-
 
 from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, Diagnostic
 from pycmbs.plots import GlobalMeanPlot, map_season, map_difference, ReichlerPlot, HstackTimeseries
 from pycmbs.data import Data
-
-
 from pycmbs.benchmarking.utils import get_T63_landseamask, get_temporary_directory
 
 #///////////////////////////////////////////////////////////////////////
@@ -640,13 +631,19 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                     if model.variables[m_data_org][2] is None:  # invalid data for mean_model --> skip
                         pass
                     else:
-                        #print model.variables[m_data_org][2].label
                         tmp = model.variables[m_data_org][2]
                         tmp._apply_mask(actmask)
-                        #GM.plot(model.variables[m_data_org][2],label=model._unique_name,show_std=False,group='models') #(time,meandata) replace rain_org with data_org
                         GM.plot(tmp, label=model._unique_name, show_std=False,
                                 group='models')  # (time,meandata) replace rain_org with data_org
                         del tmp
+
+        if GM_HT_clim is not None:
+            if model.name == 'mean-model':
+                pass
+            else:
+                tmp = model.variables[m_data_org][2]
+                tmp._apply_mask(actmask)
+                GM_HT_clim.add_data(tmp.fldmean(), model._unique_name)
 
         if model_data is None:
             sys.stdout.write('Data not existing for model %s' % model.name)

@@ -74,8 +74,6 @@ class TestData(unittest.TestCase):
         self.D._squeeze()
         self.assertTrue(self.D.squeezed)
 
-
-
     def test_sub_sample(self):
         x = self.D.copy()
 
@@ -107,6 +105,41 @@ class TestData(unittest.TestCase):
         self.assertEqual(ny, 14+1)
         self.assertEqual(nx, 18+1)
 
+
+    def test_timeshift(self):
+        d = self.D.copy()
+        r = d.timeshift(1, return_data=True)
+
+        self.assertEqual(d.data[0,0,0], r.data[-1,0,0])
+        self.assertEqual(d.data[1,0,0], r.data[0,0,0])
+        self.assertEqual(d.data[2,0,0], r.data[1,0,0])
+
+    def test_timeshift_ManipulateSelf(self):
+        d = self.D.copy()
+        ref = d.copy()
+        d.timeshift(1, return_data=False)
+
+        self.assertEqual(ref.data[0,0,0], d.data[-1,0,0])
+        self.assertEqual(ref.data[1,0,0], d.data[0,0,0])
+        self.assertEqual(ref.data[2,0,0], d.data[1,0,0])
+
+
+
+    def test_timeshiftN0(self):
+        d = self.D.copy()
+        r = d.timeshift(0)
+        self.assertTrue(np.all(np.abs(1.-r/d.data) < 1.E-6))
+
+    def test_timeshiftN0(self):
+        d = self.D.copy()
+        with self.assertRaises(ValueError):
+            r = d.timeshift(-1)
+
+    def test_timeshiftInvalidGeometry(self):
+        d = self.D.copy()
+        d.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            r = d.timeshift(2)
 
     def test_oldtimeoffset_Invalid(self):
         d = self.D.copy()
