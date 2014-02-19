@@ -14,7 +14,12 @@ import os
 
 def main():
 
-    ofile = 'test.txt'
+    # write results only if all files for mandatory_variables are existing
+    # in prepreocessed form
+    check_availability = False  # not implemented yet
+    mandatory_variables = ['rsds', 'rsus']
+
+    ofile = 'cmip5_models_dummy.txt'
     if os.path.exists(ofile):
         os.remove(ofile)
     o = open(ofile, 'w')
@@ -34,8 +39,16 @@ def main():
         o.write('##############################\n')
         for institute in model_list.keys():
             for model in model_list[institute]:
+
+                # check if
+
                 s = institute + ':' + model + ',' + 'CMIP5RAW' + ',' + experiment + ',' + data_dir + '\n'
-                o.write(s)
+
+                if check_availability:
+                    if CMP.check_files_availablility(mandatory_variables, institute, model, experiment):
+                        o.write(s)
+                else:
+                    o.write(s)
     o.close()
 
 

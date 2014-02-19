@@ -49,7 +49,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
     """
     preprocessor for CMIP5 raw data
     it is assumed that data from the CMIP5 archive have been extracted
-    already for a particular version and that the version directroy
+    already for a particular version and that the version directory
     has been removed from the overall path.
     """
     def __init__(self, data_dir, outfile, variable, model, experiment,
@@ -280,6 +280,23 @@ class CMIP5ModelParser(object):
     def _get_models4institute(self, institute):
         """ return a list of models from a particular institute """
         return [os.path.basename(f) for f in glob.glob(self.root_dir + institute + os.sep + '*')]
+
+    def check_files_availablility(self, vars, institute, model, experiment):
+        """
+        check if files for the specified variables are existing
+        in preprocessed form
+
+        Parameters
+        ----------
+        vars : list
+            list of variables to check e.g. ['rsds', 'rsus']; the
+
+        Returns
+        -------
+        returns True if all files are existing, otherwise it returns False
+        """
+        raise ValueError('This functionality is not implemented yet!')
+
 
 
 

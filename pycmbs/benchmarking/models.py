@@ -553,12 +553,13 @@ class CMIP5Data(Model):
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsds/' + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self._get_ensemble_filename('rsds') 
+            filename1 = self._get_ensemble_filename('rsds')
         else:
             raise ValueError('Unknown model type! not supported here!')
 
         if not os.path.exists(filename1):
-            raise ValueError('FATAL ERROR: file not existing: %s' % filename1)
+            print ('WARNING file not existing: %s' % filename1)
+            return None
 
         #/// PREPROCESSING ///
         cdo = Cdo()
@@ -648,7 +649,7 @@ class CMIP5Data(Model):
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsus/' + self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self._get_ensemble_filename('rsus') 
+            filename1 = self._get_ensemble_filename('rsus')
         else:
             raise ValueError('Unknown type! not supported here!')
 
@@ -658,7 +659,7 @@ class CMIP5Data(Model):
             raise ValueError('Stop time needs to be specified')
 
         if not os.path.exists(filename1):
-            print ('Fatal error: file not existing: %s' % filename1 )
+            print ('WARNING file not existing: %s' % filename1 )
             return None
 
         # PREPROCESSING
@@ -842,7 +843,7 @@ class CMIP5RAWData(CMIP5Data):
 
         # do preprocessing of data from multiple ensembles if file
         # already existing, then no processing is done
-        C5PP = preprocessor.CMIP5Preprocessor(data_dir, output_file, 
+        C5PP = preprocessor.CMIP5Preprocessor(data_dir, output_file,
                                                 the_variable, model,
                                                 self.experiment,
                                                 institute=institute)
