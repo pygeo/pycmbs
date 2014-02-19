@@ -558,7 +558,7 @@ class CMIP5Data(Model):
             raise ValueError('Unknown model type! not supported here!')
 
         if not os.path.exists(filename1):
-            raise ValueError('WARNING file not existing: %s' % filename1)
+            print ('WARNING file not existing: %s' % filename1)
             return None
 
         #/// PREPROCESSING ///
