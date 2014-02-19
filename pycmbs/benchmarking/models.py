@@ -252,6 +252,7 @@ class MeanModel(Model):
             else:
                 if self.variables[k] is not None:
                     self.variables[k].mulc(1. / float(self.N[k]), copy=False)  # weight with number of models
+                    self.variables[k].label = 'ensmean_' + k
         self.ensmean_called = True
 
 #------------------------------------------------------------------------------

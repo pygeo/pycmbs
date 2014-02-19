@@ -1568,7 +1568,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_climatology(self, return_object=False, nmin=1, ensure_start_first=False):
+    def get_climatology(self, return_object=False, nmin=1, ensure_start_first=True):
         """
         calculate climatological mean for a time increment
         specified by self.time_cycle

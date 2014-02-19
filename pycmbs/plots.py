@@ -105,7 +105,7 @@ class HstackTimeseries(object):
     def get_n(self):
         return len(self.x.keys())
 
-    def add_data(self, x, id):
+    def add_data(self, x, id, raise_duplicate_error=True):
         """
         add data
 
@@ -115,6 +115,9 @@ class HstackTimeseries(object):
             array with data
         id : str
             identifier for dataset. Will be used for legend plotting
+        raise_duplicate_error : bool
+            raise error if a duplicate data key occurs. If False, then no
+            data will be added, but no error will be raised neither
         """
 
         if x.ndim != 1:
@@ -124,10 +127,14 @@ class HstackTimeseries(object):
             self.len = len(x)  # reference length
         else:
             if len(x) != self.len:
+                print len(x), self.len
                 raise ValueError('The geometry of add data needs to match!')
 
         if id in self.x.keys():
-            raise ValueError('ID already existing. This must not happen: %s' % id)
+            if raise_duplicate_error:
+                raise ValueError('ID already existing. This must not happen: %s' % id)
+            else:
+                return None
 
         self.x.update({id: x})  # store data for later plotting
 

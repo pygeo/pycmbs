@@ -593,6 +593,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     ####################################################################################################################
     # MAIN LIST OVER MODELS
     ####################################################################################################################
+
+
     for model in model_list:
         sys.stdout.write('\n *** %s Analysis of model: ' % (obs_type.upper()) + model.name + "\n")
 
@@ -643,9 +645,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             else:
                 tmp = model.variables[m_data_org][2]
                 tmp._apply_mask(actmask)
-                GM_HT_clim.add_data(tmp.fldmean(), model._unique_name)
-                print GM_HT_clim.x
-                stop
+                GM_HT_clim.add_data(tmp.get_climatology(return_object=True, ensure_start_first=True).fldmean(), model.name, raise_duplicate_error=False)
 
         if model_data is None:
             sys.stdout.write('Data not existing for model %s' % model.name)
@@ -759,7 +759,11 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             PC = PatternCorrelation(obs_orig, model_data)
             PC._correlate()
             # store data for final plot
-            PC_plot.add_data(PC.r_value, model_data.label)
+
+            print len(model_list)
+            print model_data.label
+            PC_plot.add_data(PC.r_value, model.name, raise_duplicate_error=True)
+            del PC
 
         if f_hovmoeller is True:
             print('    Doing Hovmoeller plot ...')
@@ -867,6 +871,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
             report.figure(PC_plot.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
             report.newpage()
+            del PC_plot
 
     del obs_monthly
 

@@ -239,14 +239,14 @@ class TestData(unittest.TestCase):
         self.assertTrue(np.all(d < 1.E-6))
 
         # ... same, but with object returned
-        c = x.get_climatology(return_object=True)
+        c = x.get_climatology(return_object=True, ensure_start_first=False)
         d = np.abs(1.-r/c.data)
         self.assertTrue(np.all(d < 1.E-6))
 
         # varying timecycles
         for time_cycle in [1,5,12,23]:
             x.time_cycle=time_cycle
-            c = x.get_climatology()
+            c = x.get_climatology(ensure_start_first=False)
             nt,ny,nx = x.shape
             r = np.zeros((time_cycle,ny,nx))
             n = np.zeros((time_cycle,ny,nx))
