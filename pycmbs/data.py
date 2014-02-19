@@ -1643,6 +1643,29 @@ class Data(object):
         else:
             return r.data
 
+
+    def _shift_time_start_firstdate(self):
+        """
+        shift dataset that the timeseries is ensured to be in ascending order
+        usefull e.g. if you have a climatology and this does not start with January
+        and you want to shif tit automatically
+        """
+
+        # search for point in timeseries where break occurs
+        di = np.diff(self.time)
+        m = di < 0.
+        if m.sum() == 0:
+            n=0
+        elif m.sum() == 1:  # a single breakpoint
+            n = m.argmax()+1  # position where the break in timeseries occurs
+        else:
+            raise ValueError('More than a single breakpoint found. Can not process this data as it is not in cyclic ascending order')
+
+        # shift data now
+        self.timeshift(n, shift_time=True)
+
+
+
 #-----------------------------------------------------------------------
 
     def get_deseasonalized_anomaly(self, base=None):

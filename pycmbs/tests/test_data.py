@@ -105,7 +105,6 @@ class TestData(unittest.TestCase):
         self.assertEqual(ny, 14+1)
         self.assertEqual(nx, 18+1)
 
-
     def test_timeshift(self):
         d = self.D.copy()
         r = d.timeshift(1, return_data=True)
@@ -113,7 +112,7 @@ class TestData(unittest.TestCase):
         self.assertEqual(d.data[0,0,0], r.data[-1,0,0])
         self.assertEqual(d.data[1,0,0], r.data[0,0,0])
         self.assertEqual(d.data[2,0,0], r.data[1,0,0])
-        # time remains unchanged ??
+        # time remains unchanged ?
         self.assertTrue(np.all(np.abs(1.- d.time / r.time) < 1.E-6))
 
 
@@ -124,7 +123,7 @@ class TestData(unittest.TestCase):
         self.assertEqual(d.data[0,0,0], r.data[-1,0,0])
         self.assertEqual(d.data[1,0,0], r.data[0,0,0])
         self.assertEqual(d.data[2,0,0], r.data[1,0,0])
-        # time also shifted?
+        # time also shifted ?
         self.assertEqual(d.time[0], r.time[-1])
         self.assertEqual(d.time[1], r.time[0])
         self.assertEqual(d.time[2], r.time[1])
@@ -138,7 +137,17 @@ class TestData(unittest.TestCase):
         self.assertEqual(ref.data[1,0,0], d.data[0,0,0])
         self.assertEqual(ref.data[2,0,0], d.data[1,0,0])
 
+    def test_shift_time_start_firstdate(self):
+        d = self.D.copy()
 
+        # shift data first to produce an invalid dataset
+        d.timeshift(2, shift_time=True)
+
+        # apply automatic correction
+        d._shift_time_start_firstdate()
+
+        self.assertTrue(np.all(np.abs(1. - d.time / self.D.time) < 1.E-6))
+        self.assertTrue(np.all(np.abs(1. - d.data / self.D.data) < 1.E-6))
 
     def test_timeshiftN0(self):
         d = self.D.copy()
