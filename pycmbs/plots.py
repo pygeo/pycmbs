@@ -140,7 +140,7 @@ class HstackTimeseries(object):
         self.x.update({id: x})  # store data for later plotting
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
-             cmap='jet', nclasses=10, title=None, **kwargs):
+             cmap='jet', nclasses=10, title=None, maxheight=1., **kwargs):
         """
         do final plotting
 
@@ -151,11 +151,36 @@ class HstackTimeseries(object):
         fontsize : int
             fontsize for labels e.g. for labeling the different
             datasets
+        vmin : float
+            minimum boundary for plot
+        vmax : float
+            maximum boundary for plot
+        cmap : str
+            colormap name
+        nclasses : int
+            number of classes for colorbar
+        title : str
+            figure title
+        maxheight : float
+            maximum height of an axis in units of figure size
         """
+
+        self.cb_bottom = 0.05
+        self.cb_height = 0.05
+
         self.top = 0.9
-        self.bottom = 0.3
+        self.bottom = self.cb_bottom + self.cb_height*2.
         self.left = 0.2
         self.right = 0.9
+        self.maxheight = maxheight
+
+        if self.top < self.bottom:
+            raise ValueError('Invalid options')
+        if self.right < self.left:
+            raise ValueError('Invalid options')
+        if self.maxheight <= 0.:
+            raise ValueError('maxheight must not be smaller or equal zero : %s' % self.maxheight)
+
 
         self.cmap = plt.cm.get_cmap(cmap, nclasses)
         self.fontsize = fontsize
@@ -174,7 +199,7 @@ class HstackTimeseries(object):
         keys = self.x.keys()
         keys.sort()
         for i in xrange(n):
-            ax = self._add_axes(i)
+            ax = self._add_axes(i+1)
             self.im = ax.imshow(np.asarray([self.x[keys[i]]]),
                                 aspect='auto', vmin=vmin, vmax=vmax,
                                 cmap=self.cmap, **kwargs)
@@ -192,8 +217,8 @@ class HstackTimeseries(object):
 
     def _add_axes(self, n):
         """ add a single axis """
-        height = (self.top - self.bottom) / float(self.get_n() - 1)
-        print height
+        height = (self.top - self.bottom) / float(self.get_n())
+        height = min(height, self.maxheight)
         width = self.right - self.left
         ax = self.figure.add_axes([self.left, self.bottom + (n - 1) * height, width, height])
         return ax
@@ -211,8 +236,8 @@ class HstackTimeseries(object):
             raise ValueError('FATAL ERROR: no image object available!')
 
         width = self.right - self.left
-        height = 0.05
-        cax = self.figure.add_axes([self.left, 0.05, width, height])
+        height = self.cb_height
+        cax = self.figure.add_axes([self.left, self.cb_bottom, width, height])
         norm = mpl.colors.Normalize(vmin=self.im.get_clim()[0],
                                     vmax=self.im.get_clim()[1])
         cb = mpl.colorbar.ColorbarBase(cax, cmap=self.cmap, norm=norm,
