@@ -1623,22 +1623,25 @@ class Data(object):
         clim = np.ma.array(clim, mask=(np.isnan(clim) | (n < nmin) | np.isnan(n)))
         del n
 
-        if return_object:
-            r = self.copy()
-            r.label += ' - climatology'
-            r.data = clim
-            r.time = []
-            for i in xrange(self.time_cycle):
-                r.time.append(self.time[i])
-            r.time = np.asarray(r.time)
+        # create a data object
+        r = self.copy()
+        r.label += ' - climatology'
+        r.data = clim
+        r.time = []
+        for i in xrange(self.time_cycle):
+            r.time.append(self.time[i])  # use data for the first timesteps
+        r.time = np.asarray(r.time)
+        r.adjust_time(year=1200)  # set some arbitrary time
 
-            if len(r.time) != len(r.data):
-                print len(r.time)
-                print len(r.data)
-                raise ValueError('Data and time are inconsistent in get_climatology()')
+        if len(r.time) != len(r.data):
+            print len(r.time)
+            print len(r.data)
+            raise ValueError('Data and time are inconsistent in get_climatology()')
+
+        if return_object:
             return r
         else:
-            return clim
+            return r.data
 
 #-----------------------------------------------------------------------
 
@@ -3686,7 +3689,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def timeshift(self, n, return_data=False):
+    def timeshift(self, n, return_data=False, shift_time=False):
         """
         shift data in time by n-steps
         positive numbers mean, that the
@@ -3702,11 +3705,15 @@ class Data(object):
         ----------
         n : int
             lag to shift data (n>=0)
+        shift_time : bool
+            shioft also timevector
 
         return_data : bool
             specifies if a NEW C{Data} object shall be returned
 
-        # TODO support for n < 0
+        Tests
+        -----
+        unittests implemented
         """
 
         if n == 0:
@@ -3716,20 +3723,23 @@ class Data(object):
         if self.data.ndim != 3:
             raise ValueError('array of size [time,ny,nx] is needed for temporal shifting!')
 
-        #--- copy data
+        # copy data
         tmp = self.data.copy()
 
-        #--- generate output
-        if return_data:  # ... a new data object is returned
+        if return_data:
             res = self.copy()
-            res.data[:, :, :] = np.nan
-            res.data[:-n:, :, :] = tmp[n:, :, :]
-            res.data[-n:, :, :] = tmp[0:n, :, :]
+        else:
+            res = self
+
+        res.data[:, :, :] = np.nan
+        res.data[:-n:, :, :] = tmp[n:, :, :]
+        res.data[-n:, :, :] = tmp[0:n, :, :]
+        res.data = np.ma.array(res.data, mask=np.isnan(res.data))
+
+
+        if return_data:
             return res
-        else:  # ... the data object is changed
-            self.data[:, :, :] = np.nan
-            self.data[:-n:, :, :] = tmp[n:, :, :]
-            self.data[-n:, :, :] = tmp[0:n, :, :]
+        else:
             return None
 
 #-----------------------------------------------------------------------
