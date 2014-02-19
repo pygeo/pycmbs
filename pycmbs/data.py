@@ -1568,7 +1568,7 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def get_climatology(self, return_object=False, nmin=1):
+    def get_climatology(self, return_object=False, nmin=1, ensure_start_first=False):
         """
         calculate climatological mean for a time increment
         specified by self.time_cycle
@@ -1585,6 +1585,12 @@ class Data(object):
         nmin : int
             specifies the minimum number of datasets used for
             climatology; else the result is masked
+        ensure_start_first : bool
+            ensure that the timeseries of the resulting climatology
+            always starts with the first date. If you have e.g.
+            a datasets that starts with dates in March, then also the
+            climatology will start in March. Using this option will
+            ensure that the climatology will then start in January
 
         Tests
         -----
@@ -1637,6 +1643,9 @@ class Data(object):
             print len(r.time)
             print len(r.data)
             raise ValueError('Data and time are inconsistent in get_climatology()')
+
+        if ensure_start_first:
+            r._shift_time_start_firstdate()
 
         if return_object:
             return r

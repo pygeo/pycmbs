@@ -644,6 +644,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                 tmp = model.variables[m_data_org][2]
                 tmp._apply_mask(actmask)
                 GM_HT_clim.add_data(tmp.fldmean(), model._unique_name)
+                print GM_HT_clim.x
+                stop
 
         if model_data is None:
             sys.stdout.write('Data not existing for model %s' % model.name)
