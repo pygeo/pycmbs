@@ -62,11 +62,12 @@ def thin_xticks(ax, n):
     If there are too many xticks in a plot or the labels
     are overlapping, it makes sense to thin the mńumber of labels
 
-    @param ax: axis that will be treated
-    @type ax: matplotlib axis
-
-    @param n: number of ticks to plot
-    @type n: int
+    Parameters
+    ----------
+    ax : axis
+        axis that will be treated
+    n : int
+        number of ticks to plot
     """
     ax.xaxis.set_major_locator(MaxNLocator(n + 1))
 
