@@ -3,7 +3,7 @@ from unittest import TestCase
 
 
 from pycmbs.data import Data
-from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis
+from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, EOF
 from pycmbs.plots import GlecklerPlot
 from pycmbs.region import Region
 import scipy as sc
@@ -15,7 +15,7 @@ class TestData(TestCase):
 
     def setUp(self):
         # init Data object for testing
-        n=1000  # slows down significantly! constraint is percentile  test
+        n=100  # slows down significantly! constraint is percentile  test
         x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
         d=np.ones((n, 1, 1))
@@ -31,6 +31,7 @@ class TestData(TestCase):
         self.D.time = np.arange(n) + pl.datestr2num('2001-01-01') - 1
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
+        self.D.cell_area = np.ones_like(self.D.data[0,:,:])
 
 
     @unittest.skip('wait for bug free scipy')
@@ -229,6 +230,20 @@ class TestData(TestCase):
             R = RegionalAnalysis(x, y, region)
 
 
+    def test_EOF(self):
+        x = np.random.random((self.D.nt, 20, 30))
+        self.D.data = np.ma.array(x, mask=x != x)
+        self.D.cell_area = np.ones_like(self.D.data[0,:,:])
+        E = EOF(self.D)
+        r = E.reconstruct_data()
+        c = E.get_correlation_matrix()
+        E.get_eof_data_correlation()
+        #~ E.plot_channnel_correlations(100000)   #slow!!
+        E.plot_eof_coefficients(None, all=True)
+        E._calc_anomalies()
+
+
+        #~ E.plot_EOF(None, all=True)
 
 
 

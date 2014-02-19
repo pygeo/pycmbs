@@ -4,13 +4,6 @@ Roadmap for pycmbs release on github
 github move
 -----------
 
-* [MI] familiarize with github tools for code deployment
-* [MI] Jenkins integration? check whihc options for automatic code testing,
-  coverage testing and testing for different environments are possible
-  * ** MI: ** Jenkins require our own running server. For publically available github projects
-    there is [coveralls.io][http://coveralls.io] for unittests and coverage, 
-    and [travis-ci.org](http://travis-ci.org) service builds the software and uploads it to pip.
-  
 * set metadata attrributes in __init__.py
 
 
@@ -18,7 +11,6 @@ github move
 
 * deployment using pip (information also using testing server can be found
   here: https://pypi.python.org/pypi
-* generation of tagged versions?
 * adapt ZMAW WIKI
 
 Code clean up and completion
@@ -26,10 +18,10 @@ Code clean up and completion
 
 ### Prio 1
 
+* [MI] ensure that all files have conssitent file header with link to copyright
+* file
 * Remove machine/user specific information (.cfg, .ini, etc), use/develop sample config generator
-* [MI] unittests for large parts of the code (at least as dummy tests)
-* objective of tests: avoid that there are still too much not working code
-  parts because of missing import statements (not everything covered yet by tests)
+* [MI] unittests for benchmarking
 * put example data as TARBALL somewhere for download
  * data required for testing
  * data required for examples (note that this can also be automatically
