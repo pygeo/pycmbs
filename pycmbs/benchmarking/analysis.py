@@ -864,7 +864,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     # final plotting
     if f_pattern_correlation:
         if PC_plot.get_n() > 0:
-            PC_plot.plot(cmap='RdBu_r', interpolation='nearest', vmin=-1., vmax=1., nclasses=32)
+            PC_plot.plot(cmap='YlOrRd', interpolation='nearest', vmin=0., vmax=1., nclasses=10)
             PC_plot.figure.suptitle('Pattern correlation: ' + obs_orig.label.upper())
 
             report.figure(PC_plot.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
