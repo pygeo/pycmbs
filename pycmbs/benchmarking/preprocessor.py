@@ -53,7 +53,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
     has been removed from the overall path.
     """
     def __init__(self, data_dir, outfile, variable, model, experiment,
-                  mip='Amon', realm='atmos', institute=None):
+                 mip='Amon', realm='atmos', institute=None):
         super(CMIP5Preprocessor, self).__init__(data_dir, outfile)
         if institute is None:
             raise ValueError('An institute name needs to be provided!')
@@ -115,7 +115,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         fstr = self._filelist(ens_files)
 
         # output file
-        ofile = self.output_dir + os.path.basename(ens_files[0]).split('r'+str(n)+'i1p1')[0] + 'r' + str(n) + 'i1p1' + '_mergetime.nc'
+        ofile = self.output_dir + os.path.basename(ens_files[0]).split('r' + str(n) + 'i1p1')[0] + 'r' + str(n) + 'i1p1' + '_mergetime.nc'
 
         if start_time is not None:
             ofile += '_' + str(start_time)[0:10] + '_' + str(stop_time)[0:10]
@@ -172,7 +172,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         # create filelist for each ensemble
         res = {}
         cnt = 0
-        for i in xrange(1, maxens+1):
+        for i in xrange(1, maxens + 1):
             w1 = self._get_file_wildcard(i)
             files = glob.glob(w1)
             cnt += len(files)
@@ -296,8 +296,3 @@ class CMIP5ModelParser(object):
         returns True if all files are existing, otherwise it returns False
         """
         raise ValueError('This functionality is not implemented yet!')
-
-
-
-
-

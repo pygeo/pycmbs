@@ -537,7 +537,6 @@ class CMIP5Data(Model):
         b) global mean timeseries for SIS at original temporal resolution
         """
 
-
         the_variable = 'rsds'
 
         locdict = kwargs[self.type]
@@ -660,7 +659,7 @@ class CMIP5Data(Model):
             raise ValueError('Stop time needs to be specified')
 
         if not os.path.exists(filename1):
-            print ('WARNING file not existing: %s' % filename1 )
+            print ('WARNING file not existing: %s' % filename1)
             return None
 
         # PREPROCESSING
@@ -845,17 +844,14 @@ class CMIP5RAWData(CMIP5Data):
         # do preprocessing of data from multiple ensembles if file
         # already existing, then no processing is done
         C5PP = preprocessor.CMIP5Preprocessor(data_dir, output_file,
-                                                the_variable, model,
-                                                self.experiment,
-                                                institute=institute)
+                                              the_variable, model,
+                                              self.experiment,
+                                              institute=institute)
         res_file = C5PP.ensemble_mean(delete=False,
-                                        start_time=self.start_time,
-                                        stop_time=self.stop_time)
+                                      start_time=self.start_time,
+                                      stop_time=self.stop_time)
 
         return res_file
-
-
-
 
     def xxxx_preprocess_times(self, filename, delete=False):
         """
