@@ -58,6 +58,36 @@ class TestData(unittest.TestCase):
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
 
+    def test_get_time_indices_startNone(self):
+        d2 = pl.num2date(pl.datestr2num('2001-05-05'))
+        self.D._oldtime = True
+        i1, i2 = self.D._get_time_indices(None, d2)
+        s1 = str(pl.num2date(self.D.time[i1]))
+        ref1 = str(pl.num2date(self.D.time[0]))
+        s2 = str(pl.num2date(self.D.time[i2]))
+        self.assertEqual(s1,ref1)
+        self.assertEqual(s2,'2001-05-05 00:00:00+00:00')
+
+    def test_get_time_indices_stopNone(self):
+        d1 = pl.num2date(pl.datestr2num('2001-01-05'))
+        self.D._oldtime = True
+        i1, i2 = self.D._get_time_indices(d1, None)
+        s1 = str(pl.num2date(self.D.time[i1]))
+        s2 = str(pl.num2date(self.D.time[i2]))
+        ref2 = str(pl.num2date(self.D.time[-1]))
+        self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
+        self.assertEqual(s2,ref2)
+
+
+    def test_get_time_indices_InvalidSwappedDates(self):
+        d1 = pl.num2date(pl.datestr2num('2001-01-05'))
+        d2 = pl.num2date(pl.datestr2num('2001-05-05'))
+        self.D._oldtime = True
+        with self.assertRaises(ValueError):
+            i1,i2 = self.D._get_time_indices(d2,d1)  # not that this is swapped
+
+
+
     def test_get_time_indices_InvalidDates(self):
         i1, i2 = self.D._get_time_indices(None, None)
         self.assertEqual(i1, 0)
@@ -1420,6 +1450,11 @@ class TestData(unittest.TestCase):
         x.data = np.random.random((10,20,30,40))
         with self.assertRaises(ValueError):
             x._temporal_subsetting(2, 5)
+
+    def test_temporal_subsettingInvalidIndices(self):
+        x = self.D.copy()
+        with self.assertRaises(ValueError):
+            x._temporal_subsetting(5, 2)
 
     def test_apply_temporal_subsetting(self):
         # checks only if the right time is subsetted
