@@ -606,7 +606,9 @@ def main():
                caption='Gleckler et al. (2008) model performance index',
                width='10cm')
 
-    #/// legend for gleckler plot ///
+
+    # generate dictionary with observation labels for each variable
+    labels_dict = {}
     for variable in variables:
         if variable not in PCFG.options.keys():
             continue
@@ -621,6 +623,15 @@ def main():
                 if varoptions[k]['add_to_report']:
                     # generate dictionary for GlecklerPLot legend
                     thelabels.update({int(varoptions[k]['gleckler_position']): k})
+        labels_dict.update({variable : thelabels})
+        del thelabels
+
+    #/// legend for gleckler plot ///
+    for variable in variables:
+        if variable not in PCFG.options.keys():
+            continue
+        varoptions = PCFG.options[variable]
+        thelabels = labels_dict[variable]
         fl = global_gleckler._draw_legend(thelabels, title=variable.upper())
         rep.figure(fl, width='8cm', bbox_inches=None)
         del fl
@@ -629,7 +640,7 @@ def main():
     rep.subsection('Model ranking consistency')
     for v in global_gleckler.variables:
         rep.subsubsection(v.upper())
-        tmpfig = global_gleckler.plot_model_ranking(v, show_text=True, obslabels=thelabels)
+        tmpfig = global_gleckler.plot_model_ranking(v, show_text=True, obslabels=labels_dict[v])
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model RANKING for different observational \
                    datasets: ' + v.upper())
@@ -638,12 +649,12 @@ def main():
         # write a table with model ranking
         tmp_filename = outdir + 'ranking_table_' + v + '.tex'
         rep.open_table()
-        global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex', obslabels=thelabels)
+        global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex', obslabels=labels_dict[v])
         rep.input(tmp_filename)
         rep.close_table(caption='Model rankings for variable ' + v.upper())
 
         # plot absolute model error
-        tmpfig = global_gleckler.plot_model_error(v, obslabels=thelabels)
+        tmpfig = global_gleckler.plot_model_error(v, obslabels=labels_dict[v])
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model ERROR for different observational \
                    datasets: ' + v.upper())

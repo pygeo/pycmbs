@@ -140,7 +140,7 @@ class HstackTimeseries(object):
         self.x.update({id: x})  # store data for later plotting
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
-             cmap='jet', nclasses=10, title=None, maxheight=1., **kwargs):
+             cmap='jet', nclasses=10, title=None, maxheight=1., auto_adjust=False, **kwargs):
         """
         do final plotting
 
@@ -163,6 +163,8 @@ class HstackTimeseries(object):
             figure title
         maxheight : float
             maximum height of an axis in units of figure size
+        auto_adjust : bool
+            try to autoadjust the figure height
         """
 
         self.cb_bottom = 0.05
@@ -190,7 +192,10 @@ class HstackTimeseries(object):
             raise ValueError('vmax needs to be specified!')
 
         if figure is None:
-            self.figure = plt.figure(figsize=self._calc_figure_size())
+            if auto_adjust:
+                self.figure = plt.figure(figsize=self._calc_figure_size())
+            else:
+                self.figure = plt.figure()
         else:
             self.figure = figure
 
@@ -871,14 +876,14 @@ class GlobalMeanPlot(object):
 
     def __init__(self, ax=None, climatology=True, ax1=None):
         """
-        @param ax: specifies axis to plot the data to
-        @type ax: axis
-
-        @param ax1: specifies axis for second plopt (only used when climatology==True)
-        @type ax1: axis
-
-        @param climatology: specifies if a second plot for a climatological mean value shall be generated
-        @type climatology: bool
+        Parameters
+        ----------
+        ax : axis
+            specifies axis to plot the data to
+        ax1 : axis
+            specifies axis for second plopt (only used when climatology==True)
+        climatology : bool
+            specifies if a second plot for a climatological mean value shall be generated
         """
 
         if climatology:
@@ -889,7 +894,7 @@ class GlobalMeanPlot(object):
         self.nplots = nplots
 
         if ax is None:
-            #--- create new figure if needed
+            # create new figure if needed
             f = plt.figure()
             self.ax = f.add_subplot(nplots, 1, 1)
             if self.climatology:
@@ -954,7 +959,6 @@ class GlobalMeanPlot(object):
         ax = f.add_subplot(111)
         if plot_clim:
             pdata = self.pdata_clim
-            #~ print('GlobalMeanPlot climdata: %s ' % pdata)
         else:
             pdata = self.pdata
 
