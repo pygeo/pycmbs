@@ -187,7 +187,6 @@ class TestData(unittest.TestCase):
         self.assertEqual(d._oldtimeoffset(), 1.)
 
 
-
     def test_get_temporal_mask(self):
         x = self.D.copy()
 
@@ -206,6 +205,12 @@ class TestData(unittest.TestCase):
         d = x.date[ym]
         for t in d:
             self.assertTrue(t.year in [2003])
+
+    def test_get_temporal_mask_InvalidOption(self):
+        x = self.D.copy()
+        with self.assertRaises(ValueError):
+            mm = x.get_temporal_mask([1,5,11], mtype='nixtype')
+
 
     def test__get_date_from_month(self):
         x = self.D.copy()
@@ -226,6 +231,14 @@ class TestData(unittest.TestCase):
         self.assertEqual(d1.year,1988)
         self.assertEqual(d1.month,5)
         self.assertEqual(d1.day,22)
+
+    def test_get_climatology_InvalidGeometry(self):
+        x = self.D.copy()
+        x.data = np.random.random((2,3,4,5))
+        x.time_cycle = 1
+        with self.assertRaises(ValueError):
+            c = x.get_climatology()
+
 
 
     def test_get_climatology(self):
@@ -424,6 +437,14 @@ class TestData(unittest.TestCase):
         r,p = self.D.correlate(self.D, pthres=1.01) #1) correlation with itself (returns data objects)
         self.assertEqual(r.data[0,0], 1.)
         self.assertEqual(p.data[0,0], 0.)
+
+    def test_correlate_normalize(self):
+        # TODO check validity
+        r,p = self.D.correlate(self.D, pthres=1.01, detrend=True)
+
+    def test_correlate_spearman(self):
+        # TODO check validity
+        r,p = self.D.correlate(self.D, pthres=1.01, spearman=True)
 
     def test_correlate_WithInvalidGeometries(self):
         x = self.D.copy()
