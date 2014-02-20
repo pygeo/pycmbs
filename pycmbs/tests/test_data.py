@@ -261,6 +261,29 @@ class TestData(unittest.TestCase):
             d = np.abs(1.-res/c)
             self.assertTrue(np.all(d < 1.E-6))
 
+    def test_get_climatology_InvalidTimecycle(self):
+        d = self.D.copy()
+        if hasattr(d, 'time_cycle'):
+            del d.time_cycle
+        with self.assertRaises(ValueError):
+            d.get_climatology()
+
+    def test_get_deseasonalized_anomalyCurrent(self):
+        # TODO check not only that it runs but also results
+        d = self.D.copy()
+        d.time_cycle = 1
+        d.get_deseasonalized_anomaly(base='current')
+
+    def test_get_deseasonalized_anomalyAll(self):
+        # TODO check not only that it runs but also results
+        d = self.D.copy()
+        d.time_cycle = 1
+        d.get_deseasonalized_anomaly(base='all')
+
+    def test_get_deseasonalized_anomalyInvalidBase(self):
+        d = self.D.copy()
+        with self.assertRaises(ValueError):
+            d.get_deseasonalized_anomaly(base='nixbase')
 
     def test_set_valid_range(self):
         x = self.D.copy()
@@ -299,6 +322,13 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             x.detrend()
 
+
+    def test_cut_bounding_box_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data = np.random.random((2,3,4,5))
+        with self.assertRaises(ValueError):
+            y = d.cut_bounding_box(return_object=True)
+
     def test_cut_bounding_box(self):
         x = self.D.copy()
         # sample data with invalid boundaries
@@ -330,7 +360,7 @@ class TestData(unittest.TestCase):
         y = self.D.copy()
         y.data += 3.
         c = x.add(y)
-        self.assertEqual(c.data[0,0,0], x.data[0,0,0]*2.+3.)
+        self.assertTrue( np.all(np.abs(1.- c.data[0,0,0] / (x.data[0,0,0]*2.+3.)) < 1.E-6))
         self.assertEqual(c.data[100,0,0], x.data[100,0,0]*2.+3.)
 
     def test_sub(self):
@@ -406,7 +436,7 @@ class TestData(unittest.TestCase):
         d = self.D
         d.time_str = 'some_invalid_str'
         with self.assertRaises(ValueError):
-            d._get_date_form_month(10)
+            d._get_date_from_month(10)
 
     def test_set_time(self):
         # NB: num2date gives number of days PLUS one (see num2date docstring)
@@ -414,6 +444,20 @@ class TestData(unittest.TestCase):
         self.D.time = np.array([1.])
         self.D.set_time()
         self.assertEqual(self.D.time[0],1.)
+
+
+    def test_mesh_latlon_vector(self):
+        d = self.D.copy()
+        lon = np.arange(-180., 180.).astype('float')
+        lat = np.arange(-90., 90.).astype('float')
+        d.lon = lon
+        d.lat = lat
+        d._mesh_lat_lon()
+
+        self.assertEqual(d.lon.shape, (180, 360))
+        self.assertTrue(np.all(d.lon[5,:] - lon == 0.))
+        self.assertTrue(np.all(d.lat[:,5] - lat == 0.))
+
 
     def testTemporalTrendNoTimeNormalization(self):
         y = np.arange(len(self.D.time))*2.+8.
@@ -720,53 +764,54 @@ class TestData(unittest.TestCase):
         self.assertEqual(x._get_mindate(base='year').month, 1)
 
 
+    def test_timsort_InvalidTime(self):
+        d = self.D.copy()
+        d.time = None
+        with self.assertRaises(ValueError):
+            d.timsort()
 
-
-
+    def test_timsort_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data = np.random.random((2,3,4,5))
+        with self.assertRaises(ValueError):
+            d.timsort()
 
     def test_timsort(self):
         D=self.D.copy()
         D.adjust_time(day=15)
 
-        #- generate some sample data
+        # generate some sample data
         D.time = pl.datestr2num('2001-05-03') + np.arange(5)
         D.data = D.data[0:5,:,:]
         D.data[:,0,0] = np.arange(5)
-
         D.std = D.data.copy()+2.2
 
+        # reshuffle the data
+        t1=D.time[1]*1.
+        t2=D.time[3]*1.
+        D.time[3] = t1
+        D.time[1] = t2
 
-        #- reshuffle the data
-        t1=D.time[1]*1.; t2=D.time[3]*1.
-        D.time[3] = t1; D.time[1] = t2
-
-        #save reference solutions before sorting
+        # save reference solutions before sorting
         y = D.data[:,0,0]*1.
         t = D.time*1.
-
         s = np.argsort(t)
         y1 = y[s]
 
-        #print 'Time BEFORE sorting: ', D.time
-        #print 'Data BEFORE sorting: ', D.data[:,0,0]
-
-
-        #sort data
+        # sort data
         D.timsort()
+        R = D.timsort(return_object=True)
 
-
-        #print 'Time AFTER sorting: ', D.time
-        #print 'Data AFTER sorting: ', D.data[:,0,0]
-        #print '                    ', y1
-
-        #/// checks
-
-        #a) check if time is sorted
+        # a) check if time is sorted
         self.assertTrue(np.all(np.diff(D.time) > 0))
+        self.assertTrue(np.all(np.diff(R.time) > 0))
 
-        #b) check if data was sorted also appropriately
-        self.assertTrue(   np.all(y1-D.data[:,0,0]) == 0.   )
-        self.assertTrue(   np.all(y1+2.2-D.std [:,0,0]) == 0.   )
+        # b) check if data was sorted also appropriately
+        self.assertTrue(np.all(y1-D.data[:,0,0]) == 0.)
+        self.assertTrue(np.all(y1-R.data[:,0,0]) == 0.)
+
+        self.assertTrue(np.all(y1+2.2-D.std [:,0,0]) == 0.)
+        self.assertTrue(np.all(y1+2.2-R.std [:,0,0]) == 0.)
 
 
     @unittest.skip('wait for bugfree scipy')
@@ -1095,6 +1140,25 @@ class TestData(unittest.TestCase):
         D.lon[1,:] = x
         self.assertTrue(D._equal_lon())
 
+    def test_equal_lon_1D(self):
+        D = self.D.copy()
+        D.lon=np.arange(10)
+        self.assertTrue(D._equal_lon())
+
+    def test_equal_lon_InvalidGeometry(self):
+        D = self.D.copy()
+        D.lon=np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            self.assertTrue(D._equal_lon())
+
+    def test__get_unique_lon_1D(self):
+        D = self.D.copy()
+        D.lon=np.arange(10).astype('float')
+        r = D._get_unique_lon()
+
+        print r - D.lon
+        self.assertTrue(np.all( r - D.lon == 0.))
+
     def test__get_unique_lon(self):
         D = self.D.copy()
         # equal longitudes
@@ -1360,6 +1424,14 @@ class TestData(unittest.TestCase):
         m[1] = True; m[5]=True
         D._apply_temporal_mask(m)
 
+    def test_apply_temporal_mask_InvalidGeometry(self):
+        D=self.D.copy()
+        D.data = np.random.random((10,20,30,40))
+        with self.assertRaises(ValueError):
+            m = np.zeros(len(D.data)).astype('bool')
+            m[1] = True; m[5]=True
+            D._apply_temporal_mask(m)
+
     def test_bounding_box(self):
         D = self.D.copy()
         D.data = np.ma.array(pl.rand(10,5,8),mask=np.zeros((10,5,8)).astype('bool'))
@@ -1376,6 +1448,25 @@ class TestData(unittest.TestCase):
         self.assertEqual(i2,3)
         self.assertEqual(j1,1)
         self.assertEqual(j2,6)
+
+    def test_fldmean_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data = np.random.random((2,3,4,5))
+        with self.assertRaises(ValueError):
+            d.fldmean()
+
+    def test_fldstd_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data = np.random.random((2,3,4,5))
+        with self.assertRaises(ValueError):
+            d.fldstd()
+
+    def test_fldstd_Invalid_ddof(self):
+        x = self.D.copy()
+        with self.assertRaises(ValueError):
+            x.fldstd(ddof=1)
+        with self.assertRaises(ValueError):
+            x.fldstd(ddof=10)
 
     @unittest.skip('wait for bug free scipy')
     def test_fldmean(self):
@@ -1939,12 +2030,23 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             x.hp_filter(100, return_object=True)
 
+    def test_hp_filter(self):
+        # TODO check also validity
+        x = self.D.copy()
+        x.hp_filter(100, return_object=True)
+
 
     def test_areasum_InvalidGeometry(self):
         x = self.D.copy()
         x.data = np.random.random((10,20,30,40))
         with self.assertRaises(ValueError):
             x.areasum()
+
+    def test_get_label_Empty(self):
+        d = self.D.copy()
+        del d.label
+        s = d._get_label()
+        self.assertTrue(s == '')
 
 if __name__ == '__main__':
     unittest.main()
