@@ -2048,5 +2048,59 @@ class TestData(unittest.TestCase):
         s = d._get_label()
         self.assertTrue(s == '')
 
+
+    def test_shift_lon(self):
+        d = self.D.copy()
+
+        d.lon = np.asarray([170.])
+        d._shift_lon()
+        self.assertEqual(d.lon[0], 170.)
+
+        d.lon = np.asarray([0.])
+        d._shift_lon()
+        self.assertEqual(d.lon[0], 0.)
+
+        d.lon = np.asarray([180.])
+        d._shift_lon()
+        self.assertEqual(d.lon[0], -180.)
+
+        d.lon = np.asarray([190.])
+        d._shift_lon()
+        self.assertEqual(d.lon[0], -170.)
+
+        d.lon = np.asarray([360.])
+        d._shift_lon()
+        self.assertEqual(d.lon[0], 0.)
+
+        self.assertFalse(d._lon360)
+
+
+    def test_shift_lon_360(self):
+        d = self.D.copy()
+
+        d.lon = np.asarray([170.])
+        d._shift_lon_360()
+        self.assertEqual(d.lon[0], 170.)
+
+        d.lon = np.asarray([0.])
+        d._shift_lon_360()
+        self.assertEqual(d.lon[0], 0.)
+
+        d.lon = np.asarray([-180.])
+        d._shift_lon_360()
+        self.assertEqual(d.lon[0], 180.)
+
+        d.lon = np.asarray([-170.])
+        d._shift_lon_360()
+        self.assertEqual(d.lon[0], 190.)
+
+        self.assertTrue(d._lon360)
+
+
+
+
+
+
+
 if __name__ == '__main__':
     unittest.main()
