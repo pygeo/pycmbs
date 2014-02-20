@@ -141,7 +141,7 @@ class HstackTimeseries(object):
         self.x.update({id: x})  # store data for later plotting
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
-             cmap='jet', nclasses=10, title=None, maxheight=1., auto_adjust=False, **kwargs):
+             cmap='jet', nclasses=10, title=None, maxheight=1., auto_adjust=False, monthly_clim_ticks=False, **kwargs):
         """
         do final plotting
 
@@ -166,6 +166,8 @@ class HstackTimeseries(object):
             maximum height of an axis in units of figure size
         auto_adjust : bool
             try to autoadjust the figure height
+        monthly_ticks : bool
+            if monthly ticks are given
         """
 
         self.cb_bottom = 0.05
@@ -186,6 +188,11 @@ class HstackTimeseries(object):
 
         self.cmap = plt.cm.get_cmap(cmap, nclasses)
         self.fontsize = fontsize
+
+        if monthly_clim_ticks:
+            for k in self.x.keys():
+                if len(self.x[k]) != 12:
+                    raise ValueError('Monthly ticks only supported for climatological means at the moment')
 
         if vmin is None:
             raise ValueError('vmin needs to be specified!')
@@ -211,6 +218,8 @@ class HstackTimeseries(object):
             ax.set_ylabel(keys[i], fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='right', verticalalignment='center')
             if i == 0:
                 self._set_axis_prop(ax, remove_xticks=False)
+                if monthly_clim_ticks:
+                    self._set_monthly_xtick_labels(ax)
             else:
                 self._set_axis_prop(ax)
 
@@ -219,6 +228,12 @@ class HstackTimeseries(object):
 
         if title is not None:
             self.figure.suptitle(title)
+
+    def _set_monthly_xtick_labels(self, ax):
+        labels = ['J','F','M','A','M','J','J','A','S','O','N','D']
+        ticks = np.arange(12)
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(labels, rotation=0.)
 
     def _calc_figure_size(self):
         """ calculate optimum size of figure """
