@@ -51,6 +51,7 @@ import os
 
 
 from pycmbs.data import Data
+from pycmbs.hov import hovmoeller
 
 #-----------------------------------------------------------------------
 
@@ -332,7 +333,7 @@ class HovmoellerPlot(object):
         value(time,ny,nx)
         """
         if ax is None:
-            self.figure = pl.figure(figsize=figsize)
+            self.figure = plt.figure(figsize=figsize)
             self.ax = self.figure.add_subplot(111)
         else:
             self.ax = ax

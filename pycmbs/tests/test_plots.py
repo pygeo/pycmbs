@@ -5,7 +5,7 @@ from pycmbs import plots
 from pycmbs.data import Data
 from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, ZonalPlot
 from pycmbs.plots import map_difference, map_season, GlecklerPlot
-from pycmbs.plots import xx_map_plot, HstackTimeseries
+from pycmbs.plots import xx_map_plot, HstackTimeseries, HovmoellerPlot
 
 import scipy
 import os
@@ -122,9 +122,6 @@ class TestPycmbsPlots(unittest.TestCase):
         G.add_data('P', 'mpi-esm',-0.25,pos=4)
         G.plot()
 
-
-
-
     def test_GlecklerPlot(self):
         G = GlecklerPlot()
         G.add_model('echam5')
@@ -160,6 +157,12 @@ class TestPycmbsPlots(unittest.TestCase):
             HT.add_data(x, 'model' + str(i).zfill(3) )
         HT.plot(cmap='RdBu_r', interpolation='nearest', vmin=-1., vmax=1., nclasses=15, title='Testtitle')
 
+
+    def test_Hovmoeller(self):
+        H = HovmoellerPlot(self.D)
+        with self.assertRaises(ValueError):
+            H.plot()
+        H.plot(climits=[0., 1.])
 
 
 

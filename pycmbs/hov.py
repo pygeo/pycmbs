@@ -1,36 +1,16 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
-'''
-# Copyright (C) 2012 Alexander Loew, alexander.loew@mpimet.mpg.de
-# See COPYING file for copying and redistribution conditions.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-'''
-
-
-'''
+"""
 HOVMOELLER CLASS
 class to generate hovmoeller diagrams
-'''
+"""
 
 #from pylab import *
-import pylab as pl
+import matplotlib.pylab as pl
 import matplotlib.dates as mdates
 import sys
 import matplotlib.pyplot as pyplot
+import numpy as np
 #from plots import add_nice_legend
 
 
@@ -94,13 +74,13 @@ def generate_monthly_timeseries(t, sday='01'):
     """
 
     tn = []
-    d = num2date(t)
+    d = pl.num2date(t)
     for i in range(len(t)):
         y = str(d[i].year).zfill(4)
         m = str(d[i].month).zfill(2)
         s = y + '-' + m + '-' + sday
 
-        tn.append(datestr2num(s))
+        tn.append(pl.datestr2num(s))
 
     return tn
 
@@ -187,9 +167,9 @@ class hovmoeller:
         self.transpose = transpose
         ntim = len(self.time)
 
-        t = date2num(time)
-        self.t_min = num2date(floor(t.min()))
-        self.t_max = num2date(ceil(t.max()))
+        t = pl.date2num(time)
+        self.t_min = pl.num2date(np.floor(t.min()))
+        self.t_max = pl.num2date(np.ceil(t.max()))
 
         if value is not None:
             self.value = value.copy()
@@ -312,22 +292,22 @@ class hovmoeller:
 
                 #/// monthly ticks ///
                 data_days = generate_monthly_timeseries(pl.date2num(input1.date))  # convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
-                all_days = unique(data_days)
+                all_days = np.unique(data_days)
                 if showxticks:
                     self.generate_xticks(all_days, monthsamp=1)  # todo
 
                 dlat = 10.  # todo
 
-                lat_tick = arange(-90., 90 + dlat, dlat)  # positions for yticks (degree)
+                lat_tick = np.arange(-90., 90 + dlat, dlat)  # positions for yticks (degree)
 
                 #interpolate the tick grid to the data grid
-                lat_pos = interp(lat_tick, lats, arange(len(lats)))  # index positions
+                lat_pos = np.interp(lat_tick, lats, np.arange(len(lats)))  # index positions
 
                 if f_invert:  # invert position back
                     #lat_tick = lat_tick[::-1]
                     lat_pos = lat_pos[::-1]
 
-                yticklabels = asarray(map(str, lat_tick))
+                yticklabels = np.asarray(map(str, lat_tick))
 
                 if self.transpose:
                     scal = self.rescalex
@@ -336,8 +316,8 @@ class hovmoeller:
 
                 yticks = lat_pos * scal
 
-                self.y_major_locator = FixedLocator(yticks)
-                self.y_major_formatter = FixedFormatter(yticklabels)
+                self.y_major_locator = pl.FixedLocator(yticks)
+                self.y_major_formatter = pl.FixedFormatter(yticklabels)
 
                 ylabel = 'latitude [degree]'
 
@@ -363,7 +343,7 @@ class hovmoeller:
         self.title = title
 
         if ax is None:
-            self.fig = figure(figsize=figsize)
+            self.fig = pl.figure(figsize=figsize)
             self.ax = self.fig.add_subplot(111)
         else:
             self.ax = ax
@@ -726,7 +706,7 @@ class hovmoeller:
         all_days: array of times (days since 01-0-0)
         """
 
-        dd = num2date(all_days)
+        dd = pl.num2date(all_days)
         xticks = []
         xticklabels = []
         last_month = dd[0].month
@@ -742,7 +722,7 @@ class hovmoeller:
         for d in dd:
             #~ print d, last_month
             if (d.month != last_month) | (d.year != last_year):
-                xticks.append(date2num(d))  # save tick location
+                xticks.append(pl.date2num(d))  # save tick location
                 mstr = str(d.month).zfill(2)
                 if self.yearonly:
                     xticklabels.append(str(d.year))
@@ -755,11 +735,11 @@ class hovmoeller:
             scal = self.rescaley
         else:
             scal = self.rescalex
-        xticks = asarray(xticks)
+        xticks = np.asarray(xticks)
 
         #/// remap to image coordinates
-        ny, nx = shape(self.hov)
-        w = (xticks - date2num(self.t_min)) / (date2num(self.t_max) - date2num(self.t_min))  # weights for positions on x-axis
+        ny, nx = np.shape(self.hov)
+        w = (xticks - pl.date2num(self.t_min)) / (pl.date2num(self.t_max) - pl.date2num(self.t_min))  # weights for positions on x-axis
         xticks = w * nx * scal
         xticks = list(xticks)
 
@@ -767,8 +747,8 @@ class hovmoeller:
         xticks = xticks[::monthsamp]
         xticklabels = xticklabels[::monthsamp]
 
-        self.x_major_locator = FixedLocator(xticks)
-        self.x_major_formatter = FixedFormatter(xticklabels)
+        self.x_major_locator = pl.FixedLocator(xticks)
+        self.x_major_formatter = pl.FixedFormatter(xticklabels)
 
 
 
