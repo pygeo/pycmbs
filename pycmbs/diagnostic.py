@@ -2715,11 +2715,112 @@ class Diagnostic(object):
 #===========================================================================================
 
 
-class koeppen(object):
+class Koeppen(object):
     """
     KOEPPEN CLASS
     class to generate koeppen plot
     """
+
+    def __init__(self, temp=None, precip=None, lsm=None):
+        """
+        Koeppen class
+
+        This class implements the functionality to generate koeppen plots.
+
+        @param temp: data objekt of temperature
+        @type temp: Data
+
+        @param precip: data objekt of precipitation
+        @type precip: Data
+
+        @param lsm: data objekt of land-sea-mask (0.0 to 1.0)
+        @type lsm: Data
+
+        EXAMPLES
+        ========
+
+        """
+
+        # check consistency
+        if temp is None:
+            raise ValueError('No temperature given')
+        if precip is None:
+            raise ValueError('No precipitation given')
+        if lsm is None:
+            raise ValueError('No land-sea-mask given')
+
+        # set values of class
+        self.temp = temp
+        self.precip = precip
+        self.lsm = lsm
+
+        if not self._check_resolution():
+            raise ValueError('ERROR:The three array differe in the resolution')
+        if not self._check_units():
+            raise ValueError('ERROR:The units of one value is wrong')
+
+        # Create new koeppen Color map
+        self.koeppen_cmap()
+        self.cmap = cm.get_cmap('koeppen')
+        # convert from [kg m-2 s-1] to [kg m-2 day-1] (= [mm day-1])
+         # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
+        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12., copy=True)
+        self.temp = temp.subc(273.15, copy=True)  # ??? Unklar warum nicht 'temp.subc(273.15)'
+
+        Psum = self.precip.timsum(return_object=True)            # Berechnet die Summe der Jahresniederschlag
+
+        nt, ny, nx = self.temp.shape
+        nlat = ny
+        nlon = nx
+
+        Pmin = self.precip.data.min(axis=0)
+        Pmax = self.precip.data.max(axis=0)
+
+        precipHS = self.precip.copy()
+        precipHS.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] \
+            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat / 2 - 1), :]
+        precipHS.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] \
+            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat / 2 - 1), :]
+        precipHS.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] \
+            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat / 2):(nlat - 1), :]
+        precipHS.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] \
+            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat / 2):(nlat - 1), :]
+
+        precipHW = self.precip.copy()
+        precipHW.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1), :]
+        precipHW.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1), :]
+        precipHW.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1), :]
+        precipHW.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1), :]
+
+        PminHS = precipHS.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PmaxHS
+        PmaxHS = precipHS.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PmaxHS
+        PminHW = precipHW.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PminHW
+        PmaxHW = precipHW.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PminHW
+
+        Tavg = self.temp.data.mean(axis=0)   # Bestimmt die mittlere Jahrestemperatur
+        Tmin = self.temp.data.min(axis=0)     # Bestimmt die minimale Monatstemperatur
+        Tmax = self.temp.data.max(axis=0)     # Bestimmt die maximale Jahrestemperatur
+
+        self.Clim = self.precip.timmean(return_object=True)
+        self.Clim.units = "climate type"
+
+        for lat in range(0, nlat):
+            for lon in range(0, nlon):
+                psum = Psum.data.data[lat][lon]
+                pmin = Pmin[lat][lon]
+                pminhs = PminHS[lat][lon]
+                pminhw = PminHW[lat][lon]
+                pmaxhs = PmaxHS[lat][lon]
+                pmaxhw = PmaxHW[lat][lon]
+                tavg = Tavg[lat][lon]
+                tmin = Tmin[lat][lon]
+                tmax = Tmax[lat][lon]
+                self.Clim.data.data[lat][lon] = self.set_clim(psum, pmin, pminhs, pminhw, pmaxhs, pmaxhw, tavg, tmin, tmax)
+
+        self.Clim.data.mask[less(self.lsm.data, 0.5)] = True
+
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------
     def koeppen_cmap(self):
@@ -2825,9 +2926,9 @@ class koeppen(object):
         """
              This routine just checks if all three array have a equal number of ny and nx values
         """
-        nt_t, ny_t, nx_t = self.temp.data.data.shape
-        nt_p, ny_p, nx_p = self.precip.data.data.shape
-        ny_l, nx_l = self.lsm.data.data.shape
+        nt_t, ny_t, nx_t = self.temp.shape
+        nt_p, ny_p, nx_p = self.precip.shape
+        ny_l, nx_l = self.lsm.shape
 
         if (ny_t != ny_p) or (ny_t != ny_l):
             sys.exit('ERROR: The resolution ot the three arrays differ in \
@@ -2847,123 +2948,19 @@ class koeppen(object):
 
     def _check_units(self):
         """
-             This routine just checks if all three array have a equal number of ny and nx values
+        This routine just checks if all three array have a equal number of ny and nx values
         """
         if self.precip.unit != "kg/m^2s":
-            sys.exit('ERROR: The unit of the precip is not [kg/m^2s] its set to [' + self.precip.unit + "]")
-            return False
+            raise ValueError('ERROR: The unit of the precip is not [kg/m^2s] its set to [' + self.precip.unit + "]")
 
         if self.temp.unit != "K":
-            sys.exit('ERROR: The unit of the temperature is not [K] its set to [' + self.temp.unit + "]")
-            return False
+            raise ValueError('ERROR: The unit of the temperature is not [K] its set to [' + self.temp.unit + "]")
 
         if self.lsm.unit != "fractional":
-            sys.exit('ERROR: The unit of the temperature is not [fractional] its set to [' + self.temp.unit + "]")
-            return False
+            raise ValueError('ERROR: The unit of the temperature is not [fractional] its set to [' + self.temp.unit + "]")
 
         return True
 
-#-----------------------------------------------------------------------------------------------------------------------
-
-    def __init__(self, temp=None, precip=None, lsm=None):
-        """
-        koeppen class
-
-        This class implements the functionality to generate koeppen plots.
-
-        @param temp: data objekt of temperature
-        @type temp: Data
-
-        @param precip: data objekt of precipitation
-        @type precip: Data
-
-        @param lsm: data objekt of land-sea-mask (0.0 to 1.0)
-        @type lsm: Data
-
-        EXAMPLES
-        ========
-
-        """
-
-        #/// check consistency ///
-        if temp is None:
-            sys.exit('No temperature given')
-
-        if precip is None:
-            sys.exit('No precipitation given')
-        if temp is None:
-            sys.exit('No land-sea-mask given')
-
-        #/// set values of class ///
-        self.temp = temp
-        self.precip = precip
-        self.lsm = lsm
-
-        if not self._check_resolution():
-            sys.exit('ERROR:The three array differe in the resolution')
-
-        if not self._check_units():
-            sys.exit('ERROR:The units of one value is wrong')
-
-        # Create new koeppen Color map
-        self.koeppen_cmap()
-        self.cmap = cm.get_cmap('koeppen')
-        # convert from [kg m-2 s-1] to [kg m-2 day-1] (= [mm day-1])
-         # ??? Unklar warum nicht 'precip.mulc(60. * 60. * 24. * 365.)'
-        self.precip = precip.mulc(60. * 60. * 24. * 365. / 12., copy=True)
-        self.temp = temp.subc(273.15, copy=True)  # ??? Unklar warum nicht 'temp.subc(273.15)'
-
-        Psum = self.precip.timsum(return_object=True)            # Berechnet die Summe der Jahresniederschlag
-
-        nt, ny, nx = self.temp.data.data.shape
-        nlat = ny
-        nlon = nx
-
-        Pmin = self.precip.data.min(axis=0)
-        Pmax = self.precip.data.max(axis=0)
-
-        precipHS = self.precip.copy()
-        precipHS.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] \
-            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat / 2 - 1), :]
-        precipHS.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] \
-            = self.precip.data[(3, 4, 5, 6, 7, 8), 0:(nlat / 2 - 1), :]
-        precipHS.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] \
-            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat / 2):(nlat - 1), :]
-        precipHS.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] \
-            = self.precip.data[(0, 1, 2, 9, 10, 11), (nlat / 2):(nlat - 1), :]
-
-        precipHW = self.precip.copy()
-        precipHW.data[(0, 1, 2, 3, 4, 5), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1), :]
-        precipHW.data[(6, 7, 8, 9, 10, 11), 0:(nlat / 2 - 1), :] = self.precip.data[(0, 1, 2, 9, 10, 11), 0:(nlat / 2 - 1), :]
-        precipHW.data[(0, 1, 2, 3, 4, 5), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1), :]
-        precipHW.data[(6, 7, 8, 9, 10, 11), (nlat / 2):(nlat - 1), :] = self.precip.data[(3, 4, 5, 6, 7, 8), (nlat / 2):(nlat - 1), :]
-
-        PminHS = precipHS.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PmaxHS
-        PmaxHS = precipHS.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PmaxHS
-        PminHW = precipHW.data.min(axis=0)   # Bestimmt den minimalen Monastniederschlag aus PminHW
-        PmaxHW = precipHW.data.max(axis=0)   # Bestimmt den maximalen Monastniederschlag aus PminHW
-
-        Tavg = self.temp.data.mean(axis=0)   # Bestimmt die mittlere Jahrestemperatur
-        Tmin = self.temp.data.min(axis=0)     # Bestimmt die minimale Monatstemperatur
-        Tmax = self.temp.data.max(axis=0)     # Bestimmt die maximale Jahrestemperatur
-
-        self.Clim = self.precip.timmean(return_object=True)
-        self.Clim.units = "climate type"
-
-        for lat in range(0, nlat):
-            for lon in range(0, nlon):
-                psum = Psum.data.data[lat][lon]
-                pmin = Pmin[lat][lon]
-                pminhs = PminHS[lat][lon]
-                pminhw = PminHW[lat][lon]
-                pmaxhs = PmaxHS[lat][lon]
-                pmaxhw = PmaxHW[lat][lon]
-                tavg = Tavg[lat][lon]
-                tmin = Tmin[lat][lon]
-                tmax = Tmax[lat][lon]
-                self.Clim.data.data[lat][lon] = self.set_clim(psum, pmin, pminhs, pminhw, pmaxhs, pmaxhw, tavg, tmin, tmax)
-
-        self.Clim.data.mask[less(self.lsm.data, 0.5)] = True
 
 #-----------------------------------------------------------------------------------------------------------------------
 

@@ -10,6 +10,7 @@ from scipy import stats
 from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
 import pylab as pl
+import datetime
 
 from nose.tools import assert_raises
 
@@ -2151,6 +2152,27 @@ class TestData(unittest.TestCase):
         self.assertEqual(d.lon[0], 190.)
 
         self.assertTrue(d._lon360)
+
+    def test_convert_time(self):
+        d = self.D.copy()
+        d.time = np.asarray([20010303., 20231224.5])
+        d._convert_time()
+
+        self.assertEqual(d.date[0].year, 2001)
+        self.assertEqual(d.date[0].month, 3)
+        self.assertEqual(d.date[0].day, 3)
+        self.assertEqual(d.date[0].hour, 0)
+        self.assertEqual(d.date[0].minute, 0)
+        self.assertEqual(d.date[0].second, 0)
+
+        self.assertEqual(d.date[1].year, 2023)
+        self.assertEqual(d.date[1].month, 12)
+        self.assertEqual(d.date[1].day, 24)
+        self.assertEqual(d.date[1].hour, 12)
+        self.assertEqual(d.date[1].minute, 0)
+        self.assertEqual(d.date[1].second, 0)
+
+
 
 
 

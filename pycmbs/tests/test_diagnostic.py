@@ -3,13 +3,14 @@ from unittest import TestCase
 
 
 from pycmbs.data import Data
-from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, EOF
+from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, EOF, Koeppen
 from pycmbs.plots import GlecklerPlot
 from pycmbs.region import Region
 import scipy as sc
 from scipy import stats
 import pylab as pl
 import numpy as np
+
 
 class TestData(TestCase):
 
@@ -244,6 +245,33 @@ class TestData(TestCase):
 
 
         #~ E.plot_EOF(None, all=True)
+
+
+
+
+    #~ def test_koeppen(self):
+        #~ T = self.D.copy()
+        #~ T.data = np.random.random((10,20,30))
+        #~ T.unit = 'K'
+        #~ P = self.D.copy()
+        #~ P.data = np.random.random((10,20,30))
+        #~ P.unit = 'kg/m^2s'
+        #~ lsm = self.D.copy()
+        #~ lsm.unit = 'fractional'
+        #~ lsm.data = np.ones((20,30))
+#~
+        #~ k = Koeppen(temp=T, precip=P, lsm=lsm)
+
+    def test_koeppen_InvalidInput(self):
+        T = self.D.copy()
+        P = self.D.copy()
+        lsm = self.D.copy()
+        with self.assertRaises(ValueError):
+            k = Koeppen(temp=None, precip=P, lsm=lsm)
+        with self.assertRaises(ValueError):
+            k = Koeppen(temp=T, precip=None, lsm=lsm)
+        with self.assertRaises(ValueError):
+            k = Koeppen(temp=T, precip=P, lsm=None)
 
 
 
