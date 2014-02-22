@@ -868,19 +868,9 @@ class TestData(unittest.TestCase):
 
     @unittest.skip('wait for bugfree scipy')
     def test_diff(self):
-        #test diff() function
-
         D = self.D.copy()
-
-        D.data = np.ma.array(np.zeros((1000,1,2)),mask=np.zeros((1000,1,2)).astype('bool')  )
-        D.data[:,0,0] = sc.randn(len(D.time))
-        D.data[:,0,1] = sc.randn(len(D.time))
-
         A=D.copy()
-        A.data[:,0,0] = sc.randn(len(D.time))
-        A.data[:,0,1] = sc.randn(len(D.time))
 
-        D.label='test2'
 
         x=D.data[:,0,0]
         y=A.data[:,0,0]
@@ -1053,6 +1043,8 @@ class TestData(unittest.TestCase):
         R = D.div(D)
         self.assertTrue(np.all(R.data == 1.))
 
+
+
     def test_div_InvalidGeometry(self):
         D = self.D.copy()
         B = D.copy()
@@ -1099,12 +1091,19 @@ class TestData(unittest.TestCase):
         d = D.data[:,0,0] *0.5
         self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
+    def test_divc_Default_copyFalse(self):
+        D = self.D.copy()
+        R = D.divc(2., copy=False)
+        d = self.D.data[:,0,0] *0.5
+        self.assertTrue(np.all(d-R.data[:,0,0]) == 0.)
 
     def test_subc(self):
         D = self.D.copy()
         R = D.subc(10.)
         d = D.data - 10.
         self.assertTrue(np.all(d-R.data) == 0.)
+
+
 
     def test_mulc(self):
         D = self.D.copy()
@@ -1866,6 +1865,32 @@ class TestData(unittest.TestCase):
         self.assertFalse(D._is_monthly())
         self.assertEquals(D.time_cycle,None)
 
+    def test_get_valid_mask_InvalidFrac(self):
+        with self.assertRaises(ValueError):
+            self.D.get_valid_mask(frac=-0.1)
+        with self.assertRaises(ValueError):
+            self.D.get_valid_mask(frac=2.)
+
+    def test_get_valid_mask_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data=np.random.random((2,3,4,5))
+        with self.assertRaises(ValueError):
+            d.get_valid_mask()
+
+    def test_get_valid_data_InvalidMode(self):
+        with self.assertRaises(ValueError):
+            self.D.get_valid_data(mode='nothing')
+
+    def test_apply_mask_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data=np.random.random((2,3,4,5))
+        d.data = np.ma.array(d.data, mask=d.data != d.data)
+        m=np.ones_like(d.data[0,:,:])
+        m=np.ma.array(m, mask=m != m)
+        with self.assertRaises(ValueError):
+            d._apply_mask(m)
+
+
     def test_get_valid_mask(self):
         D = self.D.copy()
 
@@ -2039,6 +2064,13 @@ class TestData(unittest.TestCase):
         self.assertEqual(d[3], 29)
         self.assertEqual(d[4], 28)
 
+
+    def test_temporal_smooth_InvalidGeometry(self):
+        d = self.D.copy()
+        d.data = np.random.random((2,3))
+        with self.assertRaises(ValueError):
+            y3 = d.temporal_smooth(3)
+
     def test_temporal_smooth(self):
         """
         test smooth routine
@@ -2172,6 +2204,25 @@ class TestData(unittest.TestCase):
         self.assertEqual(d.date[1].minute, 0)
         self.assertEqual(d.date[1].second, 0)
 
+
+    def test_convert_timeYYYYMM(self):
+        d = self.D.copy()
+        d.time = np.asarray([20010303., 20231224.5])
+        d._convert_timeYYYYMM()
+
+        self.assertEqual(d.date[0].year, 2001)
+        self.assertEqual(d.date[0].month, 3)
+        self.assertEqual(d.date[0].day, 1)
+        self.assertEqual(d.date[0].hour, 0)
+        self.assertEqual(d.date[0].minute, 0)
+        self.assertEqual(d.date[0].second, 0)
+
+        self.assertEqual(d.date[1].year, 2023)
+        self.assertEqual(d.date[1].month, 12)
+        self.assertEqual(d.date[1].day, 1)
+        self.assertEqual(d.date[1].hour, 0)
+        self.assertEqual(d.date[1].minute, 0)
+        self.assertEqual(d.date[1].second, 0)
 
 
 

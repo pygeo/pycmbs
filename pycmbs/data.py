@@ -3702,11 +3702,12 @@ class Data(object):
         """
         shift 3D data
 
-        @param x: data to be shifted
-        @type x: array(:,:,:)
-
-        @param n: shifting step
-        @type n: int
+        Parameters
+        ----------
+        x : ndarray
+            data to be shifted
+        n : int
+            shifting step
         """
         tmp = x.copy()
         y = x.copy()
