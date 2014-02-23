@@ -16,16 +16,16 @@ __institute__ = "Max-Planck-Institute for Meteorology (MPI-M)"
 __copyright__ = "Copyright (c) 2011-2014 Alexander Loew"
 """The copyright holder of pyCMBS."""
 
-__license__ = "GNU General Public License"
+__license__ = "MIT License, see LICENSE.md for details"
 """The license governing the use and distribution of pyCMBS."""
 
-__url__ = "https://code.zmaw.de/projects/pycmbs"
+__url__ = "https://github.com/pygeo/pycmbs"
 """The URL for pyCMBS's homepage."""
 
 __version__ = "1.0.0-dev"
 """Version number of pyCMBS."""
 
-__date__ = "2013-06-14"
+__date__ = "2014-03-01"
 """The release date of this version of pyCMBS."""
 
 __email__ = "alexander.loew@mpimet.mpg.de"

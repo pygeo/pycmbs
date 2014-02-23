@@ -4,7 +4,6 @@ Roadmap for pycmbs release on github
 github move
 -----------
 
-* set metadata attributes in __init__.py
 * [AL] revise documentation on REDMINE Wiki
 
 
@@ -39,8 +38,6 @@ Documentation
   ; MI to review
 * [MI] test again the examples scripts in /pycmbs/examples; would be good if Mikhail
   would do that as he was not included in its development
-* [AL] expert installation descritpion for developers; MI to review
-* test installation in clean environment (virtualenv??)
 * [MI] review general README, which has been already adapted by AL
 * [MI] put a copyright notice in every file. Perhaps git could do this
   automatically?? [MI to check]
