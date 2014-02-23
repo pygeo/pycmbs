@@ -12,6 +12,8 @@ All approaches are detailed below. Special informations for users working
 at the Max-Planck-Institute for Meteorology are provided in a :doc:`separate
 guide`
 
+TBD
+
 
 Operating systems
 -----------------
@@ -26,7 +28,7 @@ pyCMBS was built to have only a small number of external dependencies.
 However, there are certainly dependencies existing which are a
 requirement for using pyCMBS sucessfully.
 
-*Core python packages [all mandatory]*
+*Core python packages [all obligatory]*
 
 - python 2.7.x
 - matplotlib
@@ -42,8 +44,8 @@ For file I/O of netCDF files, there are in general two options supported at the 
 
 For an efficient data pre-processing the climate data operators are used. The core CDO's and the corresponding python wrapper is required.
 
-- climate data operators (cdo) [mandatory]
-- cdo python interface [mandatory]
+- climate data operators (cdo) [obligatory]
+- cdo python interface [obligatory]
 
 *Recommended dependencies*
 
@@ -53,15 +55,17 @@ For plotting projected data (map plots), pyCMBS currently supports two different
 - matplotlib basemap [optional]
 
 
-Quick installation from scratch
--------------------------------
+Quick installation from scratch for experts
+-------------------------------------------
 
 If you have not yet any of the above dependencies installed and are
-working on a Debian like operating system (e.g. Ubunutu), this small
-guide might be helpfull. (TBD ??)
+working on a Debian like operating system (e.g. Ubunutu), the easiest way to
+install pyCMBS is by executing the installation sequence which can be found in
+the file *.travis.yml* in the root directory of the source code.
 
-TBD
-
+The developers are using automatic code checking and builds and the
+installation sequence in the file *.travis.yml* is used to setup for each build
+a working installation. 
 
 
 Detailed installation instructions for pyCMBS
@@ -69,8 +73,8 @@ Detailed installation instructions for pyCMBS
 
 In the following, we will summarize the different approaches to install pyCMBS.
 
-Installation using *pip*
-~~~~~~~~~~~~~~~~~~~~~~~~
+Installation using *pip* (the easiest way)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using *pip* is the easiest (and recommended) way to install pyCMBS.
 If you have *pip* not yet installed on your machine, then the first step
@@ -175,10 +179,18 @@ pycmbs init
 Further information and trouble solving
 ---------------------------------------
 
-setting SEP environment variable
-    xxxxxxxxxxx
+pyCMBS makes use of a standard directory to look for observations. This
+directory is the Standard Evaluation Pool (SEP). The path to the SEP directory
+needs to be specified in the $SEP environment variable. In you .bashrc write::
 
+    export SEP=/path/to/directory
 
+For users at MPI-M, the SEP variable needs to point to */pool/SEP*. It is
+however possible to specify also for each observation an individual path where
+the observation is located. Then the SEP evnironment variable is not required.
+To check whether SEP is set, type::
+
+    echo $SEP
 
 .. _troublesolver:
 
@@ -200,10 +212,25 @@ This should give you the path where python is searching for modules.
 If it is empty you are most likely in trouble. Check if you have a
 valid python installation.
 
+*Is the script pycmb-benchmarking.py found in the system path?*::
+
+    pycmbs-benchmarking.py
+
+should give you a short Welcome Screen like described above. If this is not the
+case then either the overall pyCMBS installation is incomplete or Your
+systempath is not set appropriately. Type::
+
+    echo $PATH
+
+and verify if the directory where pycmbs-benchmarking.py is located is listed
+in your PATH variable. If not, then you can try to change your PATH variable to
+make it working.
+
+*Further problems?*
+
 In case that these recommendations did not solve your problem, please
 feel free to ask a question or raise an issue on the pyCMBS development
-site. (TBD)
-
+site.
 
 
 

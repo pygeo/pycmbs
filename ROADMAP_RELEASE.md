@@ -4,7 +4,8 @@ Roadmap for pycmbs release on github
 github move
 -----------
 
-* set metadata attrributes in __init__.py
+* set metadata attributes in __init__.py
+* [AL] revise documentation on REDMINE Wiki
 
 
 ### Prio 2
@@ -27,24 +28,20 @@ Code clean up and completion
  * data required for examples (note that this can also be automatically
    downloaded)
 
-### Prio 2
-
-* [AL,MI] consistency of docstrings
-
 
 Documentation
 -------------
 
 ### Prio 1
 
-* [AL] create a file INSTALL.md
+* [AL] fill file INSTALL.md with content
 * [AL] review current sphinx documentation and put placeholders where still needed
   ; MI to review
 * [MI] test again the examples scripts in /pycmbs/examples; would be good if Mikhail
   would do that as he was not included in its development
 * [AL] expert installation descritpion for developers; MI to review
 * test installation in clean environment (virtualenv??)
-* [AL] review general README, MI to review
+* [MI] review general README, which has been already adapted by AL
 * [MI] put a copyright notice in every file. Perhaps git could do this
   automatically?? [MI to check]
 
