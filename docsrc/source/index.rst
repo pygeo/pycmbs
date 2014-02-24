@@ -6,8 +6,6 @@
 Welcome to pyCMBS's documentation!
 ==================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
    :titlesonly:
@@ -18,9 +16,8 @@ Contents:
    getting_started
    gallery
    benchmarking
-
-
-
+   benchmarking_configuration
+   benchmarking_customization
 
    references
 
