@@ -1,18 +1,11 @@
 Roadmap for pycmbs release on github
 ====================================
 
-github move
------------
-
-* [AL] revise documentation on REDMINE Wiki
-
-
 ### Prio 2
 
 * deployment using pip (information also using testing server can be found
   here: https://pypi.python.org/pypi
 * pip installation covering also external dependencies recursevely
-* adapt ZMAW WIKI
 
 Code clean up and completion
 ----------------------------
@@ -20,7 +13,7 @@ Code clean up and completion
 ### Prio 1
 
 * [MI] ensure that all files have conssitent file header with link to copyright
-* file
+  file
 * Remove machine/user specific information (.cfg, .ini, etc), use/develop sample config generator
 * [MI] unittests for benchmarking
 * put example data as TARBALL somewhere for download
@@ -34,7 +27,6 @@ Documentation
 
 ### Prio 1
 
-* [AL] fill file INSTALL.md with content
 * [AL] review current sphinx documentation and put placeholders where still needed
   ; MI to review
 * [MI] test again the examples scripts in /pycmbs/examples; would be good if Mikhail
