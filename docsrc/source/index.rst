@@ -17,6 +17,7 @@ Contents:
    installation
    getting_started
    gallery
+   benchmarking
 
 
 

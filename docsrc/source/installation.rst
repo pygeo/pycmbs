@@ -1,5 +1,5 @@
-Installation
-============
+Installation (o.k.)
+===================
 
 Below we describe how you properly install pyCMBS in your environment.
 Currently, there are three different ways to install pyCMBS
@@ -9,11 +9,8 @@ Currently, there are three different ways to install pyCMBS
  3. Source code installation from tarball
 
 All approaches are detailed below. Special informations for users working
-at the Max-Planck-Institute for Meteorology are provided in a :doc:`separate
-guide`
-
-TBD
-
+at the Max-Planck-Institute for Meteorology are provided in a
+:doc:`installation_mpi`
 
 Operating systems
 -----------------
@@ -31,28 +28,28 @@ required for using pyCMBS sucessfully.
 *Core python packages [obligatory]*
 
 - python 2.7.x
-- matplotlib
-- numpy
-- scipy
+- `matplotlib <http://matplotlib.org/>`_
+- `numpy <http://www.numpy.org/>`_
+- `scipy <http://www.scipy.org/>`_
 
 *Obligatory additional dependencies*
 
 For file I/O of netCDF files, there are in general two options supported at the moment. At least one interface library needs to be installed:
 
-- netCDF4 library is used as default for file I/O [recommended]
-- Nio library could be installed as an alternative [optional, might be depreciated in the future]
+- `netCDF4 library <http://code.google.com/p/netcdf4-python/>`_ is used as default for file I/O [recommended]
+- `Nio library <https://www.pyngl.ucar.edu/Nio.shtml>`_ could be installed as an alternative [optional, might be depreciated in the future]
 
 For an efficient data pre-processing the climate data operators are used. The core CDO's and the corresponding python wrapper is required.
 
-- climate data operators (cdo) [obligatory]
-- cdo python interface [obligatory]
+- `climate data operators (cdo) <https://code.zmaw.de/projects/cdo>`_ [obligatory]
+- `cdo python interface <https://code.zmaw.de/projects/cdo/wiki/Cdo%7Brbpy%7D>`_ [obligatory, can be easily installed using pip]
 
 *Recommended dependencies*
 
 For plotting projected data (map plots), pyCMBS currently supports two different plotting backends. These are
 
-- cartopy [recommended]
-- matplotlib basemap [optional]
+- `cartopy <http://scitools.org.uk/cartopy/>`_ [recommended]
+- `matplotlib basemap <http://matplotlib.org/basemap/index.html>`_ [optional]
 
 
 Quick installation from scratch for experts
@@ -76,9 +73,9 @@ In the following, we will summarize the different approaches to install pyCMBS.
 Installation using *pip* (the easiest way)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using *pip* is the easiest (and recommended) way to install pyCMBS.
+Using `pip <https://pypi.python.org/pypi/pip>`_ is the easiest (and recommended) way to install pyCMBS.
 If you have *pip* not yet installed on your machine, then the first step
-is to install pip (TBD LINK).
+is to `install pip <https://pypi.python.org/pypi/pip>`_ .
 
 Once *pip* is installed, the installation of pyCMBS is as simple as::
 
@@ -90,7 +87,7 @@ Check if everything is working, like described below_.
 Installation of stable version from a *tarball*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can install specific version of pycmbs from a *tarball* from the download site (TBD LINK). All dependencies must have been installed before.
+You can install specific version of pycmbs from a *tarball* from the `download site <https://code.zmaw.de/projects/pycmbs/files>`_ . All dependencies must have been installed before.
 
 After you have obtained the pyCMBS code from a *tarball*, then first extract the archive into some new directory::
 
@@ -114,7 +111,7 @@ github repository (for developers)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Another alternative to work with pyCMBS is to used the master branch of
-the code repository. The code is hosted on a github repository. All
+the `code repository <https://github.com/pygeo/pycmbs>`_. The code is hosted on a github repository. All
 dependencies  must have been installed before.
 
 To retrieve the code do the following::
@@ -235,8 +232,8 @@ make it working.
 *Further problems?*
 
 In case that these recommendations did not solve your problem, please
-feel free to ask a question or raise an issue on the pyCMBS development
-site.
+feel free to ask a question or raise an issue on the pyCMBS `development site
+<https://github.com/pygeo/pycmbs>`_.
 
 
 

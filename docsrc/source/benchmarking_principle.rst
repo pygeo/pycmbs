@@ -1,7 +1,8 @@
 Your first benchmarking
 -----------------------
 
-The general workflow for using pyCMBS for benchmarking is shown in Figure ????.
+The general workflow for using pyCMBS for benchmarking is shown in Figure ????
+(TBD).
 The main input is model data and observational datasets as well as a user specified configuration. After running the benchmarking, you get a report (PDF) as well as a lot of figures and statistics which contain usefull information.
 
 The next steps will guide you through a benchmarking session to get you started.
