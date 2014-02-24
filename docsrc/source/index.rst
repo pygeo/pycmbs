@@ -15,8 +15,12 @@ Contents:
    intro
    concept
    installation
-   benchmarking
-   models
+   getting_started
+   gallery
+
+
+
+
    references
 
 

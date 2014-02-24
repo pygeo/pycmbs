@@ -11,6 +11,7 @@ github move
 
 * deployment using pip (information also using testing server can be found
   here: https://pypi.python.org/pypi
+* pip installation covering also external dependencies recursevely
 * adapt ZMAW WIKI
 
 Code clean up and completion

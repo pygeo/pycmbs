@@ -25,17 +25,17 @@ Dependencies
 ------------
 
 pyCMBS was built to have only a small number of external dependencies.
-However, there are certainly dependencies existing which are a
-requirement for using pyCMBS sucessfully.
+However, there is a minimum number of dependencies existing which are a
+required for using pyCMBS sucessfully.
 
-*Core python packages [all obligatory]*
+*Core python packages [obligatory]*
 
 - python 2.7.x
 - matplotlib
 - numpy
 - scipy
 
-*Mandatory additional dependencies*
+*Obligatory additional dependencies*
 
 For file I/O of netCDF files, there are in general two options supported at the moment. At least one interface library needs to be installed:
 
@@ -87,13 +87,15 @@ Once *pip* is installed, the installation of pyCMBS is as simple as::
 Check if everything is working, like described below_.
 
 
-Installation from a *tarball*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installation of stable version from a *tarball*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can install pycmbs from a *tarball* from either stable version (TBD) or the current development branch (TBD).
+You can install specific version of pycmbs from a *tarball* from the download site (TBD LINK). All dependencies must have been installed before.
 
-After you have obtained the pyCMBS code from a *tarball*, then do the following::
+After you have obtained the pyCMBS code from a *tarball*, then first extract the archive into some new directory::
 
+    mkdir temp_dir
+    cd temp_dir
     tar -xvf pycmbs-vx.x.x.tar.gz
 
 This expands the tar file and you obtain a subdirectory,  called *pycmbs-vx.x.x*
@@ -112,7 +114,8 @@ github repository (for developers)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Another alternative to work with pyCMBS is to used the master branch of
-the code repository. The code is hosted on a github repository.
+the code repository. The code is hosted on a github repository. All
+dependencies  must have been installed before.
 
 To retrieve the code do the following::
 
@@ -126,7 +129,10 @@ To retrieve the code do the following::
     # do installation
     python setup.py install
 
-This will install the package in your python environment.
+    # or as an alternative for developers, just set the PYTHONPATH
+    # environment variable to the pycmbs root directory and also adapt
+    # you systempath (PATH) such that includes the pycmbs rootdirectory
+
 Check successful installation, like described below_.
 
 

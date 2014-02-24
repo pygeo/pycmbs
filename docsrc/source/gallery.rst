@@ -10,8 +10,8 @@ Basic plotting
 --------------
 
 
-.. plot:: ../../pycmbs/examples/01_basic_plotting.py
-   :include-source:
+### .. plot:: ../../pycmbs/examples/01_basic_plotting.py
+###   :include-source:
 
 For plotting you have a rich suite of keyword parameters. Please use the
 python help() system to get full documentation from docstrings. Some
@@ -21,7 +21,7 @@ more illustrations of options are provided::
     map_plot(air,show_zonal=True, use_basemap=True,title='show_zonal=True')
     map_plot(air,show_histogram=True, use_basemap=True,title='show_histogram=True')
 
-.. plot:: ../../pycmbs/examples/01_basic_plotting_A.py
+### .. plot:: ../../pycmbs/examples/01_basic_plotting_A.py
 
 And a few more details on customizing your map ...::
 
@@ -30,7 +30,7 @@ And a few more details on customizing your map ...::
     map_plot(air, show_stat=True, use_basemap=True,title='show_stat=True',ax=ax3)
     map_plot(air, show_stat=True, stat_type='median', use_basemap=True, title='show_stat=True,stat_type="median"', ax=ax4)
 
-.. plot:: ../../pycmbs/examples/01_basic_plotting_B.py
+### .. plot:: ../../pycmbs/examples/01_basic_plotting_B.py
 
 
 Basic data analysis
@@ -47,23 +47,23 @@ blablabla
 
 
 
-.. literalinclude:: test.py
+### .. literalinclude:: test.py
 
 
 
 Basic plotting
 --------------
 
-#.. plot:: examples/plots_01.py
+### .. plot:: examples/plots_01.py
 
-.. plot:: examples/dummy.py
-   :include-source:
+### .. plot:: examples/dummy.py
+###   :include-source:
 
 
 asdsada
 
-.. plot:: testplot.py
-   :include-source:
+### .. plot:: testplot.py
+###   :include-source:
 
 asdsadd
 

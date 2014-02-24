@@ -14,7 +14,7 @@ air = Data(file_name, 'air', lat_name='lat', lon_name='lon', read=True, label='a
 
 # a quick plot as well as a projection plot
 f1 = map_plot(air)  # unprojected
-f2 = map_plot(air, use_basemap=True)  # projected
+f2 = map_plot(air, use_basemap=False)  # projected
 plt.show()
 
 
