@@ -16,7 +16,7 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 import matplotlib as mpl
 mpl.rcParams['backend'] = 'Agg'
 
-from pycmbs.data import Data
+#### from pycmbs.data import Data
 
 import matplotlib.pyplot as plt
 
@@ -25,12 +25,12 @@ import os
 import pylab
 import pickle
 
-from pycmbs.plots import GlecklerPlot, GlobalMeanPlot
+### from pycmbs.plots import GlecklerPlot, GlobalMeanPlot
 from pycmbs.benchmarking.report import Report
-from pycmbs.benchmarking.utils import get_T63_landseamask
-from pycmbs.benchmarking import models
+### from pycmbs.benchmarking.utils import get_T63_landseamask
+### from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
-from pycmbs.benchmarking import analysis
+#### from pycmbs.benchmarking import analysis
 from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData
 from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
 from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data
@@ -65,7 +65,7 @@ def create_dummy_configuration():
     """
 
     import shutil
-    import glob
+###    import glob
     d = os.environ['PYCMBSPATH']  # directory of pyCMBS installation
     cwd = os.getcwd()
     odir = cwd + '/configuration'
@@ -73,10 +73,10 @@ def create_dummy_configuration():
     # copy samples of INI files from repository
     if os.path.exists(odir):
         os.system('rm -rf ' + odir)
-    shutil.copytree(d + '/framework/configuration', odir)
+    shutil.copytree(d + '/benchmarking/configuration', odir)
 
     # create dummy configuration file
-    CFGW = CFGWriter(cwd + '/template.cfg',
+    CFGW = config.CFGWriter(cwd + '/template.cfg',
                      generator='pyCMBS CONFIGURATION WRITER')
     CFGW.save(temp_dir='<put here the temporary data processing directory>',
               vars=['albedo', 'sis'], start_date='2000-01-01',

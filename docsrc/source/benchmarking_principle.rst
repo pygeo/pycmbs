@@ -3,7 +3,7 @@ Your first benchmarking
 
 The general workflow for using pyCMBS for benchmarking is shown in Figure ????
 (TBD).
-The main input is model data and observational datasets as well as a user specified configuration. After running the benchmarking, you get a report (PDF) as well as a lot of figures and statistics which contain usefull information.
+The main input is model data and observational datasets as well as a user specified configuration. After running the benchmarking, you get a report (PDF format) as well as a lot of figures and statistics which contain usefull information.
 
 The next steps will guide you through a benchmarking session to get you started.
 
@@ -15,14 +15,14 @@ The next steps will guide you through a benchmarking session to get you started.
 
 2. set up an initial configuration::
 
-    # simply run the pycmbs.py script
+    # simply run the pycmbs-benchmarking.py script
     # if properly installed, you should be able to just run it from the console
-    pycmbs.py init
+    pycmbs-benchmarking.py init
 
 This gives you::
 
     $ ls
-    configuration  pyCMBS_template.cfg
+    configuration  template.cfg
     
 If you do this for the first time,  then it is recommended that you make yourself familiar with the content of the *configuration* directory. This contains
 
