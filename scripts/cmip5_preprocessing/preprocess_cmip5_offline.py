@@ -1,4 +1,10 @@
 """
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
+"""
+
+"""
 preprocess CMIP5 data offline
 The data is assumed to have been extracted already from the archive
 while the archive structure from the MiKlip server has been preseverd
