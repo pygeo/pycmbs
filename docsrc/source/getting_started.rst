@@ -1,6 +1,6 @@
-======================
-Getting started (o.k.)
-======================
+===============
+Getting started
+===============
 
 There are several ways to get started with pyCMBS. 
 

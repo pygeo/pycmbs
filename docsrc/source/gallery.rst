@@ -1,6 +1,6 @@
-==============
-pyCMBS gallery
-==============
+====================
+pyCMBS gallery (TBD)
+====================
 
 In the following, examples will be given that introduce different features of pyCMBS.
 

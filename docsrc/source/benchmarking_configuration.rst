@@ -1,5 +1,5 @@
-Benchmarking configuration (o.k.)
-=================================
+Benchmarking configuration
+==========================
 
 Plot configuration details
 --------------------------

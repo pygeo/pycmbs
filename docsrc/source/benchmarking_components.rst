@@ -13,6 +13,9 @@ Map season
 Creates a figure with seasonal or monthly climatological means of the
 investigated variables.
 
+.. plot:: ./figures/fig_map_season.py
+
+
 
 Map difference
 ~~~~~~~~~~~~~~
