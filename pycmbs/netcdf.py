@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS.
-For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
-the pyCMBS licensing details.
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
 """
-
 """
 This module allows a flexible choice of the netCDF backend
 """
