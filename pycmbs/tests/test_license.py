@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 """
-This file is part of pyCMBS.
-For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
-the pyCMBS licensing details.
+This file is part of pyCMBS. (c) 2012-2014"
+For COPYING and LICENSE details, please refer to the files"
+LICENSE.md and COPYRIGHT.md
 """
 
-import re
+import os
 import glob
 import unittest
 
 class TestCodingStandards(unittest.TestCase):
     """
-    test coding standards: check for license,
-                                     coda,
-                                     encoding
+    test coding standards: check for license
     """
     def test_PythonFiles_HaveLicenseText(self):
         pyfiles = find_python_files()
         files_missing_license = []
+        skip_files = ['netcdftime.py']
         for filename in pyfiles:
-            if license_missing(filename) is True:
+            file_basename = os.path.basename(filename)
+            if license_missing(filename) is True and file_basename not in skip_files:
                 files_missing_license.append(filename)
         
         self.assertEquals(len(files_missing_license), 0,
@@ -29,7 +29,10 @@ def find_python_files():
     """
     find all python files
     """
-    python_files = glob.glob('./*.py')
+    python_files = glob.glob('./scripts/*.py')
+    python_files += glob.glob('./scripts/*/*.py')
+    python_files += glob.glob('./pycmbs/*.py')
+    python_files += glob.glob('./pycmbs/benchmarking/*.py')
     
     return python_files
 
