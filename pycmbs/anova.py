@@ -1,10 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2012/10/29"
-__email__ = "alexander.loew@mpimet.mpg.de"
 
 """
 This file is part of pyCMBS. (c) 2012-2014
@@ -12,14 +6,14 @@ For COPYING and LICENSE details, please refer to the files
 LICENSE.md and COPYRIGHT.md
 """
 
-'''
+"""
 Module for ANOVA analysis
 
 REFERENCES
 ==========
 
 1. von Storch and Zwiers, 1999, p. 171ff
-'''
+"""
 
 from scipy import stats
 
