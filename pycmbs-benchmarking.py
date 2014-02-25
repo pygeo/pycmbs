@@ -16,7 +16,7 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 import matplotlib as mpl
 mpl.rcParams['backend'] = 'Agg'
 
-#### from pycmbs.data import Data
+from pycmbs.data import Data
 
 import matplotlib.pyplot as plt
 
@@ -25,12 +25,12 @@ import os
 import pylab
 import pickle
 
-### from pycmbs.plots import GlecklerPlot, GlobalMeanPlot
+from pycmbs.plots import GlecklerPlot, GlobalMeanPlot
 from pycmbs.benchmarking.report import Report
-### from pycmbs.benchmarking.utils import get_T63_landseamask
-### from pycmbs.benchmarking import models
+from pycmbs.benchmarking.utils import get_T63_landseamask
+from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
-#### from pycmbs.benchmarking import analysis
+from pycmbs.benchmarking import analysis
 from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData
 from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
 from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data
