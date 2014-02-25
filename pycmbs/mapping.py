@@ -12,17 +12,18 @@ This module implements generic map plotting capabilities
 installed_backends = []
 
 import os
+try:  # note that this import statement needs to come BEFOREbasemap, as otherwise some cartopy libraries are not found for some strange reasons (at least on some machines)
+    import cartopy.crs as ccrs
+    installed_backends.append('cartopy')
+except:
+    print('WARNING: CARTOPY seems not to be installed and can therefore not be used as plotting backend')
+
 try:
     from mpl_toolkits.basemap import Basemap
     installed_backends.append('basemap')
 except:
     print('WARNING: BASEMAP seems not to be installed and can therefore not be used as plotting backend')
 
-try:
-    import cartopy.crs as ccrs
-    installed_backends.append('cartopy')
-except:
-    print('WARNING: CARTOPY seems not to be installed and can therefore not be used as plotting backend')
 
 try:
     from matplotlib import pyplot as plt

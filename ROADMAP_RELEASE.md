@@ -3,9 +3,9 @@ Roadmap for pycmbs release on github
 
 ### Prio 2
 
-* deployment using pip (information also using testing server can be found
+* [AL] deployment using pip (information also using testing server can be found
   here: https://pypi.python.org/pypi
-* pip installation covering also external dependencies recursevely
+* [AL] pip installation covering also external dependencies recursevely
 
 Code clean up and completion
 ----------------------------
@@ -27,14 +27,10 @@ Documentation
 
 ### Prio 1
 
-* [AL] review current sphinx documentation and put placeholders where still needed
-  ; MI to review
 * [MI] test again the examples scripts in /pycmbs/examples; would be good if Mikhail
   would do that as he was not included in its development
 * [MI] review general README, which has been already adapted by AL
 * [MI] put a copyright notice in every file. Perhaps git could do this
   automatically?? [MI to check]
 
-### Prio 2
 
-* improved installation using setup.py for general users

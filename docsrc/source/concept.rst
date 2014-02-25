@@ -1,5 +1,5 @@
-General concept (o.k.)
-----------------------
+General concept
+---------------
 
 pyCMBS consists of two parts
 

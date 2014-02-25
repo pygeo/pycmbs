@@ -1,5 +1,5 @@
-Installation (o.k.)
-===================
+Installation
+============
 
 Below we describe how you properly install pyCMBS in your environment.
 Currently, there are three different ways to install pyCMBS
