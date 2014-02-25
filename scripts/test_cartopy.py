@@ -1,4 +1,10 @@
 """
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
+"""
+
+"""
 Test map layouts
 """
 from pycmbs.mapping import SingleMap

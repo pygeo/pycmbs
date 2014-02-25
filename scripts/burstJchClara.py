@@ -5,6 +5,12 @@ import Nio
 import numpy as np
 import os,sys
 
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
+"""
+
 
 def rebin_sum(a, shape):
     sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
