@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This file is part of pyCMBS. (c) 2012-2014"
 For COPYING and LICENSE details, please refer to the files"
@@ -32,8 +31,9 @@ def find_python_files():
     python_files = glob.glob('./scripts/*.py')
     python_files += glob.glob('./scripts/*/*.py')
     python_files += glob.glob('./pycmbs/*.py')
+    python_files += glob.glob('./pycmbs/tests.py')
     python_files += glob.glob('./pycmbs/benchmarking/*.py')
-    
+    python_files += glob.glob('./pycmbs/benchmarking/tests/*.py')
     return python_files
 
 def license_missing(filename):
