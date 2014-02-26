@@ -14,5 +14,4 @@ P = PatternCorrelation(A,B)
 # ... and vizalize it
 P.plot()
 
-
 plt.show()

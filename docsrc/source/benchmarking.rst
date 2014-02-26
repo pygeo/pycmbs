@@ -1,5 +1,5 @@
-Model benchmarking (TBD)
-========================
+Model benchmarking
+==================
 
 pyCMBS provides a flexible tool to compare output from models with other models as well as with observational data.
 

@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 # this is just an artificial example illustrating principle usage of the
 # Portraet diagram
 
-G = GlecklerPlot()
+fig = plt.figure(figsize=(8,6))
+
+G = GlecklerPlot(fig=fig)
 # register models
 G.add_model('MPI-ESM-MR')
 G.add_model('MPI-ESM-LR')
