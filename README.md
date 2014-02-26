@@ -56,6 +56,6 @@ History
 
 For a detailed history of development and versions, please look at CHANGES.md
 
-License information
+License and copyright information
 -------------------
-see the file LICENSE.md for information of the software terms & conditions of usage and a DISCLAIMER OF ALL WARRANTIES
+see the file COPYRIGHT.md for information of the software terms & conditions of usage and a DISCLAIMER OF ALL WARRANTIES
