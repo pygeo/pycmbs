@@ -23,10 +23,15 @@ Map difference
 Create a plot of temporal mean fields of observations and models and their
 absolute and relative differences.
 
+.. plot:: ./figures/fig_map_difference.py
+
 Hovmoeller plot
 ~~~~~~~~~~~~~~~
 
 Generates a standard Hovmoeller plot (= time-latitude plot) of the variable.
+
+.. plot:: ./figures/fig_hovmoeller.py
+
 
 
 Pattern correlation
@@ -36,6 +41,8 @@ The correlation between the spatial patterns of investigated variables between
 models and observations can be vizualized in differnt ways. For each month or
 season the spatial correlation coefficient is estimated and vizualized as a
 timeline.
+
+.. plots:: ./figures/fig_pattern_correlation.py
 
 
 Portraet diagram
@@ -51,7 +58,10 @@ Global Mean Plot
 ~~~~~~~~~~~~~~~~
 
 Global mean timeseries of a specific variable. The global mean values are
-estimated using proper area weighting.
+estimated using proper area weighting. The plot object also allows to
+automatically plot climatology mean values.
+
+.. plot:: ./figures/fig_globalmean.py
 
 
 
