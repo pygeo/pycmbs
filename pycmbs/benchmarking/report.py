@@ -22,34 +22,27 @@ class Report(object):
         """
         constructor for Latex report class
 
-        @param filename: name of output file
-        @type filename: str
-
-        @param title: name of author
-        @type title: str
-
-        @param format: output format for figures (e.g. png, pdf)
-        @type format: str
-
-        @param outdir: output directory to write report and images to
-        @type outdir: str
-
-        @param dpi: specify dots per inch for graphic output
-        @type dpi: int
-
-        @param logofile: name of file for logo on first page;
-        if None or file not existing, then nothing will be plotted
-        @type logofile: str
-
-        @param usehyperlinks: use hyperlinks for table of contents
-        @type usehyperlinks: bool
-
-        @param author: Author of the document
-        @type author: str
-
-        @param autocompile: ensure automatic PDF creation when
-        report is closed
-        @type autocompile: bool
+        filename : str
+            name of output file
+        title : str
+            name of author
+        format : str
+            output format for figures (e.g. png, pdf)
+        outdir : str
+            output directory to write report and images to
+        dpi : int
+            specify dots per inch for graphic output
+        logofile : str
+            name of file for logo on first page
+            if None or file not existing, then nothing will
+            be plotted
+        usehyperlinks : bool
+            use hyperlinks for table of contents
+        author : str
+            Author of the document
+        autocompile : bool
+            ensure automatic PDF creation when
+            report is closed
         """
 
         ext = ''
