@@ -15,10 +15,3 @@ map_plot(air, show_zonal=False, use_basemap=True, title='show_zonal=True')
 map_plot(air, show_histogram=False, use_basemap=True, title='show_histogram=True')
 
 plt.show()
-
-
-
-
-
-
-
