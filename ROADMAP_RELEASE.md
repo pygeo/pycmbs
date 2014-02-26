@@ -12,8 +12,6 @@ Code clean up and completion
 
 ### Prio 1
 
-* [MI] ensure that all files have conssitent file header with link to copyright
-  file - done
 * [MI] unittests for benchmarking - in progress
 * put example data as TARBALL somewhere for download
  * data required for testing
@@ -29,7 +27,4 @@ Documentation
 * [MI] test again the examples scripts in /pycmbs/examples; would be good if Mikhail
   would do that as he was not included in its development
 * [MI] review general README, which has been already adapted by AL
-* [MI] put a copyright notice in every file. Perhaps git could do this
-  automatically?? [MI to check]
-
 
