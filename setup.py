@@ -1,9 +1,11 @@
-from distutils.core import setup
-import os
+###from distutils.core import setup
+#### import os
+
+from setuptools import setup
 
 import pycmbs
 
-install_requires = ["numpy>0.1", "cdo>1.2", ]
+install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4"]
 
 setup(name='pycmbs',
       version=pycmbs.__version__,
@@ -11,7 +13,7 @@ setup(name='pycmbs',
                 'pycmbs/benchmarking/logo', 'pycmbs/examples'],
       package_dir={'pycmbs': 'pycmbs'},
       package_data={'pycmbs': ['benchmarking/configuration/*',
-                               'benchmarking/logo/*', 'LICENSE']},
+                               'benchmarking/logo/*']},
       author="Alexander Loew",
       author_email='alexander.loew@mpimet.mpg.de',
       maintainer='Alexander Loew',
@@ -28,7 +30,7 @@ setup(name='pycmbs',
       keywords=["data", "science", "climate", "meteorology",
                 "model evaluation", "benchmarking", "metrics"],
       scripts=["pycmbs-benchmarking.py"],
-      license="XXXX")
+      license="MIT license")
 
 ########################################################################
 # Some useful information on shipping packages
