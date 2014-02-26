@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS.
-For COPYRIGHT, LICENSE and AUTHORSHIP please referr to
-the pyCMBS licensing details.
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
 """
-
 __author__ = "Alexander Loew"
 __version__ = "0.1.4"
 __date__ = "2013/11/12"

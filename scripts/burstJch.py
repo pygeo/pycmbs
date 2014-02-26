@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
+"""
+
 import netCDF4 as nc
 from pylab import imshow, show, colorbar
 import Nio

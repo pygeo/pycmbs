@@ -1,4 +1,10 @@
 """
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
+"""
+
+"""
 Convert region information to a GRID which can be used then for further analysis
 
 Region information is often provided as coordinates, but needs to be rasterized to work with pyCMBS functions.

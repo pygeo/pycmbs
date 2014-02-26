@@ -1,8 +1,10 @@
-###from distutils.core import setup
-#### import os
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
+"""
 
 from setuptools import setup
-
 import pycmbs
 
 install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4"]
@@ -36,10 +38,8 @@ setup(name='pycmbs',
 # Some useful information on shipping packages
 ########################################################################
 
-#PIP
+# PIP
 #~ python setup.py register
 #~ python setup.py sdist
 #~ python setup.py upload
 
-#http://docs.python.org/2/distutils/setupscript.html#installing-package-data
-#http://docs.python.org/2/distutils/setupscript.html#installing-additional-files

@@ -3,6 +3,8 @@
 import os
 import numpy as np
 from matplotlib import pylab as pl
+from pycmbs.data import Data
+from pycmbs.mapping import map_plot
 
 pl.close('all')
 

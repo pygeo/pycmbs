@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright (C) 2012-2014 Alexander Loew, alexander.loew@mpimet.mpg.de
-See COPYING file for copying and redistribution conditions.
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the files
+LICENSE.md and COPYRIGHT.md
 """
 
 __name__ = "pycmbs"
