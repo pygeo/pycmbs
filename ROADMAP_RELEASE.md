@@ -23,8 +23,5 @@ Documentation
 -------------
 
 ### Prio 1
-
-* [MI] test again the examples scripts in /pycmbs/examples; would be good if Mikhail
-  would do that as he was not included in its development
 * [MI] review general README, which has been already adapted by AL
 
