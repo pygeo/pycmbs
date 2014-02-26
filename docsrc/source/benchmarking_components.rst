@@ -42,14 +42,11 @@ models and observations can be vizualized in differnt ways. For each month or
 season the spatial correlation coefficient is estimated and vizualized as a
 timeline.
 
-.. plots:: ./figures/fig_pattern_correlation.py
+.. plot:: ./figures/fig_pattern_correlation.py
 
 
 Portraet diagram
 ~~~~~~~~~~~~~~~~
-
-
-
 
 The *Portraet diagram* was proposed by `Gleckler et al. (2008) <http://www.agu.org/pubs/crossref/2008/2007JD008972.shtml>`_. It is an
 efficient way to vizualize the relative rank of different models  for
@@ -57,7 +54,7 @@ comparisons against different observations. While the original Portraet diagram
 supports only two different observations, pyCMBS supports up to four different
 datasets for each variable.
 
-.. plots:: ./figures/fig_portraet.py
+.. plot:: ./figures/fig_portraet.py
 
 
 Global Mean Plot
