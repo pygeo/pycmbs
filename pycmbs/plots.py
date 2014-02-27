@@ -229,7 +229,7 @@ class HstackTimeseries(object):
             self.figure.suptitle(title)
 
     def _set_monthly_xtick_labels(self, ax):
-        labels = ['J','F','M','A','M','J','J','A','S','O','N','D']
+        labels = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
         ticks = np.arange(12)
         ax.set_xticks(ticks)
         ax.set_xticklabels(labels, rotation=0.)

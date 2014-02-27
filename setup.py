@@ -42,4 +42,3 @@ setup(name='pycmbs',
 #~ python setup.py register
 #~ python setup.py sdist
 #~ python setup.py upload
-

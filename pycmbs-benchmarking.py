@@ -76,7 +76,7 @@ def create_dummy_configuration():
 
     # create dummy configuration file
     CFGW = config.CFGWriter(cwd + '/template.cfg',
-                     generator='pyCMBS CONFIGURATION WRITER')
+                            generator='pyCMBS CONFIGURATION WRITER')
     CFGW.save(temp_dir='<put here the temporary data processing directory>',
               vars=['albedo', 'sis'], start_date='2000-01-01',
               stop_date='2007-09-30',
@@ -605,7 +605,6 @@ def main():
                caption='Gleckler et al. (2008) model performance index',
                width='10cm')
 
-
     # generate dictionary with observation labels for each variable
     labels_dict = {}
     for variable in variables:
@@ -622,7 +621,7 @@ def main():
                 if varoptions[k]['add_to_report']:
                     # generate dictionary for GlecklerPLot legend
                     thelabels.update({int(varoptions[k]['gleckler_position']): k})
-        labels_dict.update({variable : thelabels})
+        labels_dict.update({variable: thelabels})
         del thelabels
 
     #/// legend for gleckler plot ///

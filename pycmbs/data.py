@@ -27,6 +27,7 @@ import datetime
 import calendar
 import tempfile
 
+
 class Data(object):
     """
     Data class: main class

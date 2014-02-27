@@ -2819,9 +2819,6 @@ class Koeppen(object):
 
         self.Clim.data.mask[less(self.lsm.data, 0.5)] = True
 
-
-
-
 #-----------------------------------------------------------------------------------------------------------------------
     def koeppen_cmap(self):
         """
@@ -2961,9 +2958,7 @@ class Koeppen(object):
 
         return True
 
-
 #-----------------------------------------------------------------------------------------------------------------------
-
     def copy(self):
         """
         Returns the Clim Data as an Data variable
