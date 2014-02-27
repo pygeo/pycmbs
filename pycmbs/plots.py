@@ -568,17 +568,14 @@ class ScatterPlot(object):
         """
         constructor of class C{ScatterPlot}
 
-        @param x: Variable that will be used as the x-variable
-        @type x: C{Data} object
-
-        @param normalize_data: if True, then the dataseries is normalized internally so that it has zero mean and a std of 1
-        @type normalize_data: bool
-
-        @param show_xlabel: show xlabel in plot
-        @type show_xlabel: bool
-
-        @param ticksize: ticksize of labels
-        @type ticksize: int
+        x : Data
+            Variable that will be used as the x-variable
+        normalize_data : bool
+            if True, then the dataseries is normalized internally so that it has zero mean and a std of 1
+        show_xlabel : bool
+            show xlabel in plot
+        ticksize : int
+            ticksize of labels
         """
 
         self.show_xlabel = show_xlabel
@@ -799,47 +796,39 @@ class LinePlot(object):
         plot LinePlot data. If a spatial field is provided, this is aggregated
         using the fldmean() function of C{Data}
 
-        @param x: data to be plotted
-        @type x: C{Data}
-
-        @param ax: axis to plot to. If None, then a new figure is generated.
-                   be aware that problems might occur when using axes that were generated with
-                   the twinx() command. Problems can be avoided by generating the figure axcopy=ax.twinx() just
-                   immediately BEFORE calling the plot routine.
-        @type ax: matplotlib axis
-
-        @param vmin: minimum value for y-axis
-        @type vmin: float
-
-        @param vmax: maximum value for y-axis
-        @type vmax: float
-
-        @param label: label to be used for current plot. If None, then
-                      the label of the provided C{Data} object is used
-        @type label: str
-
-        @param norm_std: normalize timeseries with its stdv. This is a useful option when comparing trends of variables with different amplitudes
-        @type norm_std: bool
-
+        Parameters
+        ----------
+        x : Data
+            data to be plotted
+        ax : axis
+            axis to plot to. If None, then a new figure is generated.
+            be aware that problems might occur when using axes that were generated with
+            the twinx() command. Problems can be avoided by generating the figure axcopy=ax.twinx() just
+            immediately BEFORE calling the plot routine.
+        vmin : float
+            minimum value for y-axis
+        vmax : float
+            maximum value for y-axis
+        label : str
+            label to be used for current plot. If None, then
+            the label of the provided C{Data} object is used
+        norm_std : bool
+            normalize timeseries with its stdv. This is a useful option when comparing trends of variables with different amplitudes
         """
 
         if len(x.time) > 0:
-
             if ax is None:
                 ax = self.ax
                 set_axiscolor = False
             else:
                 ax = ax
                 set_axiscolor = True
-
             if x.ndim == 1:  # if a vector already provided
                 y = x.data * 1.
             else:
                 y = x.fldmean()  # ... otherwise use fldmean() to get timeseries
-
             if norm_std:
                 y /= y.std()
-
             if label is None:
                 label = x.label
 
@@ -936,12 +925,12 @@ class GlobalMeanPlot(object):
         """
         plot mean result
 
-        dt: difference for coregistering in fractions of days
-
-        @param plot_clim: if True, then the climatology will be plotted instead of the actual data
-        @type plot_clim: bool
-
-        @return:returns figure handle
+        Parameters
+        ----------
+        dt : float
+            difference for coregistering in fractions of days
+        plot_clim : bool
+            if True, then the climatology will be plotted instead of the actual data
         """
 
         def coregister(x, x1, y1, d):
@@ -1051,27 +1040,22 @@ class GlobalMeanPlot(object):
         the Data label. In case of a duplication of the data labels,
         no plot will be done!
 
-        @param: D1 data field to be plotted
-        @type: C{Data} or (time,data) tuple
-
-        @param color: color of the line
-        @type color: str
-
-        @param linewidth: width of the line
-        @type linewidth: float
-
-        @param show_std: shows standard deviation
-        @type show_std: bool
-
-        @param mask: mask to be applied to the data prior to final analyis
-        @type mask: either numpy bool array or C{Data} object
-
-        @param group: specifies a group that will be used to combine plots of the same type. The group is used as a key for a dictionary that stores the results
-        @type group: str
-
-        @param stat_type: specifies which statistic shall be plotted ['mean','sum'], either area weighted mean or sum
-        @type stat_type: str
-
+        Parameters
+        ----------
+        D1 : C{Data} or (time,data) tuple
+            data field to be plotted
+        color : str
+            color of the line
+        linewidth : float
+            width of the line
+        show_std : bool
+            shows standard deviation
+        mask : ndarray or Data
+            mask to be applied to the data prior to final analyis
+        group : str
+            specifies a group that will be used to combine plots of the same type. The group is used as a key for a dictionary that stores the results
+        stat_type : str
+            specifies which statistic shall be plotted ['mean','sum'], either area weighted mean or sum
         """
 
         if stat_type not in ['mean', 'sum']:
@@ -1189,20 +1173,17 @@ class HistogrammPlot(object):
     """
     def __init__(self, ax=None, bins=10, normalize=False, percent=True):
         """
-        @param ax: axis to plot data to. If not specified, then a new figure is created
-        @type: ax: axis
-
-        @param bins: bins for histogram calculation, either int or a list
-        @type bins: int or list or array
-
-        @param normalize: specifies if data should be normalized relative to the sample size
-        @type normalize: bool
-
-        @param percent: resulting frequencies in percent (applies only if normalize=True)
-        @type percent: bool
+        ax : axis
+            axis to plot data to. If not specified, then a new figure is created
+        bins : int
+            bins for histogram calculation, either int or a list
+        normalize : bool
+            specifies if data should be normalized relative to the sample size
+        percent : bool
+            resulting frequencies in percent (applies only if normalize=True)
         """
 
-        #- Figure init
+        # Figure init
         if ax is None:
             self.figure = plt.figure()
             self.ax = self.figure.add_subplot(111)
@@ -1305,15 +1286,14 @@ class ZonalPlot(object):
         """
         plot zonal plot
 
-        @param x: data to be plotted
-        @type x: C{Data} object
-
-        @param xlim: limits for the x-axis (e.g. values)
-        @type xlim: tuple
-
-        @param timmean: temporal mean calculation
-        @type timmean: bool
-
+        Parameters
+        ----------
+        x : Data
+            data to be plotted
+        xlim : tuple
+            limits for the x-axis (e.g. values)
+        timmean : bool
+            temporal mean calculation
         """
 
         if not x._latitudecheckok:
@@ -1973,16 +1953,16 @@ class GlecklerPlot(object):
         """
         calculate mean value for a given observational dataset
 
-        @param pos: position marker
-        @type pos: int
-
-        @param var: name of variable to analyze
-        @type var: str
-
-        @param method: specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
-                       uses the median, that's why it is the default. another option is to use the 'mean'
-                       ['median','mean']
-        @type method: str
+        Parameters
+        ----------
+        pos : int
+            position marker
+        var : str
+            name of variable to analyze
+        method : str
+            specifies which method should be used for calculation of the "mean" model. The paper of Gleckler et al. (2008)
+            uses the median, that's why it is the default. another option is to use the 'mean'
+            ['median','mean']
         """
         x = []
         for k in self.pos:
@@ -2369,15 +2349,14 @@ def __basemap_ancillary(m, latvalues=None, lonvalues=None, drawparallels=True, d
     routine to plot ancillary data like coastlines
     or meridians on a basemap plot
 
-    @param m: map to add features to
-    @type m: C{Basemap} object
-
-    @param latvalues: latitude values for drawing grid (optional)
-    @type latvalues: list or numpy array
-
-    @param lonvalues: longitude values for drawing grid (optional)
-    @type lonvalues: list or numpy array
-
+    Parameters
+    ----------
+    m : Basemap object
+        map to add features to
+    latvalues : ndarray
+        latitude values for drawing grid (optional)
+    lonvalues : ndarray
+        longitude values for drawing grid (optional)
     """
 
     if latvalues is None:
