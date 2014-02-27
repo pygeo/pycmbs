@@ -16,28 +16,21 @@ class Region(object):
         """
         constructor of class
 
-        @param x1: start position in x-direction (either x index or longitude)
-        @type x1: float
-
-        @param x2: stop position in x-direction (either x index or longitude)
-        @type x2: float
-
-        @param y1: start position in y-direction (either y index or latitude)
-        @type y1: float
-
-        @param y2: stop position in y-direction (either y index or latitude)
-        @type y2: float
-
-        @param label: label of the region
-        @type label: str
-
-        @param type: type of coordiantes (x1,x2,y1,y2): I{index} or I{latlon}
-        @type type: str
-
-        @param mask: mask that will be applied in addition to
+        x1 : float
+            start position in x-direction (either x index or longitude)
+        x2 : float
+            stop position in x-direction (either x index or longitude)
+        y1 : float
+            start position in y-direction (either y index or latitude)
+        y2 : float
+            stop position in y-direction (either y index or latitude)
+        label : str
+            label of the region
+        type : str
+            type of coordiantes (x1,x2,y1,y2): I{index} or I{latlon}
+        mask : ndarray
+            mask that will be applied in addition to
             the coordinates/indices
-        @type mask: array(:,:)
-
         """
 
         if x2 < x1:
@@ -103,8 +96,10 @@ class Region(object):
         """
         extract region subset from data array x
 
-        @param x: array where the data is extracted from
-        @type x: array
+        Parameters
+        ----------
+        x : ndarray
+            array where the data is extracted from
         """
         if x.ndim == 3:
             return x[:, self.y1:self.y2, self.x1:self.x2]
