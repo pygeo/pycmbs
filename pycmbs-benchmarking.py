@@ -5,18 +5,11 @@ This file is part of pyCMBS. (c) 2012-2014
 For COPYING and LICENSE details, please refer to the file
 COPYRIGHT.md
 """
-__author__ = "Alexander Loew"
-__version__ = "0.1.4"
-__date__ = "2013/11/12"
-__email__ = "alexander.loew@mpimet.mpg.de"
-
-#============ IMPORTS ==================================================
 
 import matplotlib as mpl
 mpl.rcParams['backend'] = 'Agg'
 
 from pycmbs.data import Data
-
 import matplotlib.pyplot as plt
 
 import sys
@@ -64,7 +57,6 @@ def create_dummy_configuration():
     """
 
     import shutil
-###    import glob
     d = os.environ['PYCMBSPATH']  # directory of pyCMBS installation
     cwd = os.getcwd()
     odir = cwd + '/configuration'

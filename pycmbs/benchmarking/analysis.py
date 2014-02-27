@@ -460,6 +460,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         dmax = local_plot_options['OPTIONS']['dmax']
     else:
         dmax = None
+
     if 'cticks_diff' in local_plot_options['OPTIONS'].keys():
         cticks_diff = local_plot_options['OPTIONS']['cticks_diff']
     else:
@@ -473,8 +474,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     m_data_org = obs_type + '_org'  # name of original data field
 
     #/// land sea mask (options: land,ocean, global for parameter area)
-    #mask_antarctica masks everything below 60°S.
-    #here we only mask Antarctica, if only LAND points shall be used
+    # mask_antarctica masks everything below 60°S.
+    # here we only mask Antarctica, if only LAND points shall be used
     if valid_mask == 'land':
         mask_antarctica = True
     elif valid_mask == 'ocean':
@@ -863,8 +864,10 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
     # final plotting
     if f_pattern_correlation:
+        # for a climatology with 12 values, a significant level of p<0.05
+        # is reached , when correlation is larger than 0.58
         if PC_plot.get_n() > 0:
-            PC_plot.plot(cmap='YlOrRd', interpolation='nearest', vmin=0., vmax=1., nclasses=10)
+            PC_plot.plot(cmap='YlOrRd', interpolation='nearest', vmin=0.5, vmax=1., nclasses=10)
             PC_plot.figure.suptitle('Pattern correlation: ' + obs_orig.label.upper())
 
             report.figure(PC_plot.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
@@ -1338,7 +1341,7 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
 
     #b) alternative way to plot it
     if GM_HT_clim.get_n() > 0:
-        GM_HT_clim.plot(cmap='jet', interpolation='nearest', vmin=plot_options.options[thevar]['OPTIONS']['vmin'] * 0.2, vmax=plot_options.options[thevar]['OPTIONS']['vmax'] * 0.2, nclasses=15)
+        GM_HT_clim.plot(cmap='jet', interpolation='nearest', vmin=plot_options.options[thevar]['OPTIONS']['cmin'], vmax=plot_options.options[thevar]['OPTIONS']['cmax'], nclasses=15)
         report.figure(GM_HT_clim.figure, caption='Global means climatology for ' + thelabel, bbox_inches=None)
         plt.close(GM_HT_clim.figure.number)
         del GM_HT_clim

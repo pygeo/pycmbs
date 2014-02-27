@@ -24,8 +24,8 @@ class ConfigFile(object):
     """
     def __init__(self, file):
         """
-        @param file: name of parameter file to parse
-        @type file: str
+        file : str
+            name of parameter file to parse
         """
         self.file = file
         if not os.path.exists(self.file):
@@ -152,11 +152,11 @@ class ConfigFile(object):
             else:
                 sys.stdout.write('     Temporary output directory already existing: ' + self.options['tempdir'] + '\n')
 
-        #update global variable for CDO temporary directory (needed for CDO processing)
+        # update global variable for CDO temporary directory (needed for CDO processing)
         os.environ.update({'CDOTEMPDIR': self.options['tempdir']})
 
     def __read_var_block(self):
-        #read header of variable plot
+        # read header of variable plot
         vars = []
         vars_interval = {}
         l = self.__read_header()
@@ -307,11 +307,12 @@ class PlotOptions(object):
         """
         read plot option files and store results in a dictionary
 
+        Parameters
+        ----------
         cfg : ConfigFile instance
             cfg Instance of ConfigFile class which has been already
             initialized (config file has been read already)
         """
-
         from ConfigParser import SafeConfigParser
 
         for var in cfg.variables:
@@ -334,9 +335,9 @@ class PlotOptions(object):
             The other sections specify the details for each observational dataset
             """
 
-            #print('\n*** VARIABLE: %s ***' % var)
+            # print('\n*** VARIABLE: %s ***' % var)
             dl = {}
-            #print parser.sections()
+            # print parser.sections()
             for section_name in parser.sections():
                 # add global plotting options
                 if section_name.upper() == 'OPTIONS':
@@ -350,11 +351,10 @@ class PlotOptions(object):
                         o.update({name: value})
                     dl.update({section_name: o})
 
-            #/// update options dictionary for this variable
-            #print '    OBSERVATIONS for this variable: ', dl.keys()
+            # update options dictionary for this variable
             self.options.update({var: dl})
 
-            #/// destroy parser (important, as otherwise problems)
+            # destroy parser (important, as otherwise problems)
             del parser
 
         # convert options to bool/numerical values
@@ -386,7 +386,7 @@ class PlotOptions(object):
                 lopt['OPTIONS']['start'] = cfg.start_date
                 lopt['OPTIONS']['stop'] = cfg.stop_date
 
-        #--- map interpolation methods ---
+        # map interpolation methods
         # the interpolation method is used by the CDOs. It needs to be
         # a value of [bilinear,conservative,nearest]
         for var in cfg.variables:
@@ -407,7 +407,6 @@ class PlotOptions(object):
         to numerical values or execute functions to set directory
         names appropriately
         """
-
         for v in self.options.keys():
             var = self.options[v]
             for s in var.keys():  # each section
@@ -427,9 +426,10 @@ class PlotOptions(object):
         recognizes if the string is numerical, or boolean
         or if a command needs to be executed to generate a valid value
 
-        @param s: string with value of option
-        @type s: str
-        @return: value of the option
+        Parameters
+        ----------
+        s : str
+            string with value of option
         """
         s.replace('\n', '')
         if len(s) == 0:
@@ -481,7 +481,6 @@ class PlotOptions(object):
     def _check(self):
         """
         check consistency of options specified
-        @return:
         """
         cerr = 0
         o = self.options
@@ -495,7 +494,8 @@ class PlotOptions(object):
                    'preprocess', 'reichler_plot', 'gleckler_plot',
                    'hovmoeller_plot', 'regional_analysis',
                    'interpolation', 'targetgrid', 'projection',
-                   'global_mean']  # options for each variable type
+                   'global_mean', 'vmin', 'vmax', 'dmin', 'dmax',
+                   'cmin', 'cmax', 'pattern_correlation']  # options for each variable type
 
         # all variables
         for v in o.keys():
@@ -597,8 +597,11 @@ class AnalysisRegions():
         """
         read a single file specifying regions. A file can contain
         more than one region. Results will be stored in self.regions
-        @param file: filename
-        @return:
+
+        Parameters
+        ----------
+        file : str
+            filename
         """
         if not os.path.exists(file):
             return
@@ -633,12 +636,12 @@ class CFGWriter(object):
 
     def __init__(self, filename, generator='pyCMBS CONFIGURATION WRITER'):
         """
-        Arguments
+        Parameters
         ---------
         filename : str
-                   filename of configuration file that shall be generated
+            filename of configuration file that shall be generated
         generator : str
-                    identifier of the caller of the class
+            identifier of the caller of the class
         """
         self.generator = generator
         self.filename = filename
