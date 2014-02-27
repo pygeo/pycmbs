@@ -1,7 +1,7 @@
 """
 This file is part of pyCMBS. (c) 2012-2014"
-For COPYING and LICENSE details, please refer to the files"
-LICENSE.md and COPYRIGHT.md
+For COPYING and LICENSE details, please refer to the file"
+COPYRIGHT.md
 """
 
 import os
@@ -39,8 +39,8 @@ def find_python_files():
 def license_missing(filename):
     license_string = \
     "This file is part of pyCMBS. (c) 2012-2014" + "\n" + \
-    "For COPYING and LICENSE details, please refer to the files"  + "\n" + \
-    "LICENSE.md and COPYRIGHT.md"
+    "For COPYING and LICENSE details, please refer to the file"  + "\n" + \
+    "COPYRIGHT.md"
     license_missing = True
     fh = open(filename, 'r')
     file_contents = fh.read()
