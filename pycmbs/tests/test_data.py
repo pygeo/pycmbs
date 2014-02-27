@@ -411,7 +411,7 @@ class TestData(unittest.TestCase):
         y.data += 3.
         c = x.add(y)
         self.assertTrue( np.all(np.abs(1.- c.data[0,0,0] / (x.data[0,0,0]*2.+3.)) < 1.E-6))
-        self.assertEqual(c.data[100,0,0], x.data[100,0,0]*2.+3.)
+        self.assertTrue(np.all(np.abs(1. - c.data[100,0,0] / (x.data[100,0,0]*2.+3.)) < 1.E-6))
 
     def test_sub(self):
         x = self.D.copy()
