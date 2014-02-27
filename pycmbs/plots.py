@@ -75,9 +75,13 @@ def thin_xticks(ax, n):
 def rotate_ticks(ax, angle):
     """
     Rotate ticks of an axis
-    @param ax:
-    @param angle:
-    @return:
+
+    Parameters
+    ----------
+    ax : axis
+        axis to change
+    angle : float
+        rotation angle
     """
     ts = ax.xaxis.get_major_ticks()
     for t in ts:
@@ -289,17 +293,16 @@ class CorrelationAnalysis(object):
         """
         constructor of class
 
-        @param X: x dataset (either [time,sample] or [time,sample,sample]
-        @type X: numpy array
-
-        @param Y: y dataset (either [time,sample] or [time,sample,sample]
-        @type Y: numpy array
-
-        @param mask: mask to be applied to the data
-        @type mask: numpy array(:,:) or (:)
-
-        @param ax: axis to plot results to; new figure will be generated if ax==None
-        @type ax: matplotlib axis
+        Parameters
+        ----------
+        X : ndarray
+            x dataset (either [time,sample] or [time,sample,sample]
+        Y : ndarray
+            y dataset (either [time,sample] or [time,sample,sample]
+        mask : ndarray
+            mask to be applied to the data
+        ax : axis
+            axis to plot results to; new figure will be generated if ax==None
         """
 
         self.x = X
@@ -387,8 +390,10 @@ class ReichlerPlot(object):
         """
         constructor for Reichler plot
 
-        @param ax: axis to plot data to; if None, new figure will be generated
-        @type ax: matplotlib axis
+        Parameters
+        ----------
+        ax : axis
+            axis to plot data to; if None, new figure will be generated
         """
 
         if ax is None:
@@ -433,14 +438,14 @@ class ReichlerPlot(object):
         the relative error of each particular model
         compared to the multimodel mean
 
-        @param vmin: minimum value for plotting
-        @type vmin: int
-
-        @param vmax: maximum value for plotting
-        @type vmax: int
-
-        @param title: title for the plot
-        @type title: str
+        Parameters
+        ----------
+        vmin : float
+            intminimum value for plotting
+        vmax : float
+            maximum value for plotting
+        title : str
+            title for the plot
         """
 
         if len(self.e2) == 0:  # no valid data
@@ -606,14 +611,14 @@ class ScatterPlot(object):
         add a dataset to the scatterplot and plot
         it. It also allows to perform a regression analysis
 
-        @param y: data to be plotted on y-axis
-        @type y: C{Data} object
-
-        @param regress: Perform linear regression analysis
-        @type regress: bool
-
-        @param fldmean: show in scatterplot fldmean() values, else datapairs are copnstructed for each grid cell
-        @type fldmean: bool
+        Parameters
+        ----------
+        y : Data
+            data to be plotted on y-axis
+        regress : bool
+            Perform linear regression analysis
+        fldmean : bool
+            show in scatterplot fldmean() values, else datapairs are copnstructed for each grid cell
         """
 
         if y.label is None:
@@ -729,27 +734,22 @@ class LinePlot(object):
         """
         constructor of LinePlot
 
-        @param ax: axis to plot data to. If I{None} then a new figure is generated
-        @type ax: matplotlib axis
-
-        @param regress: perform a linear regression on the data to be plotted
-        @type regress: bool
-
-        @param title: title of the plot
-        @type title: str
-
-        @param show_xlabel: show x-label for the plot
-        @type show_xlabel: bool
-
-        @param show_ylabel: show y-label for the plot
-        @type show_ylabel: bool
-
-        @param normx: normalization constant for x-variable (needed e.g. if you want to normalize a timevector for regression analysis)
-        @type normx: float
-
-        @param xtickrotation: rotation for xtick labels
-        @type xtickrotation: float
-
+        Parameters
+        ----------
+        ax : axis
+            axis to plot data to. If I{None} then a new figure is generated
+        regress : bool
+            perform a linear regression on the data to be plotted
+        title : str
+            title of the plot
+        show_xlabel : bool
+            show x-label for the plot
+        show_ylabel : bool
+            show y-label for the plot
+        normx : float
+            normalization constant for x-variable (needed e.g. if you want to normalize a timevector for regression analysis)
+        xtickrotation : float
+            rotation for xtick labels
         """
 
         if ax is None:
