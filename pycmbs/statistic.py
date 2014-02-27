@@ -16,19 +16,19 @@ def get_significance(correlation, n, pthres=1.01):
     """
     calculate significance of correlation
 
-    @param correlation: pearson correlation coefficient
-    @type  correlation: float
-
-    @param n: number of samples
-    @type  n: integer
-
-    @param pthres: (optional) specifies threshold for p-value. Everything
+    Parameters
+    ----------
+    correlation : float
+        pearson correlation coefficient
+    n : int
+        number of samples
+    pthres : float
+        (optional) specifies threshold for p-value. Everything
         above this threshold will be masked
-    @type  pthres: integer
 
-    @return: returns the p-value
-    @rtype : numpy masked array
-
+    Returns
+    -------
+    ndarray : returns the p-value
     """
 
     nf = n - 2  # degree of freedom
