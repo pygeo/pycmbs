@@ -3277,7 +3277,7 @@ def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
 #-----------------------------------------------------------------------
 
 
-def xxx_add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=None):
+def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=None):
     """
     add a nice looking legend
 
