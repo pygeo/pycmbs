@@ -6,13 +6,14 @@
 # pep8, ignoring some errors like e.g. indention errors or linelength error
 PEP = pep8 --ignore=E501
 TDIR = ./tmp
-VERSION = 0.1.6
+VERSION = 1.0.0-dev
 TESTDIRS = pycmbs/benchmarking/tests pycmbs/tests
 
 
 clean :
 	find . -name "*.pyc" -exec rm -rf {} \;
 	find . -name "data_warnings.log" -exec rm -rf {} \;
+	rm -rf C:*debuglog.txt
 	rm -rf build
 	rm -rf MANIFEST
 	rm -rf cover
@@ -22,6 +23,7 @@ clean :
 
 ship : dist
 	# XXX: should not remove non-pycmbs files
+	mkdir -p $(TDIR)
 	rm -rf $(TDIR)/*
 	rm -rfv $(TDIR)/pycmbs.*.tar.gz
 	cp ./dist/pycmbs-$(VERSION).tar.gz $(TDIR)

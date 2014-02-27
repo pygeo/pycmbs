@@ -1,5 +1,6 @@
-include README
-include CHANGES
+include COPYRIGHT_netCDF4
+include Makefile
+global-include *.md
 global-include LICENSE
 global-include *.rst
 global-include INSTALL*
@@ -16,6 +17,8 @@ prune test_eof
 prune dirk
 prune misc
 prune example
+prune dwd_notes
+prune notes
 exclude test_hov.py
 exclude anova_test.py
 exclude ansamp.py
