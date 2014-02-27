@@ -3198,11 +3198,12 @@ def add_histogram(ax, x, bins=10):
     """
     add a histogram to an axis
 
-    @param ax: axis to add the histogram plot to
-    @type ax: axis
-
-    @param x: Data that should be vizualized as histogram
-    @type x: Data
+    Parameters
+    ----------
+    ax : axis
+        axis to add the histogram plot to
+    x : Data
+        Data that should be vizualized as histogram
     """
 
     divider = make_axes_locatable(ax)
@@ -3276,20 +3277,18 @@ def add_zonal_plot(ax, x, timmean=True, vmin=None, vmax=None):
 #-----------------------------------------------------------------------
 
 
-def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=None):
+def xxx_add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=None):
     """
     add a nice looking legend
 
-    @param ax: major axis with plot
-    @type ax: matpltlib axis object
-
-    @param im: result from command like imshow
-    @param im: matplotlib im object (???)
-
-    @param dummy: add colorbar axis as a dummy axis which is not visible
-                  this is useful if you have multiple subplots which should
-                  have the same size. Adding a colorbar will slightly change the size
-    @type dummy: bool
+    ax : axis
+        major axis with plot
+    im : matplolib object
+        result from command like imshow
+    dummy : bool
+        add colorbar axis as a dummy axis which is not visible
+        this is useful if you have multiple subplots which should
+        have the same size. Adding a colorbar will slightly change the size
 
     @param fontsize: fontsize for colorbar ticks
     @type fontsize: int
@@ -3303,6 +3302,8 @@ def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=No
 
     #todo: add option to add units
     """
+
+    print('Depreciated function')
 
     #set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
@@ -3332,6 +3333,10 @@ def hov_difference(x, y, climits=None, dlimits=None, data_cmap='jet', nclasses=1
     """
     class to plot hovmoeller diagrams of two datasets
     and their difference
+
+    Parameters
+    ----------
+    TODO
 
     x,y two Data structures
 
@@ -3622,16 +3627,16 @@ def plot_hovmoeller(x, rescaley=10, rescalex=1, monthsamp=24, dlat=1., cmap=None
     """
     plot hovmoeller plots given a C{Data} object
 
-    @param x: C{Data} object
-    @type x: C{Data} object
+    Paraemters
+    ----------
+    x : Data
+        C{Data} object
+    rescalex : int
+        rescaling parameter for x-axis for hovmoeller plot
+    rescaley : int
+        rescaley: rescaling parameter for y-axis for hovmoeller plot
 
-    @param rescalex: rescaling parameter for x-axis for hovmoeller plot
-    @type rescalex: int
-
-    @param rescaley: rescaling parameter for y-axis for hovmoeller plot
-    @type rescaley: int
-
-
+    TODO
     """
 
     if climits is None:
@@ -3668,7 +3673,6 @@ def plot_hovmoeller(x, rescaley=10, rescalex=1, monthsamp=24, dlat=1., cmap=None
 def calc_rms_error(x, y):
     """
     calculate RMS error
-
     x,y: masked arrays
     """
 

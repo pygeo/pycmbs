@@ -2618,15 +2618,14 @@ class Data(object):
         normalize data by removing the mean and dividing by the standard deviation
         normalization is done for each grid cell
 
-        @param return_object: specifies if a C{Data} object shall be returned
-        @type return_object: bool
-
-        @return:
+        Parameters
+        ----------
+        return_object : bool
+            specifies if a C{Data} object shall be returned
 
         Test
         ----
         unittest implemented
-
         """
 
         if self.data.ndim != 3:
@@ -2945,15 +2944,16 @@ class Data(object):
         NOTE, that results must not be the same as from cdo fldsum(), as fldsum() DOES NOT
         perform an area weighting!
 
+        Parameters
+        ----------
+        return_data : bool
+            if True, then a C{Data} object is returned
+        apply_weights : bool
+            apply weights when calculating area weights
 
-        @param return_data: if True, then a C{Data} object is returned
-        @type return_data: bool
-
-        @param apply_weights: apply weights when calculating area weights
-        @type apply_weights: bool
-
-        @return: vector of spatial mean array[time]
-        @rtype: C{Data} object or numpy array
+        Returns
+        -------
+        vector of spatial mean array[time]
 
         Test
         ----
@@ -3928,22 +3928,25 @@ class Data(object):
         x : Data
             Data object which will be substracted from self
         axis : int
-            axis along which the data will be aggregated (typically axis=0 corresponds to time)
+            axis along which the data will be aggregated
+            (typically axis=0 corresponds to time)
+        equal_var : bool
+            specifies if the two input datasets (self,x) are expected
+            to have same variance. Dependent on this parameter.
+            If the variance is equal, then a t-test is applied,
+            if not, then a welch test is used.
+        mask_data : bool
+            specifies if the data field which is returned should be
+            masked for all areas that do *not* show significant changes!
+        pthres : float
+            threshold for significant p-value; a value of e.g. 0.05 corresponds to the 95% significance level.
+            this threshold will be used for the generation of a mask that might be used e.g. as an overlay in map_plot()
 
-        @param equal_var: specifies if the two input datasets (self,x) are expected to have same variance.
-                          dependent on this parameter. If the variance is equal, then a t-test is applied,
-                          if not, then a welch test is used.
-        @type equal_var: bool
-
-        @param mask_data: specifies if the data field which is returned should be masked for all areas that do *not* show significant changes!
-        @type mask_data: bool
-
-        @param pthres: threshold for significant p-value; a value of e.g. 0.05 corresponds to the 95% significance level.
-                       this threshold will be used for the generation of a mask that might be used e.g. as an overlay in map_plot()
-        @type pthres: float
-
-        @return: returns a C{Data} object that includes a) the difference map, b) the p-value, c) a mask that can be used e.g. as an overlay for map_plot()
-        @rtype: C{Data}
+        Returns
+        -------
+        returns a C{Data} object that includes a) the difference map,
+        b) the p-value, c) a mask that can be used e.g. as an overlay
+        for map_plot()
 
         @todo: implementation of welch test. This should be actually already be implemented in stats.ttest_ind, but is not available in my python installation!
         http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html#scipy.stats.ttest_ind
