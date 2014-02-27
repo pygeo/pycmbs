@@ -867,7 +867,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         # for a climatology with 12 values, a significant level of p<0.05
         # is reached , when correlation is larger than 0.58
         if PC_plot.get_n() > 0:
-            PC_plot.plot(cmap='YlOrRd', interpolation='nearest', vmin=0.5, vmax=1., nclasses=10)
+            PC_plot.plot(cmap='YlOrRd', interpolation='nearest',
+                         vmin=0.5, vmax=1., nclasses=10,
+                         monthly_clim_ticks=True)
             PC_plot.figure.suptitle('Pattern correlation: ' + obs_orig.label.upper())
 
             report.figure(PC_plot.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
