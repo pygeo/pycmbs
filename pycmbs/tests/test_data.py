@@ -1393,17 +1393,17 @@ class TestData(unittest.TestCase):
 
     def test_normalize(self):
         x = self.D.copy()
-        d = x.data[:,0,0].copy()
+        d = x.data[:, 0, 0].copy()
 
         r = (d - d.mean()) / d.std()
         x.normalize(return_object=False)
-        dif = np.abs(x.data[:,0,0]-r)
-        self.assertTrue(np.all(dif == 0.))
+        dif = np.abs(1.-x.data[:,0,0]/r)
+        self.assertTrue(np.all(dif < 1.E-6))
 
         x = self.D.copy()
         y=x.normalize(return_object=True)
-        dif = np.abs(y.data[:, 0, 0]-r)
-        self.assertTrue(np.all(dif == 0.))
+        dif = np.abs(1.-y.data[:, 0, 0]/r)
+        self.assertTrue(np.all(dif < 1.E-6))
 
     def test_normalize_InvalidGeometry(self):
         x = self.D.copy()
