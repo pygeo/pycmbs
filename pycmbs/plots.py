@@ -60,7 +60,7 @@ def thin_xticks(ax, n):
     thin xticks of axis
 
     If there are too many xticks in a plot or the labels
-    are overlapping, it makes sense to thin the mńumber of labels
+    are overlapping, it makes sense to thin the number of labels
 
     Parameters
     ----------
@@ -1363,7 +1363,7 @@ class GlecklerPlot(object):
 
     References
     ----------
-    [1] ﻿Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008.
+    [1] Gleckler, P.J., Taylor, K.E. & Doutriaux, C., 2008.
              Performance metrics for climate models. Journal of
              Geophysical Research, 113(D6).
 

@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import unittest
 from nose.tools import assert_raises
 from pycmbs.benchmarking.report import Report

@@ -474,7 +474,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     m_data_org = obs_type + '_org'  # name of original data field
 
     #/// land sea mask (options: land,ocean, global for parameter area)
-    # mask_antarctica masks everything below 60°S.
+    # mask_antarctica masks everything below 60 degrees S.
     # here we only mask Antarctica, if only LAND points shall be used
     if valid_mask == 'land':
         mask_antarctica = True

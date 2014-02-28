@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from pycmbs.data import Data
 from pycmbs.plots import HovmoellerPlot
 import matplotlib.pyplot as plt

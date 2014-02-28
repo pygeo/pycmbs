@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 #This file is part of netCDF4 library, version 1.0.4
 #It is provided under the conditions specified in COPYING_netCDF4
 

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Defines a docutils directive for inserting inheritance diagrams.
 

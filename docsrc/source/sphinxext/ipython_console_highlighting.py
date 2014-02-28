@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """reST directive for syntax-highlighting ipython interactive sessions.
 
 XXX - See what improvements can be made based on the new (as of Sept 2009)

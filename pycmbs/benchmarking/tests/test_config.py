@@ -8,10 +8,11 @@ COPYRIGHT.md
 import unittest
 from pycmbs.benchmarking import config
 
-class TestPycmbsBenchmarkingReport(unittest.TestCase):
+class TestPycmbsBenchmarkingConfig(unittest.TestCase):
 
     def setUp(self):
-        pass
+        test_cfg_path = './test.cfg'
+        config_file = config.ConfigFile('test.cfg') 
 
     def test_DummyTest(self):
         pass

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re, inspect, textwrap, pydoc
 from docscrape import NumpyDocString, FunctionDoc, ClassDoc
 

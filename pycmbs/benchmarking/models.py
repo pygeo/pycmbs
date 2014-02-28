@@ -427,7 +427,7 @@ class CMIP5Data(Model):
         mdata_all = Data(file_monthly, varname, read=True, label=self.model, unit=units, lat_name=lat_name, lon_name=lon_name, shift_lon=False, time_cycle=12, scale_factor=scf, level=thelevel)
         mdata_all.adjust_time(day=15)
 
-        #mask_antarctica masks everything below 60°S.
+        #mask_antarctica masks everything below 60 degrees S.
         #here we only mask Antarctica, if only LAND points shall be used
         if valid_mask == 'land':
             mask_antarctica = True
@@ -1623,7 +1623,7 @@ class JSBACH_RAW(Model):
         mdata_all = Data(file_monthly, varname, read=True, label=self.name, shift_lon=False, time_cycle=12)
         mdata_all.adjust_time(day=15)
 
-        #mask_antarctica masks everything below 60°S.
+        #mask_antarctica masks everything below 60 degree S.
         #here we only mask Antarctica, if only LAND points shall be used
         if valid_mask == 'land':
             mask_antarctica = True

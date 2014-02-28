@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from pycmbs.plots import GlecklerPlot
 import matplotlib.pyplot as plt
 

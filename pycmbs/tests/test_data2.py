@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #
 # TESTS with some test data
 #

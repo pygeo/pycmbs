@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pycmbs.benchmarking.models import MeanModel, Model
 import numpy as np
 from pycmbs.data import Data

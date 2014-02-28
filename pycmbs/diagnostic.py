@@ -744,7 +744,7 @@ class EOF(object):
 
     REFERENCES:
     -----------
-    [1] ﻿von Storch, H. & Zwiers, F.W., 1999. Statistical Analysis in Climate Research, chapter 13
+    [1] von Storch, H. & Zwiers, F.W., 1999. Statistical Analysis in Climate Research, chapter 13
     """
 
     def __init__(self, x0, allow_gaps=False, normalize=False, cov_norm=True, anomalies=False, area_weighting=True,
@@ -3004,10 +3004,10 @@ class Koeppen(object):
 
     def legend(self):
         """
-        This routine prints a legend of the geiger-köppen types.
+        This routine prints a legend of the geiger-koeppen types.
         The description is taken from:
-        MARKUS KOTTEK, JÜRGEN GRIESER, CHRISTOPH BECK , BRUNO RUDOLF and FRANZ RUBEL
-        World Map of the Köppen-Geiger climate classiﬁcation updated
+        MARKUS KOTTEK, JUERGEN GRIESER, CHRISTOPH BECK , BRUNO RUDOLF and FRANZ RUBEL
+        World Map of the Koeppen-Geiger climate classification updated
         Meteorologische Zeitschrift, Vol. 15, No. 3, 259-263 (June 2006)
 
         """
@@ -3042,9 +3042,9 @@ class Koeppen(object):
         It use the own created color-map and sets the color-bar to a
         horizontal orientation.
         It set the range of values between 0.5 and 14.5. Which are the
-        possible values of geiger-köppen.
+        possible values of geiger-koeppen.
         ToDo:
-        At the moment the label of the geiger-köppen types are missing
+        At the moment the label of the geiger-koeppen types are missing
         at the color-bar
         """
         map_plot(self.Clim, cmap_data=self.cmap, colorbar_orientation='horizontal', vmin=0.5, vmax=14.5,
