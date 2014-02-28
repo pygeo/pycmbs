@@ -12,7 +12,6 @@ class TestPycmbsBenchmarkingConfig(unittest.TestCase):
 
     def setUp(self):
         test_cfg_path = './test.cfg'
-        config_file = config.ConfigFile('test.cfg') 
 
     def test_DummyTest(self):
         pass
