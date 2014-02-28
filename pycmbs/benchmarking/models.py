@@ -1425,17 +1425,18 @@ class JSBACH_RAW2(Model):
 
         return mdata, retval
 
-
 #-----------------------------------------------------------------------
+
 class JSBACH_RAW(Model):
     """
     Class for RAW JSBACH model output
-    works on manually preprocessed yseasmena / ymonmean files
+    works on manually preprocessed already concatenated data
     """
 
-    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, **kwargs):
-
-        super(JSBACH_RAW, self).__init__(self, filename, dic_variables, name=name, **kwargs)
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, intervals = 'monthly', **kwargs):
+        print kwargs.keys()
+        print 'Name: ', name
+        super(JSBACH_RAW, self).__init__(filename, dic_variables, name=name, intervals=intervals, **kwargs)
 
         self.experiment = experiment
         self.shift_lon = shift_lon
@@ -1447,7 +1448,6 @@ class JSBACH_RAW(Model):
     def _get_unique_name(self):
         """
         get unique name from model and experiment
-        @return: string with unique combination of models and experiment
         """
         return self.name.replace(' ', '') + '-' + self.experiment.replace(' ', '')
 
@@ -1493,6 +1493,7 @@ class JSBACH_RAW(Model):
         return t2m, retval
 
 #-----------------------------------------------------------------------
+
     def get_albedo_data(self, interval='season'):
         """
         calculate albedo as ratio of upward and downwelling fluxes
@@ -1517,7 +1518,26 @@ class JSBACH_RAW(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_down(self, interval='season'):
+    def _do_preprocessing(self, rawfile, thevar, s_start_time, s_stop_time, interval='monthly', force_calc=False):
+        """
+        perform preprocessing
+        * selection of variable
+        * temporal subsetting
+        """
+        cdo = Cdo()
+
+        if not os.path.exists(rawfile):
+            raise ValueError('File not existing! %s ' % rawfile)
+
+        file_monthly = raw_file[:-3] + '_' + thevar + '_' + s_start_time + '_' + s_stop_time + '_mm.nc'
+        cdo.monmean(options='-f nc', output=file_monthly, input='seldate,' + s_start_time + ',' + s_stop_time + ' ' + '-selvar,' + thevar + ' ' + rawfile, force=force_calc)
+
+        if not os.path.exists(file_monthly):
+            raise ValueError('Monthly preprocessing did not work! %s ' % file_monthly)
+
+
+
+    def get_surface_shortwave_radiation_down(self, interval='monthly'):
         """
         get surface shortwave incoming radiation data for JSBACH
 
@@ -1533,15 +1553,25 @@ class JSBACH_RAW(Model):
 
         v = 'swdown_acc'
 
-        #y1 = '1979-01-01'; y2 = '2010-12-31'
         y1 = '1980-01-01'
         y2 = '2010-12-31'
-        rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
+        #rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
         #rawfilename = self.data_dir +  self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
+        rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0 : 4] + '_' + y2[0 : 4] + '.nc'
 
-        if not os.path.exists(rawfilename):
-            print 'File not existing: ', rawfilename
+        file_monthly = self._do_preprocessig(rawfile, v, y1, y2, interval=interval)
+        if not os.path.exists(file_monthly):
+            raise ValueError('File not existing: %s' % file_monthly)
             return None
+
+        stop
+
+
+
+
+
+
+
 
         filename = rawfilename
 

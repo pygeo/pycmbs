@@ -468,10 +468,11 @@ def main():
         elif CF.dtypes[i].upper() == 'JSBACH_RAW':
             themodel = JSBACH_RAW(data_dir, varmethods, experiment,
                                   intervals=CF.intervals,
-                                  start_time=start_time,
-                                  stop_time=stop_time,
                                   name=model,
-                                  shift_lon=shift_lon)
+                                  shift_lon=shift_lon,
+                                  start_time=start_time,
+                                  stop_time=stop_time
+                                  )
         elif CF.dtypes[i].upper() == 'JSBACH_RAW2':
             themodel = JSBACH_RAW2(data_dir, varmethods, experiment,
                                    intervals=CF.intervals,
