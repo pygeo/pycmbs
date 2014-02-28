@@ -9,19 +9,13 @@ pyCMBS consists of two parts
 Coding principles
 ~~~~~~~~~~~~~~~~~
 
-pyCMBS is written in purely in python.  It was tested under python 2.7.x. The coding is based largely on the concept of test driven development. 
+pyCMBS is written purely in Python (2.7). The coding is based largely on the concept of the test driven development. 
 The code has the following characteristics
 
 * thorough testing using unittests
 * readable python code, following PEP8 convention
 * object oriented programming, flexibility and modularity
-* open source: pyCMBS code is hosted on an open-source github_ project
+* pyCMBS is an open source project and is hosted on github_ 
 
 
 .. _github: https://github.com/pygeo/pycmbs
-
-
-
-
-
-
