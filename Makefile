@@ -38,6 +38,12 @@ tests:
 dist : clean
 	python setup.py sdist
 
+build_docs: 
+	python setup.py build_sphinx
+
+upload_docs:
+	python setup.py upload_sphinx
+
 pep8 :
 	$(PEP) *.py
 	$(PEP) ./pycmbs/*.py
