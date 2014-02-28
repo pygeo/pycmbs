@@ -6,3 +6,4 @@ tags
 tmp_data.nc
 *.swp
 ./cover
+.pypirc
