@@ -3,9 +3,7 @@ Roadmap for pycmbs release on github
 
 ### Prio 2
 
-* [AL] deployment using pip (information also using testing server can be found
-  here: https://pypi.python.org/pypi
-* [AL] pip installation covering also external dependencies recursevely
+* Deployment to PyPi [MI]
 
 Code clean up and completion
 ----------------------------
@@ -23,5 +21,5 @@ Documentation
 -------------
 
 ### Prio 1
-* [MI] review general README, which has been already adapted by AL
+* [MI] review general README, which has been already adapted by AL -- in progress
 
