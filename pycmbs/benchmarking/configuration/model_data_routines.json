@@ -1,5 +1,5 @@
 {
-    "albedo": "get_albedo_data(interval=interval)",
+    "albedo": "get_albedo_data(interval=interval, **{'JSBACH_RAW':{'valid_mask':'land'}})",
     "albedo_nir": "get_albedo_data_nir(interval=interval)",
     "albedo_vis": "get_albedo_data_vis(interval=interval)",
     "budg": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'budg', 'valid_mask': 'ocean', 'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data', 'model_suffix': 'ensmean', 'unit': 'mm/d', 'lon_name': 'lon'}})",
@@ -12,9 +12,9 @@
     "rain": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'pr', 'valid_mask': 'ocean', 'model_suffix': 'ensmean', 'unit': 'mm/day', 'lon_name': 'lon'}, 'JSBACH_RAW2': {'scale_factor': 86400.0, 'file_format': 'nc', 'lon_name': 'lon', 'lat_name': 'lat', 'variable': 'precip_acc', 'valid_mask': 'global', 'unit': 'mm/day'}})",
     "seaice_concentration": "get_model_data_generic(interval=interval, **{'CMIP3': {'scale_factor': 100.0, 'lat_name': 'lat', 'variable': 'SICOMO', 'valid_mask': 'ocean', 'unit': '-', 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk', 'level': 0, 'file_format': 'nc', 'lon_name': 'lon', 'model_prefix': '', 'model_suffix': '1860-2100.ext'}, 'CMIP5': {'model_prefix': 'OImon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'sic', 'valid_mask': 'ocean', 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk', 'model_suffix': 'ens_mean_185001-200512', 'unit': '-', 'lon_name': 'lon'}})",
     "seaice_extent": "get_model_data_generic(interval=interval, **{'CMIP3': {'scale_factor': 100.0, 'lat_name': 'lat', 'variable': 'SICOMO', 'valid_mask': 'ocean', 'unit': '-', 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk', 'level': 0, 'file_format': 'nc', 'lon_name': 'lon', 'model_prefix': '', 'model_suffix': '1860-2100.ext'}, 'CMIP5': {'model_prefix': 'OImon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'sic', 'valid_mask': 'ocean', 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk', 'model_suffix': 'ens_mean_185001-200512', 'unit': '-', 'lon_name': 'lon'}})",
-    "sis": "get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}, 'CMIP5RAW':{'valid_mask':'land'}})",
+    "sis": "get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}, 'CMIP5RAW':{'valid_mask':'land'},'JSBACH_RAW':{'valid_mask':'land'}})",
     "snow": "get_snow_fraction()",
-    "surface_upward_flux": "get_surface_shortwave_radiation_up(interval=interval)",
+    "surface_upward_flux": "get_surface_shortwave_radiation_up(interval=interval, **{'JSBACH_RAW':{'valid_mask':'land'}})",
     "temperature": "get_temperature_2m(interval=interval)",
     "tree": "get_tree_fraction(interval=interval)",
     "twpa": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 1.0, 'file_format': 'nc', 'variable': 'clwvi', 'valid_mask': 'ocean', 'model_suffix': 'ensmean', 'unit': 'kg/m^2', 'lon_name': 'lon'}})",
