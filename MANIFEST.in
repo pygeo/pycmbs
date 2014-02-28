@@ -1,4 +1,3 @@
-include COPYRIGHT_netCDF4
 include Makefile
 global-include *.md
 global-include LICENSE
@@ -8,6 +7,7 @@ global-include *.py
 global-include *.ini
 global-include Phytonlogo5.pdf
 global-include pyCMBS_template.cfg
+global-include setup.cfg
 graft tests
 graft logo
 graft configuration
@@ -26,5 +26,5 @@ exclude debug_albedo.py
 prune dist
 recursive-exclude tests testfile.nc devdirs
 graft doc
-include COPYING
+include COPYRIGHT.md
 include COPYING_netCDF4
