@@ -644,7 +644,7 @@ class CMIP5Data(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_up(self, interval='season', force_calc=False):
+    def get_surface_shortwave_radiation_up(self, interval='season', force_calc=False, **kwargs):
 
         if self.type == 'CMIP5':
             filename1 = self.data_dir + 'rsus/' + self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
@@ -730,7 +730,7 @@ class CMIP5Data(Model):
 
 #-------------------------------------------------------------------------------------------------------------
 
-    def get_albedo_data(self, interval='season'):
+    def get_albedo_data(self, interval='season', **kwargs):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
@@ -1490,24 +1490,64 @@ class JSBACH_RAW(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_albedo_data(self, interval='monthly'):
+    def get_albedo_data(self, interval='monthly', **kwargs):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
         """
+
+        # read land-sea mask
+        ls_mask = get_T63_landseamask(self.shift_lon)  # TODO make this more flexible
 
         if self.start_time is None:
             raise ValueError('Start time needs to be specified')
         if self.stop_time is None:
             raise ValueError('Stop time needs to be specified')
 
-        sw_down, tmp1 = self.get_surface_shortwave_radiation_down()
-        sw_up, tmp2 = self.get_surface_shortwave_radiation_up()
-        alb = sw_up.div(sw_down)
-        alb.label = self.experiment + ' albedo'
-        alb.unit = '-'
+        Fd = self.get_surface_shortwave_radiation_down(**kwargs)
+        Fu = self.get_surface_shortwave_radiation_up(**kwargs)
 
-        return alb
+        if Fu is None:
+            print 'File not existing for UPWARD flux!: ', self.name
+            return None
+        else:
+            Fu_i = Fu[0]
+
+        if Fd is None:
+            print 'File not existing for DOWNWARD flux!: ', self.name
+            return None
+        else:
+            Fd_i = Fd[0]
+        lab = Fu_i.label
+
+        # albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
+        Fu_i.div(Fd_i, copy=False)
+        del Fd_i  # Fu contains now the albedo
+        Fu_i._apply_mask(ls_mask.data)
+
+        #albedo for monthly data (needed for global mean plots )
+        Fu_m = Fu[1][2]
+        del Fu
+        Fd_m = Fd[1][2]
+        del Fd
+
+        Fu_m.div(Fd_m, copy=False)
+        del Fd_m
+        Fu_m._apply_mask(ls_mask.data)
+        Fu_m._set_valid_range(0., 1.)
+        Fu_m.label = lab + ' albedo'
+        Fu_i.label = lab + ' albedo'
+        Fu_m.unit = '-'
+        Fu_i.unit = '-'
+
+        # center dates of months
+        Fu_m.adjust_time(day=15)
+        Fu_i.adjust_time(day=15)
+
+        # return data as a tuple list
+        retval = (Fu_m.time, Fu_m.fldmean(), Fu_m)
+
+        return Fu_i, retval
 
 #-----------------------------------------------------------------------
 
@@ -1632,7 +1672,7 @@ class JSBACH_RAW(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_surface_shortwave_radiation_up(self, interval='season'):
+    def get_surface_shortwave_radiation_up(self, interval='monthly', **kwargs):
         """
         get surface shortwave upward radiation data for JSBACH
 
@@ -1652,41 +1692,23 @@ class JSBACH_RAW(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_rainfall_data(self, interval='season'):
+    def get_rainfall_data(self, interval='season', **kwargs):
         """
         get surface rainfall data for JSBACH
 
-        returns Data object
-
-        todo CDO preprocessing of seasonal means
-        todo temporal aggregation of data --> or leave it to the user!
+        Parameters
+        ----------
+        interval : str
+            specifies the aggregation interval. Possible options: ['season','monthly']
         """
 
-        if interval != 'season':
-            raise ValueError('Other temporal sampling than SEASON not supported yet for JSBACH RAW files, sorry')
+        locdict = kwargs[self.type]
 
-        v = 'precip_acc'
-
-        y1 = '1979-01-01'
+        y1 = '1980-01-01'  # TODO move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
-        #rawfilename = self.data_dir + 'yseasmean_' + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '.nc'
-        rawfilename = self.data_dir + self.experiment + '_jsbach_' + y1[0:4] + '_' + y2[0:4] + '_yseasmean.nc'
-
-        if not os.path.exists(rawfilename):
-            return None
-
-        filename = rawfilename
-
-        #--- read land-sea mask
-        ls_mask = get_T63_landseamask(self.shift_lon)
-
-        #--- read SW up data
-        rain = Data(filename, v, read=True,
-                    label=self.experiment + ' ' + v, unit='mm/day', lat_name='lat', lon_name='lon',
-                    shift_lon=self.shift_lon,
-                    mask=ls_mask.data.data, scale_factor=86400.)
-
-        return rain
+        rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0 : 4] + '_' + y2[0 : 4] + '.nc'
+        mdata, retval = self._do_preprocessing(rawfile, 'precip_acc', y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
+        return mdata, retval
 
 #-----------------------------------------------------------------------
 
