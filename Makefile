@@ -18,7 +18,7 @@ clean :
 	rm -rf MANIFEST
 	rm -rf cover
 	rm -rf tmp
-	rm -rf docs
+	rm -rf doc
 	rm -rf dist
 
 ship : dist
