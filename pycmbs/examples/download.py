@@ -56,7 +56,6 @@ def get_sample_file(name='air', return_object=True):
     else:
         return fname
 
-
 def _download_file(url, tdir):
     """ download URL to target directory tdir """
     if not os.path.exists(tdir):

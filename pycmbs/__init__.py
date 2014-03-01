@@ -6,6 +6,8 @@ For COPYING and LICENSE details, please refer to the file
 COPYRIGHT.md
 """
 
+import os
+
 __name__ = "pycmbs"
 """The project name."""
 
@@ -35,3 +37,6 @@ __email__ = "alexander.loew@mpimet.mpg.de"
 import matplotlib
 matplotlib.use('Agg')
 from mapping import MultipleMap, SingleMap, MapPlotGeneric
+
+# set automatically directory where pycmbs is located
+os.environ.update({'PYCMBSPATH': os.path.dirname(os.path.realpath(__file__))})

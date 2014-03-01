@@ -59,15 +59,15 @@ def create_dummy_configuration():
     import shutil
     d = os.environ['PYCMBSPATH']  # directory of pyCMBS installation
     cwd = os.getcwd()
-    odir = cwd + '/configuration'
+    odir = cwd + os.sep + 'configuration'
 
     # copy samples of INI files from repository
     if os.path.exists(odir):
         os.system('rm -rf ' + odir)
-    shutil.copytree(d + '/benchmarking/configuration', odir)
+    shutil.copytree(d + os.sep + 'benchmarking' + os.sep + 'configuration', odir)
 
     # create dummy configuration file
-    CFGW = config.CFGWriter(cwd + '/template.cfg',
+    CFGW = config.CFGWriter(cwd + os.sep + 'template.cfg',
                             generator='pyCMBS CONFIGURATION WRITER')
     CFGW.save(temp_dir='<put here the temporary data processing directory>',
               vars=['albedo', 'sis'], start_date='2000-01-01',
@@ -79,7 +79,7 @@ def create_dummy_configuration():
                        'path': '/this/is/the/root/path/to/the/model/data/'}
                       ])
 
-    os.system('rm -rf ' + odir + '/.svn')
+    os.system('rm -rf ' + odir + os.sep + '.svn')
 
 ########################################################################
 
@@ -135,7 +135,7 @@ def main():
     if os.path.exists(os.environ['DATA_WARNING_FILE']):
         os.remove(os.environ['DATA_WARNING_FILE'])
 
-    #/// init regions ///
+    # init regions
     REGIONS = config.AnalysisRegions()
 
     for thevar in plot_options.options.keys():
@@ -150,13 +150,11 @@ def main():
         f_fast = True
     shift_lon = use_basemap = not f_fast
 
-    #print 'Using Basemap: ', use_basemap
-
     ########################################################################
     # TIMES
     ########################################################################
-    s_start_time = CF.start_date  # '1983-01-01'
-    s_stop_time = CF.stop_date  # '2005-12-31'
+    s_start_time = CF.start_date
+    s_stop_time = CF.stop_date
     start_time = pylab.num2date(pylab.datestr2num(s_start_time))
     stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
