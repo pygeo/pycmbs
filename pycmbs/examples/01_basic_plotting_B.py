@@ -1,17 +1,21 @@
+# -*- coding: utf-8 -*-
+
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the file
+COPYRIGHT.md
+"""
+
 """
 Basic plotting in pyCMBS
 """
-
-from pycmbs.data import Data
 from pycmbs.mapping import map_plot
 import matplotlib.pyplot as plt
 import numpy as np
+from pycmbs.examples import download
 
-file_name = '../../pycmbs/examples/example_data/air.mon.mean.nc'
-
-# core ot pyCMBS is the Data object.
 # Read some data ...
-air = Data(file_name, 'air', lat_name='lat', lon_name='lon', read=True, label='air temperature')
+air = download.get_sample_file(name='air')
 
 f=plt.figure(figsize=(10,6))
 ax1=f.add_subplot(221)
@@ -27,6 +31,4 @@ f4 = map_plot(air, show_stat=True, stat_type='median', use_basemap=False, title=
 ax2.set_frame_on(False)
 ax2.set_xticks([])
 ax2.set_yticks([])
-
-
 plt.show()
