@@ -15,6 +15,7 @@ Welcome to pyCMBS's documentation!
    installation
    getting_started
    gallery
+   faq
    benchmarking
    benchmarking_configuration
    benchmarking_customization
