@@ -794,7 +794,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             # perform temporal subsetting and interpolation for hovmoeller plot
             tmp = model.variables[obs_type + '_org'][2]
             if tmp is not None:
-                tmp = tmp.interp_time(pl.date2num(tref))
+                tmp = tmp.interp_time(tref)
                 if ls_mask is not None:
                     tmp._apply_mask(ls_mask)
                 hov_model = hovmoeller(tmp.date, None, rescaley=20, rescalex=20)
