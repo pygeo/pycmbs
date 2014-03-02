@@ -7,3 +7,5 @@ tmp_data.nc
 *.swp
 ./cover
 .pypirc
+*_cell_area.nc
+pycmbs.egg-info
