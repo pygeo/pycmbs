@@ -16,6 +16,11 @@ import os
 from datetime import datetime
 
 import matplotlib.pyplot as plt
+import pylab as pl
+import pylab
+import numpy as np
+from dateutil.rrule import rrule
+from dateutil.rrule import MONTHLY
 
 from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, Diagnostic
 from pycmbs.plots import GlobalMeanPlot, map_season, map_difference, ReichlerPlot, HstackTimeseries
