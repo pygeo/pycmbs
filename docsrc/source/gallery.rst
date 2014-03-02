@@ -32,12 +32,50 @@ And a few more details on customizing your map ...::
 Basic data analysis
 -------------------
 
-TBD
-
-Working with different datasets
--------------------------------
+Temporal mean
+~~~~~~~~~~~~~
 
 TBD
+
+Spatial mean
+~~~~~~~~~~~~
+
+TBD
+
+Masking an area
+~~~~~~~~~~~~~~~
+
+TBD
+
+Temporal slicing
+~~~~~~~~~~~~~~~~
+
+TBD
+
+
+Working with multiple datasets
+------------------------------
+
+Simple arithmetic operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. plot:: ../../pycmbs/examples/03_data_analysis.py
+   :include-source:
+
+
+More complex data analysis
+--------------------------
+
+TBD EOF (still needs implementation of logplot option in map_plot)
+
+##.. plot:: ../../pycmbs/examples/04_EOF_analysis.py
+##   :include-source:
+   
+
+
+TBD SVD
+
+TBD slice correlation
 
 
 

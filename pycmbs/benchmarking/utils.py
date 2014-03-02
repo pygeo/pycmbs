@@ -77,34 +77,35 @@ def get_generic_landseamask(shift_lon, mask_antarctica=True,
     This routine implements a VERY simple approach, but assuming
     that all areas >0 m height are land and the rest is ocean.
 
-    @param shift_lon: specifies if longitudes shall be shifted
-    @type shift_lon: bool
+    Parameters
+    ----------
+    shift_lon : bool
+        specifies if longitudes shall be shifted
+    interpolation_method : str
+        specifies the interpolation method
+        that shall be used for remapping the 0.5degree data
+        to the target grid. This can be any of ['remapnn','remapcon',
+        'remapbil']
+    target_grid : str
+        specifies target grid to interpolate to as
+        similar to CDO remap functions. This can be either a string or
+        a filename which includes valid geometry information
+    force : bool
+        force calculation (removes previous file) = slower
 
-    @param interpolation_method: specifies the interpolation method
-    that shall be used for remapping the 0.5degree data
-    to the target grid. This can be any of ['remapnn','remapcon',
-    'remapbil']
-    @type interpolation_method: str
+    area : str
+        ['land','ocean']. When 'land', then the mask returned
+        is True on land pixels, for ocean it is vice versa.
+        in any other case, you get a valid field everywhere
+        (globally)
 
-    @param target_grid: specifies target grid to interpolate to as
-    similar to CDO remap functions. This can be either a string or
-                a filename which includes valid geometry information
-    @type target_grid: str
+    mask_antarctica : bool
+        mask antarctica; if True, then the mask is
+        FALSE over Antarctice (<60S)
 
-    @param force: force calculation (removes previous file) = slower
-    @type force: bool
-
-    @param area: 'land' or 'ocean'. When 'land', then the mask returned
-    is True on land pixels, for ocean it is vice versa.
-                 in any other case, you get a valid field everywhere
-                 (globally)
-    @type area: str
-
-    @param mask_antarctica: mask antarctica; if True, then the mask is
-    FALSE over Antarctice (<60S)
-    @type mask_antarctica: bool
-
-    @return: C{Data} object
+    Returns
+    -------
+    returns a Data object
     """
 
     print ('WARNING: Automatic generation of land/sea mask. \
