@@ -336,7 +336,7 @@ class CMIP5Data(Model):
             if self.type == 'CMIP5':
                 filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
                              (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
-            if self.type == 'CMIP5RAW':
+            elif self.type == 'CMIP5RAW':
                 filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
                              (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
             elif self.type == 'CMIP3':
@@ -344,7 +344,7 @@ class CMIP5Data(Model):
                              (custom_path, self.experiment, self.model, varname, model_suffix, file_format))
             else:
                 print self.type
-                raise ValueError('Can not generate filename: invalid model type!')
+                raise ValueError('Can not generate filename: invalid model type! %s' % self.type)
 
         force_calc = False
 
