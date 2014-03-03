@@ -60,7 +60,7 @@ Simple arithmetic operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. plot:: ../../pycmbs/examples/03_data_analysis.py
-   :include-source:
+  :include-source:
 
 
 More complex data analysis

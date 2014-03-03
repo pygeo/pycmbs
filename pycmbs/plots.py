@@ -1862,7 +1862,14 @@ class GlecklerPlot(object):
             observation labels to be used for the legend
         """
 
-        tmp = self._get_model_ranking(1, var)
+        # search for model keys
+        tmp = []
+        for in in xrange(4):
+            tmp = self._get_model_ranking(i+1, var)
+            if len(tmp) > 0:
+                break  # assumes that all datasets with observations have same models
+        if len(tmp) == 0:
+            raise ValueError('FATAL error: no model keys provided!')
 
         fig = plt.figure()
         gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios=[3, 1])
@@ -1891,8 +1898,8 @@ class GlecklerPlot(object):
             ax.set_title('Comparison of model ranking: ' + var.upper())
             ax.plot(ax.get_xlim(), ax.get_xlim(), 'k--')  # 1:1 line
 
+        # legend
         ax2 = fig.add_subplot(gs[1])
-
         dy = 0.1
         yoff = dy
         for k in tmp:
