@@ -1864,7 +1864,7 @@ class GlecklerPlot(object):
 
         # search for model keys
         tmp = []
-        for in in xrange(4):
+        for i in xrange(4):
             tmp = self._get_model_ranking(i+1, var)
             if len(tmp) > 0:
                 break  # assumes that all datasets with observations have same models
