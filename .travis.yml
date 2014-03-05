@@ -6,16 +6,11 @@ virtualenv:
 before_install:
     - sudo apt-get update
     - sudo apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
-    - sudo apt-get install python-matplotlib
-    - sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
+    - sudo apt-get install python-pip python-dev
+    - sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
     - sudo apt-get install python-numpy
-    - sudo apt-get install cdo
-    - sudo apt-get install wget
-    - sudo apt-get install libhdf5-serial-dev libnetcdf-dev
-    - sudo pip install netCDF4
-    - sudo pip install cdo
-    - sudo pip install coveralls
-    - sudo pip install pytest-cov
+    - sudo C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4
+    - sudo pip install cdo coveralls pytest-cov
     - pushd .
     - git clone https://github.com/SciTools/cartopy.git && cd cartopy
     - sudo add-apt-repository -y ppa:pylab/stable
@@ -24,14 +19,13 @@ before_install:
     - sudo apt-get install python-scipy python-pip cython
     - sudo /usr/bin/pip install https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
     # http://www.webupd8.org/2010/10/fix-nopubkey-error-for-extras-ubuntu.html
-    - ./.travis_no_output sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3E5C1192
-    - yes | ./.travis_no_output sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+    - sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
+    - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3E5C1192
+    - yes | sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
     - sudo apt-get update
     - sudo apt-get install libgeos-dev libproj-dev
     - sudo /usr/bin/pip install --use-mirrors shapely nose pyshp pep8 mock
-    # its always version 2 currently
-    - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then ./.travis_no_output sudo /usr/bin/pip install --use-mirrors PIL; fi
-    # install cartopy in the .local directory (in lieu of using virtual env...)
+    - sudo /usr/bin/pip install --use-mirrors PIL
     - sudo /usr/bin/python setup.py install
     - popd
 
