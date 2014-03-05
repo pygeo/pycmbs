@@ -37,9 +37,8 @@ def get_data_pool_directory():
         data_pool_directory = '/pool/SEP/'
 
     if not os.path.exists(data_pool_directory):
-        print data_pool_directory
-        raise ValueError('Data pool directory not existing! \
-                        Processing not possible!')
+        raise ValueError('Data pool directory %s not existing! \
+                        Processing not possible!' % data_pool_directory)
 
     return data_pool_directory
 
