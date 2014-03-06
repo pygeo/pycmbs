@@ -35,6 +35,13 @@ class TestUtils(unittest.TestCase):
         p = utils.get_data_pool_directory()
         self.assertEqual(p, os.getcwd())
 
+    def test_PoolDirectory_SetToCwd(self):
+        os.environ.pop('SEP') 
+        local_dir = os.getcwd()
+        pool_dir = utils.get_data_pool_directory()
+        self.assertEqual(pool_dir, local_dir)
+
+    @unittest.skip('skipping as it\'s hard to emulate a non existing root path')
     def test_get_data_pool_Default(self):
         if 'SEP' in os.environ.keys():
             xx = os.environ.pop('SEP')
