@@ -9,12 +9,15 @@ import os
 from pycmbs.data import Data
 from cdo import Cdo
 import numpy as np
+import warnings
 
 
 def get_data_pool_directory():
     """
     get data pool directory for /pool/SEP
     """
+    current_dir = os.getcwd()
+
     if 'SEP' in os.environ.keys():
         data_pool_directory = os.environ['SEP']
 
@@ -37,8 +40,9 @@ def get_data_pool_directory():
         data_pool_directory = '/pool/SEP/'
 
     if not os.path.exists(data_pool_directory):
-        raise ValueError('Data pool directory %s not existing! \
-                        Processing not possible!' % data_pool_directory)
+        warnings.warn('Data pool directory %s not found, \
+                using current directory: %s' % (data_pool_directory, current_dir), Warning)
+        data_pool_directory = current_dir
 
     return data_pool_directory
 
