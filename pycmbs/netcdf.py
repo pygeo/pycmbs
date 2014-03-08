@@ -10,7 +10,6 @@ This module allows a flexible choice of the netCDF backend
 
 import os
 
-
 class NetCDFHandler(object):
     def __init__(self, netcdf_backend='netCDF4'):
         """
@@ -18,14 +17,12 @@ class NetCDFHandler(object):
         Currently two different backends are supported
 
         netcdf_backend : str
-            ['netCDF4', 'Nio'] either netCDF4 or Nio can be used as
+            ['netCDF4'] only netCDF4 can be used so far
             backends
 
         """
         self.type = netcdf_backend
-        if self.type.lower() == 'nio':
-            import Nio as Cdf
-        elif self.type.lower() == 'netcdf4':
+        if self.type.lower() == 'netcdf4':
             import netCDF4 as Cdf
         else:
             raise ValueError('Invalid netCDF backend!')
@@ -61,14 +58,14 @@ class NetCDFHandler(object):
                     file %s was not existing and could also \
                     not be generated!' % filename)
 
-        if self.type.lower() == 'nio':
-            self.F = self.handler.open_file(filename, mode=mode)
-            self.create_dimension = self.F.create_dimension
-            self.create_variable = self.F.create_variable
-        else:
+        if self.type.lower() == 'netcdf4':
             self.F = self.handler.Dataset(filename, mode=mode)
             self.create_dimension = self.F.createDimension
             self.create_variables = self.F.createVariable
+        else:
+            raise ValueError('Something went wrong!')
+
+
 
     def get_variable(self, varname):
         """
@@ -84,10 +81,10 @@ class NetCDFHandler(object):
         data : ndarray
             returns data as a 2D,3D numpy array
         """
-        if self.type.lower() == 'nio':
-            return self.F.variables[varname].get_value().astype('float').copy()
-        else:
+        if self.type.lower() == 'netcdf4':
             return self.F.variables[varname][:].astype('float').copy()
+        else:
+            raise ValueError('Something went wrong!')
 
     def get_variable_handler(self, varname):
         """
@@ -97,41 +94,34 @@ class NetCDFHandler(object):
         -------
 
         """
-        if self.type.lower() == 'nio':
+        if self.type.lower() == 'netcdf4':
             return self.F.variables[varname]
         else:
-            return self.F.variables[varname]
+            raise ValueError('Something went wrong!')
 
     def _get_scale_factor(self, varname):
-        if self.type.lower() == 'nio':
-            try:
-                return float(self.F.variables[varname].scale_factor)
-            except:
-                print('No scale factor for variable! % s' % varname)
-                return 1.
-        else:
+        if self.type.lower() == 'netcdf4':
             # netCDF4 library already applies the scaling factor!
             return 1.
+        else:
+            raise ValueError('Something went wrong!')
 
     def _get_add_offset(self, varname):
-        if self.type.lower() == 'nio':
-            try:
-                return float(self.F.variables[varname].add_offset)
-            except:
-                print('No offset for variable! % s' % varname)
-                return 0.
-        else:
+        if self.type.lower() == 'netcdf4':
             # netCDF4 library already applies the add_offset!
             return 0.
+        else:
+            raise ValueError('Something went wrong!')
+
 
     def assign_value(self, varname, value):
         """
         assign a value to a variable to be written to a netCDF file
         """
-        if self.type.lower() == 'nio':
-            self.F.variables[varname].assign_value(value)
-        else:
+        if self.type.lower() == 'netcdf4':
             self.F.variables[varname][:] = value[:]
+        else:
+            raise ValueError('Something went wrong!')
 
     def create_dimension(self, dimname, size=None):
         """
@@ -145,10 +135,10 @@ class NetCDFHandler(object):
         if size is not None:
             assert(isinstance(size, int))
 
-        if self.type.lower() == 'nio':
-            self.F.create_dimension(dimname, size)
-        else:
+        if self.type.lower() == 'netcdf4':
             self.F.createDimension(dimname, size=size)
+        else:
+            raise ValueError('Something went wrong!')
 
     def create_variable(self, varname, dtype, dim):
         """
@@ -162,10 +152,10 @@ class NetCDFHandler(object):
             tuple specifying the dimensions of the variables
         """
 
-        if self.type.lower() == 'nio':
-            self.F.create_variable(varname, dtype, dim)
-        else:
+        if self.type.lower() == 'netcdf4':
             self.F.createVariable(varname, dtype, dimensions=dim)
+        else:
+            raise ValueError('Something went wrong!')
 
     def close(self):
         self.F.close()

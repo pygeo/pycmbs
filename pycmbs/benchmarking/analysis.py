@@ -1016,7 +1016,7 @@ def grass_fraction_analysis(model_list):
 
 def tree_fraction_analysis(model_list, pft='tree'):
     def fraction2netcdf(pft):
-        raise ValueError('try to avoid using Nio!')
+        raise ValueError('Nio not supported any more! This routine needs recoding first!')
         filename = '/home/m300028/shared/dev/svn/trstools-0.0.1/lib/python/pyCMBS/framework/external/vegetation_benchmarking/VEGETATION_COVER_BENCHMARKING/example/' + pft + '_05.dat'
         #save 0.5 degree data to netCDF file
         t = pl.loadtxt(filename)

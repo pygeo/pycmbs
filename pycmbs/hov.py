@@ -838,11 +838,11 @@ class hovmoeller:
 
 
 #test for 2D resampling
-## import Nio
+
 ## close('all')
 
 ## filename='/media/Data/Data/ISCCP/sub.nc'
-## F=Nio.open_file(filename,'r')
+
 
 ## dat = F.variables['ci'][:,:,:].copy() #read a 3D data set
 ## dummy = F.variables['ci']._FillValue
