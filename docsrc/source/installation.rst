@@ -34,10 +34,9 @@ required for using pyCMBS sucessfully.
 
 *Obligatory additional dependencies*
 
-For file I/O of netCDF files, there are in general two options supported at the moment. At least one interface library needs to be installed:
+For file I/O of netCDF files, a single library is supported at the moment:
 
 - `netCDF4 library <http://code.google.com/p/netcdf4-python/>`_ is used as default for file I/O [recommended]
-- `Nio library <https://www.pyngl.ucar.edu/Nio.shtml>`_ could be installed as an alternative [optional, might be depreciated in the future]
 
 For an efficient data pre-processing the climate data operators are used. The core CDO's and the corresponding python wrapper is required.
 
