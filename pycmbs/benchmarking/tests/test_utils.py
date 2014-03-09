@@ -37,7 +37,7 @@ class TestUtils(unittest.TestCase):
 
     def test_PoolDirectory_SetToCwd(self):
         os.environ.pop('SEP') 
-        local_dir = os.getcwd()
+        local_dir = os.getcwd() + os.sep
         pool_dir = utils.get_data_pool_directory()
         self.assertEqual(pool_dir, local_dir)
 
