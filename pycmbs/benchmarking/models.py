@@ -76,7 +76,7 @@ class Model(Data):
             if hasattr(self, routine[0:routine.index('(')]):  # check if routine name is there
                 exec(cmd)
 
-                #--- if a tuple is returned, then it is the data + a tuple for the original global mean field
+                # if a tuple is returned, then it is the data + a tuple for the original global mean field
                 if 'tuple' in str(type(dat)):
                     self.variables.update({k: dat[0]})  # update field with data
                     self.variables.update({k + '_org': dat[1]})  # (time, meanfield, originalfield)
@@ -138,7 +138,7 @@ class MedianModel(Model):
             # above/below
             for k in self.variables.keys():
                 # the variables[] list contains Data objects!
-                #hlp1 = self.variables[k]  # is a Data object or a tuple! The Data object contains already the climatological mean value!
+                # hlp1 = self.variables[k]  # is a Data object or a tuple! The Data object contains already the climatological mean value!
                 if k in M.variables.keys():
                     hlp2 = M.variables[k]
                 else:
@@ -153,7 +153,7 @@ class MedianModel(Model):
                 else:  # mean model!
                     msk_below = M.variables[k].data <= self.variables[k].data
                     raise ValueError('Implementation of median model has not yet been finished!')
-                    #could get_percentiles be used for that in some sense???
+                    # could get_percentiles be used for that in some sense???
                     stop
 
                     up = self.n_above[k]
@@ -1436,6 +1436,9 @@ class JSBACH_RAW(Model):
     def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, intervals = 'monthly', **kwargs):
         super(JSBACH_RAW, self).__init__(filename, dic_variables, name=name, intervals=intervals, **kwargs)
 
+        print('WARNING: This model class should be depreciated as it contained a lot of hardcoded dependencies and is only intermediate')
+        #TODO: depreciate this class
+
         self.experiment = experiment
         self.shift_lon = shift_lon
         self.type = 'JSBACH_RAW'
@@ -1447,46 +1450,31 @@ class JSBACH_RAW(Model):
         """
         return self.name.replace(' ', '') + '-' + self.experiment.replace(' ', '')
 
-    def get_temperature_2m(self, interval='season'):
+    def get_temperature_2m(self, interval='monthly', **kwargs):
         """
         get surface temperature (2m) from JSBACH model results
 
-        @param interval: specifies the aggregation interval. Possible options: ['season']
-        @type interval: str
-
-        @return: returns a C{Data} object
-        @rtype: C{Data}
+        Parameters
+        ----------
+        interval : str
+            specifies the aggregation interval. Possible options: ['season','monthly']
         """
 
-        print "********* WARNING: This class is obsolete and a lot of things are hardwired at the moment !!! **********"
+        locdict = kwargs[self.type]
 
-        if interval != 'monthly':
-            raise ValueError('Other temporal sampling than MONTHLY not supported yet for JSBACH RAW files, sorry')
-
-        v = 'temp2'
-
-        y1 = '1979-01-01'
+        y1 = '1980-01-01'  # TODO move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
-        rawfilename = self.data_dir + self.name + '/ymonmean_mm_temp_' + self.experiment + '.nc'
+        variable = 'temp2'
+        rawfile = self.data_dir + self.experiment + '_echam6_echam_*_' + variable + '.nc'
+        files = glob.glob(rawfile)
+        if len(files) != 1:
+            print 'Inputfiles: ', files
+            raise ValueError('Something went wrong: Invalid number of input files!')
+        else:
+            rawfile = files[0]
+        mdata, retval = self._do_preprocessing(rawfile, variable, y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
+        return mdata, retval
 
-        if not os.path.exists(rawfilename):
-            raise ValueError('File not existing (rawfile): %s' % rawfilename)
-            return None
-
-        filename = rawfilename
-
-        #--- read land-sea mask
-        ls_mask = get_T63_landseamask(self.shift_lon)
-
-        #--- read SIS data
-        t2m = Data(filename, v, read=True,
-                   label=self.experiment + ' ' + v, unit='K', lat_name='lat', lon_name='lon',
-                   shift_lon=self.shift_lon,
-                   mask=ls_mask.data.data)
-
-        retval = (t2m.time, t2m, t2m)
-
-        return t2m, retval
 
 #-----------------------------------------------------------------------
 
@@ -1607,11 +1595,11 @@ class JSBACH_RAW(Model):
             print interval
             raise ValueError('Unsupported interval!')
 
-        mdata = Data(mdata_clim_file, varname, read=True, label=self.name, shift_lon=False, time_cycle=thetime_cylce)
-        mdata_std = Data(mdata_clim_std_file, varname, read=True, label=self.name + ' std', unit='-', shift_lon=False, time_cycle=thetime_cylce)
+        mdata = Data(mdata_clim_file, varname, read=True, label=self.name, shift_lon=False, time_cycle=thetime_cylce, lat_name='lat', lon_name='lon')
+        mdata_std = Data(mdata_clim_std_file, varname, read=True, label=self.name + ' std', unit='-', shift_lon=False, time_cycle=thetime_cylce, lat_name='lat', lon_name='lon')
         mdata.std = mdata_std.data.copy()
         del mdata_std
-        mdata_N = Data(mdata_N_file, varname, read=True, label=self.name + ' std', shift_lon=False)
+        mdata_N = Data(mdata_N_file, varname, read=True, label=self.name + ' std', shift_lon=False, lat_name='lat', lon_name='lon')
         mdata.n = mdata_N.data.copy()
         del mdata_N
 
@@ -1620,7 +1608,7 @@ class JSBACH_RAW(Model):
         mdata.timsort()
 
         #4) read monthly data
-        mdata_all = Data(file_monthly, varname, read=True, label=self.name, shift_lon=False, time_cycle=12)
+        mdata_all = Data(file_monthly, varname, read=True, label=self.name, shift_lon=False, time_cycle=12, lat_name='lat', lon_name='lon')
         mdata_all.adjust_time(day=15)
 
         #mask_antarctica masks everything below 60 degree S.
@@ -1684,7 +1672,7 @@ class JSBACH_RAW(Model):
 
         locdict = kwargs[self.type]
 
-        y1 = '1980-01-01'  # TODO move this to the JSON dictionary or some parameter file
+        y1 = '1980-01-01'  # TODO: move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
         rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0 : 4] + '_' + y2[0 : 4] + '.nc'
         mdata, retval = self._do_preprocessing(rawfile, 'swdown_reflect_acc', y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
@@ -1692,9 +1680,23 @@ class JSBACH_RAW(Model):
 
 #-----------------------------------------------------------------------
 
-    def get_rainfall_data(self, interval='season', **kwargs):
+    def get_model_data_generic(self, interval='monthly',  **kwargs):
+        """
+        This is only a wrapper to redirect to individual functions
+        for the JSBACH_RAW class
+
+        Currently only the usage for rainfall is supported!
+        """
+        # HACK: only a wrapper, should be depreciated
+        raise ValueError('Rainfall analysis not working yet!')
+        self.get_rainfall_data(interval=interval, **kwargs)
+
+
+    def get_rainfall_data(self, interval='monthly', **kwargs):
         """
         get surface rainfall data for JSBACH
+        uses already preprocessed data where the convective and
+        advective rainfall has been merged
 
         Parameters
         ----------
@@ -1704,11 +1706,20 @@ class JSBACH_RAW(Model):
 
         locdict = kwargs[self.type]
 
-        y1 = '1980-01-01'  # TODO move this to the JSON dictionary or some parameter file
+        y1 = '1980-01-01'  # TODO : move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
-        rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0 : 4] + '_' + y2[0 : 4] + '.nc'
-        mdata, retval = self._do_preprocessing(rawfile, 'precip_acc', y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
+        variable = 'aprc'
+        rawfile = self.data_dir + self.experiment + '_echam6_echam_*_precipitation.nc'
+        files = glob.glob(rawfile)
+        if len(files) != 1:
+            print 'Inputfiles: ', files
+            raise ValueError('Something went wrong: Invalid number of input files!')
+        else:
+            rawfile = files[0]
+
+        mdata, retval = self._do_preprocessing(rawfile, variable, y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
         return mdata, retval
+
 
 #-----------------------------------------------------------------------
 
