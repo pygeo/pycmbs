@@ -16,7 +16,7 @@ def get_data_pool_directory():
     """
     get data pool directory for /pool/SEP
     """
-    current_dir = os.getcwd()
+    current_dir = os.getcwd() + os.sep
 
     if 'SEP' in os.environ.keys():
         data_pool_directory = os.environ['SEP']
