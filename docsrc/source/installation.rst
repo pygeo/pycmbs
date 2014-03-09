@@ -73,6 +73,8 @@ Installation using *pip* (the easiest way)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using `pip <https://pypi.python.org/pypi/pip>`_ is the easiest (and recommended) way to install pyCMBS.
+All dependencies must have been installed before.
+
 If you have *pip* not yet installed on your machine, then the first step
 is to `install pip <https://pypi.python.org/pypi/pip>`_ .
 
@@ -86,7 +88,7 @@ Check if everything is working, like described below_.
 Installation of stable version from a *tarball*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can install specific version of pycmbs from a *tarball* from the `download site <https://code.zmaw.de/projects/pycmbs/files>`_ . All dependencies must have been installed before.
+You can install specific version of pycmbs from a *tarball* from the `download site <https://github.com/pygeo/pycmbs/releases>`_ . All dependencies must have been installed before.
 
 After you have obtained the pyCMBS code from a *tarball*, then first extract the archive into some new directory::
 
