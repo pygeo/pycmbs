@@ -1869,6 +1869,9 @@ class GlecklerPlot(object):
             if len(tmp) > 0:
                 break  # assumes that all datasets with observations have same models
         if len(tmp) == 0:
+            print var
+            print self.pos
+            print self.data
             raise ValueError('FATAL error: no model keys provided!')
 
         fig = plt.figure()

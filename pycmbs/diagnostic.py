@@ -2221,6 +2221,7 @@ class Diagnostic(object):
 
         if not self.x._is_monthly():
             print self.x.label
+            pickle.dump(self.x.date. open('debug_date.pkl', 'w'))
             raise ValueError('Variable X has no monthly stepping!')
         if not self.y._is_monthly():
             raise ValueError('Variable Y has no monthly stepping!')
