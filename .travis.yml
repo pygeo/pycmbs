@@ -36,4 +36,5 @@ deploy:
   password:
     secure: X5cSY/ZCdULBqtD8/fc+IvThpuYgaEEU28DM/84GyqQPrt0aURdckcyp16UwYoOm0C1EsnLJ91fAHxXpaQsbjdVCNRTX0btdq2pT8UwxQKGJJMYXENKsGZi035cPK1Y3he3db3kEKcZD/ys3uUcyp9zWdVUt/E8P9b8GqqOd/So=
   on:
+      tags: true
     repo: pygeo/pycmbs
