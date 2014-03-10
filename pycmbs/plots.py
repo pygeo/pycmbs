@@ -2300,7 +2300,11 @@ class GlecklerPlot(object):
 
         CAUTION: when saving the figure, do NOT use bbox_inches='tight', as this might cut the labels!
 
-        @param labels: dictionary as {position:'label'}; e.g. {1:'label1',2:'label2',3:'label3',4:'label4'}
+        Parameters
+        ----------
+        labels : dict
+            dictionary as {position:'label'}
+            e.g. {1:'label1',2:'label2',3:'label3',4:'label4'}
         """
 
         if len(self.pos) < 1:
@@ -2389,10 +2393,18 @@ def pm_bar(x, y=None, pcolor='red', ncolor='blue', ax=None, **kwargs):
     """
     generate a nice looking barchart with different color for positive/negative numbers
 
-    @param x: x-variable or variable to plot (if y is not given)
-    @param y: y-variable (optional)
-    @param ax: axis handle
-    @return: returns handle axis
+    Parameters
+    ----------
+    x : xxx
+        x-variable or variable to plot (if y is not given)
+    y : xxxx
+        y-variable (optional)
+    ax : axis
+        axis handle
+
+    Returns
+    -------
+    returns handle axis
     """
 
     if ax is None:
@@ -3101,14 +3113,14 @@ def xx_map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         """
         plot region r on top of basemap map m
 
-        @param m: map
-        @type m: C{Basemap} object
-
-        @param r: region to plot
-        @type r: C{Region}
-
-        @param color: color to plot region
-        @type color: str
+        Parameters
+        ----------
+        m : Basemap object
+            map
+        r : Region
+            region to plot
+        color : str
+            color to plot region
         """
         corners = r.get_corners()  # get list of corner coordinates
         corners = np.asarray(corners)
@@ -3123,14 +3135,14 @@ def xx_map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         """
         plot region r on top of a normal map plot
 
-        @param m: map
-        @type m: C{Basemap} object
-
-        @param r: region to plot
-        @type r: C{Region}
-
-        @param color: color to plot region
-        @type color: str
+        Parameters
+        ----------
+        m : Basemap object
+            map
+        r : Region
+            region to plot
+        color : str
+            color to plot region
         """
         corners = r.get_corners()  # get list of corner coordinates
         corners = np.asarray(corners)
@@ -3202,7 +3214,6 @@ def xx_map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     return fig
 
 #-----------------------------------------------------------------------
-
 
 def add_histogram(ax, x, bins=10):
     """
@@ -3295,27 +3306,23 @@ def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=No
         major axis with plot
     im : matplolib object
         result from command like imshow
+    cmap : colormap class or str
+        colormap
     dummy : bool
         add colorbar axis as a dummy axis which is not visible
         this is useful if you have multiple subplots which should
         have the same size. Adding a colorbar will slightly change the size
-
-    @param fontsize: fontsize for colorbar ticks
-    @type fontsize: int
-
-    @param cmap: colormap
-    @type cmap: str or colorbar class
-
-    @param cticks: colorbar ticks; if None, then default setup is used
-    @type cticks: list
-
+    fontsize : int
+        fontsize for colorbar ticks
+    cticks : list
+        colorbar ticks; if None, then default setup is used
 
     #todo: add option to add units
     """
 
     print('Depreciated function')
 
-    #set legend aligned with plot (nice looking)
+    # set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
     #cax = divider.new_horizontal("5%", pad=0.05, axes_class=maxes.Axes)
 
