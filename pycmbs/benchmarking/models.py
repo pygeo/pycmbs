@@ -1500,12 +1500,16 @@ class JSBACH_RAW(Model):
             return None
         else:
             Fu_i = Fu[0]
+            if Fu_i is None:
+                return None
 
         if Fd is None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None
         else:
             Fd_i = Fd[0]
+            if Fd_i is None:
+                return None
         lab = Fu_i.label
 
         # albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
@@ -1548,7 +1552,8 @@ class JSBACH_RAW(Model):
         cdo = Cdo()
 
         if not os.path.exists(rawfile):
-            raise ValueError('File not existing! %s ' % rawfile)
+            print('File not existing! %s ' % rawfile)
+            return None, None
 
         # calculate monthly means
         file_monthly = get_temporary_directory() + os.sep + os.path.basename(rawfile[:-3]) + '_' + varname + '_' + s_start_time + '_' + s_stop_time + '_mm.nc'
