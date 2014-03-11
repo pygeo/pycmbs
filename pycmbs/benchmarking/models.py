@@ -1465,7 +1465,7 @@ class JSBACH_RAW(Model):
         y1 = '1980-01-01'  # TODO move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
         variable = 'temp2'
-        rawfile = self.data_dir + self.experiment + '_echam6_echam_*_' + variable + '.nc'
+        rawfile = self.data_dir + self.experiment + '_echam6_echam_' + variable + '_ALL.nc'
         files = glob.glob(rawfile)
         if len(files) != 1:
             print 'Inputfiles: ', files
