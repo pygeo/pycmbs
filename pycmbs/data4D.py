@@ -12,7 +12,7 @@ For COPYING and LICENSE details, please refer to the file
 COPYRIGHT.md
 """
 
-'''
+"""
 Data4D CLASS
 class to work with the PFTs from JSBACH
 The Data4D class has the Data Class as a base class.
@@ -24,7 +24,8 @@ In addition to the Class Date has the Data4D class the attributs
 
 becase all data are stored in the data4D array, the normal data attribude is deleted.
 
-'''
+"""
+
 from pylab import *
 
 from data import Data
@@ -114,11 +115,15 @@ class Data4D(Data):
         return d
 
 #-----------------------------------------------------------------------
+
     def getDataFromLevel(self, l):
         """
         returns a Data4D level as a Data object
-        @param l level of data4D. Starting by 0:
-        @return C{Data} object
+
+        Parameters
+        ----------
+        l : Data
+            level of data4D. Starting by 0:
         """
         if int(l) in self.levellist.keys():
             ret = self._copy_Data4D_Info_to_Data()
@@ -132,13 +137,16 @@ class Data4D(Data):
             raise ValueError('Given Level %s not in data4D!' % str(l))
 
 #-----------------------------------------------------------------------
+
     def setDataFromLevel(self, da, l):
         """
         saves the date from da into an data4D lavel.
         The lebvel is given by parameter 'l'.
 
-        @param l level of Data4D. Starting by 0:
-        @da  C{Data} object to be saved into Data4D
+        Parameters
+        ----------
+        l : Data
+            level of Data4D. Starting by 0:
         """
 
         if int(l) in self.levellist.keys():
