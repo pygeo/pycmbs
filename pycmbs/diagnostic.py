@@ -1441,20 +1441,20 @@ class SVD(object):
         """
         constructor for SVD class
 
-        @param X: x-variable field
-        @type X: C{Data} object
+        Parameters
+        ----------
 
-        @param Y: y-variable field
-        @type Y: C{Data} object
-
-        @param scf_threshold: threshold for explained variance until which result maps are plotted
-        @type scf_threshold: float
-
-        @param label: label for labeling figures
-        @type label: str
-
-        @param format: specifies the format of figures to be generated [png,pdf]
-        @type format: str
+        X : Data
+            x-variable field
+        Y : Data
+            y-variable field
+        scf_threshold : float
+            threshold for explained variance until which result maps
+            are plotted
+        label : str
+            label for labeling figures
+        format : str
+            specifies the format of figures to be generated [png,pdf]
         """
         x = X.data.copy()
         y = Y.data.copy()  # these are masked arrays
@@ -1486,10 +1486,15 @@ class SVD(object):
         get only points where ALL
         timeseries are valid
 
-        @param x: array [time,position]
-        @type x: numpy masked array
+        Parameters
+        ----------
+        x : ndarray
+            numpy masked array with geometry [time,position]
 
-        @return: masked array [time,nvalidpixels] and mask that can be applied to original data [norgpixels]
+        Returns
+        -------
+        masked array [time,nvalidpixels] and mask that can be applied
+        to original data [norgpixels]
         """
 
         nt, n = x.shape
@@ -1513,9 +1518,14 @@ class SVD(object):
         given a variable x[time,position]
         the data is linear detrended individually for each position
 
-        @param x: data array [time,position]
-        @type x: numpy array
-        @return: return detrended array [time,position]
+        Parameters
+        ----------
+        x : ndarray
+            data array [time, position]
+
+        Returns
+        -------
+        return detrended array [time, position]
         """
 
         if x.ndim != 2:
@@ -1534,10 +1544,14 @@ class SVD(object):
         normalize timeseries x [time,position]
         by dividing by the standard deviation
 
-        @param x: data array [time,position]
-        @type x: numpy array
+        Parameters
+        ----------
+        x : ndarray
+            data array [time,position]
 
-        @return: normalized timeseries numpy array
+        Returns
+        -------
+        normalized timeseries numpy array
         """
         nt, nx = np.shape(x)
         s = x.std(axis=0)  # temporal standard deviation
@@ -1552,11 +1566,12 @@ class SVD(object):
         """
         perform SVD analysis
 
-        @param detrend: detrend data
-        @type detrend: bool
-
-        @param varnorm: normalize variance of time series
-        @type varnorm: bool
+        Parameters
+        ----------
+        detrend : bool
+            detrend data
+        varnorm : bool
+            normalize variance of time series
         """
 
         #/// perform SVN only for data points which are valid throughout entire time series ///
@@ -1627,10 +1642,14 @@ class SVD(object):
         return the singular vectors of both fields for a specific mode
         as a spatial (2D) field
 
-        @param mode: mode to be shown
-        @type mode: int
+        Parameters
+        ----------
+        mode : int
+            mode to be shown
 
-        @return: numpy arrays for U and V
+        Returns
+        -------
+        numpy arrays for U and V
         """
 
         #x_used is a vector that only contains the valid values that were used for caluclation of covariance matrix C
@@ -1660,14 +1679,14 @@ class SVD(object):
         map valid data vector back to
         original data shape
 
-        @param data: data vector that was used for SVD calculations (1D)
-        @type data: numpy array vector
-
-        @param mask: 1D data mask
-        @type mask: numpy data (1D)
-
-        @param target_shape: shape to map to
-        @type target_shape: geometry tuple
+        Parameters
+        ----------
+        data : ndarray
+            data vector that was used for SVD calculations (1D)
+        mask : ndarray
+            1D data mask
+        target_shape : tuple
+            shape to map to
         """
         sz = np.shape(data)
         if sz[0] != mask.sum():
@@ -1690,14 +1709,14 @@ class SVD(object):
         """
         plot explained variance
 
-        @param ax: axis to put plot in. If None, then a new figure is generated
-        @type ax: matplotlib axis
-
-        @param filename: name of the file to store figure to (if None, then no file is saved)
-        @type filename: str
-
-        @param maxvar: upper limit of variance plot
-        @type maxvar: float
+        Parameters
+        ----------
+        ax : axis
+            axis to put plot in. If None, then a new figure is generated
+        filename : str
+            name of the file to store figure to (if None, then no file is saved)
+        maxvar : float
+            upper limit of variance plot
         """
 
         def make_patch_spines_invisible(ax):
@@ -1932,13 +1951,16 @@ class SVD(object):
         This is obtained by correlating an expansion mode to
         a particular data field
 
-        @param X: data field that should be explained by expansion coefficient
-        @type X: C{Data} object
+        Parameters
+        ----------
+        X : Data
+            data field that should be explained by expansion coefficient
+        E : ndarray
+            expansion cofficient to be used for correlation calculation
 
-        @param E: expansion cofficient to be used for correlation calculation
-        @type E: numpy array
-
-        @return: squared correlation as C{Data} object
+        Returns
+        -------
+        squared correlation as C{Data} object
         """
         Rout, Sout, Iout, Pout = X.corr_single(E[:, mode], pthres=pthres)
         Rout.data = Rout.data * Rout.data
@@ -1982,8 +2004,10 @@ class SVD(object):
         """
         print statistic of modes
 
-        @param filename: filename to save table to
-        @type filename: str
+        Parameters
+        ----------
+        filename : str
+            filename to save table to
         """
         sep = ' & '
         rnd = 2
@@ -2010,11 +2034,10 @@ class SVD(object):
         """
         plot correlation and time series of expansion coeffcients
 
-        @param mode: mode to plot
-        @type mode: int
-
-        @param ax: axis to plot data
-        @type ax: matplotlib axis
+        mode : int
+            mode to plot
+        ax : axis
+            axis to plot data
         """
         if ax is None:
             fig = plt.figure()
@@ -2040,12 +2063,11 @@ class Diagnostic(object):
         constructor for diagnostic class
         diagnostic for one or multiple data sets
 
-        @param x: x data to be analyzed
-        @type x: C{Data} object
-
-        @param y: y data to be analyzed
-        @type y: C{Data} object
-        """
+        x : Data
+            x data to be analyzed
+        y : Data
+            y data to be analyzed
+       """
         self.x = x
         if y is not None:
             self.y = y
@@ -2066,9 +2088,6 @@ class Diagnostic(object):
     def get_rmse_value(self):
         """
         calculate root-mean-squared error
-
-        @param self: Diagnostic object
-        @type self : Diagnostic object
         """
         return np.sqrt(np.mean((self.xvec - self.yvec) ** 2))
 
@@ -2148,8 +2167,10 @@ class Diagnostic(object):
         a vector and apply a given
         mask if desired
 
-        @param mask: mask to be applied
-        @type mask: numpy array
+        Parameters
+        ----------
+        mask : ndarray
+            mask to be applied
         """
 
         #--- generated copies and mask data if desired
@@ -2571,20 +2592,16 @@ class Diagnostic(object):
         set ticks of timeline with
         yearly ticks
 
-        @param years: list of years
-        @type years: list
-
-        @param ax: axis to handle
-        @type ax: matplotlib axis
-
-        @param axis: specify which axis to handle 'x' or 'y'
-        @type axis: str
-
-        @param size: fontisze for ticks
-        @type size: int
-
-        @param rotation: rotation angle for ticks
-        @type rotation: float
+        years : list
+            list of years
+        ax : axis
+            axis to handle
+        axis : str
+            specify which axis to handle 'x' or 'y'
+        size : int
+            fontisze for ticks
+        rotation : float
+            rotation angle for ticks
         """
         ticks = ax.get_xticks()
 
@@ -2611,9 +2628,11 @@ class Diagnostic(object):
         """
         plot slice correlation results
 
-        @param pthres: significance threshold. All results with p-values
-                       below this threshold will be plotted
-        @type pthres: float
+        Parameters
+        ----------
+        pthres : float
+            significance threshold. All results with p-values
+            below this threshold will be plotted
         """
 
         cmap1 = plt.cm.get_cmap('RdBu_r', 10)
@@ -2704,17 +2723,16 @@ class Koeppen(object):
     def __init__(self, temp=None, precip=None, lsm=None):
         """
         Koeppen class
-
         This class implements the functionality to generate koeppen plots.
 
-        @param temp: data objekt of temperature
-        @type temp: Data
-
-        @param precip: data objekt of precipitation
-        @type precip: Data
-
-        @param lsm: data objekt of land-sea-mask (0.0 to 1.0)
-        @type lsm: Data
+        Parameters
+        ----------
+        temp : Data
+            data objekt of temperature
+        precip : Data
+            data objekt of precipitation
+        lsm : Data
+            data objekt of land-sea-mask (0.0 to 1.0)
 
         EXAMPLES
         ========
@@ -2901,7 +2919,7 @@ class Koeppen(object):
 
     def _check_resolution(self):
         """
-             This routine just checks if all three array have a equal number of ny and nx values
+        This routine just checks if all three array have a equal number of ny and nx values
         """
         nt_t, ny_t, nx_t = self.temp.shape
         nt_p, ny_p, nx_p = self.precip.shape
