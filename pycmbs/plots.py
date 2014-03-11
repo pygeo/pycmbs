@@ -1868,7 +1868,7 @@ class GlecklerPlot(object):
         # search for model keys
         tmp = []
         for i in xrange(4):
-            tmp = self._get_model_ranking(i+1, var)
+            tmp = self._get_model_ranking(i + 1, var)
             if len(tmp) > 0:
                 break  # assumes that all datasets with observations have same models
         if len(tmp) == 0:
@@ -3217,7 +3217,6 @@ def xx_map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
         fig.savefig(savegraphicfile, bbox_inches='tight', dpi=200)
     return fig
 
-#-----------------------------------------------------------------------
 
 def add_histogram(ax, x, bins=10):
     """

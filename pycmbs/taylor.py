@@ -19,9 +19,12 @@ import numpy as np
 
 class Taylor(object):
     def __init__(self, stdmax=2., plot_r_mesh=True, plot_std_mesh=True,
-                 ref_std=1., plot_reference=True, r_meshstep=0.1, std_meshstep=0.25,
-                 edgecolor='black', r_meshcolor='red', std_meshcolor='blue', title='',
-                 r_equidistant=False, normalize=False, figsize=(8, 6), rms_meshstep=0.1, maxrms = 20., show_negative_r=True):
+                 ref_std=1., plot_reference=True, r_meshstep=0.1,
+                 std_meshstep=0.25,
+                 edgecolor='black', r_meshcolor='red',
+                 std_meshcolor='blue', title='',
+                 r_equidistant=False, normalize=False, figsize=(8, 6),
+                 rms_meshstep=0.1, maxrms=20., show_negative_r=True):
         """
         initialize Taylor diagramm class
 
