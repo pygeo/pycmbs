@@ -831,7 +831,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
         data object to be plotted
     """
 
-    print('WARNING: usage of map_plot is depreciated. This routine will be removed in future versions. Please use SingleMap instead.')
+    # print('WARNING: usage of map_plot is depreciated. This routine will be removed in future versions. Please use SingleMap instead.')
 
     # unused keyword arguments! These are not further handled and are
     # just for compatability reasons with old map_plot routine

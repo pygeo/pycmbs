@@ -11,13 +11,11 @@ HOVMOELLER CLASS
 class to generate hovmoeller diagrams
 """
 
-#from pylab import *
 import matplotlib.pylab as pl
 import matplotlib.dates as mdates
 import sys
 import matplotlib.pyplot as pyplot
 import numpy as np
-#from plots import add_nice_legend
 
 
 def agg_hourly(d, v, timestamp='mid', mode='mean'):
