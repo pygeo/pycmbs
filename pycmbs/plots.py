@@ -340,6 +340,9 @@ class HovmoellerPlot(object):
     def __init__(self, D, rescaley=10, rescalex=10, yticksampling=1,
                  monthly=False, ax=None, figsize=(10, 5)):
         """
+
+        Parameters
+        ----------
         D : Data object
             Data object that should be used for plotting the Hovmoeller
             diagram
@@ -2472,6 +2475,7 @@ def map_season(x, figsize=(8, 6), **kwargs):
 
     #/// checks ///
     if x.data.ndim != 3:
+        print x.data.ndim
         raise ValueError('only 3D data supported')
 
     if 'vmin' not in kwargs.keys():
