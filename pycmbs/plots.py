@@ -326,6 +326,8 @@ class CorrelationAnalysis(object):
         @todo: return value
         """
 
+        from pycmbs.diagnostic import Diagnostic
+
         #--- calculate diagnostics
         D = Diagnostic(self.x, y=self.y)
         D._mat2vec(mask=self.mask)  # here is the point fo regional statistics
