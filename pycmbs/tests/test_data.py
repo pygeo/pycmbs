@@ -45,6 +45,26 @@ class TestData(unittest.TestCase):
         self.D.calendar = 'gregorian'
         self.D.oldtime=False
 
+    def test_log_warning_Standard(self):
+        x = self.D.copy()
+        logfile = './data_warnings.log'
+        if os.path.exists(logfile):
+            os.remove(logfile)
+        x._log_warning('testlog')
+        self.assertTrue(os.path.exists(logfile))
+        os.remove(logfile)
+
+    def test_log_warning_WithEnvironmentVariable(self):
+        x = self.D.copy()
+        logfile = './tmpdir/data_warningXXX.log'
+        os.environ.update({'DATA_WARNING_FILE' : logfile})
+        if os.path.exists(logfile):
+            os.remove(logfile)
+        x._log_warning('testlog')
+        self.assertTrue(os.path.exists(logfile))
+        os.remove(logfile)
+        os.removedirs('./tmpdir')
+
     def test_DataInitLabelNotNone(self):
         d = Data(None,None, label='testlabel')
         self.assertEqual(d.label, 'testlabel')

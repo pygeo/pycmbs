@@ -252,7 +252,7 @@ class TestData(TestCase):
         E._calc_anomalies()
 
 
-        #~ E.plot_EOF(None, all=True)
+        E.plot_EOF(None, all=True)
 
 
 
