@@ -936,6 +936,23 @@ class TestData(unittest.TestCase):
         self.assertAlmostEqual(u.t_value[0,0],0.847,places=3)
         self.assertEqual(u.data[0,0],1.)
 
+
+    def test_save_InvalidOption(self):
+        testfile = './mytestfile.nc'
+
+        # invalid mean combination
+        with self.assertRaises(ValueError):
+            self.D.save(testfile, varname='testvar', format='nc', delete=True, mean=True, timmean=True)
+        if os.path.exists(testfile):
+            os.remove(testfile)
+
+        # invalid format
+        with self.assertRaises(ValueError):
+            self.D.save(testfile, varname='testvar', format='abc', delete=True)
+        if os.path.exists(testfile):
+            os.remove(testfile)
+
+
     def test_save_netCDF(self):
         """
         test netCDF save routine
