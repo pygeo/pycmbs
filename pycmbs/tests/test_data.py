@@ -249,6 +249,9 @@ class TestData(unittest.TestCase):
     def test_get_temporal_mask(self):
         x = self.D.copy()
 
+        with self.assertRaises(ValueError):
+            xx = x.get_temporal_mask([1,5,11],mtype='invalidtype')
+
         # test monthly mask
         mm = x.get_temporal_mask([1,5,11],mtype='monthly')
         d = x.date[mm]
@@ -356,6 +359,14 @@ class TestData(unittest.TestCase):
         d = self.D.copy()
         with self.assertRaises(ValueError):
             d.get_deseasonalized_anomaly(base='nixbase')
+
+    def test_get_deseasonalized_anomalyInvalidTimeCycle(self):
+        d = self.D.copy()
+        if hasattr(d, 'time_cycle'):
+            del d.time_cycle
+        with self.assertRaises(ValueError):
+            d.get_deseasonalized_anomaly(base='all')
+
 
     def test_set_valid_range(self):
         x = self.D.copy()
@@ -936,6 +947,11 @@ class TestData(unittest.TestCase):
         self.assertAlmostEqual(u.t_value[0,0],0.847,places=3)
         self.assertEqual(u.data[0,0],1.)
 
+    def test_read_FileNotExisting(self):
+        d = Data(None, None)
+        d.filename = 'nothing.nc'
+        with self.assertRaises(ValueError):
+            d.read(False)
 
     def test_save_InvalidOption(self):
         testfile = './mytestfile.nc'
