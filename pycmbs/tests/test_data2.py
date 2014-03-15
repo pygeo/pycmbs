@@ -17,7 +17,7 @@ from pycmbs.data import Data
 from pycmbs.examples import download
 
 import os
-import pylab as pl
+import matplotlib.pylab as pl
 import numpy as np
 
 from nose.tools import assert_raises
