@@ -27,8 +27,10 @@ class Model(Data):
         """
         constructor for Model class
 
-        @param intervals: a dictionary from configuration, that specifies the temporal interval to be used within each analyis
-        @type intervals: dict
+        Parameters
+        ----------
+        intervals : dict
+            a dictionary from configuration, that specifies the temporal interval to be used within each analyis
 
         INPUT
         -----
@@ -264,14 +266,20 @@ class CMIP5Data(Model):
     """
     def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
         """
-        @param data_dir: directory that specifies the root directory where the data is located
-        @param model: TBD tood
-        @param experiment: specifies the ID of the experiment (str)
-        @param dic_variables:
-        @param name: TBD todo
-        @param shift_lon: specifies if longitudes of data need to be shifted
-        @param kwargs: other keyword arguments
-        @return:
+        Parameters
+        ----------
+        data_dir : str
+            directory that specifies the root directory where the data is located
+        model : TBD todo
+        experiment : str
+            specifies the ID of the experiment
+        dic_variables : TODO
+        name : str
+            name of model
+        shift_lon : bool
+            specifies if longitudes of data need to be shifted
+        kwargs : dict
+            other keyword arguments
         """
         super(CMIP5Data, self).__init__(data_dir, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 
@@ -1232,22 +1240,28 @@ class JSBACH_RAW2(Model):
 
     def get_albedo_data_vis(self, interval='season'):
         """
-        THis routine retrieves the JSBACH albedo information for VIS
+        This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
         to box values!
-        @param interval:
-        @return:
+
+        Parameters
+        ----------
+        interval : str
+            ['season','monthly']
         """
         tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
     def get_albedo_data_nir(self, interval='season'):
         """
-        THis routine retrieves the JSBACH albedo information for VIS
+        This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
         to box values!
-        @param interval:
-        @return:
+
+        Parameters
+        ----------
+        interval : str
+            ['season','monthly']
         """
         tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
@@ -1427,13 +1441,14 @@ class JSBACH_RAW2(Model):
 
 #-----------------------------------------------------------------------
 
+
 class JSBACH_RAW(Model):
     """
     Class for RAW JSBACH model output
     works on manually preprocessed already concatenated data
     """
 
-    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, intervals = 'monthly', **kwargs):
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, intervals='monthly', **kwargs):
         super(JSBACH_RAW, self).__init__(filename, dic_variables, name=name, intervals=intervals, **kwargs)
 
         print('WARNING: This model class should be depreciated as it contained a lot of hardcoded dependencies and is only intermediate')
@@ -1474,7 +1489,6 @@ class JSBACH_RAW(Model):
             rawfile = files[0]
         mdata, retval = self._do_preprocessing(rawfile, variable, y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
         return mdata, retval
-
 
 #-----------------------------------------------------------------------
 
@@ -1559,7 +1573,6 @@ class JSBACH_RAW(Model):
         if not os.path.exists(file_monthly):
             raise ValueError('Monthly preprocessing did not work! %s ' % file_monthly)
 
-
         # calculate monthly or seasonal climatology
         if interval == 'monthly':
             mdata_clim_file = file_monthly[:-3] + '_ymonmean.nc'
@@ -1584,7 +1597,6 @@ class JSBACH_RAW(Model):
 
         if not os.path.exists(mdata_clim_file):
             return None
-
 
         # read data
         if interval == 'monthly':
@@ -1637,8 +1649,6 @@ class JSBACH_RAW(Model):
         del mdata_all
         return mdata, retval
 
-
-
     def get_surface_shortwave_radiation_down(self, interval='monthly', **kwargs):
         """
         get surface shortwave incoming radiation data for JSBACH
@@ -1653,10 +1663,9 @@ class JSBACH_RAW(Model):
 
         y1 = '1980-01-01'  # TODO move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
-        rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0 : 4] + '_' + y2[0 : 4] + '.nc'
+        rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0: 4] + '_' + y2[0: 4] + '.nc'
         mdata, retval = self._do_preprocessing(rawfile, 'swdown_acc', y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
         return mdata, retval
-        #return sw_down ## TODO return right format ???
 
 #-----------------------------------------------------------------------
 
@@ -1674,13 +1683,13 @@ class JSBACH_RAW(Model):
 
         y1 = '1980-01-01'  # TODO: move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
-        rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0 : 4] + '_' + y2[0 : 4] + '.nc'
+        rawfile = self.data_dir + self.experiment + '_jsbach_' + y1[0: 4] + '_' + y2[0: 4] + '.nc'
         mdata, retval = self._do_preprocessing(rawfile, 'swdown_reflect_acc', y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
         return mdata, retval
 
 #-----------------------------------------------------------------------
 
-    def get_model_data_generic(self, interval='monthly',  **kwargs):
+    def get_model_data_generic(self, interval='monthly', **kwargs):
         """
         This is only a wrapper to redirect to individual functions
         for the JSBACH_RAW class
@@ -1690,7 +1699,6 @@ class JSBACH_RAW(Model):
         # HACK: only a wrapper, should be depreciated
         raise ValueError('Rainfall analysis not working yet!')
         self.get_rainfall_data(interval=interval, **kwargs)
-
 
     def get_rainfall_data(self, interval='monthly', **kwargs):
         """
@@ -1719,7 +1727,6 @@ class JSBACH_RAW(Model):
 
         mdata, retval = self._do_preprocessing(rawfile, variable, y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
         return mdata, retval
-
 
 #-----------------------------------------------------------------------
 

@@ -10,6 +10,7 @@ This module allows a flexible choice of the netCDF backend
 
 import os
 
+
 class NetCDFHandler(object):
     def __init__(self, netcdf_backend='netCDF4'):
         """
@@ -65,8 +66,6 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Something went wrong!')
 
-
-
     def get_variable(self, varname):
         """
         Get data for a particular variable
@@ -112,7 +111,6 @@ class NetCDFHandler(object):
             return 0.
         else:
             raise ValueError('Something went wrong!')
-
 
     def assign_value(self, varname, value):
         """

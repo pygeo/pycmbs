@@ -16,7 +16,7 @@ from pycmbs.plots import GlecklerPlot
 from pycmbs.region import Region
 import scipy as sc
 from scipy import stats
-import pylab as pl
+import matplotlib.pylab as pl
 import numpy as np
 
 
@@ -252,7 +252,7 @@ class TestData(TestCase):
         E._calc_anomalies()
 
 
-        #~ E.plot_EOF(None, all=True)
+        E.plot_EOF(None, all=True)
 
 
 

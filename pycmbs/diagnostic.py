@@ -24,7 +24,7 @@ from scipy import linalg, dot
 import matplotlib.gridspec as gridspec
 from pycmbs.anova import *
 from pycmbs.taylor import Taylor
-from pylab import *
+### from pylab import *
 import pickle
 
 
@@ -174,21 +174,19 @@ class RegionalAnalysis(object):
     """
     def __init__(self, x, y, region, f_standard=True, f_correlation=True):
         """
-        @param x : first dataset (is assumed to be the reference dataset!)
-        @type x: Data
-        @param y : second dataset
-        @type y: Data
-        @param region: region to analyze in both datasets; needs to
-        be a Data object which contains IDs for each region
-        @type region: Data
 
-        @param f_standard: calculate standard first and second
-        moment statistics
-        @type f_standard: bool
-
-        @param f_correlation: calculate correlation statistics
-        between datasets
-        @type f_correlation: bool
+        Parameters
+        ----------
+        x : Data
+            first dataset (is assumed to be the reference dataset!)
+        y : Data
+            second dataset
+        region : Data
+            region to analyze in both datasets; needs to
+        f_standard : bool
+            calculate standard first and second moment statistics
+        f_correlation : bool
+            calculate correlation statistics between datasets
         """
 
         self.region = region
@@ -697,19 +695,18 @@ class RegionalAnalysis(object):
 
         requires that statistics have alredy been calculated
 
-        @param color: color for specifiying the current plot
-        @type color: str
-
-        @param dia: Taylor plot instance
-        @type dia: Taylor
-
+        Parameters
+        ----------
+        color : str
+            color for specifiying the current plot
+        dia : Taylor
+            Taylor plot instance
         """
 
-        #--- check
+        # check
         keys = np.unique(self.region.data.flatten())
         keys.sort()
 
-        #---
         r = self.statistics['corrstat']['corrstat2']['correlation']
         sx = self.statistics['corrstat']['corrstat2']['stdx']
         sy = self.statistics['corrstat']['corrstat2']['stdy']
@@ -728,7 +725,6 @@ class RegionalAnalysis(object):
 
         sid = map(str, self.statistics['corrstat']['corrstat2']['id'])
         tay.plot(r, ratio, labels=sid, color=color)
-
         return tay
 
 
@@ -752,52 +748,51 @@ class EOF(object):
         """
         constructor for EOF analysis
 
-        @param x0: C{Data} object with a 3D data. The data is assumed to have structure [time,ny,nx]
-        @type x0: C{Data} object
+        Parameters
+        ----------
+        x0 : Data
+            C{Data} object with a 3D data. The data is assumed to have
+            structure [time,ny,nx]
+        allow_gaps : bool
+            specifies if data gaps are allowed. If True, then temporal gaps are allowed
+            and are considered approprately when calculating the covariance matrix
+            if FALSE, then only timeseries without any gaps will be used.
+        normalize : bool
+            normalize timeseries of data to unity
+        cov_norm : bool
+            normalize covariance by sample size (uses np.cov() ).
+            This is the standard.
+            If FALSE, then the covariance is estimated from matrix
+            multiplication.
+            This is especially needed for testing!
+        use_corr : bool
+            use correlation matrix for EOF calculations instead of
+            covariance matrix (default = False)
+        anomalies : bool
+            specifies if calculation should be performed based on
+            anomalies (mean removed)
+        area_weighting : bool
+            perform area weighting of data prior to analysis
+        use_svd : bool
+            use SVD for decomposition; if False, then eigenvalue
+            decomposition for symmetric matrices (eigh)
+            is used
 
-        @param allow_gaps: specifies if data gaps are allowed. If True, then temporal gaps are allowed
-                           and are considered approprately when calculating the covariance matrix
-                           if FALSE, then only timeseries without any gaps will be used.
-        @type allow_gaps: bool
-
-        @param normalize: normalize timeseries of data to unity
-        @type normalize: bool
-
-        @param cov_norm: normalize covariance by sample size (uses np.cov() ). This is the standard.
-                         If FALSE, then the covariance is estimated from matrix multiplication.
-                         This is especially needed for testing!
-        @type cov_norm: bool
-
-        @param use_corr: use correlation matrix for EOF calculations instead of covariance matrix (default = False)
-        @type use_corr: bool
-
-        @param anomalies: specifies if calculation should be performed based on anomalies (mean removed)
-        @type anomalies: bool
-
-        @param area_weighting: perform area weighting of data prior to analysis
-        @type area_weighting: bool
-
-        @param use_svd: use SVD for decomposition; if False, then eigenvalue decomposition for symmetric matrices (eigh)
-         is used
-        @type use_svd: bool
-
-        @todo: how to deal with negative eigenvalues, which sometimes occur?
-
+        TODO how to deal with negative eigenvalues, which sometimes occur?
 
         REFERENCES
-        ==========
+        ----------
         (1) Bjoernsson, H., Venegas, S.A. (1997): A Manual for EOF and SVD analyses of Climate Data. online available
         (2) NCL EOF example: http://www.ncl.ucar.edu/Applications/eof.shtml
         """
 
-        print '*** EOF ANALYSIS ***'
+        print('*** EOF ANALYSIS ***')
 
-        #/// check geometries
+        # check geometries
         if x0.data.ndim != 3:
             raise ValueError('EOF analysis currently only supported for 3D data matrices of type [time,ny,nx]')
 
         x = x0.copy()  # copy input data object as the data will be weighted!
-
         self._x0 = x  # preserve information on original data
 
         #/// reshape data [time,npoints] ///
@@ -805,17 +800,9 @@ class EOF(object):
         n = len(x.data)  # number of timestamps
         self.n = n
 
-        #--- area weighting
+        # area weighting
         if area_weighting:
             wmat = np.sqrt(x._get_weighting_matrix())
-            #wmat = np.zeros(x.data.shape) #weighting for gaussian grid
-            #clat = np.sqrt(np.ma.array(x.lat.copy(),mask=x.data[0,:,:].mask))
-
-            #for i in xrange(len(wmat)):
-            #    wmat[i,:,:] = clat*1.
-            #plt.imshow(clat)
-            #del clat
-
         else:
             print '    WARNING: it is recommended to use area weighting for EOFs'
             wmat = np.sqrt(np.ones(x.data.shape))
@@ -823,7 +810,7 @@ class EOF(object):
         x.data *= wmat
         del wmat
 
-        #-estimate only valid data, discard any masked values
+        # estimate only valid data, discard any masked values
         if allow_gaps:
             lon, lat, vdata, msk = x.get_valid_data(return_mask=True, mode='one')
         else:
@@ -831,7 +818,7 @@ class EOF(object):
 
         self._x0mask = msk.copy()  # store mask applied to original data
 
-        #--- reshape data
+        # reshape data
         self.x = vdata.copy()
         self.x.shape = (n, -1)  # time x npixels
 
@@ -843,7 +830,7 @@ class EOF(object):
         if normalize:
             self.__time_normalization()  # results in unit variance for all data points
 
-        #--- transpose data
+        # transpose data
         self.x = self.x.T  # [npoints,time]
         npoints, ntime = self.x.shape
         print '   EOF analysis with %s timesteps and %s grid cells ...' % (ntime, npoints)
@@ -853,7 +840,7 @@ class EOF(object):
             if use_corr:
                 self.C = np.ma.corrcoef(self.x, rowvar=0)
             else:
-                #--- calculation using covariance matrix
+                # calculation using covariance matrix
                 if cov_norm:
                     self.C = np.ma.cov(self.x, rowvar=0)
                 else:
@@ -920,8 +907,10 @@ class EOF(object):
 
     def get_explained_variance(self):
         """
-        @return: returns vector with explained variance
-        @rtype: numpy array
+        Returns
+        -------
+        returns vector with explained variance
+        ndarray
         """
         return self._var
 
@@ -929,21 +918,20 @@ class EOF(object):
         """
         plot EOF coefficients = time series
 
-        @param k: list of eof coefficients to be plotted
-        @type k: list
-
-        @param all: plot all principle components (overwrites k)
-        @type all: bool
-
-        @param norm: normalize coefficients by stdv. to allow better plotting (default=True)
-        @type norm: bool
+        Paramters
+        ---------
+        k : list
+            list of eof coefficients to be plotted
+        all : bool
+            plot all principle components (overwrites k)
+        norm : bool
+            normalize coefficients by stdv. to allow better plotting (default=True)
         """
         if all:
             k = range(self.n)
         else:
             if np.isscalar(k):
                 k = [k]
-
         if ax is None:
             f = plt.figure()
             ax = f.add_subplot(111)
@@ -960,14 +948,7 @@ class EOF(object):
             if norm:
                 y -= y.mean()
                 y /= y.std()  # normalize to zero mean and unit std #todo: this kind of noramlization is not a standard. needs revision!
-
-            #print len(k)
-            #if len(k)>1: #lineplot
             ax.plot(self._x0.num2date(self._x0.time), y, label=label + 'EOF' + str(i + 1).zfill(3))  # caution: labeling is k+1
-            #else: #nice plot with different colors for pos/neg. values
-            #yupper = np.ma.masked_where(y < 0., y); ylower = np.ma.masked_where(y > 0., y)
-            #ax.plot(plt.num2date(self._x0.time),yupper,color='red',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
-            #ax.plot(plt.num2date(self._x0.time),ylower,color='blue',label=label + 'EOF'+str(i+1).zfill(3)) #caution: labeling is k+1
 
         if show_legend:
             ax.legend()
@@ -980,30 +961,26 @@ class EOF(object):
         """
         plot multiple eof patterns
 
-        @param k: scalar or list with principal component indices
-        @type k: scalar or list
-
-        @param all: plot all principle components (overwrites k)
-        @type all: bool
-
-        @param logplot: take log of data for plotting
-        @param logplot: bool
-
-        @param show_coef: show coefficients in a separate plot
-        @param show_coef: bool
-
-        @param corr_plot: normalize the EOF map, by correlating expansion coefficients with the data
-        @type corr_plot: bool
-
-        @param contours: specifies if contour plot shall be made instead of image
-        @type contours: bool
-
-        @param norm: normalize EOFs like in NCDL ((former: data to plot EOFs in data units (see von Storch p. 298) NOT VALID ANY MORE)
-        @type norm: bool
-
-        @param levels: levels used for contour plotting (works only together with contours = True)
-        @type levels: list
-
+        Parameters
+        ----------
+        k : list or scalar
+            scalar or list with principal component indices
+        all : bool
+            plot all principle components (overwrites k)
+        logplot : bool
+            take log of data for plotting
+        show_coef : bool
+            show coefficients in a separate plot
+        corr_plot : bool
+            normalize the EOF map, by correlating expansion coefficients
+            with the data
+        contours : bool
+            specifies if contour plot shall be made instead of image
+        norm : bool
+            normalize EOFs like in NCDL ((former: data to plot EOFs in
+            data units (see von Storch p. 298) NOT VALID ANY MORE)
+        levels : list
+            levels used for contour plotting (works only together with contours = True)
         """
 
         if all:
@@ -1043,29 +1020,27 @@ class EOF(object):
         """
         plot principal component k
 
-        @param k: number of principal component to plot
-        @type k: int
-
-        @param use_basemap: do plot using Basemap
-        @type use_basemap: bool
-
-        @param logplot: take log of data for plotting
-        @type logplot: bool
-
-        @param corr_plot: normalize the EOF map, by correlating expansion coefficients with the data
-        @type corr_plot: bool
-
-        @param contours: specifies if contour plot shall be made instead of image
-        @type contours: bool
-
-        @param norm: normalize data to plot EOFs in data units (see von Storch p. 298) todo: validate if this really works
-        @type norm: bool
-
-        @param nclasses: number of classes for plotting
-        @type nclasses: int
-
-        @param levels: levels used for contour plotting (works only together with contours = True)
-        @type levels: list
+        Parameters
+        ----------
+        k : int
+            number of principal component to plot
+        use_basemap : bool
+            do plot using Basemap
+        logplot : bool
+            take log of data for plotting
+        corr_plot : bool
+            normalize the EOF map, by correlating expansion coefficients
+            with the data
+        contours : bool
+            specifies if contour plot shall be made instead of image
+        norm : bool
+            normalize data to plot EOFs in data units
+            (see von Storch p. 298) todo: validate if this really works
+        nclasses : int
+            number of classes for plotting
+        levels : list
+            levels used for contour plotting (works only together with
+            contours = True)
 
         REFERENCES:
         -----------
@@ -1084,7 +1059,7 @@ class EOF(object):
             f = plt.figure()
             ax = f.add_subplot(111)
 
-        #remap data back to original shape
+        # remap data back to original shape
         #1) valid data --> all data
         hlp = np.zeros(len(self._x0mask)) * np.nan
         hlp[self._x0mask] = self.EOF[:, k].copy()
@@ -1133,12 +1108,14 @@ class EOF(object):
         """
         reconstruct data from EOFs
 
-        @param maxn: specifies the truncation number for EOF reconstruction
-        @type maxn: int
-
-        @param input: if this argument is given, then the reconstruction is based on the modes specified
-                      in this list. It can be an arbitrary list of mode valid mode indices
-        @type input: list of int
+        Parameters
+        ----------
+        maxn : int
+            specifies the truncation number for EOF reconstruction
+        input : int
+            if this argument is given, then the reconstruction is based
+            on the modes specified in this list. It can be an arbitrary
+            list of mode valid mode indices
         """
 
         sh = (self.n, np.prod(self._shape0))
@@ -1201,8 +1178,10 @@ class EOF(object):
         """
         generate a scatterplot of correlations of call channles vs. each other
 
-        @param samp: stepsize for subsampling of data for faster plotting
-        @type samp: int
+        Parameters
+        ----------
+        samp : int
+            stepsize for subsampling of data for faster plotting
         """
 
         f = plt.figure()
@@ -1462,20 +1441,20 @@ class SVD(object):
         """
         constructor for SVD class
 
-        @param X: x-variable field
-        @type X: C{Data} object
+        Parameters
+        ----------
 
-        @param Y: y-variable field
-        @type Y: C{Data} object
-
-        @param scf_threshold: threshold for explained variance until which result maps are plotted
-        @type scf_threshold: float
-
-        @param label: label for labeling figures
-        @type label: str
-
-        @param format: specifies the format of figures to be generated [png,pdf]
-        @type format: str
+        X : Data
+            x-variable field
+        Y : Data
+            y-variable field
+        scf_threshold : float
+            threshold for explained variance until which result maps
+            are plotted
+        label : str
+            label for labeling figures
+        format : str
+            specifies the format of figures to be generated [png,pdf]
         """
         x = X.data.copy()
         y = Y.data.copy()  # these are masked arrays
@@ -1507,10 +1486,15 @@ class SVD(object):
         get only points where ALL
         timeseries are valid
 
-        @param x: array [time,position]
-        @type x: numpy masked array
+        Parameters
+        ----------
+        x : ndarray
+            numpy masked array with geometry [time,position]
 
-        @return: masked array [time,nvalidpixels] and mask that can be applied to original data [norgpixels]
+        Returns
+        -------
+        masked array [time,nvalidpixels] and mask that can be applied
+        to original data [norgpixels]
         """
 
         nt, n = x.shape
@@ -1534,9 +1518,14 @@ class SVD(object):
         given a variable x[time,position]
         the data is linear detrended individually for each position
 
-        @param x: data array [time,position]
-        @type x: numpy array
-        @return: return detrended array [time,position]
+        Parameters
+        ----------
+        x : ndarray
+            data array [time, position]
+
+        Returns
+        -------
+        return detrended array [time, position]
         """
 
         if x.ndim != 2:
@@ -1555,10 +1544,14 @@ class SVD(object):
         normalize timeseries x [time,position]
         by dividing by the standard deviation
 
-        @param x: data array [time,position]
-        @type x: numpy array
+        Parameters
+        ----------
+        x : ndarray
+            data array [time,position]
 
-        @return: normalized timeseries numpy array
+        Returns
+        -------
+        normalized timeseries numpy array
         """
         nt, nx = np.shape(x)
         s = x.std(axis=0)  # temporal standard deviation
@@ -1573,11 +1566,12 @@ class SVD(object):
         """
         perform SVD analysis
 
-        @param detrend: detrend data
-        @type detrend: bool
-
-        @param varnorm: normalize variance of time series
-        @type varnorm: bool
+        Parameters
+        ----------
+        detrend : bool
+            detrend data
+        varnorm : bool
+            normalize variance of time series
         """
 
         #/// perform SVN only for data points which are valid throughout entire time series ///
@@ -1648,10 +1642,14 @@ class SVD(object):
         return the singular vectors of both fields for a specific mode
         as a spatial (2D) field
 
-        @param mode: mode to be shown
-        @type mode: int
+        Parameters
+        ----------
+        mode : int
+            mode to be shown
 
-        @return: numpy arrays for U and V
+        Returns
+        -------
+        numpy arrays for U and V
         """
 
         #x_used is a vector that only contains the valid values that were used for caluclation of covariance matrix C
@@ -1681,14 +1679,14 @@ class SVD(object):
         map valid data vector back to
         original data shape
 
-        @param data: data vector that was used for SVD calculations (1D)
-        @type data: numpy array vector
-
-        @param mask: 1D data mask
-        @type mask: numpy data (1D)
-
-        @param target_shape: shape to map to
-        @type target_shape: geometry tuple
+        Parameters
+        ----------
+        data : ndarray
+            data vector that was used for SVD calculations (1D)
+        mask : ndarray
+            1D data mask
+        target_shape : tuple
+            shape to map to
         """
         sz = np.shape(data)
         if sz[0] != mask.sum():
@@ -1711,14 +1709,14 @@ class SVD(object):
         """
         plot explained variance
 
-        @param ax: axis to put plot in. If None, then a new figure is generated
-        @type ax: matplotlib axis
-
-        @param filename: name of the file to store figure to (if None, then no file is saved)
-        @type filename: str
-
-        @param maxvar: upper limit of variance plot
-        @type maxvar: float
+        Parameters
+        ----------
+        ax : axis
+            axis to put plot in. If None, then a new figure is generated
+        filename : str
+            name of the file to store figure to (if None, then no file is saved)
+        maxvar : float
+            upper limit of variance plot
         """
 
         def make_patch_spines_invisible(ax):
@@ -1953,13 +1951,16 @@ class SVD(object):
         This is obtained by correlating an expansion mode to
         a particular data field
 
-        @param X: data field that should be explained by expansion coefficient
-        @type X: C{Data} object
+        Parameters
+        ----------
+        X : Data
+            data field that should be explained by expansion coefficient
+        E : ndarray
+            expansion cofficient to be used for correlation calculation
 
-        @param E: expansion cofficient to be used for correlation calculation
-        @type E: numpy array
-
-        @return: squared correlation as C{Data} object
+        Returns
+        -------
+        squared correlation as C{Data} object
         """
         Rout, Sout, Iout, Pout = X.corr_single(E[:, mode], pthres=pthres)
         Rout.data = Rout.data * Rout.data
@@ -2003,8 +2004,10 @@ class SVD(object):
         """
         print statistic of modes
 
-        @param filename: filename to save table to
-        @type filename: str
+        Parameters
+        ----------
+        filename : str
+            filename to save table to
         """
         sep = ' & '
         rnd = 2
@@ -2031,11 +2034,10 @@ class SVD(object):
         """
         plot correlation and time series of expansion coeffcients
 
-        @param mode: mode to plot
-        @type mode: int
-
-        @param ax: axis to plot data
-        @type ax: matplotlib axis
+        mode : int
+            mode to plot
+        ax : axis
+            axis to plot data
         """
         if ax is None:
             fig = plt.figure()
@@ -2061,12 +2063,11 @@ class Diagnostic(object):
         constructor for diagnostic class
         diagnostic for one or multiple data sets
 
-        @param x: x data to be analyzed
-        @type x: C{Data} object
-
-        @param y: y data to be analyzed
-        @type y: C{Data} object
-        """
+        x : Data
+            x data to be analyzed
+        y : Data
+            y data to be analyzed
+       """
         self.x = x
         if y is not None:
             self.y = y
@@ -2087,9 +2088,6 @@ class Diagnostic(object):
     def get_rmse_value(self):
         """
         calculate root-mean-squared error
-
-        @param self: Diagnostic object
-        @type self : Diagnostic object
         """
         return np.sqrt(np.mean((self.xvec - self.yvec) ** 2))
 
@@ -2169,8 +2167,10 @@ class Diagnostic(object):
         a vector and apply a given
         mask if desired
 
-        @param mask: mask to be applied
-        @type mask: numpy array
+        Parameters
+        ----------
+        mask : ndarray
+            mask to be applied
         """
 
         #--- generated copies and mask data if desired
@@ -2592,20 +2592,16 @@ class Diagnostic(object):
         set ticks of timeline with
         yearly ticks
 
-        @param years: list of years
-        @type years: list
-
-        @param ax: axis to handle
-        @type ax: matplotlib axis
-
-        @param axis: specify which axis to handle 'x' or 'y'
-        @type axis: str
-
-        @param size: fontisze for ticks
-        @type size: int
-
-        @param rotation: rotation angle for ticks
-        @type rotation: float
+        years : list
+            list of years
+        ax : axis
+            axis to handle
+        axis : str
+            specify which axis to handle 'x' or 'y'
+        size : int
+            fontisze for ticks
+        rotation : float
+            rotation angle for ticks
         """
         ticks = ax.get_xticks()
 
@@ -2632,9 +2628,11 @@ class Diagnostic(object):
         """
         plot slice correlation results
 
-        @param pthres: significance threshold. All results with p-values
-                       below this threshold will be plotted
-        @type pthres: float
+        Parameters
+        ----------
+        pthres : float
+            significance threshold. All results with p-values
+            below this threshold will be plotted
         """
 
         cmap1 = plt.cm.get_cmap('RdBu_r', 10)
@@ -2725,17 +2723,16 @@ class Koeppen(object):
     def __init__(self, temp=None, precip=None, lsm=None):
         """
         Koeppen class
-
         This class implements the functionality to generate koeppen plots.
 
-        @param temp: data objekt of temperature
-        @type temp: Data
-
-        @param precip: data objekt of precipitation
-        @type precip: Data
-
-        @param lsm: data objekt of land-sea-mask (0.0 to 1.0)
-        @type lsm: Data
+        Parameters
+        ----------
+        temp : Data
+            data objekt of temperature
+        precip : Data
+            data objekt of precipitation
+        lsm : Data
+            data objekt of land-sea-mask (0.0 to 1.0)
 
         EXAMPLES
         ========
@@ -2922,7 +2919,7 @@ class Koeppen(object):
 
     def _check_resolution(self):
         """
-             This routine just checks if all three array have a equal number of ny and nx values
+        This routine just checks if all three array have a equal number of ny and nx values
         """
         nt_t, ny_t, nx_t = self.temp.shape
         nt_p, ny_p, nx_p = self.precip.shape

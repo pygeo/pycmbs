@@ -11,13 +11,11 @@ HOVMOELLER CLASS
 class to generate hovmoeller diagrams
 """
 
-#from pylab import *
 import matplotlib.pylab as pl
 import matplotlib.dates as mdates
 import sys
 import matplotlib.pyplot as pyplot
 import numpy as np
-#from plots import add_nice_legend
 
 
 def agg_hourly(d, v, timestamp='mid', mode='mean'):
@@ -92,37 +90,36 @@ def generate_monthly_timeseries(t, sday='01'):
 
 
 class hovmoeller:
-    def __init__(self, time, value, var_unc=None, rescalex=1, rescaley=1, lat=None, lon=None, transpose=False, use_cdo=True):
+    def __init__(self, time, value, var_unc=None, rescalex=1,
+                 rescaley=1, lat=None, lon=None, transpose=False,
+                 use_cdo=True):
         """
         Hovmoeller class
 
-        This class implements the functionality to generate hovmoeller plots. It allows to calculate all relevant data
-        by itself or using the CDO's for calculation of e.g. zonal means
+        This class implements the functionality to generate hovmoeller
+        plots. It allows to calculate all relevant data by itself or
+        using the CDO's for calculation of e.g. zonal means
 
-        @param time: vector with time information
-        @type time: datetime
-
-        @param value: data to be analyzed. if the argument lat is provided it is assumed that lat/lon are 2D matrices
-                      In this case the value is expected to be a 3D variables as value(time,ny,nx)
-        @type value: numpy array
-
-        @param var_unc: additional array with variance information (can be used to show uncertainties) - not really validated so far
-        @type var_unc: numpy array
-
-        @param rescalex: rescaling factor for x-variable (used to blow up the plot)
-        @type rescalex: int
-
-        @param rescaley: rescaling factor for y-variable (used to blow up the plot)
-        @type rescaley: int
-
-        @param lat: latitude coordinates
-        @type lat: numpy array
-
-        @param lon: longitude coordinates
-        @type lon: numpy array
-
-        @param transpose: transpose the data matrix
-        @type transpose: bool
+        time : datetime
+            vector with time information
+        value : ndarray
+            data to be analyzed. if the argument lat is provided it is
+            assumed that lat/lon are 2D matrices
+            In this case the value is expected to be a 3D variables as
+            value(time,ny,nx)
+        var_unc : ndarray
+            additional array with variance information (can be used to
+            show uncertainties) - not really validated so far
+        rescalex : int
+            rescaling factor for x-variable (used to blow up the plot)
+        rescaley : int
+            rescaling factor for y-variable (used to blow up the plot)
+        lat : ndarray
+            latitude coordinates
+        lon : ndarray
+            longitude coordinates
+        transpose : bool
+            transpose the data matrix
 
         EXAMPLES
         ========
@@ -218,45 +215,28 @@ class hovmoeller:
         The second option is, that a Data object is provided by the *input* variable. In this case, the zonal mean is calculated from
         the Data object all required processing is done in this routine.
 
-        @param input: C{Data} object that is used for the generation of the hovmoeller plot
-        @type input: Data object
-
-        @param grid: plot tick grid in hovmoeller plot
-        @type grid: bool
-
-        @param ylabel: ylabel for plot
-        @type ylabel: str
-
-        @param title: title for the plot
-        @type title: str
-
-        @param climits: limits for the colorbar; [vmin,vmax]
-        @type climits: list
-
-        @param cmap: colormap to be used
-        @type cmap: str or colormap
-
-        @param xtickrotation: rotation of xticklabels 0 ... 90
-        @type xtickrotation: float
-
-        @param showcolorbar: show colorbar in plot
-        @type showcolorbar: bool
-
-        @param ax: axis to plot to. If not specified (default), then a new figure will be created
-        @type ax: matplotlib axis
-
-        @param showxticks: show the xticks in the Hovmoeller plot
-        @type showxticks: bool
-
-        @param nclasses: number of classes for colorbar
-        @type nclasses: int
-
-
-        plot result
-        clim: tuple
-
-        norm_uncertainties: divide value by variance ==> contourplot of self.hov / self.hov_var is generated
-
+        input : Data
+            C{Data} object that is used for the generation of the hovmoeller plot
+        grid : bool
+            plot tick grid in hovmoeller plot
+        ylabel : str
+            ylabel for plot
+        title : str
+            title for the plot
+        climits : list
+            limits for the colorbar; [vmin,vmax]
+        cmap : str
+            colormap to be used
+        xtickrotation : float
+            rotation of xticklabels 0 ... 90
+        showcolorbar : bool
+            show colorbar in plot
+        ax : axis
+            axis to plot to. If not specified (default), then a new figure will be created
+        showxticks : bool
+            show the xticks in the Hovmoeller plot
+        nclasses : int
+            number of classes for colorbar
 
         input is expected to have dimensions [nlat,ntime] and can be precalculated using Data.get_zonal_mean().T
         input is expected to be a Data object!
@@ -423,8 +403,11 @@ class hovmoeller:
     def set_label(self, nx):
         """
         return labels
-        @param nx: number
-        @type nx: int
+
+        Parameters
+        ----------
+        nx : int
+            number of labels
         """
         xticks = self.ax.xaxis.get_xticks()
         nticks = len(xticks)
