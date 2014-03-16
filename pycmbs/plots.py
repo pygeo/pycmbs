@@ -1245,7 +1245,7 @@ class HistogrammPlot(object):
         # calculate frequency distribution
         f, b = np.histogram(x, bins=self.bins, **kwargs)
         if self.normalize:
-            f /= float(sum(f))
+            f = f / float(sum(f))
             if self.percent:
                 f *= 100.
         self.ax.plot(b[0:-1], f, color=color, linestyle=linestyle,
