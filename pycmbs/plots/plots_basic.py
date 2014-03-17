@@ -2240,7 +2240,7 @@ class GlecklerPlot(object):
             if x.cell_area is not None:
                 print('WARNING: cell weights are given, while cell_area available from data!!')
 
-        from diagnostic import Diagnostic
+        from pycmbs.diagnostic import Diagnostic
         D = Diagnostic(x, y=y)
         # reichler performance index
         # (might return a list if multiple times analyzed)
