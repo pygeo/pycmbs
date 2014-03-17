@@ -12,12 +12,11 @@ import unittest
 from pycmbs.data import Data
 import os
 import scipy as sc
-import pylab as pl
+import matplotlib.pylab as pl
 import numpy as np
 from scipy import stats
 from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
-import pylab as pl
 import datetime
 
 from nose.tools import assert_raises
@@ -44,6 +43,26 @@ class TestData(unittest.TestCase):
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
         self.D.oldtime=False
+
+    def test_log_warning_Standard(self):
+        x = self.D.copy()
+        logfile = './data_warnings.log'
+        if os.path.exists(logfile):
+            os.remove(logfile)
+        x._log_warning('testlog')
+        self.assertTrue(os.path.exists(logfile))
+        os.remove(logfile)
+
+    def test_log_warning_WithEnvironmentVariable(self):
+        x = self.D.copy()
+        logfile = './tmpdir/data_warningXXX.log'
+        os.environ.update({'DATA_WARNING_FILE' : logfile})
+        if os.path.exists(logfile):
+            os.remove(logfile)
+        x._log_warning('testlog')
+        self.assertTrue(os.path.exists(logfile))
+        os.remove(logfile)
+        os.removedirs('./tmpdir')
 
     def test_DataInitLabelNotNone(self):
         d = Data(None,None, label='testlabel')
@@ -229,6 +248,9 @@ class TestData(unittest.TestCase):
     def test_get_temporal_mask(self):
         x = self.D.copy()
 
+        with self.assertRaises(ValueError):
+            xx = x.get_temporal_mask([1,5,11],mtype='invalidtype')
+
         # test monthly mask
         mm = x.get_temporal_mask([1,5,11],mtype='monthly')
         d = x.date[mm]
@@ -336,6 +358,14 @@ class TestData(unittest.TestCase):
         d = self.D.copy()
         with self.assertRaises(ValueError):
             d.get_deseasonalized_anomaly(base='nixbase')
+
+    def test_get_deseasonalized_anomalyInvalidTimeCycle(self):
+        d = self.D.copy()
+        if hasattr(d, 'time_cycle'):
+            del d.time_cycle
+        with self.assertRaises(ValueError):
+            d.get_deseasonalized_anomaly(base='all')
+
 
     def test_set_valid_range(self):
         x = self.D.copy()
@@ -915,6 +945,28 @@ class TestData(unittest.TestCase):
         u = A.diff(B,pthres=0.05)
         self.assertAlmostEqual(u.t_value[0,0],0.847,places=3)
         self.assertEqual(u.data[0,0],1.)
+
+    def test_read_FileNotExisting(self):
+        d = Data(None, None)
+        d.filename = 'nothing.nc'
+        with self.assertRaises(ValueError):
+            d.read(False)
+
+    def test_save_InvalidOption(self):
+        testfile = './mytestfile.nc'
+
+        # invalid mean combination
+        with self.assertRaises(ValueError):
+            self.D.save(testfile, varname='testvar', format='nc', delete=True, mean=True, timmean=True)
+        if os.path.exists(testfile):
+            os.remove(testfile)
+
+        # invalid format
+        with self.assertRaises(ValueError):
+            self.D.save(testfile, varname='testvar', format='abc', delete=True)
+        if os.path.exists(testfile):
+            os.remove(testfile)
+
 
     def test_save_netCDF(self):
         """

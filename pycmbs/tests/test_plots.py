@@ -6,6 +6,10 @@ from pycmbs.data import Data
 from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, ZonalPlot
 from pycmbs.plots import map_difference, map_season, GlecklerPlot
 from pycmbs.plots import xx_map_plot, HstackTimeseries, HovmoellerPlot
+from pycmbs.plots import rotate_ticks, CorrelationAnalysis
+
+
+
 
 import scipy
 import os
@@ -49,6 +53,18 @@ class TestPycmbsPlots(unittest.TestCase):
         S = ScatterPlot(x)
         S.plot(x)
         S.legend()
+
+    def test_rotate_ticks(self):
+        f = plt.figure()
+        ax=f.add_subplot(111)
+        ax.plot(np.random.random(1000))
+        rotate_ticks(ax, 20.)
+
+    def test_correlation_analysis(self):
+        x = self.D
+        y = self.D
+        C = CorrelationAnalysis(x, y)
+        C.do_analysis()
 
     def test_ScatterPlot_GeneralWithNormalization(self):
         x = self.D

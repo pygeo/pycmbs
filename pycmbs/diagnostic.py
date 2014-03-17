@@ -24,7 +24,7 @@ from scipy import linalg, dot
 import matplotlib.gridspec as gridspec
 from pycmbs.anova import *
 from pycmbs.taylor import Taylor
-from pylab import *
+### from pylab import *
 import pickle
 
 

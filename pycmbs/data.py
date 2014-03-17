@@ -441,14 +441,6 @@ class Data(object):
 
 #-----------------------------------------------------------------------
 
-    def __set_sample_data(self, a, b, c):
-        """
-        fill data matrix with some sample data
-        """
-        self.data = plt.rand(a, b, c)
-
-#-----------------------------------------------------------------------
-
     def save(self, filename, varname=None, format='nc',
              delete=False, mean=False, timmean=False):
         """

@@ -10,7 +10,7 @@ from unittest import TestCase
 from pycmbs.data import Data
 #~ from pycmbs.diagnostic import *
 import scipy as sc
-import pylab as pl
+import matplotlib.pylab as pl
 import numpy as np
 
 __author__ = 'm300028'

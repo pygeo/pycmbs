@@ -21,20 +21,20 @@ import numpy as np
 
 
 class Anova1():
-    '''
+    """
     Analysis of variance class for one-way anova analyis
-    '''
+    """
     def __init__(self, x):
-        '''
+        """
 
         an alternative code for ANOVA analysis in python can be found
         http://adorio-research.org/wordpress/?p=1102
 
-        @param x: data array which contains multiple ensemble members
-                  of time series [nrens,ntime]. Each single row contains
-                  an entire timeseries. Equal number of samples is assumed
-        @type x: numpy array
-        '''
+         x : ndarray
+            data array which contains multiple ensemble members
+            of time series [nrens,ntime]. Each single row contains
+            an entire timeseries. Equal number of samples is assumed
+        """
 
         if x.ndim != 2:
             raise ValueError('Only 2D supported for one-way ANOVA')

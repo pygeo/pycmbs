@@ -326,6 +326,8 @@ class CorrelationAnalysis(object):
         @todo: return value
         """
 
+        from pycmbs.diagnostic import Diagnostic
+
         #--- calculate diagnostics
         D = Diagnostic(self.x, y=self.y)
         D._mat2vec(mask=self.mask)  # here is the point fo regional statistics
@@ -1243,7 +1245,7 @@ class HistogrammPlot(object):
         # calculate frequency distribution
         f, b = np.histogram(x, bins=self.bins, **kwargs)
         if self.normalize:
-            f /= float(sum(f))
+            f = f / float(sum(f))
             if self.percent:
                 f *= 100.
         self.ax.plot(b[0:-1], f, color=color, linestyle=linestyle,
@@ -2592,113 +2594,113 @@ def xx_map_plot(x, use_basemap=False, ax=None, cticks=None, region=None,
     """
     produce a nice looking map plot
 
-    @param drawparallels: option to draw parallels on the map
-    @type drawparallels: bool
+    drawparallels: option to draw parallels on the map
+    drawparallels: bool
 
-    @param x: data to plot
-    @type x: C{Data} object
+    x: data to plot
+    x: C{Data} object
 
-    @param use_basemap: specifies if Basemap should be used for plotting (=slow), otherwise a simple plot is generated (fast)
-    @type use_basemap: bool
+    use_basemap: specifies if Basemap should be used for plotting (=slow), otherwise a simple plot is generated (fast)
+    use_basemap: bool
 
-    @param ax: axis to plot to; if None, then new figure is generated
-    @type ax: matplotlib axis
+    ax: axis to plot to; if None, then new figure is generated
+    ax: matplotlib axis
 
-    @param cticks: ticks for the colorbar
-    @type cticks: list of float values
+    cticks: ticks for the colorbar
+     cticks: list of float values
 
-    @param region: region that should be plotted. This is only used in case of Basemap maps
-    @type region: C{Region}
+    region: region that should be plotted. This is only used in case of Basemap maps
+     region: C{Region}
 
-    @param nclasses: number of classes for colormap
-    @type nclasses: int
+    nclasses: number of classes for colormap
+     nclasses: int
 
-    @param cmap_data: colormap for data to be plotted
-    @type cmap_data: str
+    cmap_data: colormap for data to be plotted
+     cmap_data: str
 
-    @param title: title of the plot
-    @type title: str
+    title: title of the plot
+     title: str
 
-    @param regions_to_plot: This variable might contain a list of regions
+    regions_to_plot: This variable might contain a list of regions
                             if the argument is given then each of the regions
                             is plotted as a rectangle into the map
-    @type regions_to_plot: list of C{Region} objects
+     regions_to_plot: list of C{Region} objects
 
-    @param logplot: show data as a logarithmic plot
-    @type logplot: bool
+    logplot: show data as a logarithmic plot
+     logplot: bool
 
-    @param logoffset: offset that should be added to the data before performing
+    logoffset: offset that should be added to the data before performing
                       logarithmic plotting. Useful if negative data
-    @type logoffset:  bool
+     logoffset:  bool
 
-    @param show_stat: show statistic of field in figure title. The mean and std correspond to the
+    show_stat: show statistic of field in figure title. The mean and std correspond to the
                       SPATIAL mean and stdv of the temporal mean field. It is thus NOT the overall mean
                       and std.!
-    @type show_stat: bool
+     show_stat: bool
 
-    @param f_kdtree: use kdTree for interpolation of data to grid (might be slow, but might solve problem of stripes in plots)
-    @type f_kdtree: bool
+    f_kdtree: use kdTree for interpolation of data to grid (might be slow, but might solve problem of stripes in plots)
+     f_kdtree: bool
 
-    @param latvalues: latitude values for drawing grid (optional)
-    @type latvalues: list or numpy array
+    latvalues: latitude values for drawing grid (optional)
+     latvalues: list or numpy array
 
-    @param lonvalues: longitude values for drawing grid (optional)
-    @type lonvalues: list or numpy array
+    lonvalues: longitude values for drawing grid (optional)
+     lonvalues: list or numpy array
 
-    @param vmin_zonal: minimum value for zonal plot
-    @type vmin_zonal: float
+    vmin_zonal: minimum value for zonal plot
+     vmin_zonal: float
 
-    @param vmax_zonal: maximum value for zonal plot
-    @type vmax_zonal: float
+    vmax_zonal: maximum value for zonal plot
+     vmax_zonal: float
 
-    @param bluemarble: load bluemarble as background image (does only work if no gridded data is shown!)
-    @type bluemarble: bool
+    bluemarble: load bluemarble as background image (does only work if no gridded data is shown!)
+     bluemarble: bool
 
-    @param contours: specifies if plot is done as contour plot
-    @type contours: bool
+    contours: specifies if plot is done as contour plot
+     contours: bool
 
-    @param contourf: plot filled contours; is supposed to work only in combination with contours=True
-    @type contourf: bool
+    contourf: plot filled contours; is supposed to work only in combination with contours=True
+     contourf: bool
 
-    @param overlay: overlay for plot (e.g. significance)
-    @type overlay: numpy array
+    overlay: overlay for plot (e.g. significance)
+     overlay: numpy array
 
-    @param show_colorbar: specifies if colorbar should be plotted
-    @type show_colorbar: bool
+    show_colorbar: specifies if colorbar should be plotted
+     show_colorbar: bool
 
-    @param show_zonal: specifies if zonal plots should be shown
-    @type show_zonal: bool
+    show_zonal: specifies if zonal plots should be shown
+     show_zonal: bool
 
-    @param titlefontsize: fontsize of the figure title
-    @type titlefontsize: int
+    titlefontsize: fontsize of the figure title
+     titlefontsize: int
 
-    @param show_histogram: show a histogram below the map
-    @type show_histogram: bool
+    show_histogram: show a histogram below the map
+     show_histogram: bool
 
-    @param drawcountries: specifies if countries will be shown in map plot (default=TRUE)
-    @type drawcountries: bool
+    drawcountries: specifies if countries will be shown in map plot (default=TRUE)
+     drawcountries: bool
 
-    @param bins: bins for histogram
-    @type bins: int
+    bins: bins for histogram
+     bins: int
 
-    @param colorbar_orientation: specifies if colorbar shall be vertical or horizontal aligned ['horizontal','vertical']
-    @type colorbar_orientation: str
+    colorbar_orientation: specifies if colorbar shall be vertical or horizontal aligned ['horizontal','vertical']
+     colorbar_orientation: str
 
-    @param stat_type: specifies if mean or median shall be used for statistics ['mean','median']
-    @type stat_type: str
+    stat_type: specifies if mean or median shall be used for statistics ['mean','median']
+     stat_type: str
 
-    @param cax_rotation: rotation of labels for colorbar axis
-    @type cax_rotation: float
+    cax_rotation: rotation of labels for colorbar axis
+     cax_rotation: float
 
-    @param cticklabels Labels for the ticks of the colorbar
-    @type cticklabels: list of str labels
+    cticklabels Labels for the ticks of the colorbar
+     cticklabels: list of str labels
 
-    @param proj: Basemap projection parameter string, specifying the type of projections to be used ['robin','npstere']
-    @type proj: str
+    proj: Basemap projection parameter string, specifying the type of projections to be used ['robin','npstere']
+     proj: str
 
-    @param plot_method: specifies method how data shall be plotted (applies only when using Basemap)
+    plot_method: specifies method how data shall be plotted (applies only when using Basemap)
                         allowed options are ['colormesh','scatter']
-    @type plot_method: str
+     plot_method: str
 
 
     """

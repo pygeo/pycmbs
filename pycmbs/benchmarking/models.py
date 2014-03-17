@@ -27,8 +27,10 @@ class Model(Data):
         """
         constructor for Model class
 
-        @param intervals: a dictionary from configuration, that specifies the temporal interval to be used within each analyis
-        @type intervals: dict
+        Parameters
+        ----------
+        intervals : dict
+            a dictionary from configuration, that specifies the temporal interval to be used within each analyis
 
         INPUT
         -----
@@ -264,14 +266,20 @@ class CMIP5Data(Model):
     """
     def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
         """
-        @param data_dir: directory that specifies the root directory where the data is located
-        @param model: TBD tood
-        @param experiment: specifies the ID of the experiment (str)
-        @param dic_variables:
-        @param name: TBD todo
-        @param shift_lon: specifies if longitudes of data need to be shifted
-        @param kwargs: other keyword arguments
-        @return:
+        Parameters
+        ----------
+        data_dir : str
+            directory that specifies the root directory where the data is located
+        model : TBD todo
+        experiment : str
+            specifies the ID of the experiment
+        dic_variables : TODO
+        name : str
+            name of model
+        shift_lon : bool
+            specifies if longitudes of data need to be shifted
+        kwargs : dict
+            other keyword arguments
         """
         super(CMIP5Data, self).__init__(data_dir, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 
@@ -1232,22 +1240,28 @@ class JSBACH_RAW2(Model):
 
     def get_albedo_data_vis(self, interval='season'):
         """
-        THis routine retrieves the JSBACH albedo information for VIS
+        This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
         to box values!
-        @param interval:
-        @return:
+
+        Parameters
+        ----------
+        interval : str
+            ['season','monthly']
         """
         tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
     def get_albedo_data_nir(self, interval='season'):
         """
-        THis routine retrieves the JSBACH albedo information for VIS
+        This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
         to box values!
-        @param interval:
-        @return:
+
+        Parameters
+        ----------
+        interval : str
+            ['season','monthly']
         """
         tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
