@@ -50,13 +50,16 @@ class ViolinPlot(object):
 
     def _check(self):
         """ routine to check internal consistency """
-        if len(self.labels) != len(self.data):
-            raise ValueError('Invalid geometry of labels and data!')
+        if self.data is not None:
+            if len(self.labels) != len(self.data):
+                raise ValueError('Invalid geometry of labels and data!')
 
     def plot(self, alpha=0.3):
         """
         plot Violinplot
         """
+        if self.data is None:
+            raise ValueError('Data is None and can therefore not be plotted!')
         ### TODO implement also plot like shown in Ref [4]
         self._plot_classic(alpha=alpha)
         self._set_xticks()
@@ -93,7 +96,9 @@ class ViolinPlot(object):
 
 
 def _classic_example():
-
+    """
+    some example how to do violin plotting
+    """
     plt.close('all')
     pos = range(5)
     data = [np.random.normal(size=100) for i in pos]
