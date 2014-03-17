@@ -12,12 +12,11 @@ import unittest
 from pycmbs.data import Data
 import os
 import scipy as sc
-import pylab as pl
+import matplotlib.pylab as pl
 import numpy as np
 from scipy import stats
 from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
-import pylab as pl
 import datetime
 
 from nose.tools import assert_raises

@@ -26,7 +26,7 @@ becase all data are stored in the data4D array, the normal data attribude is del
 
 """
 
-from pylab import *
+#### from pylab import *
 
 from data import Data
 import matplotlib.colors as col
