@@ -15,7 +15,7 @@ class ViolinPlot(object):
     [4] http://nbviewer.ipython.org/github/EnricoGiampieri/dataplot/blob/master/statplot.ipynb
     """
 
-    def __init__(self, data, labels=None, ax=None, boxplot=True):
+    def __init__(self, data, labels=None, ax=None, boxplot=True, figsize=(10,6)):
         """
         Parameters
         ----------
@@ -30,6 +30,8 @@ class ViolinPlot(object):
             axis
         boxplot : bool
             plot boxplot
+        figsize : tuple
+            figure size
         """
         self.data = data
         if labels is None:
@@ -38,7 +40,7 @@ class ViolinPlot(object):
             self.labels = labels
 
         if ax is None:
-            fig = plt.figure()
+            fig = plt.figure(figsize=figsize)
             self.ax = fig.add_subplot(1, 1, 1)
         else:
             self.ax = ax
@@ -64,10 +66,10 @@ class ViolinPlot(object):
         self._plot_classic(alpha=alpha)
         self._set_xticks()
 
-    def _set_xticks(self):
+    def _set_xticks(self, rotation=30.):
         """ set ticklabels """
         self.ax.set_xticks(self._get_positions())
-        self.ax.set_xticklabels(self.labels)
+        self.ax.set_xticklabels(self.labels, rotation=rotation)
 
     def _get_positions(self):
         """ get positions of xticks """
@@ -92,7 +94,7 @@ class ViolinPlot(object):
             self.ax.fill_betweenx(x, p, v+p, facecolor='y', alpha=alpha)
             self.ax.fill_betweenx(x, p, -v+p, facecolor='y', alpha=alpha)
         if self.boxplot:
-            self.ax.boxplot(self.data, notch=1, positions=pos, vert=1)
+            self.ax.boxplot(self.data, notch=1, positions=pos, vert=True, sym='')
 
 
 def _classic_example():
