@@ -10,9 +10,11 @@ Combine latex tables that were written using gleckler.write_table routine
 
 import os
 from pycmbs.benchmarking.report import Report
+import numpy as np
+from scipy.stats import stats
 
 # specify directory name
-rdir = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/'
+rdir = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/amip/'
 
 files = []
 files.append({'Albedo' : 'ranking_table_albedo.tex'})
@@ -65,6 +67,9 @@ class Table(object):
             return r
         else:
             return default
+
+    def get_all_models(self):
+        return self.data.keys()
 
 
 class Writer(object):
@@ -165,7 +170,7 @@ for model in mkeys:
         s = '    ' + model.split(':')[1] + sep  # one line per model
     except:
         s = '    ' + model + sep  # one line per model
-    s = s.replace('-historical', '')
+    s = s.replace('-historical', '').replace('-amip','')
     c = 1
     for T in Tdata:
         for col in T.cols:
@@ -184,6 +189,92 @@ R.input(ofilename)
 R.close_table(caption='Merged radiation ranking')
 
 R.close()
+
+
+
+
+##############################################
+# ARE GOOD MODELS ALWAYS GOOD MODELS ?
+##############################################
+rdir_amip = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/amip/'
+rdir_hist = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/hist/'
+
+files = []
+files.append({'Albedo' : 'ranking_table_albedo.tex'})
+files.append({'SIS' : 'ranking_table_sis.tex'})
+files.append({'Rup' : 'ranking_table_surface_upward_flux.tex'})
+
+# read tables for AMIP and HIST
+amip = []
+hist = []
+for g in files:
+    k = g.keys()[0]
+
+    # amip
+    T = Table(k)
+    T.read(rdir_amip + g[k])
+    amip.append(T)
+
+    # hist
+    T = Table(k)
+    T.read(rdir_hist + g[k])
+    hist.append(T)
+
+# model keys in both datasets
+amip_keys_raw = []
+hist_keys_raw = []
+for a in amip:
+    for k in a.get_all_models():
+        if k not in amip_keys_raw:
+            amip_keys_raw.append(k)  # AMIP keys
+
+for h in hist:
+    for k in h.get_all_models():
+        if k not in hist_keys_raw:
+            hist_keys_raw.append(k)  # HIST keys
+
+amip_keys = []
+hist_keys = []
+for a in amip_keys_raw:
+    amip_keys.append(a.replace('-amip',''))
+for h in hist_keys_raw:
+    hist_keys.append(h.replace('-historical',''))
+
+
+# keys in both experiments
+keys = []
+for k in amip_keys:
+    if k in hist_keys:
+        keys.append(k)
+
+print ''
+# now loop over all variables
+for i in xrange(len(hist)):
+    # data for a certain variable
+    d_amip = amip[i]
+    d_hist = hist[i]
+
+    for o in d_amip.cols:
+        a=[]
+        h=[]
+        for k in keys:
+            if k == 'model-mean':
+                continue
+            else:
+                a.append(float(d_amip.data[k+'-amip'][o].replace('{bf','').replace('}', '')))
+                h.append(float(d_hist.data[k+'-historical'][o].replace('{bf','').replace('}', '')))
+        a = np.asarray(a)
+        h = np.asarray(h)
+        spear = stats.spearmanr(a,h)
+
+        print d_amip.name, o, spear, len(a)
+
+
+
+
+
+
+
 
 
 
