@@ -15,7 +15,7 @@ class ViolinPlot(object):
     [4] http://nbviewer.ipython.org/github/EnricoGiampieri/dataplot/blob/master/statplot.ipynb
     """
 
-    def __init__(self, data, labels=None, ax=None, boxplot=True, figsize=(10,6)):
+    def __init__(self, data, labels=None, ax=None, boxplot=True, figsize=(10,10)):
         """
         Parameters
         ----------
@@ -41,7 +41,9 @@ class ViolinPlot(object):
 
         if ax is None:
             fig = plt.figure(figsize=figsize)
-            self.ax = fig.add_subplot(1, 1, 1)
+            rect = [0.1, 0.2, 0.8, 0.7]  # l,b,w,h
+            #~ self.ax = fig.add_subplot(1, 1, 1)
+            self.ax = fig.add_axes(rect)
         else:
             self.ax = ax
 
@@ -66,7 +68,7 @@ class ViolinPlot(object):
         self._plot_classic(alpha=alpha)
         self._set_xticks()
 
-    def _set_xticks(self, rotation=30.):
+    def _set_xticks(self, rotation=90.):
         """ set ticklabels """
         self.ax.set_xticks(self._get_positions())
         self.ax.set_xticklabels(self.labels, rotation=rotation)
@@ -85,14 +87,15 @@ class ViolinPlot(object):
         dist = max(pos)-min(pos)
         w = min(0.15*max(dist, 1.0), 0.5)
         for d, p in zip(self.data, pos):
-            k = gaussian_kde(d)  # calculates the kernel density
-            m = k.dataset.min()  # lower bound of violin
-            M = k.dataset.max()  # upper bound of violin
-            x = np.arange(m, M, (M-m)/100.)  # support for violin
-            v = k.evaluate(x)  # violin profile (density curve)
-            v = v/v.max()*w  # scaling the violin to the available space
-            self.ax.fill_betweenx(x, p, v+p, facecolor='y', alpha=alpha)
-            self.ax.fill_betweenx(x, p, -v+p, facecolor='y', alpha=alpha)
+            if not np.all(d==0.):  # avoid singular matrices
+                k = gaussian_kde(d)  # calculates the kernel density
+                m = k.dataset.min()  # lower bound of violin
+                M = k.dataset.max()  # upper bound of violin
+                x = np.arange(m, M, (M-m)/100.)  # support for violin
+                v = k.evaluate(x)  # violin profile (density curve)
+                v = v/v.max()*w  # scaling the violin to the available space
+                self.ax.fill_betweenx(x, p, v+p, facecolor='y', alpha=alpha)
+                self.ax.fill_betweenx(x, p, -v+p, facecolor='y', alpha=alpha)
         if self.boxplot:
             self.ax.boxplot(self.data, notch=1, positions=pos, vert=True, sym='')
 
