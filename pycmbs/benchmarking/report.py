@@ -63,12 +63,13 @@ class Report(object):
 
 #-----------------------------------------------------------------------
 
-    def open(self):
+    def open(self, landscape=False):
         """ open report """
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
         if os.path.exists(self.filename):
             os.remove(self.filename)
+        self.landscape = landscape
         self.file = open(self.filename, 'w')
         self._write_header()
 
@@ -86,11 +87,18 @@ class Report(object):
 
     def _write_header(self):
         """ write document header """
-        self.write('\documentclass{article}')
+        if self.landscape:
+            landscape='landscape'
+        else:
+            landscape = ''
+        self.write('\documentclass[' + landscape + ']{article}')
         self.write('\usepackage{fancyhdr}')
         self.write('\usepackage{graphicx}')
+        self.write('\usepackage{multirow}')
+        self.write('\usepackage{multicol}')
         #facilitates handling of floating environments
         self.write('\usepackage{placeins}')
+        self.write('\usepackage{tabularx}')
         #self.write('\usepackage{todonotes}')
 
         self.write('\pagestyle{fancy}')
