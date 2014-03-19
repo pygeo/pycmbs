@@ -526,7 +526,7 @@ def main():
         MEANMODEL.ensmean()
 
         # save mean model to file
-        MEANMODEL.save(get_temporary_directory(), prefix='MEANMODEL')
+        MEANMODEL.save(get_temporary_directory(), prefix='MEANMODEL_' + file[:-3])  # include filename of configuration file
 
         # add mean model to general list of models to process in analysis
         proc_models.append('MEANMODEL')
