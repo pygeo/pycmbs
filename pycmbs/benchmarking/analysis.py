@@ -1349,7 +1349,7 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
 
     #b) alternative way to plot it
     if GM_HT_clim.get_n() > 0:
-        GM_HT_clim.plot(cmap='jet', interpolation='nearest', vmin=plot_options.options[thevar]['OPTIONS']['cmin'], vmax=plot_options.options[thevar]['OPTIONS']['cmax'], nclasses=15)
+        GM_HT_clim.plot(cmap='jet', interpolation='nearest', vmin=plot_options.options[thevar]['OPTIONS']['cmin'], vmax=plot_options.options[thevar]['OPTIONS']['cmax'], nclasses=15, monthly_clim_ticks=True)
         report.figure(GM_HT_clim.figure, caption='Global means climatology for ' + thelabel, bbox_inches=None)
         plt.close(GM_HT_clim.figure.number)
         del GM_HT_clim
