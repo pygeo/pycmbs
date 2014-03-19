@@ -61,6 +61,28 @@ class Model(Data):
         else:
             self.stop_time = None
 
+    def save(self, directory, prefix=None):
+        """
+        save model variables to file
+
+        Parameters
+        ----------
+        directory : str
+            directory where to store the data to
+        prefix : str
+            file prefix [obligatory]
+        """
+        if prefix is None:
+            raise ValueError('File prefix needs to be given!')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        if directory[-1] != os.sep:
+            directory += os.sep
+
+        for k in self.variables.keys():
+            self.variables[k].save(directory + prefix + '_' + k.strip().upper() + '.nc', varname=k.strip().lower(), delete=True, mean=False, timmean=False)
+
+
     def get_data(self):
         """
         central routine to extract data for all variables

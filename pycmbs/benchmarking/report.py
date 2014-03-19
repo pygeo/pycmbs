@@ -61,8 +61,6 @@ class Report(object):
         self.dpi = dpi
         self.autocompile = autocompile
 
-#-----------------------------------------------------------------------
-
     def open(self, landscape=False):
         """ open report """
         if not os.path.exists(self.outdir):
@@ -73,8 +71,6 @@ class Report(object):
         self.file = open(self.filename, 'w')
         self._write_header()
 
-#-----------------------------------------------------------------------
-
     def close(self):
         """ close report """
         self._write_footer()
@@ -83,12 +79,10 @@ class Report(object):
             print 'Compiling REPORT ...'
             self.compile()
 
-#-----------------------------------------------------------------------
-
     def _write_header(self):
         """ write document header """
         if self.landscape:
-            landscape='landscape'
+            landscape = 'landscape'
         else:
             landscape = ''
         self.write('\documentclass[' + landscape + ']{article}')
@@ -131,8 +125,6 @@ class Report(object):
         self.write('\\newpage')
         self._write_separator()
 
-#-----------------------------------------------------------------------
-
     def _write_single_figure(self, figpath, caption):
         #/// LOGO ///
         self._write_separator()
@@ -144,14 +136,10 @@ class Report(object):
         self.write('\\end{figure}')
         self._write_separator()
 
-#-----------------------------------------------------------------------
-
     def _write_footer(self):
         """ write document footer """
         self._write_separator()
         self.write('\end{document}')
-
-#-----------------------------------------------------------------------
 
     def _write_separator(self):
         """
@@ -160,8 +148,6 @@ class Report(object):
         self.write('')
         self.write('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
         self.write('')
-
-#-----------------------------------------------------------------------
 
     def figure(self, f, caption='', width='\\textwidth', height='\\textheight,keepaspectratio', bbox_inches='tight'):
         """
@@ -199,8 +185,6 @@ class Report(object):
         print('Saving figure %s' % self.outdir + figname)
         f.savefig(self.outdir + figname, bbox_inches=bbox_inches, dpi=self.dpi)
 
-#-----------------------------------------------------------------------
-
     def section(self, s):
         """
         write section header
@@ -210,8 +194,6 @@ class Report(object):
         """
         self.clearpage()
         self.write('\section{' + s.replace('_', ' ') + '}')
-
-#-----------------------------------------------------------------------
 
     def subsection(self, s):
         """
@@ -223,8 +205,6 @@ class Report(object):
         #self.write('\clearpage')
         self.barrier()
         self.write('\subsection{' + s.replace('_', ' ') + '}')
-
-#-----------------------------------------------------------------------
 
     def subsubsection(self, s):
         """
@@ -238,8 +218,6 @@ class Report(object):
         self.barrier()
         self.write('\subsubsection{' + s.replace('_', ' ') + '}')
 
-#-----------------------------------------------------------------------
-
     def capture_figures(self):
         """
         captures all figures that are plotted and
@@ -252,14 +230,10 @@ class Report(object):
             self.figure(f)
             self.newpage()
 
-#-----------------------------------------------------------------------
-
     def newpage(self):
         """ create a new page """
         self.clearpage()
         self.write('\\newpage')
-
-#-----------------------------------------------------------------------
 
     def clearpage(self):
         """
@@ -285,8 +259,6 @@ class Report(object):
     def barrier(self):
         self.write('\FloatBarrier')
 
-#-----------------------------------------------------------------------
-
     def write(self, s):
         """
         write a string to the file
@@ -300,29 +272,21 @@ class Report(object):
                         .replace('\t', '\\t')
                         .replace('\r', '\\r') + '\n')
 
-#-----------------------------------------------------------------------
-
     def open_table(self):
         """ opens a table """
         self.write('\\begin{table}[htp]')
         self.write('    \centering')
-
-#-----------------------------------------------------------------------
 
     def close_table(self, caption='Put a figure caption here'):
         """ closes a table """
         self.write('    \caption{' + caption.replace('_', '-') + '}')
         self.write('\end{table}')
 
-#-----------------------------------------------------------------------
-
     def input(self, filename):
         """ write an input statement """
         self.write('\\input{' + filename + '}')
         if not os.path.exists(filename):
             print('WARNING: output file used in report not yet existing!')
-
-#-----------------------------------------------------------------------
 
     def compile(self):
         """
@@ -334,7 +298,7 @@ class Report(object):
         texfile = os.path.basename(self.filename)
         os.chdir(pdfdir)
 
-        #--- compile report twice
+        # compile report twice
         os.system('pdflatex ' + texfile)
         os.system('pdflatex ' + texfile)
         os.chdir(curdir)
