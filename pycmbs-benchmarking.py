@@ -525,6 +525,9 @@ def main():
         # calculate ensemble mean
         MEANMODEL.ensmean()
 
+        # save mean model to file
+        MEANMODEL.save(get_temporary_directory(), prefix='MEANMODEL')
+
         # add mean model to general list of models to process in analysis
         proc_models.append('MEANMODEL')
 
