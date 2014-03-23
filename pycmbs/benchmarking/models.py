@@ -61,6 +61,28 @@ class Model(Data):
         else:
             self.stop_time = None
 
+    def save(self, directory, prefix=None):
+        """
+        save model variables to file
+
+        Parameters
+        ----------
+        directory : str
+            directory where to store the data to
+        prefix : str
+            file prefix [obligatory]
+        """
+        if prefix is None:
+            raise ValueError('File prefix needs to be given!')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        if directory[-1] != os.sep:
+            directory += os.sep
+
+        for k in self.variables.keys():
+            self.variables[k].save(directory + prefix + '_' + k.strip().upper() + '.nc', varname=k.strip().lower(), delete=True, mean=False, timmean=False)
+
+
     def get_data(self):
         """
         central routine to extract data for all variables
@@ -1480,7 +1502,7 @@ class JSBACH_RAW(Model):
         y1 = '1980-01-01'  # TODO move this to the JSON dictionary or some parameter file
         y2 = '2010-12-31'
         variable = 'temp2'
-        rawfile = self.data_dir + self.experiment + '_echam6_echam_*_' + variable + '.nc'
+        rawfile = self.data_dir + self.experiment + '_echam6_echam_' + variable + '_ALL.nc'
         files = glob.glob(rawfile)
         if len(files) != 1:
             print 'Inputfiles: ', files
@@ -1514,12 +1536,16 @@ class JSBACH_RAW(Model):
             return None
         else:
             Fu_i = Fu[0]
+            if Fu_i is None:
+                return None
 
         if Fd is None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None
         else:
             Fd_i = Fd[0]
+            if Fd_i is None:
+                return None
         lab = Fu_i.label
 
         # albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
@@ -1562,7 +1588,8 @@ class JSBACH_RAW(Model):
         cdo = Cdo()
 
         if not os.path.exists(rawfile):
-            raise ValueError('File not existing! %s ' % rawfile)
+            print('File not existing! %s ' % rawfile)
+            return None, None
 
         # calculate monthly means
         file_monthly = get_temporary_directory() + os.sep + os.path.basename(rawfile[:-3]) + '_' + varname + '_' + s_start_time + '_' + s_stop_time + '_mm.nc'

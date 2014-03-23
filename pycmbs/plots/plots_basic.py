@@ -1245,7 +1245,7 @@ class HistogrammPlot(object):
         # calculate frequency distribution
         f, b = np.histogram(x, bins=self.bins, **kwargs)
         if self.normalize:
-            f /= float(sum(f))
+            f = f / float(sum(f))
             if self.percent:
                 f *= 100.
         self.ax.plot(b[0:-1], f, color=color, linestyle=linestyle,
@@ -2240,7 +2240,7 @@ class GlecklerPlot(object):
             if x.cell_area is not None:
                 print('WARNING: cell weights are given, while cell_area available from data!!')
 
-        from diagnostic import Diagnostic
+        from pycmbs.diagnostic import Diagnostic
         D = Diagnostic(x, y=y)
         # reichler performance index
         # (might return a list if multiple times analyzed)
