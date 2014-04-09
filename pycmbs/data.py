@@ -3459,6 +3459,9 @@ class Data(object):
         if hasattr(self, 'lon'):
             if D.lon is not None:
                 D.lon = D.lon[i1:i2 + 1, j1:j2 + 1]
+        if hasattr(D, 'cell_area'):
+            if D.cell_area is not None:
+                D.cell_area = D.cell_area[i1:i2 + 1, j1:j2 + 1]
 
         if return_object:
             return D
