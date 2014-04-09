@@ -234,7 +234,6 @@ class MapPlotGeneric(object):
             raise ValueError('Unsupported projection type')
 
         xm = self.x.timmean()
-
         Z = xm
         lon = self.x.lon
         lat = self.x.lat
@@ -255,9 +254,7 @@ class MapPlotGeneric(object):
             Example
             -------
             ax2 = _ax2geoax(ax2, ccrs.Robinson())
-
             """
-
             b = ax.get_position()
             rect = [b.x0, b.y0, b.width, b.height]
             ax.set_visible(False)
@@ -265,11 +262,63 @@ class MapPlotGeneric(object):
 
         self.pax = _ax2geoax(self.pax, ccrs.Robinson())
 
+        # add cyclic coordinates if possible
+        if self.x._equal_lon():
+            lon1, lat1, Z1 = self._add_cyclic_to_field(self.x._get_unique_lon(), lat, Z)
+            if lon1 is not None:
+                lon = lon1
+                lat = lat1
+                Z = Z1
+
         # plot and ancillary plots
         self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
         self.pax.gridlines()
+
+
+    def _add_cyclic_to_field(self, lon, lat, z):
+        """
+        add an additional column to a dataset to avoid plotting problems
+        around the 0degree longitude
+
+        Parameters
+        ----------
+        lon : ndarray
+            VECTOR of unique longitudes. Note that this needs to be a vector!
+        lat : ndarray
+            2D array of latitudes with same geometry than the data field Z
+        z : ndarray
+            2D array of values
+
+        Returns
+        -------
+        lon : ndarray
+            2D
+        lat : ndarray
+            2D
+        Z : ndarray
+            2D
+
+        References
+        ----------
+        [1] https://github.com/SciTools/cartopy/issues/393
+        [2] http://stackoverflow.com/questions/21864512/cartopy-behavior-when-plotting-projected-data
+        [3] https://github.com/SciTools/cartopy/pull/394
+        """
+        try:
+            from cartopy import util as ut
+        except:
+            print('Longitude shift can not be performed as most recent CARTOPY version seems not to be installed')
+            return None, None, None
+        assert lon.ndim == 1
+        assert lat.shape == z.shape
+
+        lat_out, lon1 = ut.add_cyclic_point(lat, coord=lon)
+        z_out, lon1 = ut.add_cyclic_point(z, coord=lon)
+        lon_out = np.ones_like(lat_out) * lon1
+        return lon_out, lat_out, z_out
+
 
     def __basemap_ancillary(self, m, latvalues=None, lonvalues=None,
                             drawparallels=True, drawcountries=True,
