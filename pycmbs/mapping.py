@@ -328,10 +328,6 @@ class MapPlotGeneric(object):
         lats.append(lats[0])
         lons = np.asarray(lons)
         lats = np.asarray(lats)
-
-        #~ xy = list(zip(lons, lats))
-        #~ mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
-        #~ self.pax.add_patch(mapboundary, transform=ccrs.PlateCarree())
         self.pax.plot(lons, lats, transform=ccrs.PlateCarree(), color=color, linewidth=linewidth)  # TODO create a polygon that might be also filled
 
     def _add_cyclic_to_field(self, lon, lat, z):
