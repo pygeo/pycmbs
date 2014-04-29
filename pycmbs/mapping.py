@@ -224,6 +224,42 @@ class MapPlotGeneric(object):
 
         self.__basemap_ancillary(the_map, drawparallels=drawparallels)
 
+        if self.polygons is not None:
+            for p in self.polygons:
+                self._add_single_polygon_basemap(the_map, p)
+
+
+
+    def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
+        """
+        plot region r on top of basemap map m
+
+        Parameters
+        ----------
+        m : map
+            Basemap object
+        p : Polygon
+            Polygon object as defined in polygon.py. Note that
+            this is different from the matpltlib.Polygon object
+        color : str
+            color to plot region
+        linewidth : int
+            width of outline border for polygon to plot
+        """
+        from matplotlib.patches import Polygon as mplPolygon
+
+        lons = p._xcoords()
+        lats = p._ycoords()
+
+        x, y = m(lons, lats)
+        xy = list(zip(x, y))
+        mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
+        self.pax.add_patch(mapboundary)
+
+
+
+
+
     def _draw_cartopy(self, proj_prop=None, **kwargs):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
@@ -276,6 +312,9 @@ class MapPlotGeneric(object):
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
         self.pax.gridlines()
 
+        # plot polygons
+        if self.polygons is not None:
+            raise ValueError('TODO needs implementation')
 
     def _add_cyclic_to_field(self, lon, lat, z):
         """
@@ -570,7 +609,8 @@ class SingleMap(MapPlotGeneric):
              colorbar_orientation='vertical', cmap='jet',
              ctick_prop=None,
              vmin=None, vmax=None, nclasses=10,
-             title=None, proj_prop=None, drawparallels=True, titlefontsize=14):
+             title=None, proj_prop=None, drawparallels=True,
+             titlefontsize=14, polygons=None):
         """
         routine to plot a single map
 
@@ -590,9 +630,11 @@ class SingleMap(MapPlotGeneric):
             'ticks' : float list : specifies locations of ticks
             'labels' : str list : user defined label list; needs to
                                   have same length as 'ticks'
-
+s
              Example:
                 ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C']
+        polygons : list
+            list of Polygon object of e.g. a regions to draw
         """
 
         if colorbar_orientation not in ['vertical', 'horizontal']:
@@ -606,6 +648,7 @@ class SingleMap(MapPlotGeneric):
         self.ctick_prop = ctick_prop  # dictionary
         self.vmin = vmin
         self.vmax = vmax
+        self.polygons = polygons
 
         # set colormap and ensure to have a colormap object
         self.cmap = cmap
