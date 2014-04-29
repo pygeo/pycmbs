@@ -228,8 +228,6 @@ class MapPlotGeneric(object):
             for p in self.polygons:
                 self._add_single_polygon_basemap(the_map, p)
 
-
-
     def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
         """
         plot region r on top of basemap map m
@@ -314,7 +312,27 @@ class MapPlotGeneric(object):
 
         # plot polygons
         if self.polygons is not None:
-            raise ValueError('TODO needs implementation')
+            for p in self.polygons:
+                self._add_single_polygon_cartopy(p)
+
+
+    def _add_single_polygon_cartopy(self, p, color='red', linewidth=1):
+        """
+        add a polygon to a map
+        """
+        from matplotlib.patches import Polygon as mplPolygon
+
+        lons = list(p._xcoords())
+        lats = list(p._ycoords())
+        lons.append(lons[0])
+        lats.append(lats[0])
+        lons = np.asarray(lons)
+        lats = np.asarray(lats)
+
+        #~ xy = list(zip(lons, lats))
+        #~ mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
+        #~ self.pax.add_patch(mapboundary, transform=ccrs.PlateCarree())
+        self.pax.plot(lons, lats, transform=ccrs.PlateCarree(), color=color, linewidth=linewidth)  # TODO create a polygon that might be also filled
 
     def _add_cyclic_to_field(self, lon, lat, z):
         """
