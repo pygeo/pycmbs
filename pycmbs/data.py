@@ -26,6 +26,7 @@ import pickle
 import datetime
 import calendar
 import tempfile
+import struct
 
 
 class Data(object):
@@ -1029,7 +1030,7 @@ class Data(object):
 #-----------------------------------------------------------------------
 
     def read(self, shift_lon, start_time=None, stop_time=None,
-             time_var='time', checklat=True):
+             time_var='time', checklat=True, fmt='nc'):
         """
         Read data from a file. This functions provides a wrapper for
         I/O of different file formats
@@ -1038,28 +1039,28 @@ class Data(object):
         ----------
         shift_lon : bool
             if given, longitudes will be shifted
-
         start_time : datetime
             start time for reading the data
-
         stop_time : datetime
             stop time for reading the data
-
         time_var : str
             name of time variable field
-
         checklat : bool
             check if latitude is in decreasing order (N ... S)
+        fmt : str
+            format of data to read
+            ['nc']
         """
         if not os.path.exists(self.filename):
             raise ValueError('Error: file not existing: %s' % self.filename)
-        else:
-            pass
 
         self.time_var = time_var
 
         # read data
-        self.data = self.read_netcdf(self.varname)
+        if fmt == 'nc':
+            self.data = self.read_netcdf(self.varname)
+        else:
+            raise ValueError('ERROR: invalid input format')
 
         if self.data is None:
             print self.varname
@@ -1170,6 +1171,128 @@ class Data(object):
             else:
                 self._set_timecycle()
 
+
+    def _get_binary_filehandler(self, mode='r'):
+        """
+        get filehandler for binary file
+        it allows to access also gzip files
+
+        Parameters
+        ----------
+        mode : str
+            ['w','r']
+
+        Returns
+        -------
+        file handler
+        """
+        mode += 'b'
+        if self.filename[-3:] == '.gz':
+            f = gzip.open(self.filename, mode)
+        else:
+            f = open(self.filename, mode)
+        return f
+
+
+    def _read_binary_file(self, dtype=None, lat=None, lon=None, lonmin=None, lonmax=None, latmin=None, latmax=None, ny=None, nx=None, nt=None):
+        """
+        read data from binary file
+        this routine also allows spatial subsetting during reading
+        from the binary file
+
+        Parameters
+        ----------
+        dtype : str
+            datatype specification
+        lat : ndarray
+            vector of latitudes
+        lon : ndarray
+            vector of longitudes
+        """
+        if dtype is None:
+            raise ValueError('ERROR: dtype not provided')
+        if lat is not None:
+            assert (lon is not None)
+            assert (lon.shape == lat.shape)
+        if lat is None:
+            assert (ny is not None)
+            assert (nx is not None)
+
+        # specify bytes as well as format string for struct for each datatype
+        dtype_spec =  {
+                        'int16' : 'H',
+                        'double' : 'd'
+                      }
+
+        if dtype not in dtype_spec.keys():
+            raise ValueError('ERROR: invalid data type')
+
+
+        #~ 'int8'   :'b',
+        #~ 'uint8'  :'B',
+        #~ 'int16'  :'h',
+        #~ 'uint16' :'H',
+        #~ 'int32'  :'i',
+        #~ 'uint32' :'I',
+        #~ 'int64'  :'q',
+        #~ 'uint64' :'Q',
+        #~ 'float'  :'f',
+        #~ 'double' :'d',
+        #~ 'char'   :'s'}
+
+        # set boundaries
+        if lon is not None:
+            if lonmin is None:
+                lonmin = lon.min()
+            if lonmax is None:
+                lonmax = lon.max()
+        else:
+            lonmin = None
+            lonmax = None
+
+        if lat is not None:
+            if latmin is None:
+                latmin = lat.min()
+                latmax = lat.max()
+        else:
+            latmin = None
+            latmax = None
+
+        # get file handler
+        f = self._get_binary_filehandler()
+
+        # read actual data
+        if lon is None:
+
+            file_content = f.read()  # read entire file
+        else:
+            # todo set ny, nx
+            file_content = self._read_binary_subset()
+
+        # close file
+        f.close()
+
+        # put data into final matrix by decoding in accordance to the filetype
+        self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype]*ny*nx*nt, file_content)), (ny, nx))
+
+        #~ self.data =
+        #~ self.lat =
+        #~ self.lon =
+
+        del file_content
+
+
+    def _read_binary_subset(self, f):
+        """
+        read subset from binary file
+
+        Parameters
+        ----------
+        f : file handler
+            file handler to read binary data
+        """
+        raise ValueError('Still needs implementation!')
+
 #-----------------------------------------------------------------------
 
     def get_yearmean(self, mask=None, return_data=False):
@@ -1203,8 +1326,8 @@ class Data(object):
                 raise ValueError('Mask needs to be 1-D of length of time!')
 
         #/// get data
-        ye = pl.asarray(self._get_years())
-        years = pl.unique(ye)
+        ye = np.asarray(self._get_years())
+        years = np.unique(ye)
         dat = self.data
 
         # calculate mean
