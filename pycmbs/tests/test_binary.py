@@ -38,19 +38,22 @@ class TestData(unittest.TestCase):
         ny, nx = self.x.shape
         D._read_binary_file(ny=ny, nx=nx, nt=1, dtype='double')
 
-
-        # read data again
-        #~ f = open(fname, 'r')
-        #~ x = f.read()
-        #~ f.close()
-
-        # decode
-        #~ a = np.asarray(struct.unpack('d'*np.prod(self.x.shape), x))
-        #~ print a
-        #~ a = a.reshape(self.x.shape)
-
         self.assertTrue(np.all(D.data-self.x == 0.))
 
+    def test_read_full_binary_file_int(self):
+        # write binary test data
+        fname = tempfile.mktemp()
+        self.x = np.asarray(self.x).astype('int16')
+        f = open(fname, 'w')
+        f.write(self.x)
+        f.close()
+
+        D = Data(None, None)
+        D.filename = fname
+        ny, nx = self.x.shape
+        D._read_binary_file(ny=ny, nx=nx, nt=1, dtype='int16')
+
+        self.assertTrue(np.all(D.data-self.x == 0.))
 
 
 

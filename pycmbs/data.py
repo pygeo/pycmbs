@@ -1194,7 +1194,9 @@ class Data(object):
         return f
 
 
-    def _read_binary_file(self, dtype=None, lat=None, lon=None, lonmin=None, lonmax=None, latmin=None, latmax=None, ny=None, nx=None, nt=None):
+    def _read_binary_file(self, dtype=None, lat=None, lon=None,
+                          lonmin=None, lonmax=None, latmin=None,
+                          latmax=None, ny=None, nx=None, nt=None):
         """
         read data from binary file
         this routine also allows spatial subsetting during reading
