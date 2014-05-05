@@ -1332,7 +1332,6 @@ class Data(object):
         -------
         string which needs to be decoded using struct
         """
-
         if ybeg is None:
             raise ValueError('ERROR: Need to specify YBEG')
         if xbeg is None:
@@ -1348,33 +1347,14 @@ class Data(object):
                 break
             if i < ybeg:
                 continue
-
             # position
             pos = i*nbytes*nx + xbeg*nbytes
-
-            #~ print ''
-            #~ print 'i: ', i
-            #~ print 'position before: ', f.tell()
             f.seek(pos)
-            #~ print 'position after: ', f.tell()
-            #~ print 'pos: ', pos
-
             # read content
             bytes_to_read = (xend-xbeg)*nbytes
             r = f.read(bytes_to_read)
-            print r, len(r)
             file_content += r
-            #~ print ''
-            #~ print i
-            #~ print 'nx: ', nx
-            #~ print 'i*nbytes', i*nbytes
-            #~ print 'Pos: ', pos
-            #~ print 'R: ', r
-            #~ print 'Bytes to read: ', bytes_to_read
-
         return file_content
-
-
 
 #-----------------------------------------------------------------------
 
