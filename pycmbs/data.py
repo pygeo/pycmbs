@@ -1218,7 +1218,6 @@ class Data(object):
             raise ValueError('ERROR: dtype not provided')
         if lat is not None:
             assert (lon is not None)
-            assert (lon.shape == lat.shape)
         if lat is None:
             assert (ny is not None)
             assert (nx is not None)
@@ -1275,14 +1274,23 @@ class Data(object):
             self.lon = None
         else:
             # check if lat/lon is increasing
-            assert np.all(np.diff(lat)>0.)
-            assert np.all(np.diff(lon)>0.)
+            assert np.all(np.diff(lat) > 0.)
+            assert np.all(np.diff(lon) > 0.)
 
-            lonminpos = np.abs(lon-lonmin).argmin()
-            lonmaxpos = np.abs(lon-lonmax).argmin()
+            lonminpos = np.abs(lon - lonmin).argmin()
+            if lon[lonminpos] < lonmin:
+                lonminpos += 1
+            lonmaxpos = np.abs(lon - lonmax).argmin()
+            if lon[lonmaxpos] > lonmax:
+                lonmaxpos -= 1
 
-            latminpos = np.abs(lat-latmin).argmin()
-            latmaxpos = np.abs(lat-latmax).argmin()
+            latminpos = np.abs(lat - latmin).argmin()
+            if lat[latminpos] < latmin:
+                latminpos += 1
+
+            latmaxpos = np.abs(lat - latmax).argmin()
+            if lat[latmaxpos] > latmax:
+                latmaxpos -= 1
 
             olon = lon[lonminpos:lonmaxpos+1]
             olat = lat[latminpos:latmaxpos+1]
@@ -1292,13 +1300,13 @@ class Data(object):
 
             self.lon, self.lat = np.meshgrid(olon, olat)
 
-            #TODO
-            file_content = self._read_binary_subset(f, struct.calcsize(dtype)) #, ymin=  , ymax = , xmin= , xmax=  )
+            file_content = self._read_binary_subset2D(f, struct.calcsize(dtype_spec[dtype]), ny=len(lat), nx=len(lon), xbeg=lonminpos, xend=lonmaxpos+1, ybeg=latminpos, yend=latmaxpos+1)
 
         # close file
         f.close()
 
         # put data into final matrix by decoding in accordance to the filetype
+
         self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype]*ny*nx*nt, file_content)), (ny, nx))
 
         del file_content
@@ -1352,6 +1360,8 @@ class Data(object):
             f.seek(pos)
             # read content
             bytes_to_read = (xend-xbeg)*nbytes
+
+            print 'bytes to read: ', bytes_to_read, xbeg, xend
             r = f.read(bytes_to_read)
             file_content += r
         return file_content

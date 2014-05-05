@@ -27,6 +27,10 @@ class TestData(unittest.TestCase):
         self.xmax = 8
         r = (np.random.random(self.x.shape)*100.).astype('int').astype('float')
         self.x[self.ymin:self.ymax,self.xmin:self.xmax] = r[self.ymin:self.ymax,self.xmin:self.xmax]
+        ny, nx = self.x.shape
+        self.lat = np.arange(ny)*10 + 10.
+        self.lon = np.arange(nx)*20. - 150.
+
 
     def tearDown(self):
         pass
@@ -83,7 +87,6 @@ class TestData(unittest.TestCase):
         d1 = np.reshape(np.asarray(struct.unpack('d'*ny1*nx1*nt1, file_content)), (ny1, nx1))
         self.assertTrue(np.all(d1 - self.x[self.ymin:self.ymax, self.xmin:self.xmax] == 0.))
 
-
     def test_read_binary_subset_int(self):
         # INT16 = H
         fname = tempfile.mktemp()
@@ -110,6 +113,35 @@ class TestData(unittest.TestCase):
         file_content = D._read_binary_subset2D(f, 2, ny=ny, nx=nx, xbeg=self.xmin, xend=self.xmax, ybeg=self.ymin, yend=self.ymax)
         d1 = np.reshape(np.asarray(struct.unpack('H'*ny1*nx1*nt1, file_content)), (ny1, nx1))
         self.assertTrue(np.all(d1 - ref[self.ymin:self.ymax, self.xmin:self.xmax] == 0.))
+
+    def test_read_binary_subset_Data(self):
+        # binary data from subset in Data object
+
+        # write binary test data
+        fname = tempfile.mktemp()
+        f = open(fname, 'w')
+
+        #~ tmp = np.random.random(self.x.shape)
+        tmp = self.x
+        f.write(tmp)
+        f.close()
+
+        D = Data(None, None)
+        D.filename = fname
+        ny, nx = self.x.shape
+
+        latmin = self.lat[self.ymin]
+        latmax = self.lat[self.ymax]
+        lonmin = self.lon[self.xmin]
+        lonmax = self.lon[self.xmax]
+
+        #~ print 'Lat bounds: ', latmin, latmax
+        #~ print 'Lon bounds: ', lonmin, lonmax
+
+        D._read_binary_file(nt=1, dtype='double', latmin=latmin, latmax=latmax, lonmin=lonmin, lonmax=lonmax, lat=self.lat, lon=self.lon)
+        self.assertTrue(np.all(D.data-tmp[self.ymin:self.ymax+1,self.xmin:self.xmax+1] == 0.))
+
+
 
 
 
