@@ -48,7 +48,7 @@ class TestData(unittest.TestCase):
         D._read_binary_file(ny=ny, nx=nx, nt=1, dtype='double')
         self.assertTrue(np.all(D.data-self.x == 0.))
 
-    def test_read_full_binary_file_int(self):
+    def test_read_full_binary_file_int16(self):
         # write binary test data
         fname = tempfile.mktemp()
         self.x = np.asarray(self.x).astype('int16')
@@ -61,6 +61,22 @@ class TestData(unittest.TestCase):
         ny, nx = self.x.shape
         D._read_binary_file(ny=ny, nx=nx, nt=1, dtype='int16')
         self.assertTrue(np.all(D.data-self.x == 0.))
+
+    def test_read_full_binary_file_int32(self):
+        # write binary test data
+        fname = tempfile.mktemp()
+        self.x = np.asarray(self.x).astype('int32')
+        f = open(fname, 'w')
+        f.write(self.x)
+        f.close()
+
+        D = Data(None, None)
+        D.filename = fname
+        ny, nx = self.x.shape
+        D._read_binary_file(ny=ny, nx=nx, nt=1, dtype='int32')
+        self.assertTrue(np.all(D.data-self.x == 0.))
+
+
 
     def test_read_binary_subset_double(self):
         fname = tempfile.mktemp()
@@ -121,7 +137,6 @@ class TestData(unittest.TestCase):
         fname = tempfile.mktemp()
         f = open(fname, 'w')
 
-        #~ tmp = np.random.random(self.x.shape)
         tmp = self.x
         f.write(tmp)
         f.close()
@@ -134,9 +149,6 @@ class TestData(unittest.TestCase):
         latmax = self.lat[self.ymax]
         lonmin = self.lon[self.xmin]
         lonmax = self.lon[self.xmax]
-
-        #~ print 'Lat bounds: ', latmin, latmax
-        #~ print 'Lon bounds: ', lonmin, lonmax
 
         D._read_binary_file(nt=1, dtype='double', latmin=latmin, latmax=latmax, lonmin=lonmin, lonmax=lonmax, lat=self.lat, lon=self.lon)
         self.assertTrue(np.all(D.data-tmp[self.ymin:self.ymax+1,self.xmin:self.xmax+1] == 0.))

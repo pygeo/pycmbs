@@ -27,7 +27,7 @@ import datetime
 import calendar
 import tempfile
 import struct
-
+import gzip
 
 class Data(object):
     """
@@ -1228,7 +1228,8 @@ class Data(object):
         # specify bytes as well as format string for struct for each datatype
         dtype_spec =  {
                         'int16' : 'H',
-                        'double' : 'd'
+                        'double' : 'd',
+                        'int32' : 'i'
                       }
 
         if dtype not in dtype_spec.keys():
@@ -1360,8 +1361,6 @@ class Data(object):
             f.seek(pos)
             # read content
             bytes_to_read = (xend-xbeg)*nbytes
-
-            print 'bytes to read: ', bytes_to_read, xbeg, xend
             r = f.read(bytes_to_read)
             file_content += r
         return file_content
