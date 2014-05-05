@@ -114,7 +114,7 @@ class TestData(unittest.TestCase):
         d1 = np.reshape(np.asarray(struct.unpack('H'*ny1*nx1*nt1, file_content)), (ny1, nx1))
         self.assertTrue(np.all(d1 - ref[self.ymin:self.ymax, self.xmin:self.xmax] == 0.))
 
-    def test_read_binary_subset_Data(self):
+    def test_read_binary_subset_Data_double(self):
         # binary data from subset in Data object
 
         # write binary test data
@@ -141,6 +141,28 @@ class TestData(unittest.TestCase):
         D._read_binary_file(nt=1, dtype='double', latmin=latmin, latmax=latmax, lonmin=lonmin, lonmax=lonmax, lat=self.lat, lon=self.lon)
         self.assertTrue(np.all(D.data-tmp[self.ymin:self.ymax+1,self.xmin:self.xmax+1] == 0.))
 
+    def test_read_binary_subset_Data_int(self):
+        # binary data from subset in Data object
+
+        # write binary test data
+        fname = tempfile.mktemp()
+        f = open(fname, 'w')
+
+        tmp = (np.random.random(self.x.shape)*100.).astype('int16')
+        f.write(tmp)
+        f.close()
+
+        D = Data(None, None)
+        D.filename = fname
+        ny, nx = self.x.shape
+
+        latmin = self.lat[self.ymin]
+        latmax = self.lat[self.ymax]
+        lonmin = self.lon[self.xmin]
+        lonmax = self.lon[self.xmax]
+
+        D._read_binary_file(nt=1, dtype='int16', latmin=latmin, latmax=latmax, lonmin=lonmin, lonmax=lonmax, lat=self.lat, lon=self.lon)
+        self.assertTrue(np.all(D.data-tmp[self.ymin:self.ymax+1,self.xmin:self.xmax+1] == 0.))
 
 
 
