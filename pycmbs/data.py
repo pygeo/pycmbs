@@ -1202,6 +1202,9 @@ class Data(object):
         this routine also allows spatial subsetting during reading
         from the binary file
 
+        It requires however that two vectors of lon/lat are provided
+        in case that a subsetting shall be made
+
         Parameters
         ----------
         dtype : str
@@ -1219,6 +1222,9 @@ class Data(object):
         if lat is None:
             assert (ny is not None)
             assert (nx is not None)
+        else:
+            assert (lat.ndim == 1)
+            assert (lon.ndim == 1)
 
         # specify bytes as well as format string for struct for each datatype
         dtype_spec =  {
@@ -1228,7 +1234,6 @@ class Data(object):
 
         if dtype not in dtype_spec.keys():
             raise ValueError('ERROR: invalid data type')
-
 
         #~ 'int8'   :'b',
         #~ 'uint8'  :'B',
@@ -1265,11 +1270,30 @@ class Data(object):
 
         # read actual data
         if lon is None:
-
             file_content = f.read()  # read entire file
+            self.lat = None  # TODO if specifie, then read lat/lon information from file
+            self.lon = None
         else:
-            # todo set ny, nx
-            file_content = self._read_binary_subset()
+            # check if lat/lon is increasing
+            assert np.all(np.diff(lat)>0.)
+            assert np.all(np.diff(lon)>0.)
+
+            lonminpos = np.abs(lon-lonmin).argmin()
+            lonmaxpos = np.abs(lon-lonmax).argmin()
+
+            latminpos = np.abs(lat-latmin).argmin()
+            latmaxpos = np.abs(lat-latmax).argmin()
+
+            olon = lon[lonminpos:lonmaxpos+1]
+            olat = lat[latminpos:latmaxpos+1]
+
+            ny = len(olat)
+            nx = len(olon)
+
+            self.lon, self.lat = np.meshgrid(olon, olat)
+
+            #TODO
+            file_content = self._read_binary_subset(f, struct.calcsize(dtype)) #, ymin=  , ymax = , xmin= , xmax=  )
 
         # close file
         f.close()
@@ -1277,23 +1301,80 @@ class Data(object):
         # put data into final matrix by decoding in accordance to the filetype
         self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype]*ny*nx*nt, file_content)), (ny, nx))
 
-        #~ self.data =
-        #~ self.lat =
-        #~ self.lon =
-
         del file_content
 
 
-    def _read_binary_subset(self, f):
+    def _read_binary_subset2D(self, f, nbytes, xbeg=None, xend=None, ybeg=None, yend=None, ny=None, nx=None):
         """
         read subset from binary file
+        deconding takes place outside of this routine!
 
         Parameters
         ----------
         f : file handler
             file handler to read binary data
+        nbytes : int
+            size of a single value on the file [bytes]
+        ybeg : int
+            index of y coordinate start
+        yend : int
+            index of y coordinate end
+        xbeg : int
+            index of x coordinate start
+        xend : int
+            index of x coordinate end
+        ny : int
+            y-size of the original array on file
+        nx : int
+            x-size of the original array on file
+
+        Returns
+        -------
+        string which needs to be decoded using struct
         """
-        raise ValueError('Still needs implementation!')
+
+        if ybeg is None:
+            raise ValueError('ERROR: Need to specify YBEG')
+        if xbeg is None:
+            raise ValueError('ERROR: Need to specify XBEG')
+        if yend is None:
+            raise ValueError('ERROR: Need to specify YEND')
+        if xend is None:
+            raise ValueError('ERROR: Need to specify XEND')
+
+        file_content = ''
+        for i in xrange(ny):
+            if i >= yend:
+                break
+            if i < ybeg:
+                continue
+
+            # position
+            pos = i*nbytes*nx + xbeg*nbytes
+
+            #~ print ''
+            #~ print 'i: ', i
+            #~ print 'position before: ', f.tell()
+            f.seek(pos)
+            #~ print 'position after: ', f.tell()
+            #~ print 'pos: ', pos
+
+            # read content
+            bytes_to_read = (xend-xbeg)*nbytes
+            r = f.read(bytes_to_read)
+            print r, len(r)
+            file_content += r
+            #~ print ''
+            #~ print i
+            #~ print 'nx: ', nx
+            #~ print 'i*nbytes', i*nbytes
+            #~ print 'Pos: ', pos
+            #~ print 'R: ', r
+            #~ print 'Bytes to read: ', bytes_to_read
+
+        return file_content
+
+
 
 #-----------------------------------------------------------------------
 
@@ -1312,10 +1393,6 @@ class Data(object):
 
         return_data : bool
             specifies if results should be returned as C{Data} object
-
-        Test
-        ----
-        unittest implemented
         """
 
         if mask is None:
@@ -1381,10 +1458,6 @@ class Data(object):
             mask [time]
         return_data : bool
             specifies if a Data object shall be returned
-
-        Test
-        ----
-        unittest implemented
         """
 
         if mask is None:
@@ -1466,11 +1539,6 @@ class Data(object):
         -------
         r : Data
             returns C{Data} objects with partial correlation parameters
-
-        Tests
-        -----
-        unittest implemented
-
         """
 
         assert isinstance(Y, Data)
@@ -1531,10 +1599,6 @@ class Data(object):
         R : Data
             correlation coefficient
         P : significance level (p-value)
-
-        Test
-        ----
-        unittests implemented
 
         Todo
         ----
@@ -1657,10 +1721,6 @@ class Data(object):
         >>> self.get_temporal_mask([1,2,3], mtype='monthly')
         will return a mask, where the months of Jan-Mar are set to True
         this can be used e.g. further with the routine get_yearmean()
-
-        Test
-        ----
-        unittest implemented
         """
 
         valid_types = ['monthly', 'yearly']
@@ -1710,10 +1770,6 @@ class Data(object):
             a datasets that starts with dates in March, then also the
             climatology will start in March. Using this option will
             ensure that the climatology will then start in January
-
-        Tests
-        -----
-        unittest implemented
         """
         if hasattr(self, 'time_cycle'):
             pass
@@ -2015,10 +2071,6 @@ class Data(object):
         -------
         d : datetime
             datetime object with actual date
-
-        Tests
-        -----
-        unittest implemented
         """
 
         if not 'months since' in self.time_str:
@@ -2128,10 +2180,6 @@ class Data(object):
         base : str
             specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
             a time stepping. Currently supported values: ['month','day']
-
-        Test
-        ----
-        unittest implemented
         """
 
         assert (isinstance(y, Data))
@@ -2364,10 +2412,6 @@ class Data(object):
         Returns
         -------
         returns start/stop indices (int)
-
-        Test
-        ----
-        unittest implemented
         """
 
         def _check_timezone(d):
@@ -2418,10 +2462,6 @@ class Data(object):
     def _get_years(self):
         """
         get years from timestamp
-
-        Test
-        ----
-        unittest implemented
         """
         return [x.year for x in self.date]
 
@@ -2430,10 +2470,6 @@ class Data(object):
     def _get_months(self):
         """
         get months from timestamp
-
-        Test
-        ----
-        unittest implemented
         """
         return [x.month for x in self.date]
 
@@ -2582,11 +2618,6 @@ class Data(object):
         -------
         The following variables are returned:
         correlation, slope, intercept, p-value
-
-        Tests
-        -----
-        unittest implemented
-
         """
         dt = np.asarray([x.days for x in self.date - self.date[0]]).astype('float')  # time difference in days
         x = np.ma.array(dt, mask=dt != dt)  # ensure that a masked array is used
@@ -2617,10 +2648,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.mean(axis=0)
@@ -2647,10 +2674,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
 
         if self.data.ndim == 3:
@@ -2679,10 +2702,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.max(axis=0)
@@ -2739,10 +2758,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned
-
-        Test
-        ----
-        unittest implemented
         """
 
         if self.data.ndim != 3:
@@ -2772,10 +2787,6 @@ class Data(object):
         return_object : bool
             specifies if a C{Data} object shall be returned [True];
             else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.std(axis=0)
@@ -2806,10 +2817,6 @@ class Data(object):
         return_object : bool
             specifies if a C{Data} object shall be returned [True];
             else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.var(axis=0)
@@ -2838,10 +2845,6 @@ class Data(object):
         return_object : bool
             specifies if a C{Data} object shall be returned [True];
             else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             pass
@@ -2871,9 +2874,6 @@ class Data(object):
         ----------
         return_object : bool
             return Data object
-        Test
-        ----
-        unittest implemented
         """
         res = self.timsum() / self.timmean()
 
@@ -3071,11 +3071,6 @@ class Data(object):
         Returns
         -------
         vector of spatial mean array[time]
-
-        Test
-        ----
-        unittest implemented
-
         """
 
         if self.data.ndim == 3:
@@ -3151,11 +3146,6 @@ class Data(object):
         -------
         r : ndarray or Data
             vector of spatial mean array[time]
-
-        Test
-        ----
-        unittest implemented
-
         """
 
         if self.data.ndim == 3:
