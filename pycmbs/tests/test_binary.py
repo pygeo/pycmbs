@@ -58,7 +58,7 @@ class TestData(unittest.TestCase):
         D._read_binary_file(ny=ny, nx=nx, nt=1, dtype='int16')
         self.assertTrue(np.all(D.data-self.x == 0.))
 
-    def test_read_binary_subset(self):
+    def test_read_binary_subset_double(self):
         fname = tempfile.mktemp()
         f = open(fname, 'w')
         f.write(self.x)
@@ -83,6 +83,33 @@ class TestData(unittest.TestCase):
         d1 = np.reshape(np.asarray(struct.unpack('d'*ny1*nx1*nt1, file_content)), (ny1, nx1))
         self.assertTrue(np.all(d1 - self.x[self.ymin:self.ymax, self.xmin:self.xmax] == 0.))
 
+
+    def test_read_binary_subset_int(self):
+        # INT16 = H
+        fname = tempfile.mktemp()
+        f = open(fname, 'w')
+        ref = (self.x*10).astype('int16')
+        f.write(ref)
+        f.close()
+
+        D = Data(None, None)
+        f = open(fname, 'r')
+        ny, nx = self.x.shape
+        nt = 1
+
+        # test 1: read entire file
+        file_content = D._read_binary_subset2D(f, 2, ny=ny, nx=nx, xbeg=0, xend=nx, ybeg=0, yend=ny)
+        d = np.reshape(np.asarray(struct.unpack('H'*ny*nx*nt, file_content)), (ny, nx))
+        self.assertTrue(np.all(d-ref == 0.))
+
+        # test 2: read subset with 1-values only
+        ny1 = self.ymax - self.ymin
+        nx1 = self.xmax - self.xmin
+        nt1 = 1
+
+        file_content = D._read_binary_subset2D(f, 2, ny=ny, nx=nx, xbeg=self.xmin, xend=self.xmax, ybeg=self.ymin, yend=self.ymax)
+        d1 = np.reshape(np.asarray(struct.unpack('H'*ny1*nx1*nt1, file_content)), (ny1, nx1))
+        self.assertTrue(np.all(d1 - ref[self.ymin:self.ymax, self.xmin:self.xmax] == 0.))
 
 
 
