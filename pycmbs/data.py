@@ -1229,7 +1229,8 @@ class Data(object):
         dtype_spec =  {
                         'int16' : 'H',
                         'double' : 'd',
-                        'int32' : 'i'
+                        'int32' : 'i',
+                        'float' : 'f'
                       }
 
         if dtype not in dtype_spec.keys():
@@ -1301,6 +1302,9 @@ class Data(object):
 
             self.lon, self.lat = np.meshgrid(olon, olat)
 
+            print 'coordinates: ', lonmin, lonmax, latmin, latmax
+            print 'Positions: ', lonminpos, lonmaxpos, latminpos, latmaxpos
+
             file_content = self._read_binary_subset2D(f, struct.calcsize(dtype_spec[dtype]), ny=len(lat), nx=len(lon), xbeg=lonminpos, xend=lonmaxpos+1, ybeg=latminpos, yend=latmaxpos+1)
 
         # close file
@@ -1357,6 +1361,8 @@ class Data(object):
             if i < ybeg:
                 continue
             # position
+            #~ print i*nbytes*nx, i*nx
+            #~ stop
             pos = i*nbytes*nx + xbeg*nbytes
             f.seek(pos)
             # read content
@@ -4757,3 +4763,35 @@ class Data(object):
             return res
         else:
             return tmp
+
+
+
+
+    def distance(self, lon_deg, lat_deg, earth_radius=6371.):
+        """
+        calculate distance of all grid points to a given coordinate
+        Note, that calculations are only approximate, as earth is approximated
+        as sphere!
+
+        Parameters
+        ----------
+        lon : float
+            longitude [deg]
+        lat : float
+            latitude [deg]
+        earth_radius : float
+            earth radius [km]
+        """
+        from pycmbs.grid import Grid
+        assert hasattr(self, 'lat')
+        assert hasattr(self, 'lon')
+        if not isinstance(self.lat, np.ndarray):
+            raise ValueError('Numpy array required!')
+        if not isinstance(self.lon, np.ndarray):
+            raise ValueError('Numpy array required!')
+        G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon), sphere_radius=earth_radius*1000.)
+        d = G.orthodrome(np.deg2rad(self.lon), np.deg2rad(self.lat), np.deg2rad(lon_deg), np.deg2rad(lat_deg))
+        return d
+
+
+

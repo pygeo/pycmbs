@@ -2284,6 +2284,34 @@ class TestData(unittest.TestCase):
         self.assertEqual(d.date[1].minute, 0)
         self.assertEqual(d.date[1].second, 0)
 
+    def test_distance(self):
+        # example distance Berlin-Tokio
+        # http://de.wikipedia.org/wiki/Orthodrome
+
+        lat_berlin = 52.517
+        lon_berlin = 13.4
+        lat_tokio = 35.70
+        lon_tokio = 139.767
+
+        d = self.D.copy()
+        d.lat = np.asarray([[lat_berlin]])
+        d.lon = np.asarray([[lon_berlin]])
+
+        r = d.distance(lon_tokio, lat_tokio, earth_radius=6370.)
+        self.assertTrue(abs(r[0][0]-8918000.)<1000.)
+
+        # test for 2D
+        d = self.D.copy()
+        d.lat = np.asarray(np.ones((10,20))*lat_berlin)
+        d.lon = np.asarray(np.ones((10,20))*lon_berlin)
+
+        r = d.distance(lon_tokio, lat_tokio, earth_radius=6370.)
+        self.assertTrue(np.all(np.abs(r-8918000.)<1000.))
+
+
+        # 8918
+
+
 
 
 
