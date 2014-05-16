@@ -37,6 +37,25 @@ class Geostatistic(object):
         self.lon_center = lon
         self.lat_center = lat
 
+    def _get_center_pos(self):
+        """
+        get indices of position of center coordinate within grid
+        """
+        if not hasattr(self, 'lon_center'):
+            raise ValueError('ERROR: You need to specify first the center position!')
+        d = np.abs((self.x.lon - self.lon_center)**2. + (self.x.lat - self.lat_center)**2.)
+        dmin = d.min()
+        m = d == dmin
+
+        idx = np.indices(d.shape)
+        i = idx[0][m][0]
+        j = idx[1][m][0]
+
+        if (np.abs(1.-self.x.lon[i,j]/self.lon_center) > 0.05) or (np.abs(1.-self.x.lat[i,j]/self.lat_center) > 0.05):  # at least 5% acc.
+            i = None
+            j = None
+        return i, j
+
 
     def plot_semivariogram(self, ax=None, color='red', logy=False):
         """
@@ -57,7 +76,6 @@ class Geostatistic(object):
         ax.grid()
         return ax
 
-
     def plot_percentiles(self, p, ax=None, logy=False):
         """
         plot percentiles
@@ -77,8 +95,6 @@ class Geostatistic(object):
         ax.grid()
         ax.legend(loc='upper left', prop={'size':10}, ncol=2)
         return ax
-
-
 
     def calc_percentile(self, p):
         """
