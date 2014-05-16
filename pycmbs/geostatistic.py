@@ -115,6 +115,9 @@ class Geostatistic(object):
             r.append(b)
             v.append(np.percentile(d, p*100.))  # percentile value
 
+        r = np.asarray(r)
+        np.asarray(v)
+
         o = {p : {'r' : np.asarray(r), 'value' : np.asarray(v)}}
         self.statistic.update({'percentiles' : o})
 
@@ -142,7 +145,7 @@ class Geostatistic(object):
             d = self._get_data_distance(0., b)
             r.append(b)
             v.append(0.5*d.var())  #semivariance
-        o = {'r' : r, 'sigma' : v}
+        o = {'r' : np.asarray(r), 'sigma' : np.asarray(v)}
         self.statistic.update({'semivariogram' : o})
 
     def _get_figure_ax(self, ax):
