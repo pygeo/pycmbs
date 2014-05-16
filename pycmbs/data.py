@@ -4764,9 +4764,6 @@ class Data(object):
         else:
             return tmp
 
-
-
-
     def distance(self, lon_deg, lat_deg, earth_radius=6371.):
         """
         calculate distance of all grid points to a given coordinate
