@@ -131,7 +131,10 @@ class Geostatistic(object):
         if not hasattr(self, '_distance'):
             self._calculate_distance()
         m = (self._distance >= lb) & (self._distance < ub)
-        return self.x.data[m].flatten()
+        o = self.x.data[m].flatten()
+        if isinstance(o, np.ma.core.MaskedArray):
+            o = o.data[~o.mask]  # ensure that nparray is returned
+        return o
 
 
     def calc_semivariance(self):
