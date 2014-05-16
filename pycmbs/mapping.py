@@ -925,7 +925,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
              vmin=None, vmax=None, proj='robin', lon_0=0., lat_0=0.,
              cticks=None, cticklabels=None, ax=None,
              drawparallels=True, overlay=None, titlefontsize=14,
-             zonal_timmean=None, region=None, savegraphicfile=None):
+             zonal_timmean=None, region=None, savegraphicfile=None, return_plot_handler=False):
     """
     This is a wrapper function to replace the old map_plot routine
     It provides a similar interface, but makes usage of the new
@@ -971,7 +971,10 @@ def map_plot(x, use_basemap=False, show_zonal=False,
             os.remove(savegraphicfile)
         M.figure.savefig(savegraphicfile, dpi=200)
 
-    return M.figure
+    if return_plot_handler:
+        return M
+    else:
+        return M.figure
 
 
     # TODO
