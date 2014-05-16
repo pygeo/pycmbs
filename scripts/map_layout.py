@@ -19,12 +19,12 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 plt.close('all')
 
-#~ file='/home/m300028/shared/data/SEP/variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
+file='/home/m300028/shared/data/SEP/variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
 #~
 #~ f=plt.figure()
 #~ ax1=f.add_subplot(2,1,1)
 #~
-file='testdata.nc'
+#~ file='testdata.nc'
 d=Data(file,'tmp',read=True)
 #~
 #~ d1 = d.mulc(2., copy=True)

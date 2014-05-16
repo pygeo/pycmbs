@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 from nose.tools import assert_raises
+from pycmbs.mapping import map_plot
 import os
 
 class TestMapPlotGeneric(unittest.TestCase):
@@ -85,6 +86,18 @@ class TestMapPlotGeneric(unittest.TestCase):
             os.remove('my_test_save_file.nc_timmean.nc')
         if os.path.exists('my_test_save_file.nc_timmean.nc_all.nc'):
             os.remove('my_test_save_file.nc_timmean.nc_all.nc')
+
+    @unittest.skip('skip as only for local testing')
+    def test_SingleMap_add_cyclic(self):
+        file='/home/m300028/shared/data/SEP/variables/land/Ta_2m/cru_ts_3_00.1901.2006.tmp_miss_t63.nc'
+        ofile = 'world.png'
+        if os.path.exists(ofile):
+            os.remove(ofile)
+        d=Data(file,'tmp',read=True)
+        map_plot(d, use_basemap=True, savegraphicfile=ofile)
+        if os.path.exists(ofile):
+            os.remove(ofile)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3612,6 +3612,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
 
     # relative error
     rdat = adif.div(x)
+    rdat.unit = '-'
     if absthres is not None:
         mask = abs(x.timmean()) < absthres
         rdat._apply_mask(~mask)
