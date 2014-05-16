@@ -19,6 +19,7 @@ class Geostatistic(object):
         self.x = x
         self.range_bins = np.asarray(range_bins)
         self._check()
+        self.statistic = {}
 
     def _check(self):
         if np.any(np.diff(self.range_bins)<0.):
@@ -65,7 +66,9 @@ class Geostatistic(object):
             self._calculate_distance()
 
         f, ax = self._get_figure_ax(ax)
-        r, sigma = self.calc_semivariance()
+        self.calc_semivariance()
+        r = self.statistic['semivariogram']['r']
+        sigma = self.statistic['semivariogram']['sigma']
 
         if logy:
             ax.semilogy(r, sigma, 'x', color=color)
@@ -85,7 +88,9 @@ class Geostatistic(object):
         """
         f, ax = self._get_figure_ax(ax)
         for e in p:
-            r, v = self.calc_percentile(e)
+            self.calc_percentile(e)
+            r = self.statistic['percentiles'][e]['r']
+            v = self.statistic['percentiles'][e]['value']
             if logy:
                 ax.semilogy(r, v, 'x-', label='p='+str(e))
             else:
@@ -109,9 +114,9 @@ class Geostatistic(object):
                 continue
             r.append(b)
             v.append(np.percentile(d, p*100.))  # percentile value
-        return np.asarray(r), np.asarray(v)
 
-
+        o = {p : {'r' : np.asarray(r), 'value' : np.asarray(v)}}
+        self.statistic.update({'percentiles' : o})
 
 
     def _get_data_distance(self, lb, ub):
@@ -137,7 +142,8 @@ class Geostatistic(object):
             d = self._get_data_distance(0., b)
             r.append(b)
             v.append(0.5*d.var())  #semivariance
-        return np.asarray(r), np.asarray(v)
+        o = {'r' : r, 'sigma' : v}
+        self.statistic.update({'semivariogram' : o})
 
     def _get_figure_ax(self, ax):
         if ax is None:
