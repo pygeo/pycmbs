@@ -53,6 +53,8 @@ class Geostatistic(object):
         j = idx[1][m][0]
 
         if (np.abs(1.-self.x.lon[i,j]/self.lon_center) > 0.05) or (np.abs(1.-self.x.lat[i,j]/self.lat_center) > 0.05):  # at least 5% acc.
+            print 'lon: ', self.x.lon[i,j], self.lon_center
+            print 'lat: ', self.x.lat[i,j], self.lat_center
             i = None
             j = None
         return i, j
@@ -98,7 +100,7 @@ class Geostatistic(object):
         ax.set_ylabel(self.x._get_unit())
         ax.set_xlabel('distance [km]')
         ax.grid()
-        ax.legend(loc='upper left', prop={'size':10}, ncol=2)
+        ax.legend(loc='upper left', prop={'size':10}, ncol=3)
         return ax
 
     def calc_percentile(self, p):
@@ -147,7 +149,7 @@ class Geostatistic(object):
         for b in bounds:
             d = self._get_data_distance(0., b)
             r.append(b)
-            v.append(0.5*d.var())  #semivariance
+            v.append(0.5*np.ma.var(d))  #semivariance
         o = {'r' : np.asarray(r), 'sigma' : np.asarray(v)}
         self.statistic.update({'semivariogram' : o})
 
