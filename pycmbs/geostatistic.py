@@ -120,8 +120,11 @@ class Geostatistic(object):
         r = np.asarray(r)
         np.asarray(v)
 
-        o = {p : {'r' : np.asarray(r), 'value' : np.asarray(v)}}
-        self.statistic.update({'percentiles' : o})
+        o = {'r' : np.asarray(r), 'value' : np.asarray(v)}
+        if 'percentiles' not in self.statistic.keys():
+            self.statistic.update({'percentiles' : {}})
+
+        self.statistic['percentiles'].update({p : o})
 
 
     def _get_data_distance(self, lb, ub):
