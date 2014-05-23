@@ -80,8 +80,10 @@ class Model(Data):
             directory += os.sep
 
         for k in self.variables.keys():
-            self.variables[k].save(directory + prefix + '_' + k.strip().upper() + '.nc', varname=k.strip().lower(), delete=True, mean=False, timmean=False)
-
+            if isinstance(self.variables[k], tuple):
+                pass
+            else:
+                self.variables[k].save(directory + prefix + '_' + k.strip().upper() + '.nc', varname=k.strip().lower(), delete=True, mean=False, timmean=False)
 
     def get_data(self):
         """
