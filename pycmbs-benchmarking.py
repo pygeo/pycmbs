@@ -27,6 +27,7 @@ from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData
 from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
 from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data
 from pycmbs.benchmarking.models import MeanModel
+from pycmbs.benchmarking.utils import get_temporary_directory
 
 
 ########################################################################
@@ -526,7 +527,7 @@ def main():
         MEANMODEL.ensmean()
 
         # save mean model to file
-        MEANMODEL.save(get_temporary_directory(), prefix='MEANMODEL_' + file[:-3])  # include filename of configuration file
+        MEANMODEL.save(get_temporary_directory(), prefix='MEANMODEL_' + file[:-4])  # include filename of configuration file
 
         # add mean model to general list of models to process in analysis
         proc_models.append('MEANMODEL')

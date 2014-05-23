@@ -224,6 +224,40 @@ class MapPlotGeneric(object):
 
         self.__basemap_ancillary(the_map, drawparallels=drawparallels)
 
+        if self.polygons is not None:
+            for p in self.polygons:
+                self._add_single_polygon_basemap(the_map, p)
+
+    def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
+        """
+        plot region r on top of basemap map m
+
+        Parameters
+        ----------
+        m : map
+            Basemap object
+        p : Polygon
+            Polygon object as defined in polygon.py. Note that
+            this is different from the matpltlib.Polygon object
+        color : str
+            color to plot region
+        linewidth : int
+            width of outline border for polygon to plot
+        """
+        from matplotlib.patches import Polygon as mplPolygon
+
+        lons = p._xcoords()
+        lats = p._ycoords()
+
+        x, y = m(lons, lats)
+        xy = list(zip(x, y))
+        mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
+        self.pax.add_patch(mapboundary)
+
+
+
+
+
     def _draw_cartopy(self, proj_prop=None, **kwargs):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
@@ -234,7 +268,6 @@ class MapPlotGeneric(object):
             raise ValueError('Unsupported projection type')
 
         xm = self.x.timmean()
-
         Z = xm
         lon = self.x.lon
         lat = self.x.lat
@@ -255,9 +288,7 @@ class MapPlotGeneric(object):
             Example
             -------
             ax2 = _ax2geoax(ax2, ccrs.Robinson())
-
             """
-
             b = ax.get_position()
             rect = [b.x0, b.y0, b.width, b.height]
             ax.set_visible(False)
@@ -265,11 +296,82 @@ class MapPlotGeneric(object):
 
         self.pax = _ax2geoax(self.pax, ccrs.Robinson())
 
+        # add cyclic coordinates if possible
+        if self.x._equal_lon():
+            lon1, lat1, Z1 = self._add_cyclic_to_field(self.x._get_unique_lon(), lat, Z)
+            if lon1 is not None:
+                lon = lon1
+                lat = lat1
+                Z = Z1
+
         # plot and ancillary plots
         self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
         self.pax.gridlines()
+
+        # plot polygons
+        if self.polygons is not None:
+            for p in self.polygons:
+                self._add_single_polygon_cartopy(p)
+
+
+    def _add_single_polygon_cartopy(self, p, color='red', linewidth=1):
+        """
+        add a polygon to a map
+        """
+        from matplotlib.patches import Polygon as mplPolygon
+
+        lons = list(p._xcoords())
+        lats = list(p._ycoords())
+        lons.append(lons[0])
+        lats.append(lats[0])
+        lons = np.asarray(lons)
+        lats = np.asarray(lats)
+        self.pax.plot(lons, lats, transform=ccrs.PlateCarree(), color=color, linewidth=linewidth)  # TODO create a polygon that might be also filled
+
+    def _add_cyclic_to_field(self, lon, lat, z):
+        """
+        add an additional column to a dataset to avoid plotting problems
+        around the 0degree longitude
+
+        Parameters
+        ----------
+        lon : ndarray
+            VECTOR of unique longitudes. Note that this needs to be a vector!
+        lat : ndarray
+            2D array of latitudes with same geometry than the data field Z
+        z : ndarray
+            2D array of values
+
+        Returns
+        -------
+        lon : ndarray
+            2D
+        lat : ndarray
+            2D
+        Z : ndarray
+            2D
+
+        References
+        ----------
+        [1] https://github.com/SciTools/cartopy/issues/393
+        [2] http://stackoverflow.com/questions/21864512/cartopy-behavior-when-plotting-projected-data
+        [3] https://github.com/SciTools/cartopy/pull/394
+        """
+        try:
+            from cartopy import util as ut
+        except:
+            print('Longitude shift can not be performed as most recent CARTOPY version seems not to be installed')
+            return None, None, None
+        assert lon.ndim == 1
+        assert lat.shape == z.shape
+
+        lat_out, lon1 = ut.add_cyclic_point(lat, coord=lon)
+        z_out, lon1 = ut.add_cyclic_point(z, coord=lon)
+        lon_out = np.ones_like(lat_out) * lon1
+        return lon_out, lat_out, z_out
+
 
     def __basemap_ancillary(self, m, latvalues=None, lonvalues=None,
                             drawparallels=True, drawcountries=True,
@@ -521,7 +623,8 @@ class SingleMap(MapPlotGeneric):
              colorbar_orientation='vertical', cmap='jet',
              ctick_prop=None,
              vmin=None, vmax=None, nclasses=10,
-             title=None, proj_prop=None, drawparallels=True, titlefontsize=14):
+             title=None, proj_prop=None, drawparallels=True,
+             titlefontsize=14, polygons=None):
         """
         routine to plot a single map
 
@@ -541,9 +644,11 @@ class SingleMap(MapPlotGeneric):
             'ticks' : float list : specifies locations of ticks
             'labels' : str list : user defined label list; needs to
                                   have same length as 'ticks'
-
+s
              Example:
                 ctick_prop={'ticks':[-15, 0., 3.], 'labels':['A','B','C']
+        polygons : list
+            list of Polygon object of e.g. a regions to draw
         """
 
         if colorbar_orientation not in ['vertical', 'horizontal']:
@@ -557,6 +662,7 @@ class SingleMap(MapPlotGeneric):
         self.ctick_prop = ctick_prop  # dictionary
         self.vmin = vmin
         self.vmax = vmax
+        self.polygons = polygons
 
         # set colormap and ensure to have a colormap object
         self.cmap = cmap
@@ -819,7 +925,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
              vmin=None, vmax=None, proj='robin', lon_0=0., lat_0=0.,
              cticks=None, cticklabels=None, ax=None,
              drawparallels=True, overlay=None, titlefontsize=14,
-             zonal_timmean=None, region=None, savegraphicfile=None):
+             zonal_timmean=None, region=None, savegraphicfile=None, return_plot_handler=False):
     """
     This is a wrapper function to replace the old map_plot routine
     It provides a similar interface, but makes usage of the new
@@ -865,7 +971,10 @@ def map_plot(x, use_basemap=False, show_zonal=False,
             os.remove(savegraphicfile)
         M.figure.savefig(savegraphicfile, dpi=200)
 
-    return M.figure
+    if return_plot_handler:
+        return M
+    else:
+        return M.figure
 
 
     # TODO

@@ -26,7 +26,8 @@ import pickle
 import datetime
 import calendar
 import tempfile
-
+import struct
+import gzip
 
 class Data(object):
     """
@@ -1029,7 +1030,7 @@ class Data(object):
 #-----------------------------------------------------------------------
 
     def read(self, shift_lon, start_time=None, stop_time=None,
-             time_var='time', checklat=True):
+             time_var='time', checklat=True, fmt='nc'):
         """
         Read data from a file. This functions provides a wrapper for
         I/O of different file formats
@@ -1038,28 +1039,28 @@ class Data(object):
         ----------
         shift_lon : bool
             if given, longitudes will be shifted
-
         start_time : datetime
             start time for reading the data
-
         stop_time : datetime
             stop time for reading the data
-
         time_var : str
             name of time variable field
-
         checklat : bool
             check if latitude is in decreasing order (N ... S)
+        fmt : str
+            format of data to read
+            ['nc']
         """
         if not os.path.exists(self.filename):
             raise ValueError('Error: file not existing: %s' % self.filename)
-        else:
-            pass
 
         self.time_var = time_var
 
         # read data
-        self.data = self.read_netcdf(self.varname)
+        if fmt == 'nc':
+            self.data = self.read_netcdf(self.varname)
+        else:
+            raise ValueError('ERROR: invalid input format')
 
         if self.data is None:
             print self.varname
@@ -1170,6 +1171,206 @@ class Data(object):
             else:
                 self._set_timecycle()
 
+
+    def _get_binary_filehandler(self, mode='r'):
+        """
+        get filehandler for binary file
+        it allows to access also gzip files
+
+        Parameters
+        ----------
+        mode : str
+            ['w','r']
+
+        Returns
+        -------
+        file handler
+        """
+        mode += 'b'
+        if self.filename[-3:] == '.gz':
+            f = gzip.open(self.filename, mode)
+        else:
+            f = open(self.filename, mode)
+        return f
+
+
+    def _read_binary_file(self, dtype=None, lat=None, lon=None,
+                          lonmin=None, lonmax=None, latmin=None,
+                          latmax=None, ny=None, nx=None, nt=None):
+        """
+        read data from binary file
+        this routine also allows spatial subsetting during reading
+        from the binary file
+
+        It requires however that two vectors of lon/lat are provided
+        in case that a subsetting shall be made
+
+        Parameters
+        ----------
+        dtype : str
+            datatype specification
+        lat : ndarray
+            vector of latitudes
+        lon : ndarray
+            vector of longitudes
+        """
+        if dtype is None:
+            raise ValueError('ERROR: dtype not provided')
+        if lat is not None:
+            assert (lon is not None)
+        if lat is None:
+            assert (ny is not None)
+            assert (nx is not None)
+        else:
+            assert (lat.ndim == 1)
+            assert (lon.ndim == 1)
+
+        # specify bytes as well as format string for struct for each datatype
+        dtype_spec =  {
+                        'int16' : 'H',
+                        'double' : 'd',
+                        'int32' : 'i',
+                        'float' : 'f'
+                      }
+
+        if dtype not in dtype_spec.keys():
+            raise ValueError('ERROR: invalid data type')
+
+        #~ 'int8'   :'b',
+        #~ 'uint8'  :'B',
+        #~ 'int16'  :'h',
+        #~ 'uint16' :'H',
+        #~ 'int32'  :'i',
+        #~ 'uint32' :'I',
+        #~ 'int64'  :'q',
+        #~ 'uint64' :'Q',
+        #~ 'float'  :'f',
+        #~ 'double' :'d',
+        #~ 'char'   :'s'}
+
+        # set boundaries
+        if lon is not None:
+            if lonmin is None:
+                lonmin = lon.min()
+            if lonmax is None:
+                lonmax = lon.max()
+        else:
+            lonmin = None
+            lonmax = None
+
+        if lat is not None:
+            if latmin is None:
+                latmin = lat.min()
+                latmax = lat.max()
+        else:
+            latmin = None
+            latmax = None
+
+        # get file handler
+        f = self._get_binary_filehandler()
+
+        # read actual data
+        if lon is None:
+            file_content = f.read()  # read entire file
+            self.lat = None  # TODO if specifie, then read lat/lon information from file
+            self.lon = None
+        else:
+            # check if lat/lon is increasing
+            assert np.all(np.diff(lat) > 0.)
+            assert np.all(np.diff(lon) > 0.)
+
+            lonminpos = np.abs(lon - lonmin).argmin()
+            if lon[lonminpos] < lonmin:
+                lonminpos += 1
+            lonmaxpos = np.abs(lon - lonmax).argmin()
+            if lon[lonmaxpos] > lonmax:
+                lonmaxpos -= 1
+
+            latminpos = np.abs(lat - latmin).argmin()
+            if lat[latminpos] < latmin:
+                latminpos += 1
+
+            latmaxpos = np.abs(lat - latmax).argmin()
+            if lat[latmaxpos] > latmax:
+                latmaxpos -= 1
+
+            olon = lon[lonminpos:lonmaxpos+1]
+            olat = lat[latminpos:latmaxpos+1]
+
+            ny = len(olat)
+            nx = len(olon)
+
+            self.lon, self.lat = np.meshgrid(olon, olat)
+
+            print 'coordinates: ', lonmin, lonmax, latmin, latmax
+            print 'Positions: ', lonminpos, lonmaxpos, latminpos, latmaxpos
+
+            file_content = self._read_binary_subset2D(f, struct.calcsize(dtype_spec[dtype]), ny=len(lat), nx=len(lon), xbeg=lonminpos, xend=lonmaxpos+1, ybeg=latminpos, yend=latmaxpos+1)
+
+        # close file
+        f.close()
+
+        # put data into final matrix by decoding in accordance to the filetype
+
+        self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype]*ny*nx*nt, file_content)), (ny, nx))
+
+        del file_content
+
+
+    def _read_binary_subset2D(self, f, nbytes, xbeg=None, xend=None, ybeg=None, yend=None, ny=None, nx=None):
+        """
+        read subset from binary file
+        deconding takes place outside of this routine!
+
+        Parameters
+        ----------
+        f : file handler
+            file handler to read binary data
+        nbytes : int
+            size of a single value on the file [bytes]
+        ybeg : int
+            index of y coordinate start
+        yend : int
+            index of y coordinate end
+        xbeg : int
+            index of x coordinate start
+        xend : int
+            index of x coordinate end
+        ny : int
+            y-size of the original array on file
+        nx : int
+            x-size of the original array on file
+
+        Returns
+        -------
+        string which needs to be decoded using struct
+        """
+        if ybeg is None:
+            raise ValueError('ERROR: Need to specify YBEG')
+        if xbeg is None:
+            raise ValueError('ERROR: Need to specify XBEG')
+        if yend is None:
+            raise ValueError('ERROR: Need to specify YEND')
+        if xend is None:
+            raise ValueError('ERROR: Need to specify XEND')
+
+        file_content = ''
+        for i in xrange(ny):
+            if i >= yend:
+                break
+            if i < ybeg:
+                continue
+            # position
+            #~ print i*nbytes*nx, i*nx
+            #~ stop
+            pos = i*nbytes*nx + xbeg*nbytes
+            f.seek(pos)
+            # read content
+            bytes_to_read = (xend-xbeg)*nbytes
+            r = f.read(bytes_to_read)
+            file_content += r
+        return file_content
+
 #-----------------------------------------------------------------------
 
     def get_yearmean(self, mask=None, return_data=False):
@@ -1187,10 +1388,6 @@ class Data(object):
 
         return_data : bool
             specifies if results should be returned as C{Data} object
-
-        Test
-        ----
-        unittest implemented
         """
 
         if mask is None:
@@ -1203,8 +1400,8 @@ class Data(object):
                 raise ValueError('Mask needs to be 1-D of length of time!')
 
         #/// get data
-        ye = pl.asarray(self._get_years())
-        years = pl.unique(ye)
+        ye = np.asarray(self._get_years())
+        years = np.unique(ye)
         dat = self.data
 
         # calculate mean
@@ -1256,10 +1453,6 @@ class Data(object):
             mask [time]
         return_data : bool
             specifies if a Data object shall be returned
-
-        Test
-        ----
-        unittest implemented
         """
 
         if mask is None:
@@ -1341,11 +1534,6 @@ class Data(object):
         -------
         r : Data
             returns C{Data} objects with partial correlation parameters
-
-        Tests
-        -----
-        unittest implemented
-
         """
 
         assert isinstance(Y, Data)
@@ -1406,10 +1594,6 @@ class Data(object):
         R : Data
             correlation coefficient
         P : significance level (p-value)
-
-        Test
-        ----
-        unittests implemented
 
         Todo
         ----
@@ -1532,10 +1716,6 @@ class Data(object):
         >>> self.get_temporal_mask([1,2,3], mtype='monthly')
         will return a mask, where the months of Jan-Mar are set to True
         this can be used e.g. further with the routine get_yearmean()
-
-        Test
-        ----
-        unittest implemented
         """
 
         valid_types = ['monthly', 'yearly']
@@ -1585,10 +1765,6 @@ class Data(object):
             a datasets that starts with dates in March, then also the
             climatology will start in March. Using this option will
             ensure that the climatology will then start in January
-
-        Tests
-        -----
-        unittest implemented
         """
         if hasattr(self, 'time_cycle'):
             pass
@@ -1890,10 +2066,6 @@ class Data(object):
         -------
         d : datetime
             datetime object with actual date
-
-        Tests
-        -----
-        unittest implemented
         """
 
         if not 'months since' in self.time_str:
@@ -2003,10 +2175,6 @@ class Data(object):
         base : str
             specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
             a time stepping. Currently supported values: ['month','day']
-
-        Test
-        ----
-        unittest implemented
         """
 
         assert (isinstance(y, Data))
@@ -2239,10 +2407,6 @@ class Data(object):
         Returns
         -------
         returns start/stop indices (int)
-
-        Test
-        ----
-        unittest implemented
         """
 
         def _check_timezone(d):
@@ -2293,10 +2457,6 @@ class Data(object):
     def _get_years(self):
         """
         get years from timestamp
-
-        Test
-        ----
-        unittest implemented
         """
         return [x.year for x in self.date]
 
@@ -2305,10 +2465,6 @@ class Data(object):
     def _get_months(self):
         """
         get months from timestamp
-
-        Test
-        ----
-        unittest implemented
         """
         return [x.month for x in self.date]
 
@@ -2457,11 +2613,6 @@ class Data(object):
         -------
         The following variables are returned:
         correlation, slope, intercept, p-value
-
-        Tests
-        -----
-        unittest implemented
-
         """
         dt = np.asarray([x.days for x in self.date - self.date[0]]).astype('float')  # time difference in days
         x = np.ma.array(dt, mask=dt != dt)  # ensure that a masked array is used
@@ -2492,10 +2643,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.mean(axis=0)
@@ -2522,10 +2669,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
 
         if self.data.ndim == 3:
@@ -2554,10 +2697,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned [True]; else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.max(axis=0)
@@ -2614,10 +2753,6 @@ class Data(object):
         ----------
         return_object : bool
             specifies if a C{Data} object shall be returned
-
-        Test
-        ----
-        unittest implemented
         """
 
         if self.data.ndim != 3:
@@ -2647,10 +2782,6 @@ class Data(object):
         return_object : bool
             specifies if a C{Data} object shall be returned [True];
             else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.std(axis=0)
@@ -2681,10 +2812,6 @@ class Data(object):
         return_object : bool
             specifies if a C{Data} object shall be returned [True];
             else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             res = self.data.var(axis=0)
@@ -2713,10 +2840,6 @@ class Data(object):
         return_object : bool
             specifies if a C{Data} object shall be returned [True];
             else a numpy array is returned
-
-        Test
-        ----
-        unittest implemented
         """
         if self.data.ndim == 3:
             pass
@@ -2746,9 +2869,6 @@ class Data(object):
         ----------
         return_object : bool
             return Data object
-        Test
-        ----
-        unittest implemented
         """
         res = self.timsum() / self.timmean()
 
@@ -2946,11 +3066,6 @@ class Data(object):
         Returns
         -------
         vector of spatial mean array[time]
-
-        Test
-        ----
-        unittest implemented
-
         """
 
         if self.data.ndim == 3:
@@ -3026,11 +3141,6 @@ class Data(object):
         -------
         r : ndarray or Data
             vector of spatial mean array[time]
-
-        Test
-        ----
-        unittest implemented
-
         """
 
         if self.data.ndim == 3:
@@ -3459,6 +3569,9 @@ class Data(object):
         if hasattr(self, 'lon'):
             if D.lon is not None:
                 D.lon = D.lon[i1:i2 + 1, j1:j2 + 1]
+        if hasattr(D, 'cell_area'):
+            if D.cell_area is not None:
+                D.cell_area = D.cell_area[i1:i2 + 1, j1:j2 + 1]
 
         if return_object:
             return D
@@ -4650,3 +4763,32 @@ class Data(object):
             return res
         else:
             return tmp
+
+    def distance(self, lon_deg, lat_deg, earth_radius=6371.):
+        """
+        calculate distance of all grid points to a given coordinate
+        Note, that calculations are only approximate, as earth is approximated
+        as sphere!
+
+        Parameters
+        ----------
+        lon : float
+            longitude [deg]
+        lat : float
+            latitude [deg]
+        earth_radius : float
+            earth radius [km]
+        """
+        from pycmbs.grid import Grid
+        assert hasattr(self, 'lat')
+        assert hasattr(self, 'lon')
+        if not isinstance(self.lat, np.ndarray):
+            raise ValueError('Numpy array required!')
+        if not isinstance(self.lon, np.ndarray):
+            raise ValueError('Numpy array required!')
+        G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon), sphere_radius=earth_radius*1000.)
+        d = G.orthodrome(np.deg2rad(self.lon), np.deg2rad(self.lat), np.deg2rad(lon_deg), np.deg2rad(lat_deg))
+        return d
+
+
+

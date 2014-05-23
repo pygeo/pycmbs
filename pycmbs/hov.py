@@ -282,7 +282,7 @@ class hovmoeller:
                 if showxticks:
                     self.generate_xticks(all_days, monthsamp=1)  # todo
 
-                dlat = 10.  # todo
+                dlat = 30.  # todo
 
                 lat_tick = np.arange(-90., 90 + dlat, dlat)  # positions for yticks (degree)
 
