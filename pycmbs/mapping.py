@@ -298,7 +298,10 @@ class MapPlotGeneric(object):
 
         # add cyclic coordinates if possible
         if self.x._equal_lon():
-            lon1, lat1, Z1 = self._add_cyclic_to_field(self.x._get_unique_lon(), lat, Z)
+            try:
+                lon1, lat1, Z1 = self._add_cyclic_to_field(self.x._get_unique_lon(), lat, Z)
+            except:
+                lon1 = None
             if lon1 is not None:
                 lon = lon1
                 lat = lat1
@@ -522,7 +525,7 @@ class SingleMap(MapPlotGeneric):
         """
         if hasattr(self.cmap, 'monochrome'):
             # colormap object was given
-            self.cmap = cmap_data
+            self.cmap = self.cmap
         else:
             self.cmap = plt.cm.get_cmap(self.cmap, nclasses)
 
