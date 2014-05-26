@@ -4831,7 +4831,15 @@ class Data(object):
         return (self.ny-1) / 2, (self.nx-1) / 2
 
 
-    def get_center_data(self):
+    def get_center_data(self, return_object=False):
+        """
+        returns data for center position
+
+        Parameters
+        ----------
+        return_object : bool
+            return the results as a Data object
+        """
         i, j = self._get_center_position()
         if i is None:
             return None
@@ -4839,11 +4847,24 @@ class Data(object):
             return None
 
         if self.ndim == 2:
-            return self.data[i, j]
+            res = self.data[i, j]
         elif self.ndim == 3:
-            return self.data[:, i, j]
+            res = self.data[:, i, j]
         else:
             assert False
+
+        if return_object:
+            r = self.copy()
+            if self.ndim == 2:
+                res = np.asarray([[res]])
+            elif self.ndim == 3:
+                res = res.reshape((len(res),1,1))
+            else:
+                assert False
+            r.data = res
+            return r
+        else:
+            return res
 
 
 

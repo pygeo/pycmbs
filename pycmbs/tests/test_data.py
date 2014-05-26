@@ -2325,22 +2325,30 @@ class TestData(unittest.TestCase):
     def tests_get_center_pixel(self):
         D = self.D
         y = D.get_center_data()
+        z = D.get_center_data(return_object=True)
         self.assertTrue(np.all(D.data[:, 0,0]-y == 0.))
+        self.assertTrue(np.all(D.data[:, 0,0]-z.data[:, 0, 0] == 0.))
 
         tmp = np.random.random((4, 5))
         D.data = np.ma.array(tmp, mask=tmp != tmp)
         y = D.get_center_data()
+        z = D.get_center_data(return_object=True)
         self.assertTrue(y is None)
+        self.assertTrue(z is None)
 
         tmp = np.random.random((17, 23))  # 2D
         D.data = np.ma.array(tmp, mask=tmp != tmp)
         y = D.get_center_data()
+        z = D.get_center_data(return_object=True)
         self.assertEqual(D.data[8,11], y)
+        self.assertEqual(D.data[8,11], z.data[0, 0])
 
         tmp = np.random.random((100, 17, 23))  # 2D
         D.data = np.ma.array(tmp, mask=tmp != tmp)
         y = D.get_center_data()
+        z = D.get_center_data(return_object=True)
         self.assertTrue(np.all(D.data[:, 8,11]-y == 0.))
+        self.assertTrue(np.all(D.data[:, 8,11]-z.data[:,0,0] == 0.))
 
 
     def test_get_center_position(self):
