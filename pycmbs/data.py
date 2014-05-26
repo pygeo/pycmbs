@@ -4817,6 +4817,10 @@ class Data(object):
         """
         returns indices of center position in data array
         only works if both dimensions x/y are ODD numbers!
+
+        Returns
+        -------
+        indices of center position [i,j]
         """
         # only for odd numbers!
         if (self.nx % 2 ) != 1:
@@ -4825,6 +4829,21 @@ class Data(object):
             return None, None
 
         return (self.ny-1) / 2, (self.nx-1) / 2
+
+
+    def get_center_data(self):
+        i, j = self._get_center_position()
+        if i is None:
+            return None
+        if j is None:
+            return None
+
+        if self.ndim == 2:
+            return self.data[i, j]
+        elif self.ndim == 3:
+            return self.data[:, i, j]
+        else:
+            assert False
 
 
 
