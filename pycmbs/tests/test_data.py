@@ -2343,12 +2343,14 @@ class TestData(unittest.TestCase):
         self.assertEqual(D.data[8,11], y)
         self.assertEqual(D.data[8,11], z.data[0, 0])
 
-        tmp = np.random.random((100, 17, 23))  # 2D
+        tmp = np.random.random((100, 17, 23))  # 3D
         D.data = np.ma.array(tmp, mask=tmp != tmp)
         y = D.get_center_data()
         z = D.get_center_data(return_object=True)
         self.assertTrue(np.all(D.data[:, 8,11]-y == 0.))
         self.assertTrue(np.all(D.data[:, 8,11]-z.data[:,0,0] == 0.))
+        self.assertEqual(z.data.shape, (100,1,1))
+        self.assertEqual(z.cell_area.shape, (1,1))
 
 
     def test_get_center_position(self):

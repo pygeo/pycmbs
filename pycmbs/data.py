@@ -4862,6 +4862,7 @@ class Data(object):
             else:
                 assert False
             r.data = res
+            r.cell_area = np.ones((1,1))
             return r
         else:
             return res
