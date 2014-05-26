@@ -4818,13 +4818,13 @@ class Data(object):
         returns indices of center position in data array
         only works if both dimensions x/y are ODD numbers!
         """
+        # only for odd numbers!
+        if (self.nx % 2 ) != 1:
+            return None, None
+        if (self.ny % 2 ) != 1:
+            return None, None
 
-        if self.ndim == 2:
-            ny, nx = self.data.shape
-        elif self.ndim == 3:
-            nt, ny, nx = self.data.shape
-        else:
-            raise ValueError('Invalid dimension')
+        return (self.ny-1) / 2, (self.nx-1) / 2
 
 
 

@@ -2330,25 +2330,24 @@ class TestData(unittest.TestCase):
         #~ D = self.D
         #~ D.get_center_data()
 
-    #~ def test_get_center_position(self):
-        #~ D = self.D
-#~
-        #~ # 1/1
-        #~ i, j = D._get_center_position()
-        #~ self.assertEqual(i, 0)
-        #~ self.assertEqual(j, 0)
-#~
-        #~ tmp = np.random.random((4, 5))
-        #~ D.data = np.ma.array(tmp, mask=tmp != tmp)
-        #~ i, j = D._get_center_position()  # no center, as no odd numbers in both dimensions
-        #~ self.assertTrue(i is None)
-        #~ self.assertTrue(j is None)
-#~
-        #~ tmp = np.random.random((17, 23))
-        #~ D.data = np.ma.array(tmp, mask=tmp != tmp)
-        #~ i, j = D._get_center_position()
-        #~ self.assertEqual(i, 8)
-        #~ self.assertEqual(j, 11)
+    def test_get_center_position(self):
+        D = self.D
+        # 1/1
+        i, j = D._get_center_position()
+        self.assertEqual(i, 0)
+        self.assertEqual(j, 0)
+
+        tmp = np.random.random((4, 5))
+        D.data = np.ma.array(tmp, mask=tmp != tmp)
+        i, j = D._get_center_position()  # no center, as no odd numbers in both dimensions
+        self.assertTrue(i is None)
+        self.assertTrue(j is None)
+
+        tmp = np.random.random((17, 23))
+        D.data = np.ma.array(tmp, mask=tmp != tmp)
+        i, j = D._get_center_position()
+        self.assertEqual(i, 8)
+        self.assertEqual(j, 11)
 
 
 
