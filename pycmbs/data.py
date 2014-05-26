@@ -255,6 +255,29 @@ class Data(object):
         return len(self.time)
     nt = property(_get_nt)
 
+    def _get_ny(self):
+        if self.ndim == 2:
+            ny, nx = self.data.shape
+        elif self.ndim == 3:
+            nt, ny, nx = self.data.shape
+        else:
+            raise ValueError('Invalid geometry!')
+        return ny
+    ny = property(_get_ny)
+
+    def _get_nx(self):
+        if self.ndim == 2:
+            ny, nx = self.data.shape
+        elif self.ndim == 3:
+            nt, ny, nx = self.data.shape
+        else:
+            raise ValueError('Invalid geometry!')
+        return nx
+    nx = property(_get_nx)
+
+
+
+
     def _get_mindate(self, base=None):
         """
         Brief
@@ -4789,6 +4812,22 @@ class Data(object):
         G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon), sphere_radius=earth_radius*1000.)
         d = G.orthodrome(np.deg2rad(self.lon), np.deg2rad(self.lat), np.deg2rad(lon_deg), np.deg2rad(lat_deg))
         return d
+
+    def _get_center_position(self):
+        """
+        returns indices of center position in data array
+        only works if both dimensions x/y are ODD numbers!
+        """
+
+        if self.ndim == 2:
+            ny, nx = self.data.shape
+        elif self.ndim == 3:
+            nt, ny, nx = self.data.shape
+        else:
+            raise ValueError('Invalid dimension')
+
+
+
 
 
 
