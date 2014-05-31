@@ -1849,7 +1849,7 @@ class Data(object):
         """
         shift dataset that the timeseries is ensured to be in ascending order
         usefull e.g. if you have a climatology and this does not start with January
-        and you want to shif tit automatically
+        and you want to shift it automatically
         """
 
         # search for point in timeseries where break occurs
@@ -1866,7 +1866,7 @@ class Data(object):
         self.timeshift(n, shift_time=True)
 
 #-----------------------------------------------------------------------
-    def get_deseasonalized_anomaly(self, base=None):
+    def get_deseasonalized_anomaly(self, base=None, ensure_start_first=True):
         """
         calculate deseasonalized anomalies
 
@@ -1887,14 +1887,14 @@ class Data(object):
         """
 
         if base == 'current':
-            clim = self.get_climatology()
+            clim = self.get_climatology(ensure_start_first=ensure_start_first)
         elif base == 'all':
             # if raw climatology not available so far, try to calculate it
             if hasattr(self, '_climatology_raw'):
                 clim = self._climatology_raw
             else:
                 if hasattr(self, 'time_cycle'):
-                    self._climatology_raw = self.get_climatology()
+                    self._climatology_raw = self.get_climatology(ensure_start_first=ensure_start_first)
                     clim = self._climatology_raw
                 else:
                     raise ValueError('Climatology can not be calculated because of missing time_cycle!')
