@@ -75,8 +75,12 @@ class Dict2TXT(object):
         keys.sort()
 
         for k in keys:
+            if parent == '':
+                pstr = k
+            else:
+                pstr = parent + self.tagsep + k
             if isinstance(d[k], dict):
-                h1, s1 = self._convert(d[k], h='', s='', parent=k)
+                h1, s1 = self._convert(d[k], h='', s='', parent=pstr)
                 h += h1
                 s += s1
             else:

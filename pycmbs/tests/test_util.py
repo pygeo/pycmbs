@@ -29,8 +29,8 @@ class TestStatistic(TestCase):
             self.assertEqual(h1[0], 'a')
             self.assertEqual(h1[1], 'b')
             self.assertEqual(h1[2], 'c:x')
-            self.assertEqual(h1[3], 'y:AA')
-            self.assertEqual(h1[4], 'y:BB')
+            self.assertEqual(h1[3], 'c:y:AA')
+            self.assertEqual(h1[4], 'c:y:BB')
 
         def value_check(s1):
             self.assertEqual(s1[0],'5')
