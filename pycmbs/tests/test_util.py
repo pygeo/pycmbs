@@ -12,9 +12,7 @@ class TestStatistic(TestCase):
 
     def setUp(self):
         d = dict([('a', 5), ('b', 10), ('c', {'x':1,'y': {'AA' : 77, 'BB' : 'test'}})])
-        #~ d.update({'c' : {'x' : 3, 'y': 7}})
         self.x = d
-
 
     def test_init_false(self):
         x = 'nothing'
@@ -48,5 +46,14 @@ class TestStatistic(TestCase):
         d = np.loadtxt(fname, dtype='str')
         header_check(d[0])
         value_check(d[1])
+
+        # check append mode
+        h, s = D.convert(filename=fname, mode='a')
+        d = np.loadtxt(fname, dtype='str')
+        header_check(d[0])
+        value_check(d[1])
+        value_check(d[2])
+
+
 
 
