@@ -63,7 +63,6 @@ class Dict2TXT(object):
                 h += h1
                 s += s1
             else:
-                #~ s += str(d[k])
                 newtag = parent + self.tagsep + k
                 if newtag[0] == self.tagsep:
                     newtag = newtag[1:]
