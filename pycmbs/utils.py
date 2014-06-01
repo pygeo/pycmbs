@@ -76,9 +76,9 @@ class Dict2TXT(object):
 
         for k in keys:
             if parent == '':
-                pstr = k
+                pstr = str(k)
             else:
-                pstr = parent + self.tagsep + k
+                pstr = parent + self.tagsep + str(k)
             if isinstance(d[k], dict):
                 h1, s1 = self._convert(d[k], h='', s='', parent=pstr)
                 h += h1
@@ -88,10 +88,9 @@ class Dict2TXT(object):
                 if newtag[0] == self.tagsep:
                     newtag = newtag[1:]
                 h += newtag
-                sep = self.fieldsep
                 s += str(d[k])
             s += self.fieldsep
-            h += sep
+            h += self.fieldsep
 
         return h, s
 
