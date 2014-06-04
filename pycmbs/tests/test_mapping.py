@@ -42,6 +42,11 @@ class TestMapPlotGeneric(unittest.TestCase):
         self.D.lat = np.random.random((ny,nx))*20.
 
     def test_SingleMap_Init(self):
+        try:
+            import cartopy.crs as ccrs
+        except:
+            return True  #no testing if cartopy not installed
+
         # just test if things pass
         SM1 = mapping.SingleMap(self.D)
         SM2 = mapping.SingleMap(self.D, stat_type='sum')
