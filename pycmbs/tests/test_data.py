@@ -19,6 +19,8 @@ from dateutil.rrule import rrule
 from dateutil.rrule import MONTHLY
 import datetime
 
+import tempfile
+
 from nose.tools import assert_raises
 
 
@@ -46,23 +48,23 @@ class TestData(unittest.TestCase):
 
     def test_log_warning_Standard(self):
         x = self.D.copy()
-        logfile = './data_warnings.log'
+        logfile = tempfile.mktemp(suffix='.log')
+        os.environ['DATA_WARNING_FILE'] = logfile
         if os.path.exists(logfile):
             os.remove(logfile)
         x._log_warning('testlog')
+        print logfile
         self.assertTrue(os.path.exists(logfile))
-        os.remove(logfile)
 
     def test_log_warning_WithEnvironmentVariable(self):
         x = self.D.copy()
-        logfile = './tmpdir/data_warningXXX.log'
+        logfile = tempfile.mktemp(suffix='.log')  # './tmpdir/data_warningXXX.log'
         os.environ.update({'DATA_WARNING_FILE' : logfile})
         if os.path.exists(logfile):
             os.remove(logfile)
         x._log_warning('testlog')
         self.assertTrue(os.path.exists(logfile))
         os.remove(logfile)
-        os.removedirs('./tmpdir')
 
     def test_DataInitLabelNotNone(self):
         d = Data(None,None, label='testlabel')
