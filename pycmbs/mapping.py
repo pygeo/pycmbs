@@ -254,10 +254,6 @@ class MapPlotGeneric(object):
         mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
         self.pax.add_patch(mapboundary)
 
-
-
-
-
     def _draw_cartopy(self, proj_prop=None, **kwargs):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
@@ -318,7 +314,6 @@ class MapPlotGeneric(object):
             for p in self.polygons:
                 self._add_single_polygon_cartopy(p)
 
-
     def _add_single_polygon_cartopy(self, p, color='red', linewidth=1):
         """
         add a polygon to a map
@@ -374,7 +369,6 @@ class MapPlotGeneric(object):
         z_out, lon1 = ut.add_cyclic_point(z, coord=lon)
         lon_out = np.ones_like(lat_out) * lon1
         return lon_out, lat_out, z_out
-
 
     def __basemap_ancillary(self, m, latvalues=None, lonvalues=None,
                             drawparallels=True, drawcountries=True,

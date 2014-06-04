@@ -29,6 +29,7 @@ import tempfile
 import struct
 import gzip
 
+
 class Data(object):
     """
     Data class: main class
@@ -274,9 +275,6 @@ class Data(object):
             raise ValueError('Invalid geometry!')
         return nx
     nx = property(_get_nx)
-
-
-
 
     def _get_mindate(self, base=None):
         """
@@ -1194,7 +1192,6 @@ class Data(object):
             else:
                 self._set_timecycle()
 
-
     def _get_binary_filehandler(self, mode='r'):
         """
         get filehandler for binary file
@@ -1215,7 +1212,6 @@ class Data(object):
         else:
             f = open(self.filename, mode)
         return f
-
 
     def _read_binary_file(self, dtype=None, lat=None, lon=None,
                           lonmin=None, lonmax=None, latmin=None,
@@ -1249,12 +1245,12 @@ class Data(object):
             assert (lon.ndim == 1)
 
         # specify bytes as well as format string for struct for each datatype
-        dtype_spec =  {
-                        'int16' : 'H',
-                        'double' : 'd',
-                        'int32' : 'i',
-                        'float' : 'f'
-                      }
+        dtype_spec = {
+            'int16': 'H',
+            'double': 'd',
+            'int32': 'i',
+            'float': 'f'
+        }
 
         if dtype not in dtype_spec.keys():
             raise ValueError('ERROR: invalid data type')
@@ -1317,8 +1313,8 @@ class Data(object):
             if lat[latmaxpos] > latmax:
                 latmaxpos -= 1
 
-            olon = lon[lonminpos:lonmaxpos+1]
-            olat = lat[latminpos:latmaxpos+1]
+            olon = lon[lonminpos:lonmaxpos + 1]
+            olat = lat[latminpos:latmaxpos + 1]
 
             ny = len(olat)
             nx = len(olon)
@@ -1328,17 +1324,16 @@ class Data(object):
             print 'coordinates: ', lonmin, lonmax, latmin, latmax
             print 'Positions: ', lonminpos, lonmaxpos, latminpos, latmaxpos
 
-            file_content = self._read_binary_subset2D(f, struct.calcsize(dtype_spec[dtype]), ny=len(lat), nx=len(lon), xbeg=lonminpos, xend=lonmaxpos+1, ybeg=latminpos, yend=latmaxpos+1)
+            file_content = self._read_binary_subset2D(f, struct.calcsize(dtype_spec[dtype]), ny=len(lat), nx=len(lon), xbeg=lonminpos, xend=lonmaxpos + 1, ybeg=latminpos, yend=latmaxpos + 1)
 
         # close file
         f.close()
 
         # put data into final matrix by decoding in accordance to the filetype
 
-        self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype]*ny*nx*nt, file_content)), (ny, nx))
+        self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype] * ny * nx * nt, file_content)), (ny, nx))
 
         del file_content
-
 
     def _read_binary_subset2D(self, f, nbytes, xbeg=None, xend=None, ybeg=None, yend=None, ny=None, nx=None):
         """
@@ -1386,10 +1381,10 @@ class Data(object):
             # position
             #~ print i*nbytes*nx, i*nx
             #~ stop
-            pos = i*nbytes*nx + xbeg*nbytes
+            pos = i * nbytes * nx + xbeg * nbytes
             f.seek(pos)
             # read content
-            bytes_to_read = (xend-xbeg)*nbytes
+            bytes_to_read = (xend - xbeg) * nbytes
             r = f.read(bytes_to_read)
             file_content += r
         return file_content
@@ -2041,8 +2036,6 @@ class Data(object):
             id = vals[i]
             res.update({id: {'mean': means[:, i], 'std': stds[:, i], 'sum': sums[:, i], 'min': mins[:, i],
                              'max': maxs[:, i]}})
-
-        #res = {'id': vals, 'mean': means, 'sum': sums, 'min': mins, 'max': maxs, 'std': stds}
         return res
 
 #-----------------------------------------------------------------------
@@ -4696,7 +4689,7 @@ class Data(object):
         if self.data.ndim == 3:
             self.data = self.data[:, ::-1, :]
         elif self.data.ndim == 2:
-            self.data = self.data[::-1, :]
+            self.data = self.data[:: -1, :]
         else:
             raise ValueError('Unsupported geometry for _flipud()')
         if hasattr(self, 'cell_area'):
@@ -4809,7 +4802,7 @@ class Data(object):
             raise ValueError('Numpy array required!')
         if not isinstance(self.lon, np.ndarray):
             raise ValueError('Numpy array required!')
-        G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon), sphere_radius=earth_radius*1000.)
+        G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon), sphere_radius=earth_radius * 1000.)
         d = G.orthodrome(np.deg2rad(self.lon), np.deg2rad(self.lat), np.deg2rad(lon_deg), np.deg2rad(lat_deg))
         return d
 
@@ -4823,13 +4816,12 @@ class Data(object):
         indices of center position [i,j]
         """
         # only for odd numbers!
-        if (self.nx % 2 ) != 1:
+        if (self.nx % 2) != 1:
             return None, None
-        if (self.ny % 2 ) != 1:
+        if (self.ny % 2) != 1:
             return None, None
 
-        return (self.ny-1) / 2, (self.nx-1) / 2
-
+        return (self.ny - 1) / 2, (self.nx - 1) / 2
 
     def get_center_data(self, return_object=False):
         """
@@ -4858,17 +4850,11 @@ class Data(object):
             if self.ndim == 2:
                 res = np.asarray([[res]])
             elif self.ndim == 3:
-                res = res.reshape((len(res),1,1))
+                res = res.reshape((len(res), 1, 1))
             else:
                 assert False
             r.data = res
-            r.cell_area = np.ones((1,1))
+            r.cell_area = np.ones((1, 1))
             return r
         else:
             return res
-
-
-
-
-
-

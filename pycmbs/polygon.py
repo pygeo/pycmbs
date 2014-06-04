@@ -52,7 +52,6 @@ class Polygon(object):
         """
         return [self._xmin(), self._xmax(), self._ymin(), self._ymax()]
 
-
     def point_in_poly(self, x, y):
         """
         Parameters
@@ -181,7 +180,7 @@ class Raster(object):
             plon = self.lon[valid_points]  # preselect points that are likely to fall within polygon
             plat = self.lat[valid_points]
 
-            resmsk = np.zeros_like(plon)*np.nan
+            resmsk = np.zeros_like(plon) * np.nan
             for i in xrange(len(plon)):
                 if P.point_in_poly(plon[i], plat[i]):
                     if np.isnan(resmsk[i]):
@@ -189,7 +188,7 @@ class Raster(object):
                     else:
                         raise ValueError('Overlapping polygons not supported yet!')
             # reassign mask
-            newmsk = np.ones_like(self.lon)*np.nan
+            newmsk = np.ones_like(self.lon) * np.nan
             newmsk[valid_points] = resmsk
             newvalues = ~np.isnan(newmsk)
             if np.any(~np.isnan(self.mask[newvalues])):
