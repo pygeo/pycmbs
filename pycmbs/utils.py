@@ -93,6 +93,3 @@ class Dict2TXT(object):
             h += self.fieldsep
 
         return h, s
-
-
-

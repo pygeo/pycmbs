@@ -24,6 +24,7 @@ exclude test_hov.py
 exclude anova_test.py
 prune dist
 recursive-exclude tests devdirs
+recursive-exclude emd.py
 graft doc
 include COPYRIGHT.md
 include COPYING_netCDF4
