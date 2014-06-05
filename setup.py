@@ -9,7 +9,7 @@ COPYRIGHT.md
 from setuptools import setup
 import pycmbs
 
-install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4"]
+install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib"]
 
 setup(name='pycmbs',
       version=pycmbs.__version__,

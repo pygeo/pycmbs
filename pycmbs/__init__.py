@@ -25,10 +25,10 @@ __license__ = "MIT License, see LICENSE.md for details"
 __url__ = "https://github.com/pygeo/pycmbs"
 """The URL for pyCMBS's homepage."""
 
-__version__ = "1.0.0-dev"
+__version__ = "1.0.1-deva"
 """Version number of pyCMBS."""
 
-__date__ = "2014-03-01"
+__date__ = "2014-06-05"
 """The release date of this version of pyCMBS."""
 
 __email__ = "alexander.loew@mpimet.mpg.de"
