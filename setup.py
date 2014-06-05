@@ -14,7 +14,7 @@ install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4"]
 setup(name='pycmbs',
       version=pycmbs.__version__,
       packages=['pycmbs', 'pycmbs/benchmarking', 'pycmbs/tests',
-                'pycmbs/benchmarking/logo', 'pycmbs/examples'],
+                'pycmbs/benchmarking/logo', 'pycmbs/examples', 'pycmbs/diagnostic', 'pycmbs/colormaps', 'pycmbs/plots'],
       package_dir={'pycmbs': 'pycmbs'},
       package_data={'pycmbs': ['benchmarking/configuration/*',
                                'benchmarking/logo/*']},

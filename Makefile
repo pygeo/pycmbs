@@ -38,11 +38,15 @@ tests:
 dist : clean
 	python setup.py sdist
 
-build_docs: 
+build_docs:
 	python setup.py build_sphinx
 
 upload_docs:
 	python setup.py upload_sphinx
+
+upload_pip:
+	# note that this requres .pypirc file beeing in home directory
+	python setup.py sdist upload
 
 pep8 :
 	$(PEP) *.py
