@@ -21,7 +21,7 @@ class TestData(unittest.TestCase):
         pass
 
     def test_ReportInit(self):
-        self.assertEqual(self.R.filename, self._tmpdir + '/testfile.tex')
+        self.assertEqual(self.R.filename, self._tmpdir + os.sep + 'testfile.tex')
         self.assertEqual(self.R.format, 'png')
         self.assertEqual(self.R.author, 'Alex Loew')
 
@@ -30,10 +30,10 @@ class TestData(unittest.TestCase):
         self.assertTrue(os.path.exists(self.R.filename))
 
     def test_open_report_MissingDirectory(self):
-        self.R = Report('testfile', 'myreport', 'Alex Loew', outdir=self._tmpdir + '/nixdir')
+        self.R = Report('testfile', 'myreport', 'Alex Loew', outdir=self._tmpdir + os.sep + 'nixdir')
         self.R.open()
         self.assertTrue(os.path.exists(self.R.filename))
-        self.assertTrue(os.path.exists(self._tmpdir + '/nixdir'))
+        self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'nixdir'))
 
     def test_report_features(self):
         if os.path.exists(self.R.filename):
