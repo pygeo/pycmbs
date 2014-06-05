@@ -8,6 +8,7 @@ global-include *.ini
 global-include Phytonlogo5.pdf
 global-include pyCMBS_template.cfg
 global-include setup.cfg
+global-include version.json
 graft tests
 graft logo
 graft configuration

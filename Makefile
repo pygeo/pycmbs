@@ -49,8 +49,7 @@ update_version:
 
 upload_pip: update_version
 	# note that this requres .pypirc file beeing in home directory
-
-	echo python setup.py sdist upload
+	python setup.py sdist upload
 
 pep8 :
 	$(PEP) *.py
