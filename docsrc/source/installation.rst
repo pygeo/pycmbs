@@ -61,7 +61,7 @@ the file *.travis.yml* in the root directory of the source code.
 
 The developers are using automatic code checking and builds and the
 installation sequence in the file *.travis.yml* is used to setup for each build
-a working installation. 
+a working installation.
 
 
 Detailed installation instructions for pyCMBS
@@ -73,14 +73,17 @@ Installation using *pip* (the easiest way)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using `pip <https://pypi.python.org/pypi/pip>`_ is the easiest (and recommended) way to install pyCMBS.
-All dependencies must have been installed before.
+The installation with *pip* was tested without the cartopy plotting backend so far.
 
 If you have *pip* not yet installed on your machine, then the first step
 is to `install pip <https://pypi.python.org/pypi/pip>`_ .
 
-Once *pip* is installed, the installation of pyCMBS is as simple as::
+Once *pip* is installed, the installation of pyCMBS is as simple as a two-liner::
 
+    pip install numpy
     pip install pycmbs
+
+Note that the *numpy* module needs to be installed separately before as otherwise the installation fails. The command *pip install pycmbs* will then install all remaining dependencies.
 
 Check if everything is working, like described below_.
 
