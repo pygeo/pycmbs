@@ -46,6 +46,8 @@ class TestData(unittest.TestCase):
         self.D.calendar = 'gregorian'
         self.D.oldtime=False
 
+        self._tmpdir = tempfile.mkdtemp()
+
     def test_log_warning_Standard(self):
         x = self.D.copy()
         logfile = tempfile.mktemp(suffix='.log')
@@ -955,7 +957,7 @@ class TestData(unittest.TestCase):
             d.read(False)
 
     def test_save_InvalidOption(self):
-        testfile = './mytestfile.nc'
+        testfile = self._tmpdir + os.sep + 'mytestfile.nc'
 
         # invalid mean combination
         with self.assertRaises(ValueError):
@@ -974,7 +976,7 @@ class TestData(unittest.TestCase):
         """
         test netCDF save routine
         """
-        testfile = './mytestfile.nc'
+        testfile = self._tmpdir + os.sep + 'mytestfile.nc'
         self.D.save(testfile, varname='testvar', format='nc', delete=True)
 
         # read data again
@@ -983,7 +985,6 @@ class TestData(unittest.TestCase):
         self.assertEqual(len(F.time),len(self.D.time))
         self.assertFalse(np.any(self.D.data-F.data) != 0. )
         self.assertFalse(np.any(self.D.time-F.time) != 0. )
-
         del F
 
         # read data from default, this should then have the same variable name as self.D
@@ -994,7 +995,6 @@ class TestData(unittest.TestCase):
         self.assertFalse(np.any(self.D.data-F.data) != 0. )
 
         os.remove(testfile)
-
 
     def test_interp_time_InvalidMethod(self):
         tref = self.D.num2date(pl.datestr2num('2001-05-05') + np.arange(200)*0.5+0.25)
@@ -1082,30 +1082,28 @@ class TestData(unittest.TestCase):
             self.D.num2date(t)
 
     def test_save_ascii(self):
-        self.D._save_ascii('testexport.txt', delete=True)
-        self.assertTrue(os.path.exists('testexport.txt'))
-        os.remove('testexport.txt')
+        self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
+        self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'testexport.txt'))
+        os.remove(self._tmpdir + os.sep + 'testexport.txt')
 
     def test_save_ascii_FileExistingAlreadyDelete(self):
-        if not os.path.exists('testexport.txt'):
-            os.system('touch testexport.txt')
-        self.D._save_ascii('testexport.txt', delete=True)
-        self.assertTrue(os.path.exists('testexport.txt'))
-        os.remove('testexport.txt')
+        if not os.path.exists(self._tmpdir + os.sep + 'testexport.txt'):
+            os.system('touch ' + self._tmpdir + os.sep + 'testexport.txt')
+        self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
+        self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'testexport.txt'))
+        os.remove(self._tmpdir + os.sep + 'testexport.txt')
 
     def test_save_ascii_FileExistingAlreadyNoDelete(self):
         if not os.path.exists('testexport.txt'):
-            os.system('touch testexport.txt')
+            os.system('touch ' + self._tmpdir + os.sep + 'testexport.txt')
         with self.assertRaises(ValueError):
-            self.D._save_ascii('testexport.txt', delete=False)
-        os.remove('testexport.txt')
+            self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=False)
+        os.remove(self._tmpdir + os.sep + 'testexport.txt')
 
     def test_div_Default(self):
         D = self.D.copy()
         R = D.div(D)
         self.assertTrue(np.all(R.data == 1.))
-
-
 
     def test_div_InvalidGeometry(self):
         D = self.D.copy()
