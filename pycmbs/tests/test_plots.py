@@ -8,14 +8,12 @@ from pycmbs.plots import map_difference, map_season, GlecklerPlot
 from pycmbs.plots import xx_map_plot, HstackTimeseries, HovmoellerPlot
 from pycmbs.plots import rotate_ticks, CorrelationAnalysis
 
-
-
-
 import scipy
 import os
 import numpy as np
 import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
+import tempfile
 
 class TestPycmbsPlots(unittest.TestCase):
 
@@ -39,6 +37,8 @@ class TestPycmbsPlots(unittest.TestCase):
         self.D.cell_area = np.ones((1,1))
         self.D.lon=np.ones((1,1)) * 20.
         self.D.lat=np.ones((1,1)) * 10.
+
+        self._tmpdir = tempfile.mkdtemp()
 
     def test_ReichlerPlotGeneral(self):
         RP = ReichlerPlot()
@@ -152,14 +152,14 @@ class TestPycmbsPlots(unittest.TestCase):
 
         G.plot_model_error('ta')
         G.plot_model_ranking('ta')
-        G.write_ranking_table('ta', 'nix.tex', fmt='latex')
-        self.assertTrue(os.path.exists('nix.tex'))
-        if os.path.exists('nix.tex'):
-            os.remove('nix.tex')
-        G.write_ranking_table('ta', 'nix1', fmt='latex')
-        self.assertTrue(os.path.exists('nix1.tex'))
-        if os.path.exists('nix1.tex'):
-            os.remove('nix1.tex')
+        G.write_ranking_table('ta', self._tmpdir + os.sep + 'nix.tex', fmt='latex')
+        self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'nix.tex'))
+        if os.path.exists(self._tmpdir + os.sep + 'nix.tex'):
+            os.remove(self._tmpdir + os.sep + 'nix.tex')
+        G.write_ranking_table('ta', self._tmpdir + os.sep + 'nix1', fmt='latex')
+        self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'nix1.tex'))
+        if os.path.exists(self._tmpdir + os.sep + 'nix1.tex'):
+            os.remove(self._tmpdir + os.sep + 'nix1.tex')
 
     def test_old_map_plot(self):
         xx_map_plot(self.D)
