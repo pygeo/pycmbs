@@ -7,6 +7,10 @@ COPYRIGHT.md
 """
 
 import os
+import json
+
+
+ppath = os.path.dirname(os.path.realpath(__file__))
 
 __name__ = "pycmbs"
 """The project name."""
@@ -28,7 +32,7 @@ __url__ = "https://github.com/pygeo/pycmbs"
 __date__ = "2014-06-05"
 """The release date of this version of pyCMBS."""
 
-__version__ = "1.0.3"   # note that a proper version number is required as PIP otherwise can not detect the file
+__version__ = json.load(open(ppath + os.sep + 'version.json'))  # note that a proper version number is required as PIP otherwise can not detect the file
 """Version number of pyCMBS."""
 
 __email__ = "alexander.loew@mpimet.mpg.de"

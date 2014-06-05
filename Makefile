@@ -44,9 +44,13 @@ build_docs:
 upload_docs:
 	python setup.py upload_sphinx
 
-upload_pip:
+update_version:
+	python autoincrement_version.py
+
+upload_pip: update_version
 	# note that this requres .pypirc file beeing in home directory
-	python setup.py sdist upload
+
+	echo python setup.py sdist upload
 
 pep8 :
 	$(PEP) *.py
