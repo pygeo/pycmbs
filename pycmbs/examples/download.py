@@ -8,10 +8,27 @@ COPYRIGHT.md
 
 import os
 from pycmbs.data import Data
+import tempfile
 
 def get_example_directory():
     """ returns directory where this file is located """
-    return os.path.dirname(os.path.realpath(__file__))
+
+    testfile = 'xxxxdownload_test.txt'
+
+    # by default use examples directory
+    r = os.path.dirname(os.path.realpath(__file__))
+
+    # check if one can write into the directory
+    try:
+        f = open(r + os.sep + testfile, 'w')
+        f.write('test')
+        f.close()
+        os.remove(r + os.sep + testfile)
+    except:
+        # if no right access then
+        r = tempfile.mkdtemp()
+
+    return r
 
 def get_example_data_directory():
     """ returns directory where the example data should be """
