@@ -180,8 +180,8 @@ class TestData(TestCase):
 
         ##############################
         # SAVE
-        REGSTAT.save('testprefix', format='pkl', dir= self._tmpdir + os.sep + 'xxxtest1')  # save as PKL
-        REGSTAT.save('testprefix', format='txt', dir= self._tmpdir + os.sep + 'xxxtest2')  # save as ASCII
+        REGSTAT.save('testprefix', format='pkl', dir= self._tmpdir + os.sep)  # save as PKL
+        REGSTAT.save('testprefix', format='txt', dir= self._tmpdir + os.sep)  # save as ASCII
 
         # ... now check if saved data is o.k
         #1) standard statistics
@@ -199,7 +199,7 @@ class TestData(TestCase):
         del d
 
         #2) correlation statistics: A
-        fname = self._tmpdir + os.sep + 'xxxtest2/testprefix_regional_statistics_correlation_A.txt'
+        fname = self._tmpdir + os.sep + 'testprefix_regional_statistics_correlation_A.txt'
         d = np.loadtxt(fname, skiprows=1)  # | id | rmean | rstd | rsum | rmin | rmax |
         ids = d[:, 0]
         m = ids == 2
@@ -216,7 +216,7 @@ class TestData(TestCase):
         self.assertLess(np.abs(1. - rmax / REGSTAT.statistics['corrstat']['analysis_A'][2]['max'][0]), 0.0000000001)
 
         # correlation statistics: B
-        fname = self._tmpdir + os.sep + 'xxxtest2/testprefix_regional_statistics_correlation_B.txt'
+        fname = self._tmpdir + os.sep + 'testprefix_regional_statistics_correlation_B.txt'
         d = np.loadtxt(fname, skiprows=1)  # | id | slope | intercept | correlation | pvalue |
         ids = d[:, 0]
         m = ids == 4
@@ -231,7 +231,7 @@ class TestData(TestCase):
         del d
 
         # correlation statistics: C
-        fname = self._tmpdir + os.sep + 'xxxtest2/testprefix_regional_statistics_correlation_C.txt'
+        fname = self._tmpdir + os.sep + 'testprefix_regional_statistics_correlation_C.txt'
         d = np.loadtxt(fname, skiprows=1)  # | id | slope | intercept | correlation | pvalue |
         ids = d[:, 0]
         m = ids == 3
