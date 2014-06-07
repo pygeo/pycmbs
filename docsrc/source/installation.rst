@@ -28,9 +28,11 @@ required for using pyCMBS sucessfully.
 *Core python packages [obligatory]*
 
 - python 2.7.x
-- `matplotlib <http://matplotlib.org/>`_
+- `matplotlib v1.3.x <http://matplotlib.org/>`_
 - `numpy <http://www.numpy.org/>`_
 - `scipy <http://www.scipy.org/>`_
+
+Note that you should really ensure that your matplotlib installation is greater than version 1.3, as otherwise some features will not work. Standard packages like e.g. shipped as standard with Ubuntu have smaller version numbers (e.g. v1.1.1).
 
 *Obligatory additional dependencies*
 
@@ -49,6 +51,16 @@ For plotting projected data (map plots), pyCMBS currently supports two different
 
 - `cartopy <http://scitools.org.uk/cartopy/>`_ [recommended]
 - `matplotlib basemap <http://matplotlib.org/basemap/index.html>`_ [optional]
+
+
+Installation of dependencies
+----------------------------
+
+For convenience, we have put together an installation procedure to install all required dependencies (except the ones needed for cartopy).
+Please find it here__ for your convenience.
+
+__ installation_dependencies_
+
 
 
 Quick installation from scratch for experts
@@ -137,6 +149,60 @@ To retrieve the code do the following::
 Check successful installation, like described below_.
 
 
+.. _installation_dependencies:
+
+Installation of dependencies
+----------------------------
+
+Please find here a working installation procedure, which was tested under Ubuntu 32-bit. It installs all pyCMBS dependencies, except the ones needed for cartopy and installs pyCMBS itself.::
+
+    #!/usr/bin/env bash
+
+    #
+    # This file provides an installing procedure for pyCMBS WITHOUT Cartopy support
+    #    it was tested for ubuntu32
+    #
+
+    # update package database
+    apt-get update
+
+    #####################################################################
+    # DEPENDENCIES
+    #####################################################################
+
+    # the -qq option installs silent using defaults
+    apt-get -qq install texlive-latex-base texlive-latex-extra texlive-latex-recommended
+    apt-get -qq install python-pip python-dev
+    apt-get -qq install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
+    apt-get -qq install python-numpy
+    apt-get -qq install cython
+    C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4
+
+    # apt-get -qq install python-matplotlib  # this gives the system default package, which is currently v1.1.1 therefore it is not used here
+    # it is highly recommended to use matplotlib > 1.3
+    apt-get -qq install libfreetype6-dev libpng-dev  # required for matplotlib
+    sudo easy_install -U distribute
+    sudo pip install https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
+    apt-get -qq install python-mpltoolkits.basemap
+    apt-get -qq install python-mpltoolkits.basemap-data
+
+    apt-get -qq install python-scipy
+
+    #####################################################################
+    # pycmbs
+    #####################################################################
+    pip install --upgrade pycmbs
+
+    #####################################################################
+    # test environment
+    #####################################################################
+    pip install nose
+
+    echo "Now you can run the unittests as follows:"
+    echo "    cd /usr/local/lib/python2.7/dist-packages/pycmbs/tests"
+    echo "    nosetests"
+
+
 .. _below:
 
 Final check of installation
@@ -178,7 +244,6 @@ is a bad sign. In that case, please check your installation again.
 Have a look at the troublesolver_.
 
 pycmbs init
-
 
 
 .. _installation_details:

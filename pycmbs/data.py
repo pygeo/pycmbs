@@ -2519,7 +2519,11 @@ class Data(object):
             File.close()
             return None
 
-        data = File.get_variable(varname)
+        try:
+            data = File.get_variable(varname)
+        except:
+            print('ERROR when reading variable %s' % varname)
+            return None
         var = File.get_variable_handler(varname)
 
         if data.ndim > 3:
