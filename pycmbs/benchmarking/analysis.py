@@ -881,7 +881,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             report.figure(PC_plot.figure, caption='Pattern correlation for ' + obs_orig.label.upper())
             report.newpage()
 
-            hstackfile = report.outdir + 'Climate_mean_timeseries_correlations_' + thevar.upper() + '_' + obs_orig.label.upper().replace(' ', '') + '.png'
+            hstackfile = report.outdir + 'Climate_mean_timeseries_correlations_' + obs_type.upper() + '_' + obs_orig.label.upper().replace(' ', '') + '.png'
             PC_plot.figure.savefig(hstackfile, dpi=200)
 
             del PC_plot
