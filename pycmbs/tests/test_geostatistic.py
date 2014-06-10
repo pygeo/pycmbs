@@ -29,6 +29,12 @@ class TestData(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_invalid_geometry(self):
+        x = self.x
+        x.data = np.random.random((5,4,3))
+        with self.assertRaises(ValueError):
+            G = Geostatistic(x)
+
     def test_init(self):
         with self.assertRaises(ValueError):
             G = Geostatistic(self.x)
