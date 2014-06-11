@@ -602,6 +602,10 @@ def main():
     global_gleckler.fig.savefig(outdir + 'portraet_diagram.png', dpi=200, bbox_inches='tight')
     global_gleckler.fig.savefig(outdir + 'portraet_diagram.pdf', dpi=200, bbox_inches='tight')
 
+    plt.close(global_gleckler.fig.number)
+
+
+
     # generate dictionary with observation labels for each variable
     labels_dict = {}
     for variable in variables:
@@ -631,6 +635,7 @@ def main():
         fl = global_gleckler._draw_legend(thelabels, title=variable.upper())
         rep.figure(fl, width='8cm', bbox_inches=None)
         fl.savefig(outdir + 'legend_portraet_' + str(lcnt).zfill(5) + '.png', bbox_inches='tight', dpi=200)
+        plt.close(fl.number)
         del fl
         lcnt += 1
 
@@ -642,6 +647,7 @@ def main():
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model RANKING for different observational \
                    datasets: ' + v.upper())
+        plt.close(tmpfig.number)
         del tmpfig
 
         # write a table with model ranking
@@ -656,6 +662,7 @@ def main():
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model ERROR for different observational \
                    datasets: ' + v.upper())
+        plt.close(tmpfig.number)
         del tmpfig
 
     ########################################################################

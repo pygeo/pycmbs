@@ -595,6 +595,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             report.figure(f_season, caption='Seasonal mean ' + obs_name)
         else:
             report.figure(f_season, caption='Monthly mean ' + obs_name)
+        plt.close(f_season.number)
 
     ####################################################################################################################
     # MAIN LIST OVER MODELS
@@ -884,6 +885,8 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             hstackfile = report.outdir + 'Climate_mean_timeseries_correlations_' + obs_type.upper() + '_' + obs_orig.label.upper().replace(' ', '') + '.png'
             PC_plot.figure.savefig(hstackfile, dpi=200)
 
+            plt.close(PC_plot.figure.number)
+
             del PC_plot
 
     del obs_monthly
@@ -893,6 +896,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         f_reich = Rplot.bar(title='relative model error: %s' % obs_type.upper())
         report.figure(f_reich, caption='Relative model performance for ' + obs_type.upper())
         report.newpage()
+        plt.close(f_reich.number)
         del Rplot
 
     sys.stdout.write('\n *** Processing finished. \n')
