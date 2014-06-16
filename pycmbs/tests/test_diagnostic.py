@@ -13,7 +13,7 @@ from unittest import TestCase
 from pycmbs.data import Data
 from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, EOF, Koeppen
 from pycmbs.plots import GlecklerPlot
-from pycmbs.region import Region
+from pycmbs.region import RegionIndex
 import scipy as sc
 from scipy import stats
 import matplotlib.pylab as pl
@@ -206,22 +206,22 @@ class TestData(TestCase):
 
 
     def test_RegionalAnalysis_xNone(self):
-        region = Region(1, 1, 1, 1, 'test', type='index')
+        region = RegionIndex('test', 1, 1, 1, 1, label='test')
         R = RegionalAnalysis(None, self.D, region)
         self.assertEqual(R.x, None)
 
     def test_RegionalAnalysis_InvalidX(self):
-        region = Region(1, 1, 1, 1, 'test', type='index')
+        region = RegionIndex('test', 1, 1, 1, 1, label='test')
         with self.assertRaises(ValueError):
             R = RegionalAnalysis([123.], self.D, region)
 
     def test_RegionalAnalysis_InvalidY(self):
-        region = Region(1, 1, 1, 1, 'test', type='index')
+        region = RegionIndex('test', 1, 1, 1, 1, label='test')
         with self.assertRaises(ValueError):
             R = RegionalAnalysis(self.D, [123.], region)
 
     def test_RegionalAnalysis_yNone(self):
-        region = Region(1, 1, 1, 1, 'test', type='index')
+        region = RegionIndex('test', 1, 1, 1, 1, label='test')
         R = RegionalAnalysis(self.D, None, region)
         self.assertEqual(R.y, None)
 
@@ -231,7 +231,7 @@ class TestData(TestCase):
             R = RegionalAnalysis(self.D, self.D, region)
 
     def test_RegionalAnalysis_InvalidGeometry(self):
-        region = Region(1, 1, 1, 1, 'test', type='index')
+        region = RegionIndex(5, 1, 1, 1, 1, label='test')
         x = self.D.copy()
         y = self.D.copy()
         y.data = np.random.random((2,3,4,5))

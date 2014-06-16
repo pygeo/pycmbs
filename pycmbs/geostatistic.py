@@ -22,7 +22,7 @@ class Geostatistic(object):
         self.statistic = {}
 
     def _check(self):
-        if np.any(np.diff(self.range_bins)<0.):
+        if np.any(np.diff(self.range_bins) < 0.):
             raise ValueError('Bins are not in ascending order!')
         if self.x.data.ndim != 2:
             raise ValueError('Currently only support for 2D data')
@@ -44,7 +44,7 @@ class Geostatistic(object):
         """
         if not hasattr(self, 'lon_center'):
             raise ValueError('ERROR: You need to specify first the center position!')
-        d = np.abs((self.x.lon - self.lon_center)**2. + (self.x.lat - self.lat_center)**2.)
+        d = np.abs((self.x.lon - self.lon_center) ** 2. + (self.x.lat - self.lat_center) ** 2.)
         dmin = d.min()
         m = d == dmin
 
@@ -52,13 +52,12 @@ class Geostatistic(object):
         i = idx[0][m][0]
         j = idx[1][m][0]
 
-        if (np.abs(1.-self.x.lon[i,j]/self.lon_center) > 0.05) or (np.abs(1.-self.x.lat[i,j]/self.lat_center) > 0.05):  # at least 5% acc.
-            print 'lon: ', self.x.lon[i,j], self.lon_center
-            print 'lat: ', self.x.lat[i,j], self.lat_center
+        if (np.abs(1. - self.x.lon[i, j] / self.lon_center) > 0.05) or (np.abs(1. - self.x.lat[i, j] / self.lat_center) > 0.05):  # at least 5% acc.
+            print 'lon: ', self.x.lon[i, j], self.lon_center
+            print 'lat: ', self.x.lat[i, j], self.lat_center
             i = None
             j = None
         return i, j
-
 
     def plot_semivariogram(self, ax=None, color='red', logy=False):
         """
@@ -94,13 +93,13 @@ class Geostatistic(object):
             r = self.statistic['percentiles'][e]['r']
             v = self.statistic['percentiles'][e]['value']
             if logy:
-                ax.semilogy(r, v, 'x-', label='p='+str(e))
+                ax.semilogy(r, v, 'x-', label='p=' + str(e))
             else:
-                ax.plot(r, v, 'x-', label='p='+str(e))
+                ax.plot(r, v, 'x-', label='p=' + str(e))
         ax.set_ylabel(self.x._get_unit())
         ax.set_xlabel('distance [km]')
         ax.grid()
-        ax.legend(loc='upper left', prop={'size':10}, ncol=3)
+        ax.legend(loc='upper left', prop={'size': 10}, ncol=3)
         return ax
 
     def calc_percentile(self, p):
@@ -115,14 +114,16 @@ class Geostatistic(object):
             if len(d) < 1:
                 continue
             r.append(b)
-            v.append(np.percentile(d, p*100.))  # percentile value
+            v.append(np.percentile(d, p * 100.))  # percentile value
 
         r = np.asarray(r)
         np.asarray(v)
 
-        o = {p : {'r' : np.asarray(r), 'value' : np.asarray(v)}}
-        self.statistic.update({'percentiles' : o})
+        o = {'r': np.asarray(r), 'value': np.asarray(v)}
+        if 'percentiles' not in self.statistic.keys():
+            self.statistic.update({'percentiles': {}})
 
+        self.statistic['percentiles'].update({p: o})
 
     def _get_data_distance(self, lb, ub):
         """
@@ -138,7 +139,6 @@ class Geostatistic(object):
             o = o.data[~o.mask]  # ensure that nparray is returned
         return o
 
-
     def calc_semivariance(self):
         """
         calculate semivariance for selected range bins
@@ -149,9 +149,9 @@ class Geostatistic(object):
         for b in bounds:
             d = self._get_data_distance(0., b)
             r.append(b)
-            v.append(0.5*np.ma.var(d))  #semivariance
-        o = {'r' : np.asarray(r), 'sigma' : np.asarray(v)}
-        self.statistic.update({'semivariogram' : o})
+            v.append(0.5 * np.ma.var(d))  # semivariance
+        o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
+        self.statistic.update({'semivariogram': o})
 
     def _get_figure_ax(self, ax):
         if ax is None:
@@ -160,7 +160,6 @@ class Geostatistic(object):
         else:
             f = ax.figure
         return f, ax
-
 
     def _calculate_distance(self):
         """

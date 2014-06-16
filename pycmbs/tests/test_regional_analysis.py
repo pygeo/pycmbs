@@ -7,6 +7,8 @@ from pycmbs.diagnostic import RegionalAnalysis
 import scipy as sc
 import numpy as np
 
+import tempfile
+
 
 class TestData(TestCase):
 
@@ -30,6 +32,8 @@ class TestData(TestCase):
         self.D.time_str = "days since 0001-01-01 00:00:00"
         self.D.calendar = 'gregorian'
         self.D.cell_area = np.ones((1, 1))
+
+        self._tmpdir = tempfile.mkdtemp()
 
     def test_regional_analysis(self):
 
@@ -176,12 +180,12 @@ class TestData(TestCase):
 
         ##############################
         # SAVE
-        REGSTAT.save('testprefix', format='pkl', dir='./xxxtest1')  # save as PKL
-        REGSTAT.save('testprefix', format='txt', dir='./xxxtest2')  # save as ASCII
+        REGSTAT.save('testprefix', format='pkl', dir= self._tmpdir + os.sep)  # save as PKL
+        REGSTAT.save('testprefix', format='txt', dir= self._tmpdir + os.sep)  # save as ASCII
 
         # ... now check if saved data is o.k
         #1) standard statistics
-        fname = './xxxtest2/testprefix_regional_statistics_standard_' + str(3).zfill(16) + '.txt'
+        fname = self._tmpdir + os.sep + 'testprefix_regional_statistics_standard_' + str(3).zfill(16) + '.txt'
         d = np.loadtxt(fname, skiprows=1)
 
         self.assertTrue(np.all(np.abs(1. - d[:,1] / REGSTAT.statistics['xstat'][3]['mean']) < 0.000001))
@@ -195,7 +199,7 @@ class TestData(TestCase):
         del d
 
         #2) correlation statistics: A
-        fname = './xxxtest2/testprefix_regional_statistics_correlation_A.txt'
+        fname = self._tmpdir + os.sep + 'testprefix_regional_statistics_correlation_A.txt'
         d = np.loadtxt(fname, skiprows=1)  # | id | rmean | rstd | rsum | rmin | rmax |
         ids = d[:, 0]
         m = ids == 2
@@ -212,7 +216,7 @@ class TestData(TestCase):
         self.assertLess(np.abs(1. - rmax / REGSTAT.statistics['corrstat']['analysis_A'][2]['max'][0]), 0.0000000001)
 
         # correlation statistics: B
-        fname = './xxxtest2/testprefix_regional_statistics_correlation_B.txt'
+        fname = self._tmpdir + os.sep + 'testprefix_regional_statistics_correlation_B.txt'
         d = np.loadtxt(fname, skiprows=1)  # | id | slope | intercept | correlation | pvalue |
         ids = d[:, 0]
         m = ids == 4
@@ -227,7 +231,7 @@ class TestData(TestCase):
         del d
 
         # correlation statistics: C
-        fname = './xxxtest2/testprefix_regional_statistics_correlation_C.txt'
+        fname = self._tmpdir + os.sep + 'testprefix_regional_statistics_correlation_C.txt'
         d = np.loadtxt(fname, skiprows=1)  # | id | slope | intercept | correlation | pvalue |
         ids = d[:, 0]
         m = ids == 3
@@ -239,7 +243,3 @@ class TestData(TestCase):
         self.assertLess(np.abs(1. - slope / REGSTAT.statistics['corrstat']['analysis_C'][3]['slope']), 0.0000000001)
         self.assertLess(np.abs(1. - intercept / REGSTAT.statistics['corrstat']['analysis_C'][3]['intercept']), 0.0000000001)
         self.assertLess(np.abs(1. - correlation / REGSTAT.statistics['corrstat']['analysis_C'][3]['correlation']), 0.0000000001)
-
-        # Clean up
-        os.system('rm -r ./xxxtest1')
-        os.system('rm -r ./xxxtest2')

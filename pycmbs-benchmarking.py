@@ -599,6 +599,12 @@ def main():
     rep.figure(global_gleckler.fig,
                caption='Gleckler et al. (2008) model performance index',
                width='10cm')
+    global_gleckler.fig.savefig(outdir + 'portraet_diagram.png', dpi=200, bbox_inches='tight')
+    global_gleckler.fig.savefig(outdir + 'portraet_diagram.pdf', dpi=200, bbox_inches='tight')
+
+    plt.close(global_gleckler.fig.number)
+
+
 
     # generate dictionary with observation labels for each variable
     labels_dict = {}
@@ -620,6 +626,7 @@ def main():
         del thelabels
 
     #/// legend for gleckler plot ///
+    lcnt = 1
     for variable in variables:
         if variable not in PCFG.options.keys():
             continue
@@ -627,7 +634,10 @@ def main():
         thelabels = labels_dict[variable]
         fl = global_gleckler._draw_legend(thelabels, title=variable.upper())
         rep.figure(fl, width='8cm', bbox_inches=None)
+        fl.savefig(outdir + 'legend_portraet_' + str(lcnt).zfill(5) + '.png', bbox_inches='tight', dpi=200)
+        plt.close(fl.number)
         del fl
+        lcnt += 1
 
     #/// plot model ranking between different observational datasets ///
     rep.subsection('Model ranking consistency')
@@ -637,6 +647,7 @@ def main():
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model RANKING for different observational \
                    datasets: ' + v.upper())
+        plt.close(tmpfig.number)
         del tmpfig
 
         # write a table with model ranking
@@ -651,6 +662,7 @@ def main():
         rep.figure(tmpfig, width='8cm', bbox_inches=None,
                    caption='Model ERROR for different observational \
                    datasets: ' + v.upper())
+        plt.close(tmpfig.number)
         del tmpfig
 
     ########################################################################

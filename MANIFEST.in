@@ -8,23 +8,24 @@ global-include *.ini
 global-include Phytonlogo5.pdf
 global-include pyCMBS_template.cfg
 global-include setup.cfg
+global-include version.json
 graft tests
 graft logo
 graft configuration
 graft docsrc
 prune build
 prune test_eof
-prune dirk
-prune misc
 prune example
+graft colormaps
+graft diagnostic
+graft plots
 prune dwd_notes
 prune notes
 exclude test_hov.py
 exclude anova_test.py
-exclude ansamp.py
-exclude debug_albedo.py
 prune dist
-recursive-exclude tests testfile.nc devdirs
+recursive-exclude tests devdirs
+recursive-exclude emd.py
 graft doc
 include COPYRIGHT.md
 include COPYING_netCDF4

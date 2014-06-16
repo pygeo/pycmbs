@@ -29,6 +29,7 @@ import tempfile
 import struct
 import gzip
 
+
 class Data(object):
     """
     Data class: main class
@@ -254,6 +255,26 @@ class Data(object):
     def _get_nt(self):
         return len(self.time)
     nt = property(_get_nt)
+
+    def _get_ny(self):
+        if self.ndim == 2:
+            ny, nx = self.data.shape
+        elif self.ndim == 3:
+            nt, ny, nx = self.data.shape
+        else:
+            raise ValueError('Invalid geometry!')
+        return ny
+    ny = property(_get_ny)
+
+    def _get_nx(self):
+        if self.ndim == 2:
+            ny, nx = self.data.shape
+        elif self.ndim == 3:
+            nt, ny, nx = self.data.shape
+        else:
+            raise ValueError('Invalid geometry!')
+        return nx
+    nx = property(_get_nx)
 
     def _get_mindate(self, base=None):
         """
@@ -1171,7 +1192,6 @@ class Data(object):
             else:
                 self._set_timecycle()
 
-
     def _get_binary_filehandler(self, mode='r'):
         """
         get filehandler for binary file
@@ -1192,7 +1212,6 @@ class Data(object):
         else:
             f = open(self.filename, mode)
         return f
-
 
     def _read_binary_file(self, dtype=None, lat=None, lon=None,
                           lonmin=None, lonmax=None, latmin=None,
@@ -1226,12 +1245,12 @@ class Data(object):
             assert (lon.ndim == 1)
 
         # specify bytes as well as format string for struct for each datatype
-        dtype_spec =  {
-                        'int16' : 'H',
-                        'double' : 'd',
-                        'int32' : 'i',
-                        'float' : 'f'
-                      }
+        dtype_spec = {
+            'int16': 'H',
+            'double': 'd',
+            'int32': 'i',
+            'float': 'f'
+        }
 
         if dtype not in dtype_spec.keys():
             raise ValueError('ERROR: invalid data type')
@@ -1294,8 +1313,8 @@ class Data(object):
             if lat[latmaxpos] > latmax:
                 latmaxpos -= 1
 
-            olon = lon[lonminpos:lonmaxpos+1]
-            olat = lat[latminpos:latmaxpos+1]
+            olon = lon[lonminpos:lonmaxpos + 1]
+            olat = lat[latminpos:latmaxpos + 1]
 
             ny = len(olat)
             nx = len(olon)
@@ -1305,17 +1324,16 @@ class Data(object):
             print 'coordinates: ', lonmin, lonmax, latmin, latmax
             print 'Positions: ', lonminpos, lonmaxpos, latminpos, latmaxpos
 
-            file_content = self._read_binary_subset2D(f, struct.calcsize(dtype_spec[dtype]), ny=len(lat), nx=len(lon), xbeg=lonminpos, xend=lonmaxpos+1, ybeg=latminpos, yend=latmaxpos+1)
+            file_content = self._read_binary_subset2D(f, struct.calcsize(dtype_spec[dtype]), ny=len(lat), nx=len(lon), xbeg=lonminpos, xend=lonmaxpos + 1, ybeg=latminpos, yend=latmaxpos + 1)
 
         # close file
         f.close()
 
         # put data into final matrix by decoding in accordance to the filetype
 
-        self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype]*ny*nx*nt, file_content)), (ny, nx))
+        self.data = np.reshape(np.asarray(struct.unpack(dtype_spec[dtype] * ny * nx * nt, file_content)), (ny, nx))
 
         del file_content
-
 
     def _read_binary_subset2D(self, f, nbytes, xbeg=None, xend=None, ybeg=None, yend=None, ny=None, nx=None):
         """
@@ -1363,10 +1381,10 @@ class Data(object):
             # position
             #~ print i*nbytes*nx, i*nx
             #~ stop
-            pos = i*nbytes*nx + xbeg*nbytes
+            pos = i * nbytes * nx + xbeg * nbytes
             f.seek(pos)
             # read content
-            bytes_to_read = (xend-xbeg)*nbytes
+            bytes_to_read = (xend - xbeg) * nbytes
             r = f.read(bytes_to_read)
             file_content += r
         return file_content
@@ -1826,7 +1844,7 @@ class Data(object):
         """
         shift dataset that the timeseries is ensured to be in ascending order
         usefull e.g. if you have a climatology and this does not start with January
-        and you want to shif tit automatically
+        and you want to shift it automatically
         """
 
         # search for point in timeseries where break occurs
@@ -1843,7 +1861,7 @@ class Data(object):
         self.timeshift(n, shift_time=True)
 
 #-----------------------------------------------------------------------
-    def get_deseasonalized_anomaly(self, base=None):
+    def get_deseasonalized_anomaly(self, base=None, ensure_start_first=True):
         """
         calculate deseasonalized anomalies
 
@@ -1864,14 +1882,14 @@ class Data(object):
         """
 
         if base == 'current':
-            clim = self.get_climatology()
+            clim = self.get_climatology(ensure_start_first=ensure_start_first)
         elif base == 'all':
             # if raw climatology not available so far, try to calculate it
             if hasattr(self, '_climatology_raw'):
                 clim = self._climatology_raw
             else:
                 if hasattr(self, 'time_cycle'):
-                    self._climatology_raw = self.get_climatology()
+                    self._climatology_raw = self.get_climatology(ensure_start_first=ensure_start_first)
                     clim = self._climatology_raw
                 else:
                     raise ValueError('Climatology can not be calculated because of missing time_cycle!')
@@ -2018,8 +2036,6 @@ class Data(object):
             id = vals[i]
             res.update({id: {'mean': means[:, i], 'std': stds[:, i], 'sum': sums[:, i], 'min': mins[:, i],
                              'max': maxs[:, i]}})
-
-        #res = {'id': vals, 'mean': means, 'sum': sums, 'min': mins, 'max': maxs, 'std': stds}
         return res
 
 #-----------------------------------------------------------------------
@@ -2503,7 +2519,11 @@ class Data(object):
             File.close()
             return None
 
-        data = File.get_variable(varname)
+        try:
+            data = File.get_variable(varname)
+        except:
+            print('ERROR when reading variable %s' % varname)
+            return None
         var = File.get_variable_handler(varname)
 
         if data.ndim > 3:
@@ -4673,7 +4693,7 @@ class Data(object):
         if self.data.ndim == 3:
             self.data = self.data[:, ::-1, :]
         elif self.data.ndim == 2:
-            self.data = self.data[::-1, :]
+            self.data = self.data[:: -1, :]
         else:
             raise ValueError('Unsupported geometry for _flipud()')
         if hasattr(self, 'cell_area'):
@@ -4786,9 +4806,59 @@ class Data(object):
             raise ValueError('Numpy array required!')
         if not isinstance(self.lon, np.ndarray):
             raise ValueError('Numpy array required!')
-        G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon), sphere_radius=earth_radius*1000.)
+        G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon), sphere_radius=earth_radius * 1000.)
         d = G.orthodrome(np.deg2rad(self.lon), np.deg2rad(self.lat), np.deg2rad(lon_deg), np.deg2rad(lat_deg))
         return d
 
+    def _get_center_position(self):
+        """
+        returns indices of center position in data array
+        only works if both dimensions x/y are ODD numbers!
 
+        Returns
+        -------
+        indices of center position [i,j]
+        """
+        # only for odd numbers!
+        if (self.nx % 2) != 1:
+            return None, None
+        if (self.ny % 2) != 1:
+            return None, None
 
+        return (self.ny - 1) / 2, (self.nx - 1) / 2
+
+    def get_center_data(self, return_object=False):
+        """
+        returns data for center position
+
+        Parameters
+        ----------
+        return_object : bool
+            return the results as a Data object
+        """
+        i, j = self._get_center_position()
+        if i is None:
+            return None
+        if j is None:
+            return None
+
+        if self.ndim == 2:
+            res = self.data[i, j]
+        elif self.ndim == 3:
+            res = self.data[:, i, j]
+        else:
+            assert False
+
+        if return_object:
+            r = self.copy()
+            if self.ndim == 2:
+                res = np.asarray([[res]])
+            elif self.ndim == 3:
+                res = res.reshape((len(res), 1, 1))
+            else:
+                assert False
+            r.data = res
+            r.cell_area = np.ones((1, 1))
+            return r
+        else:
+            return res

@@ -12,6 +12,8 @@ from nose.tools import assert_raises
 from pycmbs.mapping import map_plot
 import os
 
+import tempfile
+
 class TestMapPlotGeneric(unittest.TestCase):
     def setUp(self):
         self.map_plot = mapping.MapPlotGeneric()
@@ -41,7 +43,14 @@ class TestMapPlotGeneric(unittest.TestCase):
         self.D.lon = np.random.random((ny,nx))*10.
         self.D.lat = np.random.random((ny,nx))*20.
 
+        self._tmpdir = tempfile.mkdtemp()
+
     def test_SingleMap_Init(self):
+        try:
+            import cartopy.crs as ccrs
+        except:
+            return True  #no testing if cartopy not installed
+
         # just test if things pass
         SM1 = mapping.SingleMap(self.D)
         SM2 = mapping.SingleMap(self.D, stat_type='sum')
@@ -78,14 +87,14 @@ class TestMapPlotGeneric(unittest.TestCase):
             SM.plot()
 
     def test_SingleMap_Save(self):
-        SM = mapping.SingleMap(self.D, savefile='my_test_save_file.nc')
+        SM = mapping.SingleMap(self.D, savefile=self._tmpdir + os.sep + 'my_test_save_file.nc')
         SM.save(save_mean=True, save_all=True)
-        self.assertTrue(os.path.exists('my_test_save_file.nc_timmean.nc'))
-        self.assertTrue(os.path.exists('my_test_save_file.nc_timmean.nc_all.nc'))
-        if os.path.exists('my_test_save_file.nc_timmean.nc'):
-            os.remove('my_test_save_file.nc_timmean.nc')
-        if os.path.exists('my_test_save_file.nc_timmean.nc_all.nc'):
-            os.remove('my_test_save_file.nc_timmean.nc_all.nc')
+        self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'my_test_save_file.nc_timmean.nc'))
+        self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'my_test_save_file.nc_timmean.nc_all.nc'))
+        if os.path.exists(self._tmpdir + os.sep + 'my_test_save_file.nc_timmean.nc'):
+            os.remove(self._tmpdir + os.sep + 'my_test_save_file.nc_timmean.nc')
+        if os.path.exists(self._tmpdir + os.sep + 'my_test_save_file.nc_timmean.nc_all.nc'):
+            os.remove(self._tmpdir + os.sep + 'my_test_save_file.nc_timmean.nc_all.nc')
 
     @unittest.skip('skip as only for local testing')
     def test_SingleMap_add_cyclic(self):

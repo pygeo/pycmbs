@@ -12,9 +12,11 @@ import os
 from pycmbs.benchmarking.report import Report
 import numpy as np
 from scipy.stats import stats
+import sys
 
 # specify directory name
-rdir = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/amip/'
+rdir = '.' + os.sep + sys.argv[1] + '_results' + os.sep
+
 
 files = []
 files.append({'Albedo' : 'ranking_table_albedo.tex'})
@@ -117,7 +119,7 @@ for t in Tdata:
 
 mkeys.sort()
 
-ofilename = 'merged_radiation.tex'
+ofilename = rdir + 'merged_radiation.tex'
 W = Writer(ofilename)
 
 # estimate number of output columns and wirte HEADERS
@@ -140,12 +142,14 @@ header1 += ' \\\\'
 c=1
 short_name={}
 short_name.update({'MODIS': 'MOD'})
-short_name.update({'CLARASAL': 'CLA'})
+short_name.update({'CLARASAL': 'C-SAL'})
 short_name.update({'GLOBALBEDO-BHR': 'G-BHR'})
 short_name.update({'GLOBALBEDO-DHR': 'G-DHR'})
 short_name.update({'CERES2.7': 'CER'})
 short_name.update({'ISCCP': 'ISCCP'})
 short_name.update({'SRBv3.0': 'SRB'})
+short_name.update({'CLARA': 'C-SIS'})
+
 for T in Tdata:
     for col in T.cols:
         header += short_name[col]  # use only first characters
@@ -196,8 +200,11 @@ R.close()
 ##############################################
 # ARE GOOD MODELS ALWAYS GOOD MODELS ?
 ##############################################
-rdir_amip = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/amip/'
-rdir_hist = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/hist/'
+#~ rdir_amip = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/amip/'
+#~ rdir_hist = '/home/m300028/shared/publications/01_ongoing/2014_EvaClimod_SSI/results/hist/'
+
+rdir_amip = './amip_results/'
+rdir_hist = './hist_results/'
 
 files = []
 files.append({'Albedo' : 'ranking_table_albedo.tex'})
