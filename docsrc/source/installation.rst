@@ -25,6 +25,7 @@ pyCMBS was built to have only a small number of external dependencies.
 However, there is a minimum number of dependencies existing which are a
 required for using pyCMBS sucessfully.
 
+
 *Core python packages [obligatory]*
 
 - python 2.7.x
@@ -61,7 +62,7 @@ Please find it here__ for your convenience.
 
 __ installation_dependencies_
 
-
+An :doc:`installation_checklist` summarizing the required packages is available as well.
 
 Quick installation from scratch for experts
 -------------------------------------------
