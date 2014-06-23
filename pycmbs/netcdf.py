@@ -114,6 +114,17 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Something went wrong!')
 
+    def _get_fill_value(self, varname):
+        """ return FillValue for variable if given """
+        var = self.get_variable_handler(varname)
+        if self.type.lower() == 'netcdf4':
+            if hasattr(var, '_FillValue'):
+                return float(var._FillValue)
+            else:
+                return None
+        else:
+            raise ValueError('Invalid backend!')
+
     def _get_add_offset(self, varname):
         if self.type.lower() == 'netcdf4':
             # netCDF4 library already applies the add_offset!

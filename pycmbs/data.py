@@ -2540,8 +2540,8 @@ class Data(object):
             del tmp
 
         self.fill_value = None
-        if hasattr(var, '_FillValue'):
-            self.fill_value = float(var._FillValue)
+        self.fill_value = File._get_fill_value(varname)
+        if self.fill_value is not None:
             msk = data == self.fill_value
             data[msk] = np.nan  # set to nan, as otherwise problems with masked and scaled data
             data = np.ma.array(data, mask=np.zeros(data.shape).astype(
