@@ -2583,7 +2583,7 @@ class Data(object):
             self.long_name = '-'
 
         # check if file has cell_area attribute and only use it if it has not been set by the user
-        if 'cell_area' in File.F.variables.keys() and self.cell_area is None:
+        if 'cell_area' in File.get_variable_keys() and self.cell_area is None:
             self.cell_area = File.get_variable('cell_area')
 
         # set units if possible; if given by user, this is taken
@@ -2591,7 +2591,7 @@ class Data(object):
         if self.unit is None and hasattr(var, 'units'):
             self.unit = var.units
 
-        if self.time_var in File.F.variables.keys():
+        if self.time_var in File.get_variable_keys():
             tvar = File.get_variable_handler(self.time_var)
             if hasattr(tvar, 'units'):
                 self.time_str = tvar.units
