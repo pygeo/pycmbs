@@ -75,6 +75,40 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Something went wrong!')
 
+    def _get_long_name(self, varname):
+        """
+        get longname of variable
+
+        Parameters
+        ----------
+        varname : str
+            variable name
+        """
+        var = self.get_variable_handler(varname)
+        self.long_name = '-'
+        if self.type.lower() == 'netcdf4':
+            if hasattr(var, 'long_name'):
+                self.long_name = var.long_name
+        else:
+            raise ValueError('Invalid backend!')
+
+
+    def _get_unit(self, varname):
+        """
+        get unit of variable
+
+        Parameters
+        ----------
+        varname : str
+            variable name
+        """
+        var = self.get_variable_handler(varname)
+        if self.type.lower() == 'netcdf4':
+            if hasattr(var, 'unit'):
+                self.unit = var.unit
+        else:
+            raise ValueError('Invalid backend!')
+
     def get_variable(self, varname):
         """
         Get data for a particular variable

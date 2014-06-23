@@ -2555,32 +2555,16 @@ class Data(object):
         scal = File._get_scale_factor(varname)
         self._scale_factor_netcdf = scal * 1.
 
-        #~ if hasattr(var,'scale_factor'):
-        #~ if plt.is_string_like(var.scale_factor):
-        #~ scal = float(var.scale_factor.replace('.f','.'))
-        #~ else:
-        #~ scal = var.scale_factor
-        #~ else:
-        #~ print('This variable has no scaling factor !!!!')
-        #~ print
-        #~ scal = 1.
-
         offset = File._get_add_offset(varname)
-        #~ if hasattr(var,'add_offset'):
-        #~ offset = float(var.add_offset)
-        #~ else:
-        #~ print('This variable has no offset !!!!')
-        #~ offset = 0.
         self._add_offset_netcdf = offset * 1.
 
         #data = data * scal + offset
         data *= scal
         data += offset
 
-        if hasattr(var, 'long_name'):
-            self.long_name = var.long_name
-        else:
-            self.long_name = '-'
+        # set longname of variable
+        self.long_name = File._get_long_name(varname)
+
 
         # check if file has cell_area attribute and only use it if it has not been set by the user
         if 'cell_area' in File.get_variable_keys() and self.cell_area is None:
@@ -2588,8 +2572,8 @@ class Data(object):
 
         # set units if possible; if given by user, this is taken
         # otherwise unit information from file is used if available
-        if self.unit is None and hasattr(var, 'units'):
-            self.unit = var.units
+        if self.unit is None:
+            self.unit = File._get_unit(varname)
 
         if self.time_var in File.get_variable_keys():
             tvar = File.get_variable_handler(self.time_var)
