@@ -2513,7 +2513,7 @@ class Data(object):
 
         if self.verbose:
             print 'Reading file ', self.filename
-        if not varname in File.F.variables.keys():
+        if not varname in File.get_variable_keys():
             if self.verbose:
                 self._log_warning('WARNING: data can not be read. Variable not existing! ', varname)
             File.close()

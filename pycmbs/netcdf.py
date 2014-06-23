@@ -66,6 +66,15 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Something went wrong!')
 
+    def get_variable_keys(self):
+        """
+        return a list of variable names in the file
+        """
+        if self.type.lower() == 'netcdf4':
+            return self.F.variables.keys()
+        else:
+            raise ValueError('Something went wrong!')
+
     def get_variable(self, varname):
         """
         Get data for a particular variable
