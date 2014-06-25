@@ -33,8 +33,3 @@ no representations or warranties
       damages of any kind to you or to any third party.
 
 
-Licenses of used third party codes
-----------------------------------
-
-For copyright of the following used libraries see:
-* netcdf4 library:    COPYING_netCDF4

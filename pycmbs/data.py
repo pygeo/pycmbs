@@ -16,7 +16,7 @@ import numpy as np
 from matplotlib import pylab as plt
 import matplotlib.pylab as pl
 from scipy import stats
-import pycmbs.netcdftime as netcdftime
+from netCDF4 import netcdftime
 
 from calendar import monthrange
 from cdo import Cdo
