@@ -698,6 +698,8 @@ class CFGWriter(object):
         self._write('clean_tempdir,' + str(clean_temp.real))
         self._write('summary_only,' + str(summary_only.real))
         self._write('config_dir=' + self.output_dir + '/configuration/')
+        if not os.path.exists(self.output_dir + '/configuration/'):
+            os.makedirs(self.output_dir + '/configuration/')
         self._write('output_directory=' + self.output_dir + '/reports/')
         self._write('')
 
