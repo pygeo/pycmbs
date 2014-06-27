@@ -3486,6 +3486,9 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
            /my_path/outputfilename_RDIFF.png
     """
 
+    def _save_filename(s):
+        return s.replace(' ', '_').replace('#', '-')
+
     from pycmbs.mapping import map_plot
 
     if savefile is not None:
@@ -3545,7 +3548,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     if graphic_rootname is None:
         graphic_name = None
     else:
-        graphic_name = graphic_rootname + '_X' + extension
+        graphic_name = _save_filename(graphic_rootname + '_X' + extension)
 
     # plot dataset in entire figure
     map_plot(x, use_basemap=use_basemap, ax=ax1, cticks=cticks, region=region, nclasses=nclasses,
@@ -3569,7 +3572,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     if graphic_rootname is None:
         graphic_name = None
     else:
-        graphic_name = graphic_rootname + '_Y' + extension
+        graphic_name = _save_filename(graphic_rootname + '_Y' + extension)
 
     # plot dataset in entire figure
     map_plot(y, use_basemap=use_basemap, ax=ax2, cticks=cticks, region=region, nclasses=nclasses,
@@ -3595,7 +3598,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     if graphic_rootname is None:
         graphic_name = None
     else:
-        graphic_name = graphic_rootname + '_ADIFF' + extension
+        graphic_name = _save_filename(graphic_rootname + '_ADIFF' + extension)
     # entire plot
     map_plot(adif, use_basemap=use_basemap, ax=ax3, vmin=dmin, vmax=dmax, cticks=cticks_diff, region=region,
              nclasses=nclasses, cmap_data=cmap_difference, title='absolute difference',
@@ -3625,7 +3628,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
     if graphic_rootname is None:
         graphic_name = None
     else:
-        graphic_name = graphic_rootname + '_RDIFF' + extension
+        graphic_name = _save_filename(graphic_rootname + '_RDIFF' + extension)
 
     map_plot(rdat, use_basemap=use_basemap, ax=ax4, vmin=rmin, vmax=rmax, title='relative difference',
              cticks=cticks_rdiff, region=region, nclasses=nclasses,
