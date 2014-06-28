@@ -4846,3 +4846,46 @@ class Data(object):
             return r
         else:
             return res
+
+
+    def _init_sample_object(self, nt=None, ny=20, nx=10):
+        """
+        initialize the current object as a samle object
+        this is in particular usefull for testing
+
+        use this e.g. as
+        x = Data(None, None)
+        x._init_sample_object(nt=100, ny=500, nx=200)
+
+        Parameters
+        ----------
+        nt : int
+            number of timesteps
+        ny : int
+            number of rows
+        nx : int
+            number of cols
+        """
+
+        if nt is None:
+            data = np.random.random((ny, nx))
+        else:
+            data = np.random.random((nt, ny, nx))
+
+        self.data = np.ma.array(data, mask = data != data)
+        self.verbose = True
+        self.unit = 'myunit'
+        self.label = 'testlabel'
+        self.filename = 'testinputfilename.nc'
+        self.varname = 'testvarname'
+        self.long_name = 'This is the longname'
+        if nt is not None:
+            self.time = np.arange(nt) + plt.datestr2num('2001-01-01')
+        self.time_str = "days since 0001-01-01 00:00:00"
+        self.calendar = 'gregorian'
+        self.oldtime=False
+
+
+
+
+

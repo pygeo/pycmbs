@@ -2372,6 +2372,10 @@ class TestData(unittest.TestCase):
         self.assertEqual(i, 8)
         self.assertEqual(j, 11)
 
+    def test_init_sample_object(self):
+        x = Data(None, None)
+        x._init_sample_object(ny=200, nx=100)
+        self.assertTrue(x.shape == (200,100))
 
 
 
