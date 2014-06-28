@@ -2377,7 +2377,8 @@ class TestData(unittest.TestCase):
         x._init_sample_object(ny=200, nx=100)
         self.assertTrue(x.shape == (200,100))
 
-
+        x._init_sample_object(ny=200, nx=100, nt=373)
+        self.assertTrue(x.shape == (373, 200,100))
 
 
 
