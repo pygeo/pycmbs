@@ -34,7 +34,6 @@ class Data(object):
     """
     Data class: main class
     """
-
     def __init__(self, filename, varname, lat_name=None, lon_name=None,
                  read=False, scale_factor=1., label=None, unit=None,
                  shift_lon=False, start_time=None, stop_time=None,
