@@ -4903,6 +4903,10 @@ class Data(object):
             threshold radius
         return_object : bool
             return a Data object
+
+        Returns
+        -------
+        returns data object with gridded results
         """
 
         if lon.shape != lat.shape:
@@ -4917,12 +4921,10 @@ class Data(object):
         res = np.ones_like(lon)*np.nan
 
         for i in xrange(len(dlon)):
-            print i
             # distance
             d = np.sqrt((lon-dlon[i])**2. + (lat-dlat[i])**2.)
             dmin = d.min()
             m = d == dmin
-            print dmin
             if dmin <= radius:  # threshold
                 res[m] = data[i]
 
