@@ -4885,6 +4885,59 @@ class Data(object):
         self.oldtime=False
 
 
+    def _rasterize(self, lon, lat, radius=None, return_object=True):
+        """
+        rasterize data to a target grid specified by the input arguments
+
+        CAUTION: this is a rather slow function!s
+
+        todo use probably griddata
+
+        Parameters
+        ----------
+        lat : ndarray
+            latitude [deg]
+        lon : ndarray
+            longitude [deg]
+        radius : float
+            threshold radius
+        return_object : bool
+            return a Data object
+        """
+
+        if lon.shape != lat.shape:
+            raise ValueError('Inconsistent geometry!')
+        if radius is None:
+            raise ValueError('Search radius obligatory')
+
+        # flatten data
+        dlon = self.lon.flatten()
+        dlat = self.lat.flatten()
+        data = self.data.flatten()
+        res = np.ones_like(lon)*np.nan
+
+        for i in xrange(len(dlon)):
+            print i
+            # distance
+            d = np.sqrt((lon-dlon[i])**2. + (lat-dlat[i])**2.)
+            dmin = d.min()
+            m = d == dmin
+            print dmin
+            if dmin <= radius:  # threshold
+                res[m] = data[i]
+
+        if return_object:
+            x = self.copy()
+            x.lon = lon*1.
+            x.lat = lat*1.
+            x.data = np.ma.array(res, mask=np.isnan(res))
+        else:
+            raise ValueError('Not implemented yet!')
+
+        return x
+
+
+
 
 
 
