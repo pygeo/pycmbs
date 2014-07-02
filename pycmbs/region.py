@@ -67,6 +67,7 @@ class RegionGeneric(object):
         self.lat = None
         self.type = None
         self.id = id
+        self.mask = None
         if label is None:
             raise ValueError('ERROR: a label needs to be given for regions')
         else:

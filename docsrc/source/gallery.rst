@@ -45,7 +45,10 @@ TBD
 Masking an area
 ~~~~~~~~~~~~~~~
 
-TBD
+You probably want to work only on particular regions. The following script shows you how to easily to this.
+
+.. plot:: ../../pycmbs/examples/05_mask_a_region.py
+  :include-source:
 
 Temporal slicing
 ~~~~~~~~~~~~~~~~
@@ -70,7 +73,7 @@ TBD EOF (still needs implementation of logplot option in map_plot)
 
 ##.. plot:: ../../pycmbs/examples/04_EOF_analysis.py
 ##   :include-source:
-   
+
 
 
 TBD SVD
