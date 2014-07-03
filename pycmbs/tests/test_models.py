@@ -85,8 +85,6 @@ def xxxxtest_median_model():
     m.ensmedian()
 
     # should give the value of 2.5 for all timesteps
-
-
     del m
 
 

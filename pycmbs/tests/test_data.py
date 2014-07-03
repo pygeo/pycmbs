@@ -2384,17 +2384,6 @@ class TestData(unittest.TestCase):
         x = Data(None, None)
         x._init_sample_object(ny=1, nx=272)
 
-        print x.lon
-        stop
-
-
-
-
-
-
-
-
-
 
 
 

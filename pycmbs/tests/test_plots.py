@@ -7,6 +7,7 @@ from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, Zo
 from pycmbs.plots import map_difference, map_season, GlecklerPlot
 from pycmbs.plots import xx_map_plot, HstackTimeseries, HovmoellerPlot
 from pycmbs.plots import rotate_ticks, CorrelationAnalysis
+from pycmbs.plots.violin import _classic_example as Violin_example
 
 import scipy
 import os
@@ -179,6 +180,9 @@ class TestPycmbsPlots(unittest.TestCase):
         with self.assertRaises(ValueError):
             H.plot()
         H.plot(climits=[0., 1.])
+
+    def test_violin_plot(self):
+        Violin_example()
 
 
 
