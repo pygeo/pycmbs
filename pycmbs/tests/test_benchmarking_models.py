@@ -3,6 +3,7 @@
 import unittest
 import tempfile
 from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, CMIP3Data
+from pycmbs.benchmarking.models import JSBACH_BOT
 
 class TestBenchmarkingPlots(unittest.TestCase):
 
@@ -34,7 +35,11 @@ class TestBenchmarkingPlots(unittest.TestCase):
         M = CMIP5RAWData(data_dir, 'MPI-ES M', 'hist orical', varmethods, intervals='monthly')
         self.run_model_validation(M)
 
-
+    def test_JsbachBOT_data(self):
+        data_dir = tempfile.mkdtemp()
+        varmethods = {'albedo' : 'get_albedo()'}
+        M = JSBACH_BOT('test.nc', varmethods, 'hist orical', name='MPI- E S M', intervals='monthly')
+        self.run_model_validation(M)
 
 
 
