@@ -4883,7 +4883,7 @@ class Data(object):
         self.time_str = "days since 0001-01-01 00:00:00"
         self.calendar = 'gregorian'
         self.oldtime=False
-
+        #~ self.cell_area = np.ones_like((ny, nx))
 
     def _rasterize(self, lon, lat, radius=None, return_object=True):
         """

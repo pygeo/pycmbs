@@ -962,6 +962,7 @@ class TestData(unittest.TestCase):
         """
         testfile = self._tmpdir + os.sep + 'mytestfile.nc'
         self.D.save(testfile, varname='testvar', format='nc', delete=True)
+        self.D.save(tempfile.mktemp(suffix='.nc'), varname='testvar', format='nc', delete=True, mean=True)
 
         # read data again
         F = Data(testfile, 'testvar', read=True, verbose=False)
@@ -1308,11 +1309,11 @@ class TestData(unittest.TestCase):
 
     def test_corr_single(self):
         x = self.D.copy()
-        y = x.data[:,0,0].copy()*2.
+        y = x.mulc(2.)    #data[:, 0, 0].copy()*2.
         y += np.random.random(len(y))
 
         #--- pearson
-        slope, intercept, r, prob, sterrest = stats.linregress(y, x.data[:,0,0])
+        slope, intercept, r, prob, sterrest = stats.mstats.linregress(y, x.data[:,0,0])
         Rout, Sout, Iout, Pout, Cout = x.corr_single(y)
 
         self.assertAlmostEqual(r,Rout.data[0,0], 8)
@@ -1326,7 +1327,7 @@ class TestData(unittest.TestCase):
 
         rho, prob = stats.mstats.spearmanr(y, x.data[:,0,0])
         Rout, Sout, Iout, Pout, Cout = x.corr_single(y, method='spearman')
-        self.assertAlmostEqual(r,Rout.data[0,0],5)
+        self.assertAlmostEqual(r, Rout.data[0,0], 5)
         self.assertAlmostEqual(prob,Pout.data[0,0],8)
 
     def test_corr_single_InvalidGeometry(self):
@@ -2368,7 +2369,12 @@ class TestData(unittest.TestCase):
         x = Data(None, None)
         x._init_sample_object(ny=1, nx=272)
 
-
+    def test_invalid_dimensions_xy(self):
+        self.D.data = np.random.random((4,3,2,1))
+        with self.assertRaises(ValueError):
+            r = self.D.nx
+        with self.assertRaises(ValueError):
+            r = self.D.ny
 
 
 if __name__ == '__main__':
