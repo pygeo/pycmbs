@@ -28,24 +28,8 @@ from nose.tools import assert_raises
 class TestData(unittest.TestCase):
 
     def setUp(self):
-        n=1000  # slows down significantly! constraint is percentile  test
-        x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
-        d=np.ones((n, 1, 1))
-        self.D.data = d
-        self.D.data[:,0,0]=x
-        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
-        self.D.verbose = True
-        self.D.unit = 'myunit'
-        self.D.label = 'testlabel'
-        self.D.filename = 'testinputfilename.nc'
-        self.D.varname = 'testvarname'
-        self.D.long_name = 'This is the longname'
-        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
-        self.D.time_str = "days since 0001-01-01 00:00:00"
-        self.D.calendar = 'gregorian'
-        self.D.oldtime=False
-
+        self.D._init_sample_object(nt=1000, ny=1, nx=1)
         self._tmpdir = tempfile.mkdtemp()
 
     def test_log_warning_Standard(self):
