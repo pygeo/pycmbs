@@ -686,7 +686,7 @@ class CMIP3Data(CMIP5Data):
         @param kwargs: other keyword arguments
         @return:
         """
-        super(CMIP3Data, self).__init__(None, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
+        super(CMIP3Data, self).__init__(data_dir, model, experiment, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 
         self.model = model
         self.experiment = experiment

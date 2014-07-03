@@ -2,7 +2,7 @@
 
 import unittest
 import tempfile
-from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData
+from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, CMIP3Data
 
 class TestBenchmarkingPlots(unittest.TestCase):
 
@@ -22,6 +22,11 @@ class TestBenchmarkingPlots(unittest.TestCase):
         M = CMIP5Data(data_dir, 'MPI-ES M', 'hist orical', varmethods, intervals='monthly')
         self.run_model_validation(M)
 
+    def test_cmip3_data(self):
+        data_dir = tempfile.mkdtemp()
+        varmethods = {'albedo' : 'get_albedo()'}
+        M = CMIP3Data(data_dir, 'MPI-ES M', 'hist orical', varmethods, intervals='monthly')
+        self.run_model_validation(M)
 
 
 
