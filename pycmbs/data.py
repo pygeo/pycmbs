@@ -542,7 +542,6 @@ class Data(object):
                     .replace('[', '').replace(']', '') + '\n')
         F.close()
 
-    #-----------------------------------------------------------------------
 
     def _save_netcdf(self, filename, varname=None, delete=False):
         """
@@ -557,10 +556,6 @@ class Data(object):
             self.varname, which is tried to be used as a first order
         delete : bool
             delete file if existing without asking
-
-        Test
-        ----
-        unittest implemented
         """
 
         # check if output file already there
@@ -593,7 +588,6 @@ class Data(object):
                 ny, nx = self.shape
             else:
                 raise ValueError('Current shape not supported here %s' % self.shape)
-
         else:
             ny, nx = np.shape(self.lat)
 
@@ -3298,6 +3292,8 @@ class Data(object):
             else:
                 raise ValueError('Undefined in fldstd()')
 
+        tmp = np.ma.array(tmp, mask=tmp != tmp)
+
         if return_data:  # return data object
             if self.data.ndim == 3:
                 x = np.zeros((len(tmp), 1, 1))
@@ -3307,7 +3303,13 @@ class Data(object):
                 x[0, 0, 0] = tmp
             else:
                 raise ValueError('Undefined')
-            assert (isinstance(tmp, np.ma.masked_array))
+
+            if not (isinstance(tmp, np.ma.masked_array)):
+                print type(tmp)
+                print self.data.ndim
+                raise ValueError('Invalid data type!')
+
+
             r = self.copy()
             r.data = np.ma.array(x.copy(),
                                  mask=tmp.mask)  # use mask of array tmp (important if all values are invalid!)
@@ -4893,6 +4895,15 @@ class Data(object):
         self.calendar = 'gregorian'
         self.oldtime=False
         self.cell_area = np.ones((ny, nx))
+        lat = np.linspace(-90., 90., ny)
+        lon = np.linspace(-180., 180., nx)
+        self.lon, self.lat = np.meshgrid(lon, lat)
+
+        #~ print lon.shape
+        #~ print lat
+        #~ print ny, nx
+        #~ print self.lon.shape
+
 
     def _rasterize(self, lon, lat, radius=None, return_object=True):
         """

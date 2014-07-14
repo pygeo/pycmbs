@@ -171,7 +171,16 @@ class NetCDFHandler(object):
         assign a value to a variable to be written to a netCDF file
         """
         if self.type.lower() == 'netcdf4':
-            self.F.variables[varname][:] = value[:]
+            if value.ndim == 1:
+                self.F.variables[varname][:] = value[:]
+            elif value.ndim == 2:
+                print value.shape
+                print self.F.variables[varname].shape
+                self.F.variables[varname][:,:] = value[:,:]
+            elif value.ndim == 3:
+                self.F.variables[varname][:,:,:] = value[:,:,:]
+            else:
+                raise ValueError('Unsupported dimension!')
         else:
             raise ValueError('Something went wrong!')
 

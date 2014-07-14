@@ -8,6 +8,7 @@ from pycmbs.plots import map_difference, map_season, GlecklerPlot
 from pycmbs.plots import xx_map_plot, HstackTimeseries, HovmoellerPlot
 from pycmbs.plots import rotate_ticks, CorrelationAnalysis
 from pycmbs.plots.violin import _classic_example as Violin_example
+from pycmbs.plots import GlobalMeanPlot
 
 import scipy
 import os
@@ -19,26 +20,8 @@ import tempfile
 class TestPycmbsPlots(unittest.TestCase):
 
     def setUp(self):
-        n=1000  # slows down significantly! constraint is percentile  test
-        x = scipy.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
-        d=np.ones((n, 1, 1))
-        self.D.data = d
-        self.D.data[:,0,0]=x
-        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
-        self.D.verbose = True
-        self.D.unit = 'myunit'
-        self.D.label = 'testlabel'
-        self.D.filename = 'testinputfilename.nc'
-        self.D.varname = 'testvarname'
-        self.D.long_name = 'This is the longname'
-        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
-        self.D.time_str = "days since 0001-01-01 00:00:00"
-        self.D.calendar = 'gregorian'
-        self.D.cell_area = np.ones((1,1))
-        self.D.lon=np.ones((1,1)) * 20.
-        self.D.lat=np.ones((1,1)) * 10.
-
+        self.D._init_sample_object(nt=1000, ny=1, nx=1)
         self._tmpdir = tempfile.mkdtemp()
 
     def test_ReichlerPlotGeneral(self):
@@ -185,6 +168,12 @@ class TestPycmbsPlots(unittest.TestCase):
         Violin_example()
 
 
+    def test_globalmeanplot(self):
+        G = GlobalMeanPlot()
+        with self.assertRaises(ValueError):
+            G.plot(self.D, stat_type='no_stat_type')
+        G.plot(self.D, show_std=True)
+        G.plot_mean_result()
 
 # map_season
 

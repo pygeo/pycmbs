@@ -860,19 +860,19 @@ class TestData(unittest.TestCase):
 
         # generate some sample data
         D.time = pl.datestr2num('2001-05-03') + np.arange(5)
-        D.data = D.data[0:5,:,:]
-        D.data[:,0,0] = np.arange(5)
-        D.std = D.data.copy()+2.2
+        D.data = D.data[0:5, :, :]
+        D.data[:, 0, 0] = np.arange(5)
+        D.std = D.data.copy() + 2.2
 
         # reshuffle the data
-        t1=D.time[1]*1.
-        t2=D.time[3]*1.
+        t1 = D.time[1] * 1.
+        t2 = D.time[3] * 1.
         D.time[3] = t1
         D.time[1] = t2
 
         # save reference solutions before sorting
-        y = D.data[:,0,0]*1.
-        t = D.time*1.
+        y = D.data[:, 0, 0] * 1.
+        t = D.time * 1.
         s = np.argsort(t)
         y1 = y[s]
 
@@ -885,11 +885,11 @@ class TestData(unittest.TestCase):
         self.assertTrue(np.all(np.diff(R.time) > 0))
 
         # b) check if data was sorted also appropriately
-        self.assertTrue(np.all(y1-D.data[:,0,0]) == 0.)
-        self.assertTrue(np.all(y1-R.data[:,0,0]) == 0.)
+        self.assertTrue(np.all(y1-D.data[:, 0, 0]) == 0.)
+        self.assertTrue(np.all(y1-R.data[:, 0, 0]) == 0.)
 
-        self.assertTrue(np.all(y1+2.2-D.std [:,0,0]) == 0.)
-        self.assertTrue(np.all(y1+2.2-R.std [:,0,0]) == 0.)
+        self.assertTrue(np.all(y1+2.2-D.std [:, 0, 0]) == 0.)
+        self.assertTrue(np.all(y1+2.2-R.std [:, 0, 0]) == 0.)
 
 
     @unittest.skip('wait for bugfree scipy')
@@ -2292,9 +2292,6 @@ class TestData(unittest.TestCase):
         self.assertTrue(np.all(np.abs(r-8918000.)<1000.))
 
 
-        # 8918
-
-
     def test_ny_nx(self):
         x = self.D
         self.assertEqual(x.nx, 1)
@@ -2340,7 +2337,6 @@ class TestData(unittest.TestCase):
         self.assertEqual(D.data[2, 11], y)
         self.assertEqual(D.data[2, 11], z.data[0, 0])
 
-
         tmp = np.random.random((100, 17, 23))  # 3D (odd all)
         D.data = np.ma.array(tmp, mask=tmp != tmp)
         y = D.get_center_data()
@@ -2349,8 +2345,6 @@ class TestData(unittest.TestCase):
         self.assertTrue(np.all(D.data[:, 8,11]-z.data[:,0,0] == 0.))
         self.assertEqual(z.data.shape, (100,1,1))
         self.assertEqual(z.cell_area.shape, (1,1))
-
-
 
     def test_get_center_position(self):
         D = self.D
@@ -2378,8 +2372,6 @@ class TestData(unittest.TestCase):
         i, j = D._get_center_position()
         self.assertEqual(i, 249)
         self.assertEqual(j, 11)
-
-
 
     def test_init_sample_object(self):
         x = Data(None, None)
