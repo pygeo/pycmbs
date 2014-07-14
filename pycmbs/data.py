@@ -4899,12 +4899,6 @@ class Data(object):
         lon = np.linspace(-180., 180., nx)
         self.lon, self.lat = np.meshgrid(lon, lat)
 
-        #~ print lon.shape
-        #~ print lat
-        #~ print ny, nx
-        #~ print self.lon.shape
-
-
     def _rasterize(self, lon, lat, radius=None, return_object=True):
         """
         rasterize data to a target grid specified by the input arguments

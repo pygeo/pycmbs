@@ -2392,6 +2392,11 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             r = self.D.ny
 
+    def test_set_cell_area(self):
+        x = self.D.copy()
+        del x.cell_area
+        x._set_cell_area()
+
 
 if __name__ == '__main__':
     unittest.main()
