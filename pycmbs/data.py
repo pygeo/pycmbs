@@ -4796,19 +4796,28 @@ class Data(object):
     def _get_center_position(self):
         """
         returns indices of center position in data array
-        only works if both dimensions x/y are ODD numbers!
+        in case of odd array sizes, the actual center position is
+        returned. Otherwise (equal numbers), the center position - 1 is
+        returned. Now interpolation is performed. Thus it is always
+        ensured that some real data is returned which is close to the
+        center
 
         Returns
         -------
         indices of center position [i,j]
         """
-        # only for odd numbers!
-        if (self.nx % 2) != 1:
-            return None, None
-        if (self.ny % 2) != 1:
-            return None, None
 
-        return (self.ny - 1) / 2, (self.nx - 1) / 2
+        if (self.ny % 2) == 0:  # equal numbers
+            ipos = (self.ny - 1) / 2
+        else:  # odd numbers
+            ipos = (self.ny - 1) / 2
+
+        if (self.nx % 2) == 0:
+            jpos = (self.nx - 1) / 2
+        else:
+            jpos = (self.nx - 1) / 2
+
+        return ipos, jpos
 
     def get_center_data(self, return_object=False):
         """
@@ -4883,7 +4892,7 @@ class Data(object):
         self.time_str = "days since 0001-01-01 00:00:00"
         self.calendar = 'gregorian'
         self.oldtime=False
-        #~ self.cell_area = np.ones_like((ny, nx))
+        self.cell_area = np.ones((ny, nx))
 
     def _rasterize(self, lon, lat, radius=None, return_object=True):
         """
