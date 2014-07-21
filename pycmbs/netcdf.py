@@ -104,8 +104,8 @@ class NetCDFHandler(object):
         """
         var = self.get_variable_handler(varname)
         if self.type.lower() == 'netcdf4':
-            if hasattr(var, 'unit'):
-                self.unit = var.unit
+            if hasattr(var, 'units'):
+                return var.units
         else:
             raise ValueError('Invalid backend!')
 

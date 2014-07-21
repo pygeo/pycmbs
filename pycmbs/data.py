@@ -1111,6 +1111,7 @@ class Data(object):
                         self.lat = self.lat[0, :]
         else:
             self.lat = None
+
         if not self.lon_name is None:
             self.lon = self.read_netcdf(self.lon_name)
             #ensure that lon has NOT dimension (1,nlon)
