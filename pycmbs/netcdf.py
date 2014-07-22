@@ -174,8 +174,6 @@ class NetCDFHandler(object):
             if value.ndim == 1:
                 self.F.variables[varname][:] = value[:]
             elif value.ndim == 2:
-                print value.shape
-                print self.F.variables[varname].shape
                 self.F.variables[varname][:,:] = value[:,:]
             elif value.ndim == 3:
                 self.F.variables[varname][:,:,:] = value[:,:,:]

@@ -460,8 +460,6 @@ class Data(object):
             return netcdftime.date2num(t, self.time_str,
                                        calendar=self.calendar) - offset
 
-#-----------------------------------------------------------------------
-
     def save(self, filename, varname=None, format='nc',
              delete=False, mean=False, timmean=False):
         """
@@ -644,7 +642,9 @@ class Data(object):
                     File.assign_value('cell_area', self.cell_area)
 
         if hasattr(self, 'data'):
-            File.F.variables[varname].long_name = self.long_name
+            if hasattr(self, 'long_name'):
+                if self.long_name is not None:
+                    File.F.variables[varname].long_name = self.long_name
             File.F.variables[varname].units = self.unit
             File.F.variables[varname].scale_factor = 1.
             File.F.variables[varname].add_offset = 0.
@@ -975,8 +975,6 @@ class Data(object):
         else:
             return res
 
-#-----------------------------------------------------------------------
-
     def _get_unit(self):
         """
         get a nice looking string for units like e.g. '[mm/d]'
@@ -986,8 +984,6 @@ class Data(object):
         else:
             u = '[' + self.unit + ']'
         return u
-
-#-----------------------------------------------------------------------
 
     def _shift_lon(self):
         """
