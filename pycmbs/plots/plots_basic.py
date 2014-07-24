@@ -592,7 +592,7 @@ class ScatterPlot(object):
             self.ax = ax
 
         self.figure = self.ax.figure
-        self.x = x
+        self.x = x.copy()
         self.lines = []
         self.labels = []
         self.ticksize = ticksize
@@ -617,12 +617,14 @@ class ScatterPlot(object):
             Perform linear regression analysis
         fldmean : bool
             show in scatterplot fldmean() values, else datapairs are copnstructed for each grid cell
+        hexbin : bool
+            generate a HEXBIN plot instead of a standard scatterplot
         """
 
         if y.label is None:
             label = ''
         else:
-            label = y.label
+            label = y.label + ''
 
         if fldmean:
             xdat = self.x.fldmean()
@@ -639,16 +641,17 @@ class ScatterPlot(object):
         assert(isinstance(xdat, np.ma.core.MaskedArray))
         assert(isinstance(ydat, np.ma.core.MaskedArray))
 
-        #--- mask invalid data
+        # mask invalid data
         msk = np.isnan(xdat) | np.isnan(ydat)
-        xdat = np.ma.masked_where(msk, xdat)
-        ydat = np.ma.masked_where(msk, ydat)
+        if msk.sum() > 0:
+            xdat = np.ma.masked_where(msk, xdat)  # this can cause problems as it seems to reduce the mask of the arrays to a scalar instead of a vector
+            ydat = np.ma.masked_where(msk, ydat)
 
         if self.normalize:
             xdat = self.__normalize_data(xdat)
             ydat = self.__normalize_data(ydat)
 
-        #- calculate linear regression
+        # calculate linear regression
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat, ydat)
             nval = (~(xdat - ydat).mask).sum()  # number of valid datasets used for comparison
@@ -666,7 +669,7 @@ class ScatterPlot(object):
                 spvalue = 'p=' + str(round(p_value, 2))
 
             if r_value is None:
-                label = ''
+                label = label
             else:
                 label = '\n' + label + '\nr=' + str(round(r_value, 2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
 
