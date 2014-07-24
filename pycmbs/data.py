@@ -2181,6 +2181,11 @@ class Data(object):
         base : str
             specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
             a time stepping. Currently supported values: ['month','day']
+
+        Returns
+        -------
+        x, y : Data
+            returns two dataobjects which are aligned to eacht other
         """
 
         assert (isinstance(y, Data))

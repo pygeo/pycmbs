@@ -598,15 +598,11 @@ class ScatterPlot(object):
         self.ticksize = ticksize
         self.normalize = normalize_data
 
-#-----------------------------------------------------------------------
-
     def __normalize_data(self, x):
         """
         normmalize timeseries
         """
         return (x - x.mean()) / x.std()
-
-#-----------------------------------------------------------------------
 
     def plot(self, y, regress=True, fldmean=True, hexbin=False, **kwargs):
         """
@@ -712,15 +708,20 @@ class ScatterPlot(object):
         for tick in self.ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
 
-#-----------------------------------------------------------------------
-
-    def legend(self, size=8.):
+    def legend(self, size=8., grid=True):
         """
         plot legend
-        """
-        self.ax.legend(self.lines, self.labels, prop={'size': size})
 
-#-----------------------------------------------------------------------
+        Parameters
+        ----------
+        size : int
+            fontsize for legend
+        grid : bool
+            if True then a grid is automatically plotted as well
+        """
+        if grid:
+            self.ax.grid()
+        self.ax.legend(self.lines, self.labels, prop={'size': size})
 
 
 class LinePlot(object):
