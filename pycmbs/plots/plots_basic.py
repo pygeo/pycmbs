@@ -108,6 +108,10 @@ class HstackTimeseries(object):
         self.len = 0
         self.annotations = {}
 
+    def savefig(self, filename, **kwargs):
+        """ save figure """
+        self.figure.savefig(filename, **kwargs)
+
     def set_title(self, s, **kwargs):
         self.figure.suptitle(s, **kwargs)
 
@@ -236,10 +240,7 @@ class HstackTimeseries(object):
                     ann = self.annotations[keys[i]]
                     axhlp = ax.twinx()
                     axhlp.set_ylabel(ann, fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='left', verticalalignment='center')
-                    axhlp.set_xticks([])
-                    #~ axhlp.set_xticklabels([])
                     axhlp.set_yticks([])
-                    #~ axhlp.set_xticklabels([])
             if i == 0:
                 self._set_axis_prop(ax, remove_xticks=False)
                 if monthly_clim_ticks:
