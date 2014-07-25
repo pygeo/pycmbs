@@ -2018,7 +2018,6 @@ class Data(object):
         return res
 
     def set_time(self):
-        #--- check ---
         if self.time_str is None:
             raise ValueError('ERROR: time can not be determined, as units for time not available!')
         if not hasattr(self, 'calendar'):
@@ -2077,8 +2076,6 @@ class Data(object):
 
         return pl.num2date(act_date)
 
-#-----------------------------------------------------------------------
-
     def _convert_monthly_timeseries(self):
         """
         convert monthly timeseries to a daily timeseries
@@ -2092,8 +2089,6 @@ class Data(object):
         self.calendar = 'standard'
         self.time_str = 'days since 0001-01-01 00:00:00'
         self.time = pl.date2num(newtime) + 1.  # plus one because of the num2date() basedate definition
-
-#-----------------------------------------------------------------------
 
     def apply_temporal_subsetting(self, start_date, stop_date):
         """
@@ -2112,8 +2107,6 @@ class Data(object):
         """
         i1, i2 = self._get_time_indices(start_date, stop_date)
         self._temporal_subsetting(i1, i2)
-
-#-----------------------------------------------------------------------
 
     def _temporal_subsetting(self, i1, i2):
         """
@@ -2150,8 +2143,6 @@ class Data(object):
             self.data = self.data[i1:i2]
         else:
             raise ValueError('Error temporal subsetting: invalid dimension!')
-
-#-----------------------------------------------------------------------
 
     def align(self, y, base=None):
         """
@@ -2239,8 +2230,6 @@ class Data(object):
         y._temporal_subsetting(y1, y2)
 
         return x, y
-
-#-----------------------------------------------------------------------
 
     def interp_time(self, d, method='linear'):
         """

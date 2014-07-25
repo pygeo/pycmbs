@@ -106,6 +106,7 @@ class HstackTimeseries(object):
         """
         self.x = {}
         self.len = 0
+        self.annotations = {}
 
     def set_title(self, s, **kwargs):
         self.figure.suptitle(s, **kwargs)
@@ -113,7 +114,7 @@ class HstackTimeseries(object):
     def get_n(self):
         return len(self.x.keys())
 
-    def add_data(self, x, id, raise_duplicate_error=True):
+    def add_data(self, x, id, raise_duplicate_error=True, annotation=None):
         """
         add data
 
@@ -126,6 +127,9 @@ class HstackTimeseries(object):
         raise_duplicate_error : bool
             raise error if a duplicate data key occurs. If False, then no
             data will be added, but no error will be raised neither
+        annotation : str/float
+            provide here additional annotation data (e.g. statistics)
+            that will be plotted then on the right side of the plot
         """
 
         if x.ndim != 1:
@@ -145,9 +149,12 @@ class HstackTimeseries(object):
                 return None
 
         self.x.update({id: x})  # store data for later plotting
+        self.annotations.update({id : annotation})
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
-             cmap='jet', nclasses=10, title=None, maxheight=1., auto_adjust=False, monthly_clim_ticks=False, **kwargs):
+             cmap='jet', nclasses=10, title=None, maxheight=1.,
+             auto_adjust=False, monthly_clim_ticks=False, show_annotation=False,
+             **kwargs):
         """
         do final plotting
 
@@ -174,6 +181,8 @@ class HstackTimeseries(object):
             try to autoadjust the figure height
         monthly_ticks : bool
             if monthly ticks are given
+        show_annotation : bool
+            show additional annotation on the right for each panel
         """
 
         self.cb_bottom = 0.05
@@ -222,6 +231,15 @@ class HstackTimeseries(object):
                                 aspect='auto', vmin=vmin, vmax=vmax,
                                 cmap=self.cmap, **kwargs)
             ax.set_ylabel(keys[i], fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='right', verticalalignment='center')
+            if show_annotation:
+                if self.annotations[keys[i]] is not None:
+                    ann = self.annotations[keys[i]]
+                    axhlp = ax.twinx()
+                    axhlp.set_ylabel(ann, fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='left', verticalalignment='center')
+                    axhlp.set_xticks([])
+                    #~ axhlp.set_xticklabels([])
+                    axhlp.set_yticks([])
+                    #~ axhlp.set_xticklabels([])
             if i == 0:
                 self._set_axis_prop(ax, remove_xticks=False)
                 if monthly_clim_ticks:
