@@ -1748,8 +1748,6 @@ class Data(object):
             mask[hlp] = True
         return pl.asarray(mask)
 
-#-----------------------------------------------------------------------
-
     def get_climatology(self, return_object=False, nmin=1, ensure_start_first=True):
         """
         calculate climatological mean for a time increment
@@ -1850,7 +1848,6 @@ class Data(object):
         # shift data now
         self.timeshift(n, shift_time=True)
 
-#-----------------------------------------------------------------------
     def get_deseasonalized_anomaly(self, base=None, ensure_start_first=True):
         """
         calculate deseasonalized anomalies
@@ -1912,8 +1909,6 @@ class Data(object):
 
         return res
 
-#-----------------------------------------------------------------------
-
     def condstat(self, M):
         """
         Conditional statistics of data
@@ -1941,12 +1936,6 @@ class Data(object):
         > res = D.condstat(msk) #calculate conditional statistics
         > This returns a dictionary with the following keys ['max', 'sum', 'min', 'id', 'mean']
 
-        Test
-        ----
-        unittest implemented
-
-        @return: dictionary with results where each entry has shape (nt,nvals) with nvals beeing the number of unique ID values in the mask
-        @rtype: dict
         """
 
         if isinstance(M, Data):
@@ -2028,8 +2017,6 @@ class Data(object):
                              'max': maxs[:, i]}})
         return res
 
-#-----------------------------------------------------------------------
-
     def set_time(self):
         #--- check ---
         if self.time_str is None:
@@ -2052,8 +2039,6 @@ class Data(object):
             # actually nothing needs to be done, as everything shall
             # be handled by self.num2date() in all subsequent subroutines
             # to properly handle difference in different calendars.
-
-#-----------------------------------------------------------------------
 
     def _get_date_from_month(self, nmonths):
         """
