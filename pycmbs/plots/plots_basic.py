@@ -107,6 +107,9 @@ class HstackTimeseries(object):
         self.x = {}
         self.len = 0
 
+    def set_title(self, s, **kwargs):
+        self.figure.suptitle(s, **kwargs)
+
     def get_n(self):
         return len(self.x.keys())
 
