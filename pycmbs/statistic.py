@@ -147,3 +147,46 @@ def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
     t_alpha_prime = (t_alpha_df1 * sem1 ** 2 + t_alpha_df2 * sem2 ** 2) /\
                     (sem1 ** 2 + sem2 ** 2)
     return abs(t_s_prime) > t_alpha_prime, t_s_prime, t_alpha_prime
+
+
+
+
+def lomb_scargle_periodogram():
+    """
+    calculate the Lomb-Scargle periodogram
+    This corresponds to a method to perform spectral analyis
+    based on unevenly sampled data and/or data with gaps
+
+    The estimation is based on a linear regression of a cosine model
+    for each of the input frequencies
+
+    References
+    ----------
+    [1] Hocke & Kaempfer: http://www.atmos-chem-phys.net/9/4197/2009/
+
+
+    Parameters
+    ----------
+    f : ndarray
+        array with desired frequencies [cycles/day]
+
+    Returns
+    -------
+    returns
+    a) Amplitude for each frequency
+    b) phase for each frequency
+    c) Periodogram for each frequency
+
+    Example
+    -------
+
+    """
+
+    pass
+
+
+
+
+
+
+
