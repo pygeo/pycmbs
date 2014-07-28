@@ -4929,6 +4929,35 @@ class Data(object):
         return x
 
 
+    def lomb_scargle_periodogram(self, P, return_object=True):
+        """
+        Calculate LOMB-SCARGLE periodogram
+        This routine provides a wrapper to the function
+        in statistic.py
+
+        Parameters
+        ----------
+        P : ndarray
+            periods [days]
+
+        """
+        from pycmbs.statistic import lomb_scargle_periodogram
+
+        if self.ndim != 3:
+            raise ValueError('Only 3D geometry supported!')
+
+        n = len(P)
+        A = np.ones((self.ny, self.nx, n)) * np.nan
+        B = np.ones((self.ny, self.nx, n)) * np.nan
+
+        for i in xrange(self.ny):
+            for j in xrange(self.nx):
+                A[i, j, :], B[i, j, :] = lomb_scargle_periodogram(t, P, self.data[:, i, j])
+
+        if return_object:
+            assert False
+        else:
+            return A, B
 
 
 
