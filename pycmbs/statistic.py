@@ -191,7 +191,6 @@ def lomb_scargle_periodogram(t, p, y):
     def func(x, A, B):
         return A*np.cos(x + B)
 
-
     resA = np.ones(len(p))
     resB = np.ones(len(p))
 
@@ -202,8 +201,8 @@ def lomb_scargle_periodogram(t, p, y):
 
         resA[cnt] = popt[0]
         resB[cnt] = popt[1]
+        del popt, pcov
         cnt += 1
-
     return resA, resB
 
 
