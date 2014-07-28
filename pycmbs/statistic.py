@@ -184,6 +184,7 @@ def lomb_scargle_periodogram(t, p, y):
 
     Example
     -------
+    see file lomb.py in scripts subdirectory
 
     """
     from scipy import optimize
