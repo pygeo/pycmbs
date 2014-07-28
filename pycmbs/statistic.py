@@ -186,36 +186,26 @@ def lomb_scargle_periodogram(t, p, y):
     -------
 
     """
-    from scipy.optimize import curve_fit
+    from scipy import optimize
+
+    def func(x, A, B):
+        return A*np.cos(x + B)
 
 
+    resA = np.ones(len(p))
+    resB = np.ones(len(p))
 
-    A = np.ones_like(t)*5.
-    B = np.zeros_like(t)*5.
+    cnt = 0
+    for period in p:
+        f = 2.*np.pi * t / period
+        popt, pcov = optimize.curve_fit(func, f, y, p0=[1., 0.])
 
+        resA[cnt] = popt[0]
+        resB[cnt] = popt[1]
+        cnt += 1
 
-    return A, B
+    return resA, resB
 
-
-
-    http://wiki.scipy.org/Cookbook/FittingData
-
-    use optimize.leastsq
-
-
->>>
->>> def func(x, a, b, c):
-...     return a * np.exp(-b * x) + c
-
->>>
-
->>> xdata = np.linspace(0, 4, 50)
->>> y = func(xdata, 2.5, 1.3, 0.5)
->>> ydata = y + 0.2 * np.random.normal(size=len(xdata))
-
->>>
-
->>> popt, pcov = curve_fit(func, xdata, ydata)
 
 
 
