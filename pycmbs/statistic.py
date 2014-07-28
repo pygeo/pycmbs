@@ -151,7 +151,7 @@ def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
 
 
 
-def lomb_scargle_periodogram():
+def lomb_scargle_periodogram(t, p, y):
     """
     calculate the Lomb-Scargle periodogram
     This corresponds to a method to perform spectral analyis
@@ -164,11 +164,16 @@ def lomb_scargle_periodogram():
     ----------
     [1] Hocke & Kaempfer: http://www.atmos-chem-phys.net/9/4197/2009/
 
-
     Parameters
     ----------
-    f : ndarray
-        array with desired frequencies [cycles/day]
+    t : ndarray
+        time array [e.g. units of days]
+
+    p : ndarray
+        array with desired periods [day]; in general any kind of timeunit is
+        valid, but needs to be simply consistent with time
+    y : ndarray
+        observations to fit
 
     Returns
     -------
@@ -181,8 +186,38 @@ def lomb_scargle_periodogram():
     -------
 
     """
+    from scipy.optimize import curve_fit
 
-    pass
+
+
+    A = np.ones_like(t)*5.
+    B = np.zeros_like(t)*5.
+
+
+    return A, B
+
+
+
+    http://wiki.scipy.org/Cookbook/FittingData
+
+    use optimize.leastsq
+
+
+>>>
+>>> def func(x, a, b, c):
+...     return a * np.exp(-b * x) + c
+
+>>>
+
+>>> xdata = np.linspace(0, 4, 50)
+>>> y = func(xdata, 2.5, 1.3, 0.5)
+>>> ydata = y + 0.2 * np.random.normal(size=len(xdata))
+
+>>>
+
+>>> popt, pcov = curve_fit(func, xdata, ydata)
+
+
 
 
 
