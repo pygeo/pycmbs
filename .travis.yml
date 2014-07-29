@@ -13,6 +13,7 @@ before_install:
 - sudo apt-get install python-numpy
 - sudo C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4
 - sudo pip install cdo coveralls pytest-cov
+- sudo pip install pyshp
 - pushd .
 - git clone https://github.com/SciTools/cartopy.git && cd cartopy
 - sudo add-apt-repository -y ppa:pylab/stable
