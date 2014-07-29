@@ -47,7 +47,7 @@ class TestRegion(unittest.TestCase):
         w.record('Second','Point')
         w.record('Third','Point')
         w.record('Fourth','Point')
-        w.save('shapefiles/test/point')
+
         # Create a polygon shapefile
         w = shapefile.Writer(shapefile.POLYGON)
         w.poly(parts=[[[1,5],[5,5],[5,1],[3,3],[1,1]]])
