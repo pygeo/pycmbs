@@ -36,7 +36,15 @@ class TestRegion(unittest.TestCase):
         w.field('FIRST_FLD','C','40')
         w.field('SECOND_FLD','C','40')
         w.record('First','Polygon')
-        w.save(tempfile.mkdtemp() + os.sep + 'mytestshape')
+        tfile = tempfile.mkdtemp() + os.sep + 'mytestshape'
+        w.save(tfile)
+
+        # try to read some information
+        sf = shapefile.Reader(tfile)
+        shapes = sf.shapes()
+        print shapes[0].bbox
+
+
 
 
 
