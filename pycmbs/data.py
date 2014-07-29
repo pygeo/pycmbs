@@ -11,6 +11,8 @@ import sys
 
 from pycmbs.statistic import get_significance, ttest_ind
 from pycmbs.netcdf import NetCDFHandler
+from pycmbs.polygon import Raster
+from pycmbs.polygon import Polygon as pycmbsPolygon
 
 import numpy as np
 from matplotlib import pylab as plt
@@ -4928,8 +4930,37 @@ class Data(object):
 
         return x
 
+    def mask_region(self, r, return_object=False):
+        """
+        Given a Region object, mask all the data which is outside of the region
 
+        Parameters
+        ----------
+        r : Region
+            Region which contains valid data
+        return_object : bool
+            if True then a new data object is returned with the masked data
+            otherwise the original data is modified
+        """
 
+        print 'Masking by region ...'
 
+        polylist = []
+        polylist.append(pycmbsPolygon(r.id, zip(r.lon, r.lat)))
+
+        print '   ... rasterizing'
+        M = Raster(self.lon, self.lat)
+        M.rasterize_polygons(polylist)
+
+        if return_object:
+            x = self.copy()
+        else:
+            x = self
+        x._apply_mask(M.mask > 0.)
+
+        if return_object:
+            return x
+        else:
+            return None
 
 
