@@ -6,6 +6,7 @@ cimport numpy as np
 #~ ctypedef np.double_t DTYPE_t
 
 
+
 cdef class Polygon(object):
     """
     define a polygon
@@ -13,13 +14,13 @@ cdef class Polygon(object):
     # in cython classes the class attributes need to be specified explicitely!
     #http://docs.cython.org/src/userguide/extension_types.html
 
-    cdef int id
-    cdef poly
-#~     cdef struct dtuple:
-#~         double x
-#~         double y
+    # Note however that the attributes can obviously not be directly accessed.
+    # functions to return the attributes are therefore explicitely needed!
 
-    def __init__(self, int id, coordinates):
+    cdef int id
+    cdef list poly
+
+    def __init__(self, int id, list coordinates):
         """
         Parameters
         ----------
@@ -29,9 +30,19 @@ cdef class Polygon(object):
             list of tuples (x,y) defining the polygon
         """
         self.poly = coordinates
-        print 'IDPOLY: ', id
         self.id = id
-        print 'IDPOLYXX: ', self.id
+
+    property id:
+        def __get__(self):
+          return self.id
+        def __set__(self, int value):
+          self.id = value
+
+    property poly:
+        def __get__(self):
+          return self.poly
+        def __set__(self, int value):
+          self.poly = value
 
     def _xcoords(self):
         return np.asarray([t[0] for t in self.poly])

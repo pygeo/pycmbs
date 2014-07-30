@@ -81,8 +81,8 @@ class Raster(object):
             raise ValueError('Output array not existing yet!')
         if not isinstance(P, Polygon):
             raise ValueError('No Polygon object provided!')
-        if P.id is None:
-            raise ValueError('ERROR: ID value must not be None')
+        if P.id < 0:
+            raise ValueError('ERROR: ID value must not be negative!')
 
         id = float(P.id)
 
