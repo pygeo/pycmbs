@@ -3,9 +3,7 @@ from __future__ import division
 import numpy as np
 cimport numpy as np
 
-#~ ctypedef np.double_t DTYPE_t
-
-
+ctypedef np.double_t DTYPE_t  # double type for numpy arrays
 
 cdef class Polygon(object):
     """
@@ -103,21 +101,25 @@ cdef class Polygon(object):
                         if p1x == p2x or x <= xints:
                             inside = not inside
             p1x, p1y = p2x, p2y
+
         return inside
 
 
-
-def fast_point_in_poly(np.ndarray lon, np.ndarray lat, Polygon P):
+def fast_point_in_poly(np.ndarray[DTYPE_t, ndim=2] lon, np.ndarray[DTYPE_t, ndim=2] lat, Polygon P):
 
     cdef int i, j
     cdef int ny = lon.shape[0]
     cdef int nx = lon.shape[1]
 
-    cdef np.ndarray mask = np.zeros([ny, nx]) * np.nan
+    cdef id
+
+    cdef np.ndarray[DTYPE_t, ndim=2] mask = np.zeros([ny, nx]) * np.nan
     DTYPE = np.double
 
     assert lon.dtype == DTYPE
     assert lat.dtype == DTYPE
+
+    id = float(P.id)
 
     for i in range(ny):
         if i % 10 == 0:
@@ -125,15 +127,11 @@ def fast_point_in_poly(np.ndarray lon, np.ndarray lat, Polygon P):
         for j in range(nx):
             if P.point_in_poly(lon[i, j], lat[i, j]):
                 if np.isnan(mask[i, j]):
-                    mask[i, j] = float(P.id)
+                    mask[i, j] = id
                 else:
                     print i, j, lon[i, j], lat[i, j]
                     raise ValueError('Overlapping polygons not supported yet!')
             else:
                 pass
-
-
-#~ # look again more into efficient indexing in CYTHON documentation!!!
-
 
     return mask

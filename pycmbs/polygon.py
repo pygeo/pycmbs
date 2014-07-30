@@ -75,6 +75,8 @@ class Raster(object):
         method : str
             full: itterate over entire spatial domain (most precise)
             fast: calculate first bbox and then itterate (faster)
+            faster: same as full, but fully implemented in cython. However
+            this is not necessarily faster than 'full'
         """
 
         if not hasattr(self, 'mask'):
@@ -106,7 +108,7 @@ class Raster(object):
                     else:
                         pass
 
-        elif method == 'faster':
+        elif method == 'faster':  # an alternative implementation. This is however not necessarily faster than 'full'
             print 'Using CYTHON method for rasterization!'
             import pyximport; pyximport.install()  # import cython code and compile on the fly
             from polygon_utils import fast_point_in_poly
