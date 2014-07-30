@@ -94,7 +94,8 @@ class Raster(object):
         if method == 'full':
             ny, nx = self.lon.shape
             for i in xrange(ny):
-                print i
+                if i % 10 == 0:
+                    print i, ny
                 for j in xrange(nx):
                     if P.point_in_poly(self.lon[i, j], self.lat[i, j]):
                         if np.isnan(self.mask[i, j]):

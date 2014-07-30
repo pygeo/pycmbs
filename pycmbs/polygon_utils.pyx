@@ -72,7 +72,7 @@ cdef class Polygon(object):
         """
         return [self._xmin(), self._xmax(), self._ymin(), self._ymax()]
 
-    def point_in_poly(self, x, y):
+    def point_in_poly(self, double x, double y):
         """
         Parameters
         ----------
@@ -85,6 +85,9 @@ cdef class Polygon(object):
         ----
         does that work also across the deadline and datum line?
         """
+
+        cdef int i
+        cdef double p1x, p1y, p2x, p2y
 
         n = len(self.poly)
         inside = False
@@ -107,23 +110,30 @@ cdef class Polygon(object):
 def fast_point_in_poly(np.ndarray lon, np.ndarray lat, Polygon P):
 
     cdef int i, j
-    cdef ny = lon.shape[0]
-    cdef nx = lon.shape[1]
+    cdef int ny = lon.shape[0]
+    cdef int nx = lon.shape[1]
 
     cdef np.ndarray mask = np.zeros([ny, nx]) * np.nan
     DTYPE = np.double
 
-    assert lon.dtype == DTYPE and lat.dtype == DTYPE
+    assert lon.dtype == DTYPE
+    assert lat.dtype == DTYPE
 
     for i in range(ny):
+        if i % 10 == 0:
+            print 'Processing line: ', i, ny
         for j in range(nx):
             if P.point_in_poly(lon[i, j], lat[i, j]):
                 if np.isnan(mask[i, j]):
-                    mask[i, j] = id
+                    mask[i, j] = float(P.id)
                 else:
                     print i, j, lon[i, j], lat[i, j]
                     raise ValueError('Overlapping polygons not supported yet!')
             else:
                 pass
+
+
+#~ # look again more into efficient indexing in CYTHON documentation!!!
+
 
     return mask
