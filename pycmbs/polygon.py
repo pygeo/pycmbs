@@ -174,14 +174,36 @@ class Raster(object):
                     else:
                         pass
 
+        elif method == 'faster':
+            assert False
+            from polygon_utils import fast_point_in_poly
+            ny, nx = self.lon.shape
+            self.mask = fast_point_in_poly(ny,nx, self.lon, self.lat)
+
+
+            for i in xrange(ny):
+                for j in xrange(nx):
+                    if P.point_in_poly(self.lon[i, j], self.lat[i, j]):
+                        if np.isnan(self.mask[i, j]):
+                            self.mask[i, j] = id
+                        else:
+                            print i, j, self.lon[i, j], self.lat[i, j]
+                            raise ValueError('Overlapping polygons not supported yet!')
+                    else:
+                        pass
+
+
         elif method == 'fast':
             xmin, xmax, ymin, ymax = P.bbox()
+            # determine bounding box very roughly NOT THAT THIS MIGHT BE NOT CORRECT
             valid_points = (self.lon >= xmin) & (self.lon <= xmax) & (self.lat >= ymin) & (self.lat <= ymax)
             plon = self.lon[valid_points]  # preselect points that are likely to fall within polygon
             plat = self.lat[valid_points]
 
             resmsk = np.zeros_like(plon) * np.nan
             for i in xrange(len(plon)):
+                if i % 500 == 0:
+                    print i, len(plon)
                 if P.point_in_poly(plon[i], plat[i]):
                     if np.isnan(resmsk[i]):
                         resmsk[i] = id
