@@ -2020,6 +2020,11 @@ class Data(object):
         return res
 
     def set_time(self):
+        """
+        convert times that are in a specific format
+        If the time string is already known to be handled by the
+        netcdf4time module, then nothing is happening
+        """
         if self.time_str is None:
             raise ValueError('ERROR: time can not be determined, as units for time not available!')
         if not hasattr(self, 'calendar'):
@@ -2032,6 +2037,8 @@ class Data(object):
             self._convert_time()
         elif self.time_str == 'month as %Y%m.%f':
             self._convert_timeYYYYMM()
+        elif self.time_str == 'year as %Y.%f':
+            self._convert_timeYYYY()
         elif 'months since' in self.time_str:
             # months since is not supported by netCDF4 library at the moment. Therefore implementation here.
             self._convert_monthly_timeseries()
@@ -3334,8 +3341,6 @@ class Data(object):
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-    #-----------------------------------------------------------------------
-
     def _convert_timeYYYYMM(self):
         """
         convert time that was given as YYYYMM.f
@@ -3356,7 +3361,28 @@ class Data(object):
         #convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-#-----------------------------------------------------------------------
+    def _convert_timeYYYY(self):
+        """
+        convert time that was given as YYYY.f
+        and set time variable of Data object
+
+        The date is set to the first of January for each year
+        """
+
+        s = map(str, self.time)
+        T = []
+        for t in s:
+            y = t[0:4]
+            m = '01'
+            d = '01'  # always the first day is used as default
+            h = '00'
+            tn = y + '-' + m + '-' + d + ' ' + h + ':00'
+            T.append(tn)
+        T = np.asarray(T)
+        self.calendar = 'gregorian'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        #convert first to datetime object and then use own function !!!
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
     def adjust_time(self, day=None, month=None, year=None):
         """
