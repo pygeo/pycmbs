@@ -4956,7 +4956,7 @@ class Data(object):
 
         return x
 
-    def mask_region(self, r, return_object=False):
+    def mask_region(self, r, return_object=False, method='full'):
         """
         Given a Region object, mask all the data which is outside of the region
 
@@ -4967,6 +4967,10 @@ class Data(object):
         return_object : bool
             if True then a new data object is returned with the masked data
             otherwise the original data is modified
+        method : str
+            ['full','fast'] two methods for rasterization are supported.
+            full: calculate full raster = default
+            fast: some faster method, but this might not be totally correct
         """
 
         print 'Masking by region ...'
@@ -4976,7 +4980,7 @@ class Data(object):
 
         print '   ... rasterizing'
         M = Raster(self.lon, self.lat)
-        M.rasterize_polygons(polylist)
+        M.rasterize_polygons(polylist, method=method)
 
         if return_object:
             x = self.copy()
