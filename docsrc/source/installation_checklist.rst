@@ -72,6 +72,9 @@ cartopy
 cartopy dependencies
     todo
 
+pyshp
+    library to read shapefiles using python
+
 
 
 

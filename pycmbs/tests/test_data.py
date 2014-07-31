@@ -10,6 +10,8 @@ from unittest import TestCase
 import unittest
 
 from pycmbs.data import Data
+from pycmbs.region import RegionPolygon
+
 import os
 import scipy as sc
 import matplotlib.pylab as pl
@@ -2396,6 +2398,49 @@ class TestData(unittest.TestCase):
         x = self.D.copy()
         del x.cell_area
         x._set_cell_area()
+
+    def test_mask_region(self):
+        rlon = [-20., -20., 50., 50.]
+        rlat = [10., 20., 20., 10.]
+        reg = RegionPolygon(123, rlon, rlat, label='testreg')
+
+        x = Data(None, None)
+        x._init_sample_object(nt=10, ny=100, nx=50)
+
+        mfile = tempfile.mktemp(suffix='.nc')
+
+        y = x.copy()
+        y.mask_region(reg, return_object=False, method='full', maskfile=None, force=False)
+        y1 = y.copy()
+        res2 = y.mask_region(reg, return_object=True, method='full', maskfile=None, force=False)
+        with self.assertRaises(ValueError):
+            res3 = y.mask_region(reg, return_object=False, method='full', maskfile='no_valid_filename', force=False)
+
+        y = x.copy()
+        res4 = y.mask_region(reg, return_object=True, method='full', maskfile=mfile, force=False)
+        self.assertTrue(os.path.exists(mfile))
+
+        y = x.copy()
+        res5 = y.mask_region(reg, return_object=True, method='full', maskfile=mfile, force=False)
+        self.assertTrue(os.path.exists(mfile))
+
+        y = x.copy()
+        res6 = y.mask_region(reg, return_object=True, method='full', maskfile=mfile, force=True)
+        self.assertTrue(os.path.exists(mfile))
+
+        # now check that results are usefull
+
+        #1) right mask value
+        msk = Data(mfile, 'mask', read=True)
+        self.assertTrue(np.all(msk.data == 123.))
+
+        #2) results from all options above give the same
+        self.assertTrue((y1.data == res2.data).all())
+        self.assertTrue((res2.data == res4.data).all())
+        self.assertTrue((res2.data == res5.data).all())
+        self.assertTrue((res2.data == res6.data).all())
+
+        #3) the right values have been actually masked
 
 
 if __name__ == '__main__':

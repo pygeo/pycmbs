@@ -11,6 +11,8 @@ import sys
 
 from pycmbs.statistic import get_significance, ttest_ind
 from pycmbs.netcdf import NetCDFHandler
+from pycmbs.polygon import Raster
+from pycmbs.polygon import Polygon as pycmbsPolygon
 
 import numpy as np
 from matplotlib import pylab as plt
@@ -2018,6 +2020,11 @@ class Data(object):
         return res
 
     def set_time(self):
+        """
+        convert times that are in a specific format
+        If the time string is already known to be handled by the
+        netcdf4time module, then nothing is happening
+        """
         if self.time_str is None:
             raise ValueError('ERROR: time can not be determined, as units for time not available!')
         if not hasattr(self, 'calendar'):
@@ -2030,6 +2037,8 @@ class Data(object):
             self._convert_time()
         elif self.time_str == 'month as %Y%m.%f':
             self._convert_timeYYYYMM()
+        elif self.time_str == 'year as %Y.%f':
+            self._convert_timeYYYY()
         elif 'months since' in self.time_str:
             # months since is not supported by netCDF4 library at the moment. Therefore implementation here.
             self._convert_monthly_timeseries()
@@ -2955,10 +2964,6 @@ class Data(object):
         -------
         w : ndarray
             weighting matrix in same geometry as original data
-
-        Test
-        ----
-        unittest implemented
         """
 
         normtype = self.weighting_type
@@ -3163,7 +3168,6 @@ class Data(object):
         else:  # return numpy array
             return tmp
 
-#-----------------------------------------------------------------------
     def fldstd(self, return_data=False, apply_weights=True, ddof=0):
         """
         calculate stdv of the spatial field using area weighting
@@ -3332,8 +3336,6 @@ class Data(object):
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-    #-----------------------------------------------------------------------
-
     def _convert_timeYYYYMM(self):
         """
         convert time that was given as YYYYMM.f
@@ -3354,7 +3356,28 @@ class Data(object):
         #convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-#-----------------------------------------------------------------------
+    def _convert_timeYYYY(self):
+        """
+        convert time that was given as YYYY.f
+        and set time variable of Data object
+
+        The date is set to the first of January for each year
+        """
+
+        s = map(str, self.time)
+        T = []
+        for t in s:
+            y = t[0:4]
+            m = '01'
+            d = '01'  # always the first day is used as default
+            h = '00'
+            tn = y + '-' + m + '-' + d + ' ' + h + ':00'
+            T.append(tn)
+        T = np.asarray(T)
+        self.calendar = 'gregorian'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        #convert first to datetime object and then use own function !!!
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
     def adjust_time(self, day=None, month=None, year=None):
         """
@@ -4928,6 +4951,73 @@ class Data(object):
 
         return x
 
+    def mask_region(self, r, return_object=False, method='full', maskfile=None, force=False):
+        """
+        Given a Region object, mask all the data which is outside of the region
+
+        Parameters
+        ----------
+        r : Region
+            Region which contains valid data
+        return_object : bool
+            if True then a new data object is returned with the masked data
+            otherwise the original data is modified
+        method : str
+            ['full','fast'] two methods for rasterization are supported.
+            full: calculate full raster = default
+            fast: some faster method, but this might not be totally correct
+        maskfile : str
+            filename of maskfile
+            if provided, then the generated mask is stored in a file specified
+            by maskfile. In case that this file is already existing, no raster
+            will be generated, but the mask will be read from file. Only exception is if
+            force=True
+            The filename needs to have the '.nc' extension!
+        force : bool
+            force always calculation of mask based on polygon information
+        """
+
+        print 'Masking by region ...'
+
+        if maskfile is not None:
+            if maskfile[-3:] != '.nc':
+                print maskfile
+                raise ValueError('Maskfile needs to eb a netcdf file!')
+            if os.path.exists(maskfile):
+                f_rasterize = False
+                if force:
+                    os.remove(maskfile)
+                    f_rasterize = True
+            else:
+                f_rasterize = True
+        else:
+            f_rasterize = True
+
+        # perform rasterization
+        if f_rasterize:
+            polylist = []
+            polylist.append(pycmbsPolygon(r.id, zip(r.lon, r.lat)))
+
+            print '   ... rasterizing'
+            M = Raster(self.lon, self.lat)
+            M.rasterize_polygons(polylist, method=method)
+            themask = M.mask
+        else:
+            # load mask from file!
+            MD = Data(maskfile, 'mask', read=True)
+            assert MD.ny == self.ny
+            assert MD.nx == self.nx
+            themask = MD.data
+
+        # save maskfile
+        if maskfile is not None:
+            if not os.path.exists(maskfile):
+                MD = Data(None, None)
+                MD._init_sample_object(ny=self.ny, nx=self.nx)
+                MD.lon = self.lon
+                MD.lat = self.lat
+                MD.data = np.ma.array(M.mask, mask = M.mask != M.mask)
+                MD.save(maskfile, varname='mask', delete=True)
 
     def lomb_scargle_periodogram(self, P, return_object=True):
         """
@@ -4959,6 +5049,15 @@ class Data(object):
         else:
             return A, B
 
+        if return_object:
+            x = self.copy()
+        else:
+            x = self
+        x._apply_mask(themask > 0.)
 
+        if return_object:
+            return x
+        else:
+            return None
 
 
