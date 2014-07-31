@@ -168,7 +168,6 @@ def lomb_scargle_periodogram(t, p, y):
     ----------
     t : ndarray
         time array [e.g. units of days]
-
     p : ndarray
         array with desired periods [day]; in general any kind of timeunit is
         valid, but needs to be simply consistent with time
@@ -196,10 +195,9 @@ def lomb_scargle_periodogram(t, p, y):
     resB = np.ones(len(p))
 
     cnt = 0
+    hlp = 2.*np.pi*t
     for period in p:
-        f = 2.*np.pi * t / period
-        popt, pcov = optimize.curve_fit(func, f, y, p0=[1., 0.])
-
+        popt, pcov = optimize.curve_fit(func, hlp/period, y, p0=[1., 0.])   # f=2*pi*t/period
         resA[cnt] = popt[0]
         resB[cnt] = popt[1]
         del popt, pcov
