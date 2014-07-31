@@ -5037,15 +5037,30 @@ class Data(object):
             raise ValueError('Only 3D geometry supported!')
 
         n = len(P)
-        A = np.ones((self.ny, self.nx, n)) * np.nan
-        B = np.ones((self.ny, self.nx, n)) * np.nan
+        A = np.ones((n, self.ny, self.nx)) * np.nan
+        B = np.ones((n, self.ny, self.nx)) * np.nan
+
+        # todo how to deal with different time units !!!
+        t = self.time
+        if 'days since' not in self.time_str:
+            raise ValueError('only time units in days currently supported!')
 
         for i in xrange(self.ny):
             for j in xrange(self.nx):
-                A[i, j, :], B[i, j, :] = lomb_scargle_periodogram(t, P, self.data[:, i, j])
+                A[:, i, j], B[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j])
 
         if return_object:
-            assert False
+            Aout = Data(None, None)
+            Aout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+            Aout.data = np.ma.array(A, mask=A != A)
+            Aout.label = 'amplitude'
+
+            Bout = Data(None, None)
+            Bout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+            Bout.data = np.ma.array(B, mask=B != B)
+            Bout.label = 'phase'
+
+            return Aout, Bout
         else:
             return A, B
 

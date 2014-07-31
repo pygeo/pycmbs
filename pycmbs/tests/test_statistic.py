@@ -4,6 +4,8 @@ from unittest import TestCase
 __author__ = 'm300028'
 
 from pycmbs.statistic import *
+from pycmbs.data import Data
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -39,10 +41,15 @@ class TestLomb(TestCase):
             print r, x/y
             self.assertTrue(r <= thres) # accuracy of ration by 5%
 
+
+
+
         # test with single frequency
         p_ref = 10.
         w = 2.*np.pi / p_ref
         y, e = _sample_data(self.t, w, 5., 0.1)
+
+
 
         P = np.arange(2., 20., 2.)  # target period [days]
         Ar, Br = lomb_scargle_periodogram(self.t, P, y+e)
@@ -72,12 +79,44 @@ class TestLomb(TestCase):
         y1, e1 = _sample_data(self.t, w1, 2., np.pi*0.3)  # don't choose pi for phase, as this will result in an optimization with negative amplitude and zero phase (= sin)
         y2, e2 = _sample_data(self.t, w2, 3., np.pi*0.5)
         P = np.arange(1., 366., 1.)  # target period [days]
-        Ar, Br = lomb_scargle_periodogram(self.t, P, y1+e1+y2+e2)
+        hlp = y1+e1+y2+e2
+        Ar, Br = lomb_scargle_periodogram(self.t, P, hlp)
+
+        # sample data object
+        D = Data(None, None)
+        D._init_sample_object(nt=len(y), ny=1, nx=1)
+        D.data[:,0,0] = np.ma.array(hlp, mask=hlp!=hlp)
+        D.time = self.t
+
+        D_dummy = Data(None, None)
+        D_dummy._init_sample_object(nt=len(y), ny=1, nx=1)
+        with self.assertRaises(ValueError):
+            D_dummy.time_str = 'hours since 2001-01-01'  # only days currently supported!
+            xx, yy = D_dummy.lomb_scargle_periodogram(P, return_object=False)
+
+        AD, BD = D.lomb_scargle_periodogram(P, return_object=False)
+        AD1, BD1 = D.lomb_scargle_periodogram(P, return_object=True)
+        self.assertEqual(AD.shape, BD.shape)
+        self.assertEqual(D.ny, AD.shape[1])
+        self.assertEqual(D.nx, AD.shape[2])
+
+        # todo test with different timeunit !!
 
         _test_ratio(Ar[99], 2.)
+        _test_ratio(AD[99,0,0], 2.)
+        _test_ratio(AD1.data[99, 0,0], 2.)
+
         _test_ratio(Ar[199], 3.)
+        _test_ratio(AD[199,0,0], 3.)
+        _test_ratio(AD1.data[199,0,0], 3.)
+
         _test_ratio(Br[99], np.pi*0.3)
+        _test_ratio(BD[99,0,0], np.pi*0.3)
+        _test_ratio(BD1.data[99,0,0], np.pi*0.3)
+
         _test_ratio(Br[199], np.pi*0.5)
+        _test_ratio(BD[199,0,0], np.pi*0.5)
+        _test_ratio(BD1.data[199,0,0], np.pi*0.5)
 
         # test for data with gaps
         # tests are not very robust yet as results depend on noise applied!
