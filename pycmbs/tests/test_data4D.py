@@ -18,4 +18,4 @@ class TestPycmbsData4D(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-# vim: expandtab shiftwidth=4 softtabstop=4
+

@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the file
+COPYRIGHT.md
+"""
+
 from __future__ import division
 #http://docs.cython.org/src/tutorial/numpy.html#efficient-indexing
 import numpy as np
