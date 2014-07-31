@@ -5019,6 +5019,19 @@ class Data(object):
                 MD.data = np.ma.array(M.mask, mask = M.mask != M.mask)
                 MD.save(maskfile, varname='mask', delete=True)
 
+        if return_object:
+            x = self.copy()
+        else:
+            x = self
+        x._apply_mask(themask > 0.)
+
+        if return_object:
+            return x
+        else:
+            return None
+
+
+
     def lomb_scargle_periodogram(self, P, return_object=True):
         """
         Calculate LOMB-SCARGLE periodogram
@@ -5063,16 +5076,5 @@ class Data(object):
             return Aout, Bout
         else:
             return A, B
-
-        if return_object:
-            x = self.copy()
-        else:
-            x = self
-        x._apply_mask(themask > 0.)
-
-        if return_object:
-            return x
-        else:
-            return None
 
 

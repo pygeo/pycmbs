@@ -2413,6 +2413,7 @@ class TestData(unittest.TestCase):
         y.mask_region(reg, return_object=False, method='full', maskfile=None, force=False)
         y1 = y.copy()
         res2 = y.mask_region(reg, return_object=True, method='full', maskfile=None, force=False)
+
         with self.assertRaises(ValueError):
             res3 = y.mask_region(reg, return_object=False, method='full', maskfile='no_valid_filename', force=False)
 
@@ -2441,7 +2442,6 @@ class TestData(unittest.TestCase):
         self.assertTrue((res2.data == res6.data).all())
 
         #3) the right values have been actually masked
-
 
 if __name__ == '__main__':
     unittest.main()
