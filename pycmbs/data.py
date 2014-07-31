@@ -2964,10 +2964,6 @@ class Data(object):
         -------
         w : ndarray
             weighting matrix in same geometry as original data
-
-        Test
-        ----
-        unittest implemented
         """
 
         normtype = self.weighting_type
@@ -3172,7 +3168,6 @@ class Data(object):
         else:  # return numpy array
             return tmp
 
-#-----------------------------------------------------------------------
     def fldstd(self, return_data=False, apply_weights=True, ddof=0):
         """
         calculate stdv of the spatial field using area weighting
@@ -4956,7 +4951,7 @@ class Data(object):
 
         return x
 
-    def mask_region(self, r, return_object=False, method='full'):
+    def mask_region(self, r, return_object=False, method='full', maskfile=None, force=False):
         """
         Given a Region object, mask all the data which is outside of the region
 
@@ -4971,22 +4966,65 @@ class Data(object):
             ['full','fast'] two methods for rasterization are supported.
             full: calculate full raster = default
             fast: some faster method, but this might not be totally correct
+        maskfile : str
+            filename of maskfile
+            if provided, then the generated mask is stored in a file specified
+            by maskfile. In case that this file is already existing, no raster
+            will be generated, but the mask will be read from file. Only exception is if
+            force=True
+            The filename needs to have the '.nc' extension!
+        force : bool
+            force always calculation of mask based on polygon information
         """
 
         print 'Masking by region ...'
 
-        polylist = []
-        polylist.append(pycmbsPolygon(r.id, zip(r.lon, r.lat)))
+        if maskfile is not None:
+            if maskfile[-3:] != '.nc':
+                print maskfile
+                raise ValueError('Maskfile needs to eb a netcdf file!')
+            if os.path.exists(maskfile):
+                f_rasterize = False
+                if force:
+                    os.remove(maskfile)
+                    f_rasterize = True
+            else:
+                f_rasterize = True
+        else:
+            f_rasterize = True
 
-        print '   ... rasterizing'
-        M = Raster(self.lon, self.lat)
-        M.rasterize_polygons(polylist, method=method)
+        # perform rasterization
+        if f_rasterize:
+            polylist = []
+            polylist.append(pycmbsPolygon(r.id, zip(r.lon, r.lat)))
+
+            print '   ... rasterizing'
+            M = Raster(self.lon, self.lat)
+            M.rasterize_polygons(polylist, method=method)
+            themask = M.mask
+        else:
+            # load mask from file!
+            MD = Data(maskfile, 'mask', read=True)
+            assert MD.ny == self.ny
+            assert MD.nx == self.nx
+            themask = MD.data
+
+        # save maskfile
+        if maskfile is not None:
+            if not os.path.exists(maskfile):
+                MD = Data(None, None)
+                MD._init_sample_object(ny=self.ny, nx=self.nx)
+                MD.lon = self.lon
+                MD.lat = self.lat
+                MD.data = np.ma.array(M.mask, mask = M.mask != M.mask)
+                MD.save(maskfile, varname='mask', delete=True)
+
 
         if return_object:
             x = self.copy()
         else:
             x = self
-        x._apply_mask(M.mask > 0.)
+        x._apply_mask(themask > 0.)
 
         if return_object:
             return x

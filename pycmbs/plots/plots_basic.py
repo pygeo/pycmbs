@@ -36,7 +36,7 @@ import copy
 import numpy as np
 
 
-from scipy.spatial import cKDTree as KDTree  # import the C version of KDTree (faster)
+#from scipy.spatial import cKDTree as KDTree  # import the C version of KDTree (faster)
 from matplotlib.ticker import MaxNLocator
 
 import matplotlib.gridspec as gridspec
