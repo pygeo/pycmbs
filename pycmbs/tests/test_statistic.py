@@ -17,6 +17,7 @@ class TestStatistic(TestCase):
 
 
 class TestLomb(TestCase):
+    # note that the tests are not 100percent stable!
 
     def setUp(self):
         self.t = np.arange(0, 365*3)   # time in days
