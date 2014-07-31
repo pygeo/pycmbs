@@ -100,8 +100,6 @@ class TestLomb(TestCase):
         self.assertEqual(D.ny, AD.shape[1])
         self.assertEqual(D.nx, AD.shape[2])
 
-        # todo test with different timeunit !!
-
         _test_ratio(Ar[99], 2.)
         _test_ratio(AD[99,0,0], 2.)
         _test_ratio(AD1.data[99, 0,0], 2.)
