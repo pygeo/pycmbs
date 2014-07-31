@@ -6,11 +6,8 @@ COPYRIGHT.md
 """
 
 import numpy as np
-import pyximport; pyximport.install()  # import cython code and compile on the fly
 from pycmbs.polygon_utils import Polygon
-
-
-
+from polygon_utils import fast_point_in_poly
 
 class Raster(object):
 
@@ -110,8 +107,6 @@ class Raster(object):
 
         elif method == 'faster':  # an alternative implementation. This is however not necessarily faster than 'full'
             print 'Using CYTHON method for rasterization!'
-            import pyximport; pyximport.install()  # import cython code and compile on the fly
-            from polygon_utils import fast_point_in_poly
             self.mask = fast_point_in_poly(self.lon, self.lat, P)
 
 
