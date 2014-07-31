@@ -1,0 +1,9 @@
+[COMMENT]
+description=Antarctica
+label=Antarctica regions
+
+[ANT]
+coordinates=[(-90.000, -180.000),(-60.000, -180.0),(-60.0, 180.0),(-90.0, 180.000)]
+id=30
+
+
