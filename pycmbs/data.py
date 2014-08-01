@@ -3756,7 +3756,7 @@ class Data(object):
             del tmp1
 
         elif self.data.ndim == 3:
-            for i in range(len(self.data)):
+            for i in xrange(self.nt):
                 tmp = self.data[i, :, :].copy()
                 tmp[~msk] = np.nan
                 self.data[i, :, :] = tmp[:, :]
@@ -3777,7 +3777,6 @@ class Data(object):
             self.data = np.ma.array(self.data.data, mask=np.isnan(self.data.data))
             if hasattr(self, 'std'):
                 self.std = np.ma.array(self.std.data, mask=np.isnan(self.std.data))
-                #self._climatology_raw = np.ma.array(self._climatology_raw,mask=np.isnan(self._climatology_raw))
         else:
             print np.shape(self.data)
             raise ValueError('Unsupported geometry _apply_mask')
@@ -3788,8 +3787,6 @@ class Data(object):
                 tmp[~msk] = np.nan
                 self._climatology_raw[i, :, :] = tmp[:, :]
                 del tmp
-
-#-----------------------------------------------------------------------
 
     def shift_x(self, nx):
         """
@@ -4415,6 +4412,7 @@ class Data(object):
             r_value = res[:, 2]
             p_value = res[:, 3]
             std_err = res[:, 4]
+
         elif method == 'spearman':
             res = np.ones((n, 5)) * np.nan
 
@@ -4425,8 +4423,7 @@ class Data(object):
             #~ res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]
             #~ ...
 
-            for i in xrange(
-                    n):  # this is implemented like this at the moment, as the number of valid data points needs to be > 3
+            for i in xrange(n):  # this is implemented like this at the moment, as the number of valid data points needs to be > 3
                 invalid = False
                 if (~x.mask).sum() < 3:
                     invalid = True
@@ -4904,8 +4901,6 @@ class Data(object):
 
         CAUTION: this is a rather slow function!s
 
-        todo use probably griddata
-
         Parameters
         ----------
         lat : ndarray
@@ -4936,6 +4931,7 @@ class Data(object):
         for i in xrange(len(dlon)):
             # distance
             d = np.sqrt((lon-dlon[i])**2. + (lat-dlat[i])**2.)
+            #d = np.ma.array(d, mask= d <= radius)
             dmin = d.min()
             m = d == dmin
             if dmin <= radius:  # threshold
@@ -4950,6 +4946,23 @@ class Data(object):
             raise ValueError('Not implemented yet!')
 
         return x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def mask_region(self, r, return_object=False, method='full', maskfile=None, force=False):
         """
