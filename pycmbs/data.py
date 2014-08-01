@@ -4947,23 +4947,6 @@ class Data(object):
 
         return x
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def mask_region(self, r, return_object=False, method='full', maskfile=None, force=False):
         """
         Given a Region object, mask all the data which is outside of the region
