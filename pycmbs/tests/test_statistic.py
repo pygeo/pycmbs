@@ -44,21 +44,24 @@ class TestLomb(TestCase):
             print r, x/y
             self.assertTrue(r <= thres) # accuracy of ration by 5%
 
-
-
-
         # test with single frequency
         p_ref = 10.
         w = 2.*np.pi / p_ref
         y, e = _sample_data(self.t, w, 5., 0.1)
 
-
-
         P = np.arange(2., 20., 2.)  # target period [days]
-        Ar, Br = lomb_scargle_periodogram(self.t, P, y+e)
+        Ar, Br = lomb_scargle_periodogram(self.t, P, y+e, corr=False)
 
         _test_ratio(Ar[4], 5.)
         _test_ratio(Br[4], 0.1)
+
+        Ar, Br, Rr, Pr = lomb_scargle_periodogram(self.t, P, y)
+        _test_ratio(Ar[4], 5.)
+        _test_ratio(Br[4], 0.1)
+        self.assertEqual(Rr[4], 1.)
+        self.assertEqual(Pr[4], 0.)
+
+
 
         # test for functions with overlapping frequencies
         p_ref1 = 365.
@@ -69,7 +72,7 @@ class TestLomb(TestCase):
         y2, e2 = _sample_data(self.t, w2, 3.6, 0.1)
 
         P = np.arange(1., 366., 1.)  # target period [days]
-        Ar, Br = lomb_scargle_periodogram(self.t, P, y1+e1+y2+e2)
+        Ar, Br = lomb_scargle_periodogram(self.t, P, y1+e1+y2+e2, corr=False)
 
         _test_ratio(Ar[-1], 7.6)
         _test_ratio(Br[-1], 0.1)
@@ -83,7 +86,7 @@ class TestLomb(TestCase):
         y2, e2 = _sample_data(self.t, w2, 3., np.pi*0.5)
         P = np.arange(1., 366., 1.)  # target period [days]
         hlp = y1+e1+y2+e2
-        Ar, Br = lomb_scargle_periodogram(self.t, P, hlp)
+        Ar, Br = lomb_scargle_periodogram(self.t, P, hlp, corr=False)
 
         # sample data object
         D = Data(None, None)
@@ -97,8 +100,8 @@ class TestLomb(TestCase):
             D_dummy.time_str = 'hours since 2001-01-01'  # only days currently supported!
             xx, yy = D_dummy.lomb_scargle_periodogram(P, return_object=False)
 
-        AD, BD = D.lomb_scargle_periodogram(P, return_object=False)
-        AD1, BD1 = D.lomb_scargle_periodogram(P, return_object=True)
+        AD, BD = D.lomb_scargle_periodogram(P, return_object=False, corr=False)
+        AD1, BD1 = D.lomb_scargle_periodogram(P, return_object=True, corr=False)
         self.assertEqual(AD.shape, BD.shape)
         self.assertEqual(D.ny, AD.shape[1])
         self.assertEqual(D.nx, AD.shape[2])
@@ -135,7 +138,7 @@ class TestLomb(TestCase):
         yref = y1+e1+y2+e2
         ymsk = yref[msk]
 
-        Ar, Br = lomb_scargle_periodogram(tmsk, P, ymsk)
+        Ar, Br = lomb_scargle_periodogram(tmsk, P, ymsk, corr=False)
 
         _test_ratio(Ar[99], 2., thres=0.1)
         _test_ratio(Ar[199], 3., thres=0.1)

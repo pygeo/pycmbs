@@ -5028,7 +5028,7 @@ class Data(object):
 
 
 
-    def lomb_scargle_periodogram(self, P, return_object=True, frac=1.):
+    def lomb_scargle_periodogram(self, P, return_object=True, frac=1., corr=True):
         """
         Calculate LOMB-SCARGLE periodogram
         This routine provides a wrapper to the function
@@ -5053,8 +5053,10 @@ class Data(object):
         n = len(P)
         A = np.ones((n, self.ny, self.nx)) * np.nan
         B = np.ones((n, self.ny, self.nx)) * np.nan
+        if corr:
+            R = np.ones((n, self.ny, self.nx)) * np.nan
+            PV = np.ones((n, self.ny, self.nx)) * np.nan
 
-        # todo how to deal with different time units !!!
         t = self.time
         if 'days since' not in self.time_str:
             raise ValueError('only time units in days currently supported!')
@@ -5066,7 +5068,10 @@ class Data(object):
             print i, self.ny
             for j in xrange(self.nx):
                 if vmask[i,j]:
-                    A[:, i, j], B[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j])
+                    if corr:
+                        A[:, i, j], B[:, i, j], R[:, i, j], PV[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j], corr=corr)
+                    else:
+                        A[:, i, j], B[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j], corr=corr)
 
         if return_object:
             Aout = Data(None, None)
@@ -5081,8 +5086,27 @@ class Data(object):
             Bout.label = 'phase'
             Bout.unit = 'days'
 
-            return Aout, Bout
+            if corr:
+                Rout = Data(None, None)
+                Rout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+                Rout.data = np.ma.array(R, mask=R != R)
+                Rout.label = 'correlation'
+                Rout.unit = '-'
+
+                Pout = Data(None, None)
+                Pout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+                Pout.data = np.ma.array(PV, mask=PV != PV)
+                Pout.label = 'p-value'
+                Pout.unit = '-'
+
+                return Aout, Bout, Rout, Pout
+            else:
+                return Aout, Bout
         else:
-            return A, B
+            if corr:
+                return A, B, R, PV
+            else:
+                return A, B
+
 
 
