@@ -5055,6 +5055,7 @@ class Data(object):
             raise ValueError('only time units in days currently supported!')
 
         for i in xrange(self.ny):
+            print i, self.ny
             for j in xrange(self.nx):
                 A[:, i, j], B[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j])
 
