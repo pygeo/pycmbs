@@ -5028,7 +5028,7 @@ class Data(object):
 
 
 
-    def lomb_scargle_periodogram(self, P, return_object=True):
+    def lomb_scargle_periodogram(self, P, return_object=True, frac=1.):
         """
         Calculate LOMB-SCARGLE periodogram
         This routine provides a wrapper to the function
@@ -5038,7 +5038,12 @@ class Data(object):
         ----------
         P : ndarray
             periods [days]
-
+        return_object : bool
+            if True -> return Data objects, otherwise
+            return ndarrays
+        frac : float
+            minimum fraction of valid data needed for timesteps to perform calculation
+            This is done also for performance improvement!
         """
         from pycmbs.statistic import lomb_scargle_periodogram
 
@@ -5054,21 +5059,27 @@ class Data(object):
         if 'days since' not in self.time_str:
             raise ValueError('only time units in days currently supported!')
 
+        # get mask where at least
+        vmask = self.get_valid_mask(frac=frac)
+
         for i in xrange(self.ny):
             print i, self.ny
             for j in xrange(self.nx):
-                A[:, i, j], B[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j])
+                if vmask[i,j]:
+                    A[:, i, j], B[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j])
 
         if return_object:
             Aout = Data(None, None)
             Aout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
             Aout.data = np.ma.array(A, mask=A != A)
             Aout.label = 'amplitude'
+            Aout.unit = self.unit
 
             Bout = Data(None, None)
             Bout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
             Bout.data = np.ma.array(B, mask=B != B)
             Bout.label = 'phase'
+            Bout.unit = 'days'
 
             return Aout, Bout
         else:
