@@ -2615,8 +2615,6 @@ class Data(object):
         else:
             return R.data, S.data, I.data, P.data
 
-#-----------------------------------------------------------------------
-
     def timmean(self, return_object=False):
         """
         calculate temporal mean of data field
@@ -2637,11 +2635,10 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
+            del tmp.time
             return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timmin(self, return_object=False):
         """
@@ -2665,11 +2662,10 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
+            del tmp.time
             return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timmax(self, return_object=False):
         """
@@ -2692,11 +2688,10 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
+            del tmp.time
             return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timcv(self, return_object=True):
         """
@@ -2779,6 +2774,7 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
+                del tmp.time
                 return tmp
         else:
             return res
@@ -2807,11 +2803,10 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
+                del tmp.time
                 return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timsum(self, return_object=False):
         """
@@ -2836,6 +2831,7 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
+                del tmp.time
                 return tmp
         else:
             return res
