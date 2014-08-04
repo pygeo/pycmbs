@@ -20,5 +20,5 @@ setup(
   ext_modules = cythonize("./pycmbs/polygon_utils.pyx"),
 )
 
-# run as ...
-# $ python setup.py build_ext --inplace
+# run as ... to build extension
+# $ python setup_extensions.py build_ext --inplace
