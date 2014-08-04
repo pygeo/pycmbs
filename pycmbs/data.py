@@ -2635,7 +2635,8 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
-            del tmp.time
+            if hasattr(tmp, 'time'):
+                del tmp.time
             return tmp
         else:
             return res
@@ -2662,7 +2663,8 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
-            del tmp.time
+            if hasattr(tmp, 'time'):
+                del tmp.time
             return tmp
         else:
             return res
@@ -2688,7 +2690,8 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
-            del tmp.time
+            if hasattr(tmp, 'time'):
+                del tmp.time
             return tmp
         else:
             return res
@@ -2774,6 +2777,7 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
+            if hasattr(tmp, 'time'):
                 del tmp.time
                 return tmp
         else:
@@ -2803,7 +2807,8 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
-                del tmp.time
+                if hasattr(tmp, 'time'):
+                    del tmp.time
                 return tmp
         else:
             return res
@@ -2831,7 +2836,8 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
-                del tmp.time
+                if hasattr(tmp, 'time'):
+                    del tmp.time
                 return tmp
         else:
             return res
@@ -2859,8 +2865,6 @@ class Data(object):
                 return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def hp_filter(self, lam, return_object=True):
         """
