@@ -188,6 +188,7 @@ Please find here a working installation procedure, which was tested under Ubuntu
     apt-get -qq install python-mpltoolkits.basemap-data
 
     apt-get -qq install python-scipy
+    pip install pyshp
 
     #####################################################################
     # pycmbs

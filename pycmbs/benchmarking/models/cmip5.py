@@ -620,56 +620,6 @@ class CMIP5RAWData(CMIP5Data):
 
         return res_file
 
-    def xxxx_preprocess_times(self, filename, delete=False):
-        """
-        preprocess different files for a single ensemble member
-        """
-        root = filename.split('_ensmean')[0]
-        print root
-        stop
-
-    def xxxxx_preprocess_ensembles(self, filename, delete=False):
-        """
-        do preprocessing of the CMIP5 rawdata based on the individual
-        model ensemble members. Output is written to the processing
-        directory, specified by get_temporary_directory()
-
-        Parameters
-        ----------
-        filename : str
-            output filename of ensemble mean file. The input data is
-            searched in the same directory.
-        delete : bool
-            delete output file without asking
-        """
-
-        #~ self._preprocess_times(filename, delete=delete)
-
-        # calculate ensemble mean
-        root = filename.split('_ensmean')[0]
-
-        # write output to processing directory!
-        outputfile = get_temporary_directory() + os.path.basename(filename)
-        if os.path.exists(outputfile):
-            if delete:
-                os.remove(outputfile)
-            else:
-                print outputfile
-                print('Using already existing ensemble mean file ...')
-                return outputfile
-
-        files = glob.glob(root + '_r*.nc')  # all ensemble members
-        fstr = ''
-        for f in files:
-            fstr += f + ' '
-        cmd1 = 'cdo -f nc ensmean ' + fstr + ' ' + outputfile
-        cmd2 = 'cdo -f nc ensstd ' + fstr + ' ' + outputfile.replace('_ensmean.nc', '_ensstd.nc')
-        os.system(cmd1)
-        os.system(cmd2)
-
-        return outputfile
-
-
 class CMIP3Data(CMIP5Data):
     """
     Class for CMIP3 model simulations. This class is derived from C{Model}.
@@ -686,7 +636,7 @@ class CMIP3Data(CMIP5Data):
         @param kwargs: other keyword arguments
         @return:
         """
-        super(CMIP3Data, self).__init__(None, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
+        super(CMIP3Data, self).__init__(data_dir, model, experiment, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 
         self.model = model
         self.experiment = experiment

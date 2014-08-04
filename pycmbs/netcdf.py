@@ -104,8 +104,8 @@ class NetCDFHandler(object):
         """
         var = self.get_variable_handler(varname)
         if self.type.lower() == 'netcdf4':
-            if hasattr(var, 'unit'):
-                self.unit = var.unit
+            if hasattr(var, 'units'):
+                return var.units
         else:
             raise ValueError('Invalid backend!')
 
@@ -171,7 +171,14 @@ class NetCDFHandler(object):
         assign a value to a variable to be written to a netCDF file
         """
         if self.type.lower() == 'netcdf4':
-            self.F.variables[varname][:] = value[:]
+            if value.ndim == 1:
+                self.F.variables[varname][:] = value[:]
+            elif value.ndim == 2:
+                self.F.variables[varname][:,:] = value[:,:]
+            elif value.ndim == 3:
+                self.F.variables[varname][:,:,:] = value[:,:,:]
+            else:
+                raise ValueError('Unsupported dimension!')
         else:
             raise ValueError('Something went wrong!')
 
@@ -192,7 +199,7 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Something went wrong!')
 
-    def create_variable(self, varname, dtype, dim):
+    def create_variable(self, varname, dtype, dim, fill_value=None):
         """
         create a new variable in a netCDF file
 
@@ -202,10 +209,15 @@ class NetCDFHandler(object):
             datatype of variable
         dim : tuple
             tuple specifying the dimensions of the variables
+        fill_value : float
+            fill value for data
         """
 
         if self.type.lower() == 'netcdf4':
-            self.F.createVariable(varname, dtype, dimensions=dim)
+            if fill_value is not None:
+                self.F.createVariable(varname, dtype, dimensions=dim, fill_value=fill_value)
+            else:
+                self.F.createVariable(varname, dtype, dimensions=dim)
         else:
             raise ValueError('Something went wrong!')
 

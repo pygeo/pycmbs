@@ -67,6 +67,7 @@ class RegionGeneric(object):
         self.lat = None
         self.type = None
         self.id = id
+        self.mask = None
         if label is None:
             raise ValueError('ERROR: a label needs to be given for regions')
         else:
@@ -109,14 +110,57 @@ class RegionGeneric(object):
 
 
 class RegionPolygon(RegionGeneric):
-    """
-    define a region by a polygon
-    """
     def __init__(self, id, lon, lat, label=None):
+        """
+        define a region by a polygon
+
+        Parameters
+        ----------
+        id : str/int
+            unique identifier for region
+        lon : ndarray/list
+            sequence of longitudes
+        lat : ndarray/list
+            sequence of latitudes
+        label : str
+            label for region (used e.g. for plotting)
+        """
         super(RegionPolygon, self).__init__(id, label=label)
         self.lon = lon
         self.lat = lat
         self.type = 'polygon'
+
+class RegionShape(object):
+    """
+    This is a container that reads a shapefile and stores
+    all shapes in that shapefile as individual regions
+
+    https://code.google.com/p/pyshp/
+    """
+    def __init__(self, shp_file):
+        """
+        Parameters
+        ----------
+        shp_file : str
+            name of shapefile (WITHOUT extension)
+        """
+        import shapefile
+        if not os.path.exists(shp_file + '.shp'):
+            raise ValueError('Shapefile not existing: ', shp_file + '.shp')
+
+        self.regions = {}
+
+        sf = shapefile.Reader(shp_file)
+        #~ print sf.fields
+        #~ print sf.records[0]
+
+        # loop over all shapes. Each shape will specify a new region
+        id = 1
+        for s in sf.shapes():
+            lon = [p[0] for p in s.points]
+            lat = [p[1] for p in s.points]
+            self.regions.update({id : RegionPolygon(id, lon, lat, label='reg#' + str(id))})
+            id += 1
 
 
 class RegionIndex(RegionGeneric):

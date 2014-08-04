@@ -11,6 +11,8 @@ import sys
 
 from pycmbs.statistic import get_significance, ttest_ind
 from pycmbs.netcdf import NetCDFHandler
+from pycmbs.polygon import Raster
+from pycmbs.polygon import Polygon as pycmbsPolygon
 
 import numpy as np
 from matplotlib import pylab as plt
@@ -34,7 +36,6 @@ class Data(object):
     """
     Data class: main class
     """
-
     def __init__(self, filename, varname, lat_name=None, lon_name=None,
                  read=False, scale_factor=1., label=None, unit=None,
                  shift_lon=False, start_time=None, stop_time=None,
@@ -461,8 +462,6 @@ class Data(object):
             return netcdftime.date2num(t, self.time_str,
                                        calendar=self.calendar) - offset
 
-#-----------------------------------------------------------------------
-
     def save(self, filename, varname=None, format='nc',
              delete=False, mean=False, timmean=False):
         """
@@ -543,7 +542,6 @@ class Data(object):
                     .replace('[', '').replace(']', '') + '\n')
         F.close()
 
-    #-----------------------------------------------------------------------
 
     def _save_netcdf(self, filename, varname=None, delete=False):
         """
@@ -558,10 +556,6 @@ class Data(object):
             self.varname, which is tried to be used as a first order
         delete : bool
             delete file if existing without asking
-
-        Test
-        ----
-        unittest implemented
         """
 
         # check if output file already there
@@ -594,7 +588,6 @@ class Data(object):
                 ny, nx = self.shape
             else:
                 raise ValueError('Current shape not supported here %s' % self.shape)
-
         else:
             ny, nx = np.shape(self.lat)
 
@@ -651,7 +644,9 @@ class Data(object):
                     File.assign_value('cell_area', self.cell_area)
 
         if hasattr(self, 'data'):
-            File.F.variables[varname].long_name = self.long_name
+            if hasattr(self, 'long_name'):
+                if self.long_name is not None:
+                    File.F.variables[varname].long_name = self.long_name
             File.F.variables[varname].units = self.unit
             File.F.variables[varname].scale_factor = 1.
             File.F.variables[varname].add_offset = 0.
@@ -982,8 +977,6 @@ class Data(object):
         else:
             return res
 
-#-----------------------------------------------------------------------
-
     def _get_unit(self):
         """
         get a nice looking string for units like e.g. '[mm/d]'
@@ -993,8 +986,6 @@ class Data(object):
         else:
             u = '[' + self.unit + ']'
         return u
-
-#-----------------------------------------------------------------------
 
     def _shift_lon(self):
         """
@@ -1118,6 +1109,7 @@ class Data(object):
                         self.lat = self.lat[0, :]
         else:
             self.lat = None
+
         if not self.lon_name is None:
             self.lon = self.read_netcdf(self.lon_name)
             #ensure that lon has NOT dimension (1,nlon)
@@ -1758,8 +1750,6 @@ class Data(object):
             mask[hlp] = True
         return pl.asarray(mask)
 
-#-----------------------------------------------------------------------
-
     def get_climatology(self, return_object=False, nmin=1, ensure_start_first=True):
         """
         calculate climatological mean for a time increment
@@ -1860,7 +1850,6 @@ class Data(object):
         # shift data now
         self.timeshift(n, shift_time=True)
 
-#-----------------------------------------------------------------------
     def get_deseasonalized_anomaly(self, base=None, ensure_start_first=True):
         """
         calculate deseasonalized anomalies
@@ -1922,8 +1911,6 @@ class Data(object):
 
         return res
 
-#-----------------------------------------------------------------------
-
     def condstat(self, M):
         """
         Conditional statistics of data
@@ -1951,12 +1938,6 @@ class Data(object):
         > res = D.condstat(msk) #calculate conditional statistics
         > This returns a dictionary with the following keys ['max', 'sum', 'min', 'id', 'mean']
 
-        Test
-        ----
-        unittest implemented
-
-        @return: dictionary with results where each entry has shape (nt,nvals) with nvals beeing the number of unique ID values in the mask
-        @rtype: dict
         """
 
         if isinstance(M, Data):
@@ -2038,10 +2019,12 @@ class Data(object):
                              'max': maxs[:, i]}})
         return res
 
-#-----------------------------------------------------------------------
-
     def set_time(self):
-        #--- check ---
+        """
+        convert times that are in a specific format
+        If the time string is already known to be handled by the
+        netcdf4time module, then nothing is happening
+        """
         if self.time_str is None:
             raise ValueError('ERROR: time can not be determined, as units for time not available!')
         if not hasattr(self, 'calendar'):
@@ -2054,6 +2037,8 @@ class Data(object):
             self._convert_time()
         elif self.time_str == 'month as %Y%m.%f':
             self._convert_timeYYYYMM()
+        elif self.time_str == 'year as %Y.%f':
+            self._convert_timeYYYY()
         elif 'months since' in self.time_str:
             # months since is not supported by netCDF4 library at the moment. Therefore implementation here.
             self._convert_monthly_timeseries()
@@ -2062,8 +2047,6 @@ class Data(object):
             # actually nothing needs to be done, as everything shall
             # be handled by self.num2date() in all subsequent subroutines
             # to properly handle difference in different calendars.
-
-#-----------------------------------------------------------------------
 
     def _get_date_from_month(self, nmonths):
         """
@@ -2102,8 +2085,6 @@ class Data(object):
 
         return pl.num2date(act_date)
 
-#-----------------------------------------------------------------------
-
     def _convert_monthly_timeseries(self):
         """
         convert monthly timeseries to a daily timeseries
@@ -2117,8 +2098,6 @@ class Data(object):
         self.calendar = 'standard'
         self.time_str = 'days since 0001-01-01 00:00:00'
         self.time = pl.date2num(newtime) + 1.  # plus one because of the num2date() basedate definition
-
-#-----------------------------------------------------------------------
 
     def apply_temporal_subsetting(self, start_date, stop_date):
         """
@@ -2137,8 +2116,6 @@ class Data(object):
         """
         i1, i2 = self._get_time_indices(start_date, stop_date)
         self._temporal_subsetting(i1, i2)
-
-#-----------------------------------------------------------------------
 
     def _temporal_subsetting(self, i1, i2):
         """
@@ -2176,8 +2153,6 @@ class Data(object):
         else:
             raise ValueError('Error temporal subsetting: invalid dimension!')
 
-#-----------------------------------------------------------------------
-
     def align(self, y, base=None):
         """
         Temporal alignment of two Data objects.
@@ -2191,6 +2166,11 @@ class Data(object):
         base : str
             specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
             a time stepping. Currently supported values: ['month','day']
+
+        Returns
+        -------
+        x, y : Data
+            returns two dataobjects which are aligned to eacht other
         """
 
         assert (isinstance(y, Data))
@@ -2259,8 +2239,6 @@ class Data(object):
         y._temporal_subsetting(y1, y2)
 
         return x, y
-
-#-----------------------------------------------------------------------
 
     def interp_time(self, d, method='linear'):
         """
@@ -2637,8 +2615,6 @@ class Data(object):
         else:
             return R.data, S.data, I.data, P.data
 
-#-----------------------------------------------------------------------
-
     def timmean(self, return_object=False):
         """
         calculate temporal mean of data field
@@ -2659,11 +2635,11 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
+            if hasattr(tmp, 'time'):
+                del tmp.time
             return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timmin(self, return_object=False):
         """
@@ -2687,11 +2663,11 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
+            if hasattr(tmp, 'time'):
+                del tmp.time
             return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timmax(self, return_object=False):
         """
@@ -2714,11 +2690,11 @@ class Data(object):
         if return_object:
             tmp = self.copy()
             tmp.data = res
+            if hasattr(tmp, 'time'):
+                del tmp.time
             return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timcv(self, return_object=True):
         """
@@ -2801,6 +2777,8 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
+            if hasattr(tmp, 'time'):
+                del tmp.time
                 return tmp
         else:
             return res
@@ -2829,11 +2807,11 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
+                if hasattr(tmp, 'time'):
+                    del tmp.time
                 return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def timsum(self, return_object=False):
         """
@@ -2858,6 +2836,8 @@ class Data(object):
             else:
                 tmp = self.copy()
                 tmp.data = res
+                if hasattr(tmp, 'time'):
+                    del tmp.time
                 return tmp
         else:
             return res
@@ -2885,8 +2865,6 @@ class Data(object):
                 return tmp
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def hp_filter(self, lam, return_object=True):
         """
@@ -2986,10 +2964,6 @@ class Data(object):
         -------
         w : ndarray
             weighting matrix in same geometry as original data
-
-        Test
-        ----
-        unittest implemented
         """
 
         normtype = self.weighting_type
@@ -3194,7 +3168,6 @@ class Data(object):
         else:  # return numpy array
             return tmp
 
-#-----------------------------------------------------------------------
     def fldstd(self, return_data=False, apply_weights=True, ddof=0):
         """
         calculate stdv of the spatial field using area weighting
@@ -3299,6 +3272,8 @@ class Data(object):
             else:
                 raise ValueError('Undefined in fldstd()')
 
+        tmp = np.ma.array(tmp, mask=tmp != tmp)
+
         if return_data:  # return data object
             if self.data.ndim == 3:
                 x = np.zeros((len(tmp), 1, 1))
@@ -3308,7 +3283,13 @@ class Data(object):
                 x[0, 0, 0] = tmp
             else:
                 raise ValueError('Undefined')
-            assert (isinstance(tmp, np.ma.masked_array))
+
+            if not (isinstance(tmp, np.ma.masked_array)):
+                print type(tmp)
+                print self.data.ndim
+                raise ValueError('Invalid data type!')
+
+
             r = self.copy()
             r.data = np.ma.array(x.copy(),
                                  mask=tmp.mask)  # use mask of array tmp (important if all values are invalid!)
@@ -3355,8 +3336,6 @@ class Data(object):
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-    #-----------------------------------------------------------------------
-
     def _convert_timeYYYYMM(self):
         """
         convert time that was given as YYYYMM.f
@@ -3377,7 +3356,28 @@ class Data(object):
         #convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-#-----------------------------------------------------------------------
+    def _convert_timeYYYY(self):
+        """
+        convert time that was given as YYYY.f
+        and set time variable of Data object
+
+        The date is set to the first of January for each year
+        """
+
+        s = map(str, self.time)
+        T = []
+        for t in s:
+            y = t[0:4]
+            m = '01'
+            d = '01'  # always the first day is used as default
+            h = '00'
+            tn = y + '-' + m + '-' + d + ' ' + h + ':00'
+            T.append(tn)
+        T = np.asarray(T)
+        self.calendar = 'gregorian'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        #convert first to datetime object and then use own function !!!
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
     def adjust_time(self, day=None, month=None, year=None):
         """
@@ -3756,7 +3756,7 @@ class Data(object):
             del tmp1
 
         elif self.data.ndim == 3:
-            for i in range(len(self.data)):
+            for i in xrange(self.nt):
                 tmp = self.data[i, :, :].copy()
                 tmp[~msk] = np.nan
                 self.data[i, :, :] = tmp[:, :]
@@ -3777,7 +3777,6 @@ class Data(object):
             self.data = np.ma.array(self.data.data, mask=np.isnan(self.data.data))
             if hasattr(self, 'std'):
                 self.std = np.ma.array(self.std.data, mask=np.isnan(self.std.data))
-                #self._climatology_raw = np.ma.array(self._climatology_raw,mask=np.isnan(self._climatology_raw))
         else:
             print np.shape(self.data)
             raise ValueError('Unsupported geometry _apply_mask')
@@ -3788,8 +3787,6 @@ class Data(object):
                 tmp[~msk] = np.nan
                 self._climatology_raw[i, :, :] = tmp[:, :]
                 del tmp
-
-#-----------------------------------------------------------------------
 
     def shift_x(self, nx):
         """
@@ -4415,6 +4412,7 @@ class Data(object):
             r_value = res[:, 2]
             p_value = res[:, 3]
             std_err = res[:, 4]
+
         elif method == 'spearman':
             res = np.ones((n, 5)) * np.nan
 
@@ -4425,8 +4423,7 @@ class Data(object):
             #~ res = [stats.mstats.spearmanr(x, dat[:, i]) for i in xrange(n)]
             #~ ...
 
-            for i in xrange(
-                    n):  # this is implemented like this at the moment, as the number of valid data points needs to be > 3
+            for i in xrange(n):  # this is implemented like this at the moment, as the number of valid data points needs to be > 3
                 invalid = False
                 if (~x.mask).sum() < 3:
                     invalid = True
@@ -4797,19 +4794,28 @@ class Data(object):
     def _get_center_position(self):
         """
         returns indices of center position in data array
-        only works if both dimensions x/y are ODD numbers!
+        in case of odd array sizes, the actual center position is
+        returned. Otherwise (equal numbers), the center position - 1 is
+        returned. Now interpolation is performed. Thus it is always
+        ensured that some real data is returned which is close to the
+        center
 
         Returns
         -------
         indices of center position [i,j]
         """
-        # only for odd numbers!
-        if (self.nx % 2) != 1:
-            return None, None
-        if (self.ny % 2) != 1:
-            return None, None
 
-        return (self.ny - 1) / 2, (self.nx - 1) / 2
+        if (self.ny % 2) == 0:  # equal numbers
+            ipos = (self.ny - 1) / 2
+        else:  # odd numbers
+            ipos = (self.ny - 1) / 2
+
+        if (self.nx % 2) == 0:
+            jpos = (self.nx - 1) / 2
+        else:
+            jpos = (self.nx - 1) / 2
+
+        return ipos, jpos
 
     def get_center_data(self, return_object=False):
         """
@@ -4846,3 +4852,261 @@ class Data(object):
             return r
         else:
             return res
+
+
+    def _init_sample_object(self, nt=None, ny=20, nx=10):
+        """
+        initialize the current object as a samle object
+        this is in particular usefull for testing
+
+        use this e.g. as
+        x = Data(None, None)
+        x._init_sample_object(nt=100, ny=500, nx=200)
+
+        Parameters
+        ----------
+        nt : int
+            number of timesteps
+        ny : int
+            number of rows
+        nx : int
+            number of cols
+        """
+
+        if nt is None:
+            data = np.random.random((ny, nx))
+        else:
+            data = np.random.random((nt, ny, nx))
+
+        self.data = np.ma.array(data, mask = data != data)
+        self.verbose = True
+        self.unit = 'myunit'
+        self.label = 'testlabel'
+        self.filename = 'testinputfilename.nc'
+        self.varname = 'testvarname'
+        self.long_name = 'This is the longname'
+        if nt is not None:
+            self.time = np.arange(nt) + plt.datestr2num('2001-01-01')
+        self.time_str = "days since 0001-01-01 00:00:00"
+        self.calendar = 'gregorian'
+        self.oldtime=False
+        self.cell_area = np.ones((ny, nx))
+        lat = np.linspace(-90., 90., ny)
+        lon = np.linspace(-180., 180., nx)
+        self.lon, self.lat = np.meshgrid(lon, lat)
+
+    def _rasterize(self, lon, lat, radius=None, return_object=True):
+        """
+        rasterize data to a target grid specified by the input arguments
+
+        CAUTION: this is a rather slow function!s
+
+        Parameters
+        ----------
+        lat : ndarray
+            latitude [deg]
+        lon : ndarray
+            longitude [deg]
+        radius : float
+            threshold radius
+        return_object : bool
+            return a Data object
+
+        Returns
+        -------
+        returns data object with gridded results
+        """
+
+        if lon.shape != lat.shape:
+            raise ValueError('Inconsistent geometry!')
+        if radius is None:
+            raise ValueError('Search radius obligatory')
+
+        # flatten data
+        dlon = self.lon.flatten()
+        dlat = self.lat.flatten()
+        data = self.data.flatten()
+        res = np.ones_like(lon)*np.nan
+
+        for i in xrange(len(dlon)):
+            # distance
+            d = np.sqrt((lon-dlon[i])**2. + (lat-dlat[i])**2.)
+            #d = np.ma.array(d, mask= d <= radius)
+            dmin = d.min()
+            m = d == dmin
+            if dmin <= radius:  # threshold
+                res[m] = data[i]
+
+        if return_object:
+            x = self.copy()
+            x.lon = lon*1.
+            x.lat = lat*1.
+            x.data = np.ma.array(res, mask=np.isnan(res))
+        else:
+            raise ValueError('Not implemented yet!')
+
+        return x
+
+    def mask_region(self, r, return_object=False, method='full', maskfile=None, force=False):
+        """
+        Given a Region object, mask all the data which is outside of the region
+
+        Parameters
+        ----------
+        r : Region
+            Region which contains valid data
+        return_object : bool
+            if True then a new data object is returned with the masked data
+            otherwise the original data is modified
+        method : str
+            ['full','fast'] two methods for rasterization are supported.
+            full: calculate full raster = default
+            fast: some faster method, but this might not be totally correct
+        maskfile : str
+            filename of maskfile
+            if provided, then the generated mask is stored in a file specified
+            by maskfile. In case that this file is already existing, no raster
+            will be generated, but the mask will be read from file. Only exception is if
+            force=True
+            The filename needs to have the '.nc' extension!
+        force : bool
+            force always calculation of mask based on polygon information
+        """
+
+        print 'Masking by region ...'
+
+        if maskfile is not None:
+            if maskfile[-3:] != '.nc':
+                print maskfile
+                raise ValueError('Maskfile needs to eb a netcdf file!')
+            if os.path.exists(maskfile):
+                f_rasterize = False
+                if force:
+                    os.remove(maskfile)
+                    f_rasterize = True
+            else:
+                f_rasterize = True
+        else:
+            f_rasterize = True
+
+        # perform rasterization
+        if f_rasterize:
+            polylist = []
+            polylist.append(pycmbsPolygon(r.id, zip(r.lon, r.lat)))
+
+            print '   ... rasterizing'
+            M = Raster(self.lon, self.lat)
+            M.rasterize_polygons(polylist, method=method)
+            themask = M.mask
+        else:
+            # load mask from file!
+            MD = Data(maskfile, 'mask', read=True)
+            assert MD.ny == self.ny
+            assert MD.nx == self.nx
+            themask = MD.data
+
+        # save maskfile
+        if maskfile is not None:
+            if not os.path.exists(maskfile):
+                MD = Data(None, None)
+                MD._init_sample_object(ny=self.ny, nx=self.nx)
+                MD.lon = self.lon
+                MD.lat = self.lat
+                MD.data = np.ma.array(M.mask, mask = M.mask != M.mask)
+                MD.save(maskfile, varname='mask', delete=True)
+
+        if return_object:
+            x = self.copy()
+        else:
+            x = self
+        x._apply_mask(themask > 0.)
+
+        if return_object:
+            return x
+        else:
+            return None
+
+
+
+    def lomb_scargle_periodogram(self, P, return_object=True, frac=1., corr=True):
+        """
+        Calculate LOMB-SCARGLE periodogram
+        This routine provides a wrapper to the function
+        in statistic.py
+
+        Parameters
+        ----------
+        P : ndarray
+            periods [days]
+        return_object : bool
+            if True -> return Data objects, otherwise
+            return ndarrays
+        frac : float
+            minimum fraction of valid data needed for timesteps to perform calculation
+            This is done also for performance improvement!
+        """
+        from pycmbs.statistic import lomb_scargle_periodogram
+
+        if self.ndim != 3:
+            raise ValueError('Only 3D geometry supported!')
+
+        n = len(P)
+        A = np.ones((n, self.ny, self.nx)) * np.nan
+        B = np.ones((n, self.ny, self.nx)) * np.nan
+        if corr:
+            R = np.ones((n, self.ny, self.nx)) * np.nan
+            PV = np.ones((n, self.ny, self.nx)) * np.nan
+
+        t = self.time
+        if 'days since' not in self.time_str:
+            raise ValueError('only time units in days currently supported!')
+
+        # get mask where at least
+        vmask = self.get_valid_mask(frac=frac)
+
+        for i in xrange(self.ny):
+            print i, self.ny
+            for j in xrange(self.nx):
+                if vmask[i,j]:
+                    if corr:
+                        A[:, i, j], B[:, i, j], R[:, i, j], PV[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j], corr=corr)
+                    else:
+                        A[:, i, j], B[:, i, j] = lomb_scargle_periodogram(t, P, self.data[:, i, j], corr=corr)
+
+        if return_object:
+            Aout = Data(None, None)
+            Aout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+            Aout.data = np.ma.array(A, mask=A != A)
+            Aout.label = 'amplitude'
+            Aout.unit = self.unit
+
+            Bout = Data(None, None)
+            Bout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+            Bout.data = np.ma.array(B, mask=B != B)
+            Bout.label = 'phase'
+            Bout.unit = 'days'
+
+            if corr:
+                Rout = Data(None, None)
+                Rout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+                Rout.data = np.ma.array(R, mask=R != R)
+                Rout.label = 'correlation'
+                Rout.unit = '-'
+
+                Pout = Data(None, None)
+                Pout._init_sample_object(nt=n, ny=self.ny, nx=self.nx)
+                Pout.data = np.ma.array(PV, mask=PV != PV)
+                Pout.label = 'p-value'
+                Pout.unit = '-'
+
+                return Aout, Bout, Rout, Pout
+            else:
+                return Aout, Bout
+        else:
+            if corr:
+                return A, B, R, PV
+            else:
+                return A, B
+
+
+

@@ -5,5 +5,5 @@ For COPYING and LICENSE details, please refer to the file
 COPYRIGHT.md
 """
 
-from violin import ViolinPlot
-from plots_basic import *
+from statistic_basic import *
+from lomb_scargle import *

@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the file
+COPYRIGHT.md
+"""
+
 from pycmbs.benchmarking.models import MeanModel, Model
 import numpy as np
 from pycmbs.data import Data
@@ -85,8 +91,6 @@ def xxxxtest_median_model():
     m.ensmedian()
 
     # should give the value of 2.5 for all timesteps
-
-
     del m
 
 

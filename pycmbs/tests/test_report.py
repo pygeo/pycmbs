@@ -1,4 +1,10 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the file
+COPYRIGHT.md
+"""
+
 import unittest
 from nose.tools import assert_raises
 from pycmbs.benchmarking.report import Report

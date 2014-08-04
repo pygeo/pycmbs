@@ -36,7 +36,7 @@ import copy
 import numpy as np
 
 
-from scipy.spatial import cKDTree as KDTree  # import the C version of KDTree (faster)
+#from scipy.spatial import cKDTree as KDTree  # import the C version of KDTree (faster)
 from matplotlib.ticker import MaxNLocator
 
 import matplotlib.gridspec as gridspec
@@ -106,11 +106,19 @@ class HstackTimeseries(object):
         """
         self.x = {}
         self.len = 0
+        self.annotations = {}
+
+    def savefig(self, filename, **kwargs):
+        """ save figure """
+        self.figure.savefig(filename, **kwargs)
+
+    def set_title(self, s, **kwargs):
+        self.figure.suptitle(s, **kwargs)
 
     def get_n(self):
         return len(self.x.keys())
 
-    def add_data(self, x, id, raise_duplicate_error=True):
+    def add_data(self, x, id, raise_duplicate_error=True, annotation=None):
         """
         add data
 
@@ -123,6 +131,9 @@ class HstackTimeseries(object):
         raise_duplicate_error : bool
             raise error if a duplicate data key occurs. If False, then no
             data will be added, but no error will be raised neither
+        annotation : str/float
+            provide here additional annotation data (e.g. statistics)
+            that will be plotted then on the right side of the plot
         """
 
         if x.ndim != 1:
@@ -142,9 +153,12 @@ class HstackTimeseries(object):
                 return None
 
         self.x.update({id: x})  # store data for later plotting
+        self.annotations.update({id : annotation})
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
-             cmap='jet', nclasses=10, title=None, maxheight=1., auto_adjust=False, monthly_clim_ticks=False, **kwargs):
+             cmap='jet', nclasses=10, title=None, maxheight=1.,
+             auto_adjust=False, monthly_clim_ticks=False, show_annotation=False,
+             **kwargs):
         """
         do final plotting
 
@@ -171,6 +185,8 @@ class HstackTimeseries(object):
             try to autoadjust the figure height
         monthly_ticks : bool
             if monthly ticks are given
+        show_annotation : bool
+            show additional annotation on the right for each panel
         """
 
         self.cb_bottom = 0.05
@@ -219,6 +235,12 @@ class HstackTimeseries(object):
                                 aspect='auto', vmin=vmin, vmax=vmax,
                                 cmap=self.cmap, **kwargs)
             ax.set_ylabel(keys[i], fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='right', verticalalignment='center')
+            if show_annotation:
+                if self.annotations[keys[i]] is not None:
+                    ann = self.annotations[keys[i]]
+                    axhlp = ax.twinx()
+                    axhlp.set_ylabel(ann, fontdict={'rotation': 0, 'size': self.fontsize}, horizontalalignment='left', verticalalignment='center')
+                    axhlp.set_yticks([])
             if i == 0:
                 self._set_axis_prop(ax, remove_xticks=False)
                 if monthly_clim_ticks:
@@ -592,21 +614,17 @@ class ScatterPlot(object):
             self.ax = ax
 
         self.figure = self.ax.figure
-        self.x = x
+        self.x = x.copy()
         self.lines = []
         self.labels = []
         self.ticksize = ticksize
         self.normalize = normalize_data
-
-#-----------------------------------------------------------------------
 
     def __normalize_data(self, x):
         """
         normmalize timeseries
         """
         return (x - x.mean()) / x.std()
-
-#-----------------------------------------------------------------------
 
     def plot(self, y, regress=True, fldmean=True, hexbin=False, **kwargs):
         """
@@ -621,12 +639,14 @@ class ScatterPlot(object):
             Perform linear regression analysis
         fldmean : bool
             show in scatterplot fldmean() values, else datapairs are copnstructed for each grid cell
+        hexbin : bool
+            generate a HEXBIN plot instead of a standard scatterplot
         """
 
         if y.label is None:
             label = ''
         else:
-            label = y.label
+            label = y.label + ''
 
         if fldmean:
             xdat = self.x.fldmean()
@@ -643,16 +663,17 @@ class ScatterPlot(object):
         assert(isinstance(xdat, np.ma.core.MaskedArray))
         assert(isinstance(ydat, np.ma.core.MaskedArray))
 
-        #--- mask invalid data
+        # mask invalid data
         msk = np.isnan(xdat) | np.isnan(ydat)
-        xdat = np.ma.masked_where(msk, xdat)
-        ydat = np.ma.masked_where(msk, ydat)
+        if msk.sum() > 0:
+            xdat = np.ma.masked_where(msk, xdat)  # this can cause problems as it seems to reduce the mask of the arrays to a scalar instead of a vector
+            ydat = np.ma.masked_where(msk, ydat)
 
         if self.normalize:
             xdat = self.__normalize_data(xdat)
             ydat = self.__normalize_data(ydat)
 
-        #- calculate linear regression
+        # calculate linear regression
         if regress:
             slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xdat, ydat)
             nval = (~(xdat - ydat).mask).sum()  # number of valid datasets used for comparison
@@ -670,7 +691,7 @@ class ScatterPlot(object):
                 spvalue = 'p=' + str(round(p_value, 2))
 
             if r_value is None:
-                label = ''
+                label = label
             else:
                 label = '\n' + label + '\nr=' + str(round(r_value, 2)) + ', ' + spvalue + ', ' + 'rmsd: ' + str(rms_error) + ', N=' + str(int(nval)) + '\n' + 'y=' + str(slope) + 'x+' + str(intercept) + ''
 
@@ -712,15 +733,20 @@ class ScatterPlot(object):
         for tick in self.ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
 
-#-----------------------------------------------------------------------
-
-    def legend(self, size=8.):
+    def legend(self, size=8., grid=True):
         """
         plot legend
-        """
-        self.ax.legend(self.lines, self.labels, prop={'size': size})
 
-#-----------------------------------------------------------------------
+        Parameters
+        ----------
+        size : int
+            fontsize for legend
+        grid : bool
+            if True then a grid is automatically plotted as well
+        """
+        if grid:
+            self.ax.grid()
+        self.ax.legend(self.lines, self.labels, prop={'size': size})
 
 
 class LinePlot(object):
