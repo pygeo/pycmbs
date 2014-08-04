@@ -9,7 +9,7 @@ Nothing has to be installed! You just need to login into your shell and load the
 
     module avail
     # check which python module is available with latest version
-    module load python/python-ve03   # or something similar
+    module load python/python-ve03   # or something similar; note that below ve02 some features will not work
 
 That's it. This sets also automatically the settings for the *PYTHONPATH* and *SEP* environment variables which are needed.
 
