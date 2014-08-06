@@ -25,6 +25,8 @@ import tempfile
 
 from nose.tools import assert_raises
 
+import matplotlib.pyplot as plt
+
 
 
 class TestData(unittest.TestCase):
@@ -2442,6 +2444,34 @@ class TestData(unittest.TestCase):
         self.assertTrue((res2.data == res6.data).all())
 
         #3) the right values have been actually masked
+
+
+    def test_get_days_per_month(self):
+
+        x = Data(None, None)
+        x._init_sample_object(nt=36, ny=100, nx=50)
+        tref = []
+        for i in xrange(12): # no leap year
+            tref.append(datetime.datetime(2001, i+1, 15))
+        for i in xrange(12):  # leap year
+            tref.append(datetime.datetime(2004, i+1, 15))
+        for i in xrange(12):  # special leap year
+            tref.append(datetime.datetime(2000, i+1, 15))
+        x.time = x.date2num(tref)
+
+        # reference days
+        dref = [31,28, 31, 30 ,31 ,30 ,31,31,30,31,30,31]
+        dref += [31,29, 31, 30 ,31 ,30 ,31,31,30,31,30,31]
+        dref += [31,29, 31, 30 ,31 ,30 ,31,31,30,31,30,31]
+
+        mlen = x._get_days_per_month()
+        for i in xrange(len(mlen)):
+            print i, len(mlen), len(dref)
+            self.assertEqual(mlen[i], dref[i])
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

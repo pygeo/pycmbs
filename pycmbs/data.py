@@ -31,7 +31,6 @@ import tempfile
 import struct
 import gzip
 
-
 class Data(object):
     """
     Data class: main class
@@ -2446,15 +2445,11 @@ class Data(object):
             raise ValueError('Something went wrong _get_time_indices')
         return m1, m2
 
-#-----------------------------------------------------------------------
-
     def _get_years(self):
         """
         get years from timestamp
         """
         return [x.year for x in self.date]
-
-#-----------------------------------------------------------------------
 
     def _get_months(self):
         """
@@ -2462,7 +2457,9 @@ class Data(object):
         """
         return [x.month for x in self.date]
 
-#-----------------------------------------------------------------------
+    def _get_days_per_month(self):
+        """ get number of days for each month """
+        return [calendar.monthrange(x.year, x.month)[1] for x in self.date]
 
     def _mesh_lat_lon(self):
         """
@@ -2476,8 +2473,6 @@ class Data(object):
             self.lat = LAT
         else:
             pass
-
-#-----------------------------------------------------------------------
 
     def read_netcdf(self, varname):
         """
