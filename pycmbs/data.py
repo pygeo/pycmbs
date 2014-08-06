@@ -3717,7 +3717,7 @@ class Data(object):
 
         Parameters
         ----------
-        msk1 : ndarray
+        msk1 : ndarray or Data object
             mask to be applied to data. Needs to have same geometry as
             data.
         keep_mask : bool
@@ -3725,7 +3725,7 @@ class Data(object):
         """
 
         if isinstance(msk1, Data):
-            msk = msk1.data
+            msk = msk1.data.mask
         else:
             msk = msk1
 
