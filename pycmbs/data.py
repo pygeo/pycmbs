@@ -711,8 +711,6 @@ class Data(object):
         else:
             raise ValueError('Data dimension for longitudes not supported yet!')
 
-#-----------------------------------------------------------------------
-
     def get_bounding_box(self):
         """
         estimates bounding box of valid data. It returns the indices
@@ -3493,8 +3491,6 @@ class Data(object):
         d.label = d.label + ' (' + region.label + ')'
         return d
 
-    #-----------------------------------------------------------------------
-
     def get_aoi_lat_lon(self, R, apply_mask=True):
         """
         get area of interest (AOI) given lat/lon coordinates
@@ -3530,8 +3526,6 @@ class Data(object):
                 msk_region = R.mask
         msk = msk_lat & msk_lon & msk_region  # valid area
         self._apply_mask(msk)
-
-#-----------------------------------------------------------------------
 
     def cut_bounding_box(self, return_object=False):
         """
@@ -3575,8 +3569,6 @@ class Data(object):
             return D
         else:
             return None
-
-#-----------------------------------------------------------------------
 
     def get_valid_mask(self, frac=1., return_frac=False):
         """
