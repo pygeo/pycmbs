@@ -130,6 +130,7 @@ class RegionPolygon(RegionGeneric):
         self.lat = lat
         self.type = 'polygon'
 
+
 class RegionShape(object):
     """
     This is a container that reads a shapefile and stores

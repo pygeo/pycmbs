@@ -92,7 +92,6 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Invalid backend!')
 
-
     def _get_unit(self, varname):
         """
         get unit of variable
@@ -174,9 +173,9 @@ class NetCDFHandler(object):
             if value.ndim == 1:
                 self.F.variables[varname][:] = value[:]
             elif value.ndim == 2:
-                self.F.variables[varname][:,:] = value[:,:]
+                self.F.variables[varname][:, :] = value[:, :]
             elif value.ndim == 3:
-                self.F.variables[varname][:,:,:] = value[:,:,:]
+                self.F.variables[varname][:, :, :] = value[:, :, :]
             else:
                 raise ValueError('Unsupported dimension!')
         else:
