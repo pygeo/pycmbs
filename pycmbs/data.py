@@ -2457,7 +2457,7 @@ class Data(object):
 
     def _get_days_per_month(self):
         """ get number of days for each month """
-        return [calendar.monthrange(x.year, x.month)[1] for x in self.date]
+        return np.asarray([calendar.monthrange(x.year, x.month)[1] for x in self.date])
 
 
     def _mesh_lat_lon(self):
