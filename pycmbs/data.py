@@ -4278,8 +4278,15 @@ class Data(object):
         else:
             o = self
 
-        for i in xrange(self.nt):
-            o.data[i, :, :] = self.data[i, :, :] * x[i]
+
+        if False:
+            # slow implementation ...
+            for i in xrange(self.nt):
+                o.data[i, :, :] = self.data[i, :, :] * x[i]
+        else:
+            # fast implementation using broadcasting ...
+            # http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
+            o.data[:,:,:] = self.data[:,:,:] * x[:, np.newaxis, np.newaxis]
 
         if copy:
             return o
