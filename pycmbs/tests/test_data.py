@@ -2469,7 +2469,23 @@ class TestData(unittest.TestCase):
             print i, len(mlen), len(dref)
             self.assertEqual(mlen[i], dref[i])
 
+    def test_mul_tvec(self):
+        x = Data(None, None)
+        x._init_sample_object(nt=10, ny=1, nx=2)
+        xref = x.copy()
 
+        t = np.arange(10)
+
+        with self.assertRaises(ValueError):
+            x.mul_tvec(np.arange(3), copy=True)
+        with self.assertRaises(ValueError):
+            x.mul_tvec(np.random.random((10,20)), copy=True)
+
+        x.mul_tvec(t, copy=False)
+        y = xref.mul_tvec(t, copy=True)
+        for i in xrange(x.nt):
+            self.assertEqual(x.data[i,0,1], xref.data[i,0,1]*t[i])
+            self.assertEqual(y.data[i,0,1], xref.data[i,0,1]*t[i])
 
 
 

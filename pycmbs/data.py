@@ -1706,8 +1706,6 @@ class Data(object):
 
         return RO, PO
 
-#-----------------------------------------------------------------------
-
     def get_temporal_mask(self, v, mtype='monthly'):
         """
         returns a temporal mask which marks specific months or years
@@ -2460,6 +2458,7 @@ class Data(object):
     def _get_days_per_month(self):
         """ get number of days for each month """
         return [calendar.monthrange(x.year, x.month)[1] for x in self.date]
+
 
     def _mesh_lat_lon(self):
         """
@@ -4250,7 +4249,42 @@ class Data(object):
 
         return d
 
-#-----------------------------------------------------------------------
+    def mul_tvec(self, x, copy=True):
+        """
+        multiply the data with a time vector.
+        Each timestep will be multiplied with the corresponding
+        element from the time vector
+
+        out[i,:,:] = in[i,:,:] * x[i]
+
+        Parameters
+        ----------
+        x : ndarray
+            data vector with scaling constants for each timestep
+            len(x) = self.nt
+        copy : bool
+            if True, a Data object is returned. Otherwise changes are
+            applied to the input data object (self)
+        """
+
+        if x.ndim != 1:
+            raise ValueError('Only 1D arrays allowed')
+        if len(x) != self.nt:
+            print len(x), self.nt
+            raise ValueError('Inconsistent geometries for temporal vector!')
+
+        if copy:
+            o = self.copy()
+        else:
+            o = self
+
+        for i in xrange(self.nt):
+            o.data[i, :, :] = self.data[i, :, :] * x[i]
+
+        if copy:
+            return o
+        else:
+            return None
 
     def mul(self, x, copy=True):
         """
@@ -4304,8 +4338,6 @@ class Data(object):
         d.label = self.label + ' * ' + x.label
         return d
 
-#-----------------------------------------------------------------------
-
     def _sub_sample(self, step):
         """
         perform spatial subsampling of data
@@ -4328,7 +4360,6 @@ class Data(object):
             if self.lon is not None:
                 self.lon = self.lon[::step, ::step]
 
-#-----------------------------------------------------------------------
 
     def corr_single(self, x, pthres=1.01, mask=None, method='pearson'):
         """
