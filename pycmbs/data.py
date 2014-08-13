@@ -3690,8 +3690,6 @@ class Data(object):
         else:
             return lon, lat, data
 
-#-----------------------------------------------------------------------
-
     def _apply_mask(self, msk1, keep_mask=True):
         """
         apply a mask to C{Data}. All data where mask==True
