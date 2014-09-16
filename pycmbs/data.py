@@ -474,7 +474,7 @@ class Data(object):
             variable name in output file. If *None*, then
             the variables are just named like var001 ...
         format : str
-            output format ['nc','txt']
+            output format ['nc','ascii']
         delete : bool
             delete file if existing without asking. If *False*, and the
             file is existing already, then an error is raised
@@ -535,15 +535,31 @@ class Data(object):
             else:
                 raise ValueError('File already existing. Please delete manually or use DELETE option: %s' % filename)
 
-        if self.time is None:
-            raise ValueError('Saving ASCII not implemented for data without time yet!')
+        if hasattr(self, 'time'):
+            if self.time is None:
+                notime = True
+            else:
+                notime = False
         else:
-            F = open(filename, 'w')
-            for i in xrange(len(self.time)):
-                F.write(str(self.num2date(self.time[i])) + ' , '
-                        + str(self.data[i,:].flatten())
-                        .replace('[', '').replace(']', '') + '\n')
-            F.close()
+            notime = True
+
+        F = open(filename, 'w')
+        if notime:
+            if self.ndim == 2:
+                F.write(self._arr2string(self.data, prefix=''))
+            else:
+                raise ValueError('Saving ASCII not implemented for data without time yet!')
+        else:
+
+            if self.ndim == 2: # temporal mean field assumed
+                F.write(self._arr2string(self.data, prefix='timmean'))
+            elif self.ndim == 3:
+                for i in xrange(len(self.time)):
+                    F.write(self._arr2string(self.data[i,:,:], prefix=str(self.date[i])))
+            else:
+                raise ValueError('Invalid geometry!')
+
+        F.close()
 
 
     def _arr2string(self, a, prefix='', sep='\t'):
@@ -578,7 +594,10 @@ class Data(object):
 
         for i in xrange(ny):
             for j in xrange(nx):
-                s += prefix + str(self.lon[i,j]) + sep + str(self.lat[i,j]) + sep + str(a[i,j]) + eol
+                if a.mask[i,j]:  # in case of masked values
+                    pass
+                else:
+                    s += prefix + str(self.lon[i,j]) + sep + str(self.lat[i,j]) + sep + str(a[i,j]) + eol
 
         return s
 

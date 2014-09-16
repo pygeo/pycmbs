@@ -1071,19 +1071,25 @@ class TestData(unittest.TestCase):
             self.D.num2date(t)
 
     def test_save_ascii(self):
+        self.D = Data(None, None)
+        self.D._init_sample_object(nt=10, ny=1, nx=1)
         self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
         self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'testexport.txt'))
         os.remove(self._tmpdir + os.sep + 'testexport.txt')
 
     def test_save_ascii_not_time(self):
+        self.D = Data(None, None)
+        self.D._init_sample_object(nt=10, ny=1, nx=1)
         self.D.time = None
         with self.assertRaises(ValueError):
             self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
 
-    #~ def test_save_ascii_invalid_geometry(self):
-        #~ self.D.data = np.random.random((4,5,6,7))
-        #~ with self.assertRaises(ValueError):
-            #~ self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
+    def test_save_ascii_invalid_geometry(self):
+        self.D = Data(None, None)
+        self.D._init_sample_object(nt=10, ny=1, nx=1)
+        self.D.data = np.random.random((self.D.nt,5,6,7))
+        with self.assertRaises(ValueError):
+            self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
 
     def test_arr2string(self):
 
