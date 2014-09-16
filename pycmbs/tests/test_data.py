@@ -1075,6 +1075,37 @@ class TestData(unittest.TestCase):
         self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'testexport.txt'))
         os.remove(self._tmpdir + os.sep + 'testexport.txt')
 
+    def test_save_ascii_not_time(self):
+        self.D.time = None
+        with self.assertRaises(ValueError):
+            self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
+
+    #~ def test_save_ascii_invalid_geometry(self):
+        #~ self.D.data = np.random.random((4,5,6,7))
+        #~ with self.assertRaises(ValueError):
+            #~ self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
+
+    def test_arr2string(self):
+
+        x = Data(None, None)
+        x._init_sample_object(nt=3, ny=1, nx=2)
+
+        # save string in ASCII file and then reload this
+        s = x._arr2string(x.data[1,:,:], prefix='')
+        fname = tempfile.mktemp(suffix='.txt')
+        F = open(fname, 'w')
+        F.write(s)
+        F.close()
+        d = np.loadtxt(fname, delimiter='\t')
+
+        self.assertEqual(d[0,0], x.lon[0,0])
+        self.assertEqual(d[1,0], x.lon[0,1])
+        self.assertEqual(d[0,1], x.lat[0,0])
+        self.assertEqual(d[1,1], x.lat[0,1])
+
+        self.assertAlmostEqual(d[0,2], x.data[1,0,0], 5)
+        self.assertAlmostEqual(d[1,2], x.data[1,0,1], 5)
+
     def test_save_ascii_FileExistingAlreadyDelete(self):
         if not os.path.exists(self._tmpdir + os.sep + 'testexport.txt'):
             os.system('touch ' + self._tmpdir + os.sep + 'testexport.txt')

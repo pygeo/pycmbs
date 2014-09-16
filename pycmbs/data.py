@@ -509,7 +509,9 @@ class Data(object):
 
     def _save_ascii(self, filename, varname=None, delete=False):
         """
-        saves the data object to an ASCII file
+        saves the data object to an ASCII file as follows
+
+        time  lon lat value
 
         Parameters
         ----------
@@ -533,13 +535,53 @@ class Data(object):
             else:
                 raise ValueError('File already existing. Please delete manually or use DELETE option: %s' % filename)
 
-        F = open(filename, 'w')
-        F.write(str(len(self.time)) + '\n')  # number of timesteps
-        for i in xrange(len(self.time)):
-            F.write(str(self.num2date(self.time[i])) + ' , '
-                    + str(self.data[i,:].flatten())
-                    .replace('[', '').replace(']', '') + '\n')
-        F.close()
+        if self.time is None:
+            raise ValueError('Saving ASCII not implemented for data without time yet!')
+        else:
+            F = open(filename, 'w')
+            for i in xrange(len(self.time)):
+                F.write(str(self.num2date(self.time[i])) + ' , '
+                        + str(self.data[i,:].flatten())
+                        .replace('[', '').replace(']', '') + '\n')
+            F.close()
+
+
+    def _arr2string(self, a, prefix='', sep='\t'):
+        """
+        convert a 2D numpy array to an ASCII list
+        this routine is supposed to be used to convert the 2D field
+        of a timestep and return a list as follows
+
+        prefix  lon1  lat1  value1
+        prefix  lon2  lat2  value2
+        ...
+
+        Parameters
+        ----------
+        a : ndarray (2D)
+            numpy array with data; needs to have geometry ny, nx
+        prefix : str
+            prefix to be appended
+        """
+
+        ny, nx = a.shape
+
+        assert (self.ny == ny)
+        assert (self.nx == nx)
+
+        s = ''
+        sep = '\t'
+        eol = '\n'
+
+        if len(prefix) > 0:
+            prefix += sep
+
+        for i in xrange(ny):
+            for j in xrange(nx):
+                s += prefix + str(self.lon[i,j]) + sep + str(self.lat[i,j]) + sep + str(a[i,j]) + eol
+
+        return s
+
 
     def _save_netcdf(self, filename, varname=None, delete=False):
         """
