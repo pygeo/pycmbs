@@ -74,6 +74,9 @@ class Dict2TXT(object):
         keys = d.keys()
         keys.sort()
 
+        if len(keys) == 0:
+            return '', ''
+
         for k in keys:
             if parent == '':
                 pstr = str(k)
