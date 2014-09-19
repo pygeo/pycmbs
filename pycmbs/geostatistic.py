@@ -59,9 +59,14 @@ class Geostatistic(object):
             j = None
         return i, j
 
-    def plot_semivariogram(self, ax=None, color='red', logy=False):
+    def plot_semivariogram(self, ax=None, color='red', logy=False, ref_lags=None):
         """
         plot semivariogram
+
+        Parameters
+        ----------
+        ref_lags : list
+            list of reference lags. If given, then these lags are plotted in the figure as well
         """
         if not hasattr(self, '_distance'):
             self._calculate_distance()
@@ -78,9 +83,14 @@ class Geostatistic(object):
         ax.set_ylabel('$\sigma^2$ / 2 (isotropic)')
         ax.set_xlabel('distance from center [km]')
         ax.grid()
+
+        if ref_lags is not None:
+            for d in ref_lags:
+                ax.plot([d,d],ax.get_ylim(), color='grey')
+
         return ax
 
-    def plot_percentiles(self, p, ax=None, logy=False):
+    def plot_percentiles(self, p, ax=None, logy=False, ref_lags=None):
         """
         plot percentiles
 
@@ -100,6 +110,10 @@ class Geostatistic(object):
         ax.set_xlabel('distance [km]')
         ax.grid()
         ax.legend(loc='upper left', prop={'size': 10}, ncol=3)
+        if ref_lags is not None:
+            for d in ref_lags:
+                ax.plot([d,d],ax.get_ylim(), color='grey')
+
         return ax
 
     def calc_percentile(self, p):
