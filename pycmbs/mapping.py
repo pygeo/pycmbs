@@ -258,7 +258,7 @@ class MapPlotGeneric(object):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
-        if proj_prop['projection'] == 'robin':
+        if proj_prop['projection'] in ['robin','mercator']:
             pass
         else:
             raise ValueError('Unsupported projection type')
@@ -290,7 +290,14 @@ class MapPlotGeneric(object):
             ax.set_visible(False)
             return ax.figure.add_axes(rect, label="pax", projection=ccrs_obj)
 
-        self.pax = _ax2geoax(self.pax, ccrs.Robinson())
+        if proj_prop['projection'] == 'robin':
+            act_ccrs = ccrs.Robinson()
+        elif proj_prop['projection'] == 'mercator':
+            act_ccrs = ccrs.TransverseMercator(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
+        else:
+            raise ValueError('Unsupported projection')
+
+        self.pax = _ax2geoax(self.pax, act_ccrs)
 
         # add cyclic coordinates if possible
         if self.x._equal_lon():
@@ -304,7 +311,17 @@ class MapPlotGeneric(object):
                 Z = Z1
 
         # plot and ancillary plots
-        self.pax.set_global()  # ensure global plot
+
+        if 'extent' in proj_prop.keys():
+            xmin = proj_prop['extent']['xmin']
+            xmax = proj_prop['extent']['xmax']
+            ymin = proj_prop['extent']['ymin']
+            ymax = proj_prop['extent']['ymax']
+
+            print xmin, xmax, ymin, ymax
+            self.pax.set_extent([xmin, xmax, ymin, ymax])
+        else:
+            self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
         self.pax.gridlines()
@@ -688,6 +705,18 @@ s
         # save data if required
         self.save()
 
+    def plot_around_coordinate(self, clon, clat):
+        """
+        generate map plot around a specific location
+
+        Parameters
+        ----------
+        clon : float
+            center longitude coordinate [deg]
+        clat : float
+            center latitude coordinate [deg]
+        """
+        assert False
 
 
     def _adjust_figure(self):
