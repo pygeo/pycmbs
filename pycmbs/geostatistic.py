@@ -76,7 +76,7 @@ class Geostatistic(object):
         else:
             ax.plot(r, sigma, 'x', color=color)
         ax.set_ylabel('$\sigma^2$ / 2 (isotropic)')
-        ax.set_xlabel('distance [km]')
+        ax.set_xlabel('distance from center [km]')
         ax.grid()
         return ax
 
@@ -168,3 +168,53 @@ class Geostatistic(object):
         if not hasattr(self, 'lon_center'):
             raise ValueError('ERROR: You need to specify first the center position!')
         self._distance = self.x.distance(self.lon_center, self.lat_center) / 1000.
+
+    def get_coordinates_at_distance(self, d, N=360):
+        """
+        return an ordered list of coordinates that are closest to the
+        specified radius.
+
+        This can be used to generate e.g. a Polygon for plotting.
+        The approach is that a circle is drawn around the center location
+        and the all points with cloes radius in each direction is stored
+
+        Parameters
+        ----------
+        d : float
+            distance [km]
+        N : int
+            number of samples
+        """
+
+        if not hasattr(self, 'lon_center'):
+            raise ValueError('Missing coordinate!')
+        if not hasattr(self, 'lat_center'):
+            raise ValueError('Missing coordinate!')
+        if not hasattr(self, '_distance'):
+            self._calculate_distance()
+
+        # get closest points as preselection
+        di = np.round(self._distance-d,0).astype('int')
+        msk = di == 0
+        lons = self.x.lon[msk].flatten()
+        lats = self.x.lat[msk].flatten()
+        dist = self._distance[msk].flatten()
+
+        theta = np.linspace(0., 2.*np.pi, N)  # angle
+        LON = []
+        LAT = []
+        for t in theta:
+            x = self.lon_center + d*np.cos(t)
+            y = self.lat_center + d*np.sin(t)
+
+            # search for closest point
+            dd = np.sqrt((lons-x)**2. + (lats-y)**2.)
+            LON.append(lons[dd.argmin()])
+            LAT.append(lats[dd.argmin()])
+
+        return LON, LAT
+
+
+
+
+

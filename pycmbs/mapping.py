@@ -259,7 +259,7 @@ class MapPlotGeneric(object):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
-        if proj_prop['projection'] in ['robin','mercator']:
+        if proj_prop['projection'] in ['robin','TransverseMercator', 'mercator']:
             pass
         else:
             raise ValueError('Unsupported projection type')
@@ -293,8 +293,15 @@ class MapPlotGeneric(object):
 
         if proj_prop['projection'] == 'robin':
             act_ccrs = ccrs.Robinson()
-        elif proj_prop['projection'] == 'mercator':
+        elif proj_prop['projection'] == 'TransverseMercator':
             act_ccrs = ccrs.TransverseMercator(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
+        elif proj_prop['projection'] == 'mercator':
+            if 'extent' in proj_prop.keys():
+                ymin = proj_prop['extent']['ymin']
+                ymax = proj_prop['extent']['ymax']
+            else:
+                raise ValueError('Need to specify extent!')
+            act_ccrs = ccrs.Mercator(central_longitude=proj_prop.pop('central_longitude', 0.), min_latitude=ymin, max_latitude=ymax)
         else:
             raise ValueError('Unsupported projection')
 
@@ -312,19 +319,21 @@ class MapPlotGeneric(object):
                 Z = Z1
 
         # plot and ancillary plots
-
         if 'extent' in proj_prop.keys():
-            xmin = proj_prop['extent']['xmin']
-            xmax = proj_prop['extent']['xmax']
-            ymin = proj_prop['extent']['ymin']
-            ymax = proj_prop['extent']['ymax']
+            if proj_prop['projection'] == 'mercator':
+                pass
+            else:
+                xmin = proj_prop['extent']['xmin']
+                xmax = proj_prop['extent']['xmax']
+                ymin = proj_prop['extent']['ymin']
+                ymax = proj_prop['extent']['ymax']
 
-            self.pax.set_extent([xmin, xmax, ymin, ymax])
+                self.pax.set_extent([xmin, xmax, ymin, ymax])
         else:
             self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
-        self.pax.gridlines()
+        self.pax.gridlines()  #draw_labels=kwargs.pop('draw_labels', True))
 
         # plot polygons
         if self.polygons is not None:
@@ -737,7 +746,7 @@ s
         ymin = clat - radius
         ymax = clat + radius
 
-        proj_prop.update({'projection' : 'mercator'})
+        proj_prop.update({'projection' : 'TransverseMercator'})
         proj_prop.update({'central_longitude' : clon})
         proj_prop.update({'central_latitude' : clat})
         proj_prop.update({'extent' : {'xmin' : xmin, 'xmax' : xmax, 'ymin' : ymin, 'ymax' : ymax}})
@@ -750,7 +759,13 @@ s
             y = clat + r*np.sin(theta)
             P = Polygon(1, zip(x,y))
 
-        self.plot(proj_prop=proj_prop, polygons=[P], **kwargs)
+        if 'polygons' in kwargs.keys():
+            polygons = kwargs.pop('polygons')
+            polygons.append(P)
+        else:
+            polygons = [P]
+
+        self.plot(proj_prop=proj_prop, polygons=polygons, **kwargs)
 
 
     def _adjust_figure(self):
