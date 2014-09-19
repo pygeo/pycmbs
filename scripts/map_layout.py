@@ -45,7 +45,9 @@ d=Data(file,'tmp',read=True)
 # map only with colorbars
 m = SingleMap(d, backend='basemap')
 #~ m.plot(colorbar_orientation='horizontal', vmin=10., vmax=30., proj_prop={'projection':'robin', 'lon_0':0.})
-m.plot(colorbar_orientation='horizontal', vmin=10., vmax=30., proj_prop={'projection':'mercator', 'central_longitude' : 50., 'central_latitude' : 40, 'extent' : {'xmin' : 20., 'xmax' : 70, 'ymin' : -60., 'ymax' : 50.}})
+#~ m.plot(colorbar_orientation='horizontal', vmin=10., vmax=30., proj_prop={'projection':'mercator', 'central_longitude' : 50., 'central_latitude' : 40, 'extent' : {'xmin' : 20., 'xmax' : 70, 'ymin' : -60., 'ymax' : 50.}})
+
+m.plot_around_coordinate(11., 40., 30.)
 
 stop
 

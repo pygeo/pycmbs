@@ -37,6 +37,7 @@ import matplotlib.gridspec as grd
 
 from pycmbs.data import Data
 from pycmbs.plots import ZonalPlot
+from pycmbs.polygon_utils import Polygon
 
 
 class MapPlotGeneric(object):
@@ -318,7 +319,6 @@ class MapPlotGeneric(object):
             ymin = proj_prop['extent']['ymin']
             ymax = proj_prop['extent']['ymax']
 
-            print xmin, xmax, ymin, ymax
             self.pax.set_extent([xmin, xmax, ymin, ymax])
         else:
             self.pax.set_global()  # ensure global plot
@@ -334,11 +334,17 @@ class MapPlotGeneric(object):
     def _add_single_polygon_cartopy(self, p, color='red', linewidth=1):
         """
         add a polygon to a map
+
+        Parameters
+        ----------
+        p : Polygon
+            this is a Polygon object from polygon_utils
         """
         from matplotlib.patches import Polygon as mplPolygon
 
         lons = list(p._xcoords())
         lats = list(p._ycoords())
+
         lons.append(lons[0])
         lats.append(lats[0])
         lons = np.asarray(lons)
@@ -665,6 +671,7 @@ s
             list of Polygon object of e.g. a regions to draw
         """
 
+
         if colorbar_orientation not in ['vertical', 'horizontal']:
             raise ValueError('Invalid colorbar orientation')
 
@@ -705,9 +712,11 @@ s
         # save data if required
         self.save()
 
-    def plot_around_coordinate(self, clon, clat):
+    def plot_around_coordinate(self, clon, clat, radius, show_center=True, **kwargs):
         """
         generate map plot around a specific location
+        The projection properties are ignored if they are provided
+        in kwargs
 
         Parameters
         ----------
@@ -715,8 +724,33 @@ s
             center longitude coordinate [deg]
         clat : float
             center latitude coordinate [deg]
+        show_center : bool
+            show center coordinates by a marker
         """
-        assert False
+
+        # update projection parameters
+        proj_prop = kwargs.pop('proj_prop', None)
+        proj_prop = {}
+
+        xmin = clon - radius  # todo how to handle across dateline or near the poles
+        xmax = clon + radius
+        ymin = clat - radius
+        ymax = clat + radius
+
+        proj_prop.update({'projection' : 'mercator'})
+        proj_prop.update({'central_longitude' : clon})
+        proj_prop.update({'central_longitude' : clat})
+        proj_prop.update({'extent' : {'xmin' : xmin, 'xmax' : xmax, 'ymin' : ymin, 'ymax' : ymax}})
+
+        # generate Polygon to plot center location that gives a circle
+        if show_center:
+            theta = np.linspace(0.,2.*np.pi,360)
+            r = 0.02 * radius  # size as function of overall radius
+            x = clon + r*np.cos(theta)
+            y = clat + r*np.sin(theta)
+            P = Polygon(1, zip(x,y))
+
+        self.plot(proj_prop=proj_prop, polygons=[P], **kwargs)
 
 
     def _adjust_figure(self):
