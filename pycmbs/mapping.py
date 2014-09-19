@@ -688,6 +688,8 @@ s
         # save data if required
         self.save()
 
+
+
     def _adjust_figure(self):
         """
         adjust subplot sizes
