@@ -739,7 +739,7 @@ s
 
         proj_prop.update({'projection' : 'mercator'})
         proj_prop.update({'central_longitude' : clon})
-        proj_prop.update({'central_longitude' : clat})
+        proj_prop.update({'central_latitude' : clat})
         proj_prop.update({'extent' : {'xmin' : xmin, 'xmax' : xmax, 'ymin' : ymin, 'ymax' : ymax}})
 
         # generate Polygon to plot center location that gives a circle
