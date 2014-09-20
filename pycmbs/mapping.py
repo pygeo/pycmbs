@@ -770,7 +770,10 @@ s
 
         if 'polygons' in kwargs.keys():
             polygons = kwargs.pop('polygons')
-            polygons.append(P)
+            if polygons is None:
+                polygons = [P]
+            else:
+                polygons.append(P)
         else:
             polygons = [P]
 
