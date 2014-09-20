@@ -214,6 +214,9 @@ class Geostatistic(object):
         lats = self.x.lat[msk].flatten()
         dist = self._distance[msk].flatten()
 
+        if len(lons) == 0:
+            return None, None
+
         theta = np.linspace(0., 2.*np.pi, N)  # angle
         LON = []
         LAT = []
@@ -223,6 +226,7 @@ class Geostatistic(object):
 
             # search for closest point
             dd = np.sqrt((lons-x)**2. + (lats-y)**2.)
+
             LON.append(lons[dd.argmin()])
             LAT.append(lats[dd.argmin()])
 

@@ -255,6 +255,28 @@ class MapPlotGeneric(object):
         mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
         self.pax.add_patch(mapboundary)
 
+    # convert normal axis to GeoAxis
+    def _ax2geoax(self, ax, ccrs_obj):
+        """
+        This routine converts a given matplotlib axis to a GeoAxis.
+        It is ensured that the axis has the same position and size.
+
+        Parameters
+        ----------
+        ax : axis
+            matplotlib axis to be modified
+        ccrs_obj : cartopy.crs
+            reference system object
+
+        Example
+        -------
+        ax2 = _ax2geoax(ax2, ccrs.Robinson())
+        """
+        b = ax.get_position()
+        rect = [b.x0, b.y0, b.width, b.height]
+        ax.set_visible(False)
+        return ax.figure.add_axes(rect, label="pax", projection=ccrs_obj)
+
     def _draw_cartopy(self, proj_prop=None, **kwargs):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
@@ -268,28 +290,6 @@ class MapPlotGeneric(object):
         Z = xm
         lon = self.x.lon
         lat = self.x.lat
-
-        # convert normal axis to GeoAxis
-        def _ax2geoax(ax, ccrs_obj):
-            """
-            This routine converts a given matplotlib axis to a GeoAxis.
-            It is ensured that the axis has the same position and size.
-
-            Parameters
-            ----------
-            ax : axis
-                matplotlib axis to be modified
-            ccrs_obj : cartopy.crs
-                reference system object
-
-            Example
-            -------
-            ax2 = _ax2geoax(ax2, ccrs.Robinson())
-            """
-            b = ax.get_position()
-            rect = [b.x0, b.y0, b.width, b.height]
-            ax.set_visible(False)
-            return ax.figure.add_axes(rect, label="pax", projection=ccrs_obj)
 
         if proj_prop['projection'] == 'robin':
             act_ccrs = ccrs.Robinson()
@@ -305,7 +305,7 @@ class MapPlotGeneric(object):
         else:
             raise ValueError('Unsupported projection')
 
-        self.pax = _ax2geoax(self.pax, act_ccrs)
+        self.pax = self._ax2geoax(self.pax, act_ccrs)
 
         # add cyclic coordinates if possible
         if self.x._equal_lon():
@@ -340,16 +340,25 @@ class MapPlotGeneric(object):
             for p in self.polygons:
                 self._add_single_polygon_cartopy(p)
 
-    def _add_single_polygon_cartopy(self, p, color='red', linewidth=1):
+    def _add_single_polygon_cartopy(self, p0, color='red', linewidth=1):
         """
         add a polygon to a map
 
         Parameters
         ----------
-        p : Polygon
-            this is a Polygon object from polygon_utils
+        p : Polygon, dict
+            this is a Polygon object from polygon_utils or a dictionary
+            if a dictionary is provided, this needs to have the following structure
+            {'id' : int, 'polygon' : Polygon, 'color' : str}
+            This allows to specifiy properties for each polygon individually
         """
         from matplotlib.patches import Polygon as mplPolygon
+
+        if isinstance(p0, dict):
+            p = p0['polygon']
+            color = p0['color']
+        else:
+            p = p0
 
         lons = list(p._xcoords())
         lats = list(p._ycoords())
@@ -753,7 +762,7 @@ s
 
         # generate Polygon to plot center location that gives a circle
         if show_center:
-            theta = np.linspace(0.,2.*np.pi,360)
+            theta = np.linspace(0., 2.*np.pi, 360)
             r = 0.02 * radius  # size as function of overall radius
             x = clon + r*np.cos(theta)
             y = clat + r*np.sin(theta)
