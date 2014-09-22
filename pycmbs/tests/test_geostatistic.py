@@ -36,6 +36,11 @@ class TestData(unittest.TestCase):
             G = Geostatistic(x)
 
     def test_init(self):
+        with self.assertRaises(ValueError):  # missing range bins
+            G = Geostatistic(self.x)
+
+        y = self.x.copy()  # missing 3D
+        y.data = np.random.random((10,20,30))
         with self.assertRaises(ValueError):
             G = Geostatistic(self.x)
 
@@ -44,6 +49,13 @@ class TestData(unittest.TestCase):
             G = Geostatistic(self.x, range_bins=bins)
         bins = np.arange(10)
         G = Geostatistic(self.x, range_bins=bins)
+
+    #~ def test_plot(self):
+        #~ bins = np.arange(3)*10000
+        #~ G = Geostatistic(self.x, range_bins=bins)
+        #~ G.set_center_position(0., 0.)
+        #~ G.plot_semivariogram()
+
 
     def test_set_center(self):
         bins = np.arange(10)

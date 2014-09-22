@@ -22,32 +22,8 @@ import tempfile
 class TestMapPlotGeneric(unittest.TestCase):
     def setUp(self):
         self.map_plot = mapping.MapPlotGeneric()
-
-        # data for testing
-        n=1000  # slows down significantly! constraint is percentile  test
-        x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
-        ny=10
-        nx=20
-        d=np.ones((n, ny, nx))
-        self.D.data = d
-        for i in xrange(ny):
-            for j in xrange(nx):
-                self.D.data[:, i, j] = x[:]
-        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
-        self.D.verbose = True
-        self.D.unit = 'myunit'
-        self.D.label = 'testlabel'
-        self.D.filename = 'testinputfilename.nc'
-        self.D.varname = 'testvarname'
-        self.D.long_name = 'This is the longname'
-        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
-        self.D.time_str = "days since 0001-01-01 00:00:00"
-        self.D.calendar = 'gregorian'
-        self.D.cell_area = np.ones((ny, nx))
-        self.D.lon = np.random.random((ny,nx))*10.
-        self.D.lat = np.random.random((ny,nx))*20.
-
+        self.D._init_sample_object(nt=1000, ny=10, nx=20)
         self._tmpdir = tempfile.mkdtemp()
 
     def test_SingleMap_Init(self):
@@ -70,6 +46,11 @@ class TestMapPlotGeneric(unittest.TestCase):
     def test_SingleMap_WithoutColorbar(self):
         SM = mapping.SingleMap(self.D)
         SM.plot(show_colorbar=False)
+
+    def test_invalid_colorbar_orientation(self):
+        SM = mapping.SingleMap(self.D)
+        with self.assertRaises(ValueError):
+            SM.plot(colorbar_orientation='something')
 
     def test_SingleMap_WithPredefinedAxis(self):
         f = plt.figure()

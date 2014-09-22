@@ -61,8 +61,6 @@ class TestLomb(TestCase):
         #~ self.assertEqual(Rr[4], 1.)
         #~ self.assertEqual(Pr[4], 0.)
 
-
-
         # test for functions with overlapping frequencies
         p_ref1 = 365.
         p_ref2 = 365.
