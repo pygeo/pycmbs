@@ -213,7 +213,7 @@ class MapPlotGeneric(object):
             else:
                 print('INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
 
-    def _draw_basemap(self, proj_prop=None, drawparallels=True, **kwargs):
+    def _draw_basemap(self, proj_prop=None, drawparallels=True, vmin_polygons=None, vmax_polygons=None, **kwargs):
         """
         """
         if proj_prop is None:
@@ -237,10 +237,10 @@ class MapPlotGeneric(object):
                 for p in self.polygons:
                     self._add_single_polygon_basemap(the_map, p)
             else:  # plot all polygons at once
-                self._add_polygons_as_collection_basemap(the_map)
+                self._add_polygons_as_collection_basemap(the_map, vmin=vmin_polygons, vmax=vmax_polygons)
 
-    def _add_polygons_as_collection_basemap(self, basemap_handler):
-        collection = self._polygons2collection(basemap_handler=basemap_handler)
+    def _add_polygons_as_collection_basemap(self, basemap_handler, **kwargs):
+        collection = self._polygons2collection(basemap_handler=basemap_handler, **kwargs)
         self._add_collection(collection)
 
     def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
@@ -787,7 +787,7 @@ class SingleMap(MapPlotGeneric):
              ctick_prop=None,
              vmin=None, vmax=None, nclasses=10,
              title=None, proj_prop=None, drawparallels=True,
-             titlefontsize=14, polygons=None):
+             titlefontsize=14, polygons=None, vmin_polygons=None, vmax_polygons=None):
         """
         routine to plot a single map
 
@@ -837,7 +837,7 @@ s
 
         # do plot using current backend
         if self.backend == 'basemap':
-            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels)
+            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         elif self.backend == 'cartopy':
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop)
         else:

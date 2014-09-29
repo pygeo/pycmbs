@@ -18,9 +18,12 @@ plt.close('all')
 
 poly1 = [(-105., 60.), (-168.022, 60.), (-168.022, 72.554), (-105., 72.554)]  # ALA 1
 P1 = Polygon(1, poly1)
+P1.value=100.
+
 
 poly2 = [(-66.377, -20.), (-79.729, -1.239), (-68.8, 11.439), (-50., 11.439), (-50., -20.)]
 P2 = Polygon(7, poly2)
+P2.value=200.
 
 
 
@@ -42,7 +45,7 @@ d.lon, d.lat = np.meshgrid(lon, lat)
 m = SingleMap(d)  # this is supposed to make a baemap plot with stripes
 m.backend = 'basemap'  # overwrite default
 m._draw = m._draw_basemap
-m.plot(polygons=[P1, P2], proj_prop={'projection':'robin', 'lon_0':0.})
+m.plot(polygons=[P1, P2], proj_prop={'projection':'robin', 'lon_0':0.}, vmin_polygons=0., vmax_polygons=250.)
 plt.title('Basemap')
 
 # cartopy plots
