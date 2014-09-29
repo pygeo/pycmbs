@@ -33,7 +33,11 @@ except:
 
 import matplotlib as mpl
 import numpy as np
+
 import matplotlib.gridspec as grd
+import matplotlib.path as mpath
+import matplotlib.patches as mpatches
+from matplotlib.collections import PatchCollection
 
 from pycmbs.data import Data
 from pycmbs.plots import ZonalPlot
@@ -210,6 +214,8 @@ class MapPlotGeneric(object):
                 print('INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
 
     def _draw_basemap(self, proj_prop=None, drawparallels=True, **kwargs):
+        """
+        """
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
@@ -225,9 +231,17 @@ class MapPlotGeneric(object):
 
         self.__basemap_ancillary(the_map, drawparallels=drawparallels)
 
+        # add polygons to map
         if self.polygons is not None:
-            for p in self.polygons:
-                self._add_single_polygon_basemap(the_map, p)
+            if False:  # individual polygons
+                for p in self.polygons:
+                    self._add_single_polygon_basemap(the_map, p)
+            else:  # plot all polygons at once
+                self._add_polygons_as_collection_basemap(the_map)
+
+    def _add_polygons_as_collection_basemap(self, basemap_handler):
+        collection = self._polygons2collection(basemap_handler=basemap_handler)
+        self._add_collection(collection)
 
     def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
         """
@@ -337,8 +351,119 @@ class MapPlotGeneric(object):
 
         # plot polygons
         if self.polygons is not None:
-            for p in self.polygons:
-                self._add_single_polygon_cartopy(p)
+            if False:  # plot all polygons individually
+                for p in self.polygons:
+                    self._add_single_polygon_cartopy(p)
+            else:  # all polygons as collection
+                self._add_polygons_as_collection_cartopy()
+
+    def _add_collection(self, collection):
+        if self.backend == 'imshow':
+            raise ValueError('Collections not tested yet with backend IMSHOW')
+        elif self.backend == 'cartopy':
+            self.pax.add_collection(collection)
+        elif self.backend == 'basemap':
+            self.pax.add_collection(collection)
+        else:
+            raise ValueError('INVALID backend!')
+
+    def _add_polygons_as_collection_cartopy(self):
+        """
+        add polygons as collection
+        """
+        collection = self._polygons2collection()
+        self._add_collection(collection)
+
+    def _polygons2collection(self, vmin=None, vmax=None, color='red', cmap='jet', basemap_handler=None):
+        """
+        generate collection from list of polygons
+
+        Parameters
+        ----------
+        color : str
+            color for edges of polygons
+        vmin : float
+            minimum for scaling
+        vmax : float
+            maximum for scaling
+        cmap : str, colormap object
+            colormap specification
+        """
+        Path = mpath.Path
+        patches = []
+        pdata = np.ones(len(self.polygons)) * np.nan
+
+        cnt = 0
+
+        def _get_codes(Path, n):
+            """
+            specify how vertices are interconnected (here simple connection by lines)
+            """
+            codes = [Path.MOVETO]
+            for i in xrange(n-1):
+                codes.append(Path.LINETO)
+            return codes
+
+
+        for p in self.polygons:
+
+            # convert lat/lon to map coordinates
+            x, y = self._get_map_coordinates(p._xcoords(), p._ycoords(), basemap_handler=basemap_handler)
+            x.append(x[0])
+            y.append(y[0])
+            verts = np.asarray([x, y]).T
+
+            codes = _get_codes(Path, len(verts))
+
+            # construct object and append to library of objects
+            path = mpath.Path(verts, codes, closed=True)
+            patches.append(mpatches.PathPatch(path))
+
+            # store data information
+            if p.value is not None:
+                pdata[cnt] = p.value
+
+            cnt += 1
+
+        pdata = np.asarray(pdata)
+        pdata = np.ma.array(pdata, mask=np.isnan(pdata))
+
+        # generate collection
+        if vmin is None:
+            vmin = pdata.min()
+        if vmax is None:
+            vmax = pdata.max()
+
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        collection = PatchCollection(patches, cmap=cmap, norm=norm, alpha=1., match_original=False, edgecolors=color)
+        collection.set_array(pdata)
+
+        return collection
+
+    def _get_map_coordinates(self, lons, lats, basemap_handler=None):
+        if self.backend == 'imshow':
+            print ValueError('Not implemented for backend IMSHOW')
+        elif self.backend == 'basemap':
+            if basemap_handler is None:
+                raise ValueError('ERROR: no basemap handler provided!')
+            x, y = basemap_handler(lons, lats)
+            return list(x), list(y)
+        elif self.backend == 'cartopy':
+            return list(lons), list(lats)  # transformation done during plotting
+        else:
+            raise ValueError('Invalid backend!')
+
+
+
+
+
+
+
+
+
+
+
+
 
     def _add_single_polygon_cartopy(self, p0, color='red', linewidth=1):
         """

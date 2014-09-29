@@ -43,10 +43,12 @@ m = SingleMap(d)  # this is supposed to make a baemap plot with stripes
 m.backend = 'basemap'  # overwrite default
 m._draw = m._draw_basemap
 m.plot(polygons=[P1, P2], proj_prop={'projection':'robin', 'lon_0':0.})
+plt.title('Basemap')
 
 # cartopy plots
 m1 = SingleMap(d, backend='cartopy')
 m1.plot(polygons=[P1, P2], proj_prop={'projection':'robin', 'lon_0':0.})
+plt.title('Cartopy')
 
 plt.show()
 
