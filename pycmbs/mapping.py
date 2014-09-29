@@ -460,18 +460,6 @@ class MapPlotGeneric(object):
         else:
             raise ValueError('Invalid backend!')
 
-
-
-
-
-
-
-
-
-
-
-
-
     def _add_single_polygon_cartopy(self, p0, color='red', linewidth=1):
         """
         add a polygon to a map
