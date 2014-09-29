@@ -14,7 +14,12 @@ import matplotlib.pyplot as plt
 from pycmbs.polygon import Polygon
 import numpy as np
 
+import cartopy.crs as ccrs
+
 plt.close('all')
+
+
+
 
 poly1 = [(-105., 60.), (-168.022, 60.), (-168.022, 72.554), (-105., 72.554)]  # ALA 1
 P1 = Polygon(1, poly1)
@@ -50,7 +55,7 @@ plt.title('Basemap')
 
 # cartopy plots
 m1 = SingleMap(d, backend='cartopy')
-m1.plot(polygons=[P1, P2], proj_prop={'projection':'robin', 'lon_0':0.})
+m1.plot(polygons=[P1, P2], proj_prop={'projection':'robin', 'lon_0':0.}, vmin_polygons=0., vmax_polygons=250.)
 plt.title('Cartopy')
 
 plt.show()

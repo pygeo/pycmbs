@@ -239,8 +239,8 @@ class MapPlotGeneric(object):
             else:  # plot all polygons at once
                 self._add_polygons_as_collection_basemap(the_map, vmin=vmin_polygons, vmax=vmax_polygons)
 
-    def _add_polygons_as_collection_basemap(self, basemap_handler, **kwargs):
-        collection = self._polygons2collection(basemap_handler=basemap_handler, **kwargs)
+    def _add_polygons_as_collection_basemap(self, plot_handler, **kwargs):
+        collection = self._polygons2collection(plot_handler=plot_handler, **kwargs)
         self._add_collection(collection)
 
     def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
@@ -291,7 +291,7 @@ class MapPlotGeneric(object):
         ax.set_visible(False)
         return ax.figure.add_axes(rect, label="pax", projection=ccrs_obj)
 
-    def _draw_cartopy(self, proj_prop=None, **kwargs):
+    def _draw_cartopy(self, proj_prop=None, vmin_polygons=None, vmax_polygons=None, **kwargs):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
@@ -355,7 +355,7 @@ class MapPlotGeneric(object):
                 for p in self.polygons:
                     self._add_single_polygon_cartopy(p)
             else:  # all polygons as collection
-                self._add_polygons_as_collection_cartopy()
+                self._add_polygons_as_collection_cartopy(act_ccrs, vmin=vmin_polygons, vmax=vmax_polygons)
 
     def _add_collection(self, collection):
         if self.backend == 'imshow':
@@ -367,14 +367,14 @@ class MapPlotGeneric(object):
         else:
             raise ValueError('INVALID backend!')
 
-    def _add_polygons_as_collection_cartopy(self):
+    def _add_polygons_as_collection_cartopy(self, plot_handler, **kwargs):
         """
         add polygons as collection
         """
-        collection = self._polygons2collection()
+        collection = self._polygons2collection(plot_handler=plot_handler, **kwargs)
         self._add_collection(collection)
 
-    def _polygons2collection(self, vmin=None, vmax=None, color='red', cmap='jet', basemap_handler=None):
+    def _polygons2collection(self, vmin=None, vmax=None, color='red', cmap='jet', plot_handler=None):
         """
         generate collection from list of polygons
 
@@ -389,6 +389,10 @@ class MapPlotGeneric(object):
         cmap : str, colormap object
             colormap specification
         """
+
+        if plot_handler is None:
+            raise ValueError('No plotting handler provided!')
+
         Path = mpath.Path
         patches = []
         pdata = np.ones(len(self.polygons)) * np.nan
@@ -408,7 +412,7 @@ class MapPlotGeneric(object):
         for p in self.polygons:
 
             # convert lat/lon to map coordinates
-            x, y = self._get_map_coordinates(p._xcoords(), p._ycoords(), basemap_handler=basemap_handler)
+            x, y = self._get_map_coordinates(p._xcoords(), p._ycoords(), plot_handler=plot_handler)
             x.append(x[0])
             y.append(y[0])
             verts = np.asarray([x, y]).T
@@ -440,16 +444,19 @@ class MapPlotGeneric(object):
 
         return collection
 
-    def _get_map_coordinates(self, lons, lats, basemap_handler=None):
+    def _get_map_coordinates(self, lons, lats, plot_handler=None):
         if self.backend == 'imshow':
             print ValueError('Not implemented for backend IMSHOW')
         elif self.backend == 'basemap':
-            if basemap_handler is None:
+            if plot_handler is None:
                 raise ValueError('ERROR: no basemap handler provided!')
-            x, y = basemap_handler(lons, lats)
+            x, y = plot_handler(lons, lats)
             return list(x), list(y)
         elif self.backend == 'cartopy':
-            return list(lons), list(lats)  # transformation done during plotting
+            X = plot_handler.transform_points(ccrs.PlateCarree(), lons, lats)  # gives an array (N, 3) with x,y,z as columns
+            x = X[:,0]
+            y = X[:,1]
+            return list(x), list(y)
         else:
             raise ValueError('Invalid backend!')
 
@@ -839,7 +846,7 @@ s
         if self.backend == 'basemap':
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         elif self.backend == 'cartopy':
-            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop)
+            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         else:
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
 
