@@ -878,7 +878,7 @@ class LinePlot(object):
         norm_std : bool
             normalize timeseries with its stdv. This is a useful option when comparing trends of variables with different amplitudes
         std : Data
-            standard deviation
+            standard deviation; if given, then error bars are automatically plotted
         """
 
         if std is not None:
