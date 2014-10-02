@@ -822,7 +822,40 @@ class LinePlot(object):
 
 #-----------------------------------------------------------------------
 
-    def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, **kwargs):
+    def _plot_std_bars(self, ax, x, s, color='grey'):
+        """
+        plot stdv bars; it is assumed that the timestep of the two
+        input variables is consistent.
+
+        Todo: quicker plotting using collections later on
+
+        Parameters
+        ----------
+        ax : axis
+            axis to plot to
+        x : Data
+            data to plot
+        s : Data
+            standard deviations
+        """
+
+        if x.shape != s.shape:
+            print x.shape, s.shape
+            raise ValueError('Invalid shapes!')
+
+        if x.ndim != 1:
+            raise ValueError('Currently only 1D data supported')
+
+        for i in xrange(x.nt):
+            xx = [x.date[i], x.date[i]]
+            yy = [x.data[i]-s.data[i], x.data[i]+s.data[i]]
+            ax.plot(xx,yy, color=color)
+
+
+
+
+
+    def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, std=None, **kwargs):
         """
         plot LinePlot data. If a spatial field is provided, this is aggregated
         using the fldmean() function of C{Data}
@@ -845,7 +878,13 @@ class LinePlot(object):
             the label of the provided C{Data} object is used
         norm_std : bool
             normalize timeseries with its stdv. This is a useful option when comparing trends of variables with different amplitudes
+        std : Data
+            standard deviation
         """
+
+        if std is not None:
+            if std.shape != x.shape:
+                raise ValueError('Inconsistent shapes!')
 
         if len(x.time) > 0:
             if ax is None:
@@ -856,8 +895,14 @@ class LinePlot(object):
                 set_axiscolor = True
             if x.ndim == 1:  # if a vector already provided
                 y = x.data * 1.
+                if std is not None:
+                    top = y + std.data * 1.
+                    bot = y - std.data * 1.
             else:
                 y = x.fldmean()  # ... otherwise use fldmean() to get timeseries
+                if std is not None:
+                    raise ValueError('Spatial aggregation for errors not supported yet!')  # would need covariance structure
+
             if norm_std:
                 y /= y.std()
             if label is None:
@@ -881,6 +926,9 @@ class LinePlot(object):
 
             self.labels.append(label)
 
+            if std is not None:
+                self._plot_std_bars(ax, x, std)
+
             p = ax.plot(x.date, y, label=label, **kwargs)[0]
             self.lines.append(p)
             if self.regress:
@@ -900,9 +948,6 @@ class LinePlot(object):
             if set_ytickcolor:
                 for tl in ax.get_yticklabels():
                     tl.set_color(p.get_color())
-
-#-----------------------------------------------------------------------
-
 
 class GlobalMeanPlot(object):
     """

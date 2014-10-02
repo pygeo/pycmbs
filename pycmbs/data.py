@@ -4939,7 +4939,14 @@ class Data(object):
         if nt is None:
             data = np.random.random((ny, nx))
         else:
-            data = np.random.random((nt, ny, nx))
+            if ny is None:
+                if nx is not None:
+                    raise ValueError('When only timeseries is provided, then nx and ny need to be None!')
+                    data
+                else:
+                    data = np.random.random(nt)
+            else:
+                data = np.random.random((nt, ny, nx))
 
         self.data = np.ma.array(data, mask=data != data)
         self.verbose = True
@@ -4953,10 +4960,15 @@ class Data(object):
         self.time_str = "days since 0001-01-01 00:00:00"
         self.calendar = 'gregorian'
         self.oldtime = False
-        self.cell_area = np.ones((ny, nx))
-        lat = np.linspace(-90., 90., ny)
-        lon = np.linspace(-180., 180., nx)
-        self.lon, self.lat = np.meshgrid(lon, lat)
+        if ny is None:
+            self.cell_area = 1.
+            self.lon = None
+            self.lat = None
+        else:
+            self.cell_area = np.ones((ny, nx))
+            lat = np.linspace(-90., 90., ny)
+            lon = np.linspace(-180., 180., nx)
+            self.lon, self.lat = np.meshgrid(lon, lat)
 
     def _rasterize(self, lon, lat, radius=None, return_object=True):
         """
