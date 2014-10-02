@@ -4881,7 +4881,7 @@ class Data(object):
 
         return ipos, jpos
 
-    def get_center_data(self, return_object=False):
+    def get_center_data(self, return_object=False, flatten=False):
         """
         returns data for center position
 
@@ -4889,6 +4889,8 @@ class Data(object):
         ----------
         return_object : bool
             return the results as a Data object
+        flatten : bool
+            if True, then the resulting array will be flatteneds
         """
         i, j = self._get_center_position()
         if i is None:
@@ -4911,11 +4913,16 @@ class Data(object):
                 res = res.reshape((len(res), 1, 1))
             else:
                 assert False
+            if flatten:
+                res = res.flatten()
             r.data = res
             r.cell_area = np.ones((1, 1))
             return r
         else:
-            return res
+            if flatten:
+                return res.flatten()
+            else:
+                return res
 
     def _init_sample_object(self, nt=None, ny=20, nx=10):
         """
