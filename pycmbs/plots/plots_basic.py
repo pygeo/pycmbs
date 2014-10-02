@@ -21,7 +21,8 @@ from matplotlib import pylab
 
 from matplotlib.patches import Polygon
 import matplotlib.path as mpath
-from matplotlib.collections import PatchCollection
+from matplotlib.collections import PatchCollection, LineCollection
+import matplotlib.pylab as pl
 
 from mpl_toolkits.basemap import Basemap, shiftgrid
 from scipy import stats
@@ -820,14 +821,10 @@ class LinePlot(object):
             tick.label.set_fontsize(self.ticksize)
             tick.label.set_rotation(self.xtickrotation)
 
-#-----------------------------------------------------------------------
-
     def _plot_std_bars(self, ax, x, s, color='grey'):
         """
         plot stdv bars; it is assumed that the timestep of the two
         input variables is consistent.
-
-        Todo: quicker plotting using collections later on
 
         Parameters
         ----------
@@ -846,13 +843,15 @@ class LinePlot(object):
         if x.ndim != 1:
             raise ValueError('Currently only 1D data supported')
 
+        segments = []
         for i in xrange(x.nt):
-            xx = [x.date[i], x.date[i]]
-            yy = [x.data[i]-s.data[i], x.data[i]+s.data[i]]
-            ax.plot(xx,yy, color=color)
-
-
-
+            yref = x.data[i]
+            dnum = pl.date2num(x.date[i])  # the conversion using pylab is required as otherwise there is a 1-day shift! Reason seems to be that matplotlib converts the numerical value automatically using num2date()
+            xx = [dnum, dnum]
+            yy = [yref-s.data[i], yref+s.data[i]]
+            segments.append(list(zip(xx, yy)))
+        collection = LineCollection(segments, colors=color)
+        ax.add_collection(collection)
 
 
     def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, std=None, **kwargs):
