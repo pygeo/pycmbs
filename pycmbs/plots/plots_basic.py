@@ -434,8 +434,6 @@ class ReichlerPlot(object):
         self.labels = []
         self.colors = []
 
-#-----------------------------------------------------------------------
-
     def add(self, e2, label, color=None):
         """
         register data to be plotted
@@ -454,8 +452,6 @@ class ReichlerPlot(object):
         self.e2.append(e2)
         self.labels.append(label)
         self.colors.append(color)
-
-#-----------------------------------------------------------------------
 
     def bar(self, vmin=None, vmax=None, title='', **kwargs):
         """
@@ -1324,9 +1320,6 @@ class HistogrammPlot(object):
         if show_legend:
             self.ax.legend()
 
-#-----------------------------------------------------------------------
-
-
 class ZonalPlot(object):
     def __init__(self, ax=None, dir='y'):
         """
@@ -1354,8 +1347,6 @@ class ZonalPlot(object):
             self.ax = f.add_subplot(111)
         else:
             self.ax = ax
-
-#-----------------------------------------------------------------------
 
     def plot(self, x, xlim=None, timmean=False, show_ylabel=True, label=''):
         """
@@ -3658,7 +3649,8 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  colorbar_orientation=colorbar_orientation, drawparallels=drawparallels, savegraphicfile=graphic_name, **kwargs)
 
     # first minus second dataset (absolute difference)
-    adif = x.sub(y)  # absolute difference #todo where to get std of seasonal means !!!! needs to be realized before beeing able to use significance ????
+    # the temporal mean is calculated here as this allows to use also datasets with different numbers of timesteps
+    adif = x.timmean(return_object=True).sub(y.timmean(return_object=True))
 
     if savefile is None:
         tmpoutname = None
@@ -3684,7 +3676,7 @@ def map_difference(x, y, dmin=None, dmax=None, use_basemap=False,
                  drawparallels=drawparallels, savegraphicfile=graphic_name)
 
     # relative error
-    rdat = adif.div(x)
+    rdat = adif.div(x.timmean(return_object=True))
     rdat.unit = '-'
     if absthres is not None:
         mask = abs(x.timmean()) < absthres
