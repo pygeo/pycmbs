@@ -3,6 +3,7 @@
 tags
 *.log
 ./tests
+docsrc/build
 .coverage
 tmp_data.nc
 *.swp
@@ -10,3 +11,4 @@ tmp_data.nc
 .pypirc
 *_cell_area.nc
 pycmbs.egg-info
+MANIFEST

@@ -4,6 +4,7 @@
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
 
+
 ## Authors and Contact
 Check `AUTHORS.md` file
 
@@ -13,7 +14,6 @@ What is pyCMBS?
 pyCMBS has two major objectives:
 
 a) pyCMBS provides a suite of tools to process, analyze and visualize geoscientific data and climate model output.
-
 b) It has been explicitly designed to facilitate the benchmarking of scientific model output against each other or against observational reference data. It is in particular useful for analyzing in an efficient way output from climate model simulations.
 
 
@@ -22,12 +22,12 @@ Installation
 
 pyCMBS can be installed in various ways:
 
-1. stable versions from source code 
+1. stable versions from source code
 2. stable versions using pip
 3. developer version: https://github.com/pygeo/pycmbs
 
 The installation is easy, but not yet automatized. See INSTALL.md for further
-installation details. 
+installation details.
 
 Documentation
 -------------
