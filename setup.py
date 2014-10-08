@@ -7,7 +7,12 @@ COPYRIGHT.md
 """
 
 from setuptools import setup
+from distutils.core import setup as setup_dist  # todo use only one setup
+
+
+
 import pycmbs
+from Cython.Build import cythonize
 
 install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib"]
 
@@ -35,6 +40,10 @@ setup(name='pycmbs',
                 "model evaluation", "benchmarking", "metrics"],
       scripts=["pycmbs-benchmarking.py"],
       license="MIT license")
+
+setup_dist(
+  ext_modules = cythonize("./pycmbs/polygon_utils.pyx"),
+)
 
 ########################################################################
 # Some useful information on shipping packages
