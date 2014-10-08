@@ -9,24 +9,21 @@ import numpy as np
 import os
 import scipy as sci
 from scipy import stats
-
 from matplotlib import pylab as plt
-
 from mpl_toolkits.axes_grid import make_axes_locatable
 import matplotlib.axes as maxes
 import matplotlib.cm as cm
 import matplotlib.colors as col
 import matplotlib as mpl
+from scipy import linalg, dot
+import matplotlib.gridspec as gridspec
+import pickle
+
 from pycmbs.plots import pm_bar, add_nice_legend
 from pycmbs.mapping import map_plot
 from pycmbs.data import Data
-from scipy import linalg, dot
-import matplotlib.gridspec as gridspec
 from pycmbs.anova import *
 from pycmbs.taylor import Taylor
-### from pylab import *
-import pickle
-
 
 class DiagnosticMaster(object):
     """
