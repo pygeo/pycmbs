@@ -7,6 +7,7 @@ COPYRIGHT.md
 
 import unittest
 from pycmbs import netcdf
+import numpy as np
 
 class TestPycmbsNetcdf(unittest.TestCase):
 
@@ -29,6 +30,7 @@ class TestPycmbsNetcdf(unittest.TestCase):
 
     def test_netCDFHandlerinit_Default(self):
         cdf = netcdf.NetCDFHandler()
+
 
 if __name__ == "__main__":
     unittest.main()
