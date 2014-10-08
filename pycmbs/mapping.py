@@ -51,7 +51,7 @@ class MapPlotGeneric(object):
 
     def __init__(self, backend='imshow', format='png', savefile=None,
                  show_statistic=True, stat_type='mean', figsize=(10, 5),
-                 **kwargs):
+                 show_unit=True, **kwargs):
         """
         Parameters
         ----------
@@ -68,6 +68,7 @@ class MapPlotGeneric(object):
         self.savefile = savefile
         self.show_statistic = show_statistic
         self.stat_type = stat_type
+        self.show_unit = show_unit
 
         if 'ax' in kwargs.keys():
             ax = kwargs['ax']
@@ -94,7 +95,6 @@ class MapPlotGeneric(object):
             self._draw = self._draw_basemap
         elif self.backend == 'cartopy':
             self._draw = self._draw_cartopy
-
         else:
             raise ValueError('Unknown backend!')
 
@@ -704,7 +704,9 @@ class SingleMap(MapPlotGeneric):
 
         self.pax.set_title(title + '\n', size=fontsize)
         self.pax.set_title(unit, loc='right', size=fontsize - 2)
-        self.pax.set_title(stat, loc='left', size=fontsize - 2)
+        if self.show_unit:
+            self.pax.set_title(unit, loc='right', size=fontsize - 2)
+
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
@@ -1134,7 +1136,11 @@ def map_plot(x, use_basemap=False, show_zonal=False,
              vmin=None, vmax=None, proj='robin', lon_0=0., lat_0=0.,
              cticks=None, cticklabels=None, ax=None,
              drawparallels=True, overlay=None, titlefontsize=14,
-             zonal_timmean=None, region=None, savegraphicfile=None, return_plot_handler=False, logplot=False):
+             zonal_timmean=None, region=None, savegraphicfile=None,
+             show_unit=True, regions_to_plot=None, return_plot_handler=False, logplot=False):
+
+
+
     """
     This is a wrapper function to replace the old map_plot routine
     It provides a similar interface, but makes usage of the new
@@ -1170,7 +1176,9 @@ def map_plot(x, use_basemap=False, show_zonal=False,
     ctick_prop = {'ticks': cticks, 'labels': cticklabels}
 
     M = SingleMap(x, backend=backend, show_statistic=show_stat,
-                  stat_type=stat_type, savefile=savefile, ax=ax)
+                  stat_type=stat_type, savefile=savefile, ax=ax,
+                  show_unit=show_unit)
+
     M.plot(title=title, show_zonal=show_zonal, show_histogram=False,
            show_timeseries=False, nclasses=nclasses,
            colorbar_orientation=colorbar_orientation,

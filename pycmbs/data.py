@@ -41,7 +41,7 @@ class Data(object):
                  mask=None, time_cycle=None, squeeze=False, level=None,
                  verbose=False, cell_area=None, time_var='time',
                  checklat=True, weighting_type='valid', oldtime=False,
-                 warnings=True):
+                 warnings=True, calc_cell_area=True):
         """
         Constructor for Data class
 
@@ -156,6 +156,9 @@ class Data(object):
             backwards compliance, the option oldtime=True can be used
             which will then mimic a similar behaviour as the pylab
             date functions.
+
+        calc_cell_area : bool
+                calculate cell area
         """
 
         self.weighting_type = weighting_type
@@ -170,6 +173,7 @@ class Data(object):
         self.verbose = verbose
         #assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
+        self._calc_cell_area = calc_cell_area
 
         self.inmask = mask
         self.level = level
@@ -462,7 +466,8 @@ class Data(object):
                                        calendar=self.calendar) - offset
 
     def save(self, filename, varname=None, format='nc',
-             delete=False, mean=False, timmean=False):
+             delete=False, mean=False, timmean=False, compress=True):
+
         """
         saves the data object to a file
 
@@ -474,7 +479,7 @@ class Data(object):
             variable name in output file. If *None*, then
             the variables are just named like var001 ...
         format : str
-            output format ['nc','ascii']
+            output format ['nc','ascii','nc3','nc4']
         delete : bool
             delete file if existing without asking. If *False*, and the
             file is existing already, then an error is raised
@@ -482,7 +487,11 @@ class Data(object):
             save spatial mean field only instead of the full field
         timmean : bool
             save temporal mean field
+        compress : bool
+            compress resulting file if supported by library
         """
+
+        map_formats = {'nc': 'NETCDF4', 'nc3': 'NETCDF3_CLASSIC', 'nc4': 'NETCDF4'}
 
         if mean and timmean:
             raise ValueError('Only the MEAN or the TIMMEAN option can be given, but not together!')
@@ -498,8 +507,8 @@ class Data(object):
             tmp = self
 
         # store data now ...
-        if format == 'nc':
-            tmp._save_netcdf(filename, varname=varname, delete=delete)
+        if format in ['nc', 'nc3', 'nc4']:
+            tmp._save_netcdf(filename, varname=varname, delete=delete, compress=compress, format=map_formats[format])
         elif format == 'ascii':
             tmp._save_ascii(filename, varname=varname, delete=delete)
         else:
@@ -602,7 +611,7 @@ class Data(object):
         return s
 
 
-    def _save_netcdf(self, filename, varname=None, delete=False):
+    def _save_netcdf(self, filename, varname=None, delete=False, compress=True, format='NETCDF4'):
         """
         saves the data object to a netCDF file
 
