@@ -13,8 +13,6 @@ from pycmbs.plots import map_difference, map_season, GlecklerPlot, GlobalMeanPlo
 from pycmbs.plots import xx_map_plot, HstackTimeseries, HovmoellerPlot
 from pycmbs.plots import rotate_ticks, CorrelationAnalysis
 
-from pycmbs.plots.mosaic_plots import CrossComparisonPlot
-
 from pycmbs.plots.violin import _classic_example as Violin_example
 from pycmbs.plots import GlobalMeanPlot
 
@@ -230,38 +228,7 @@ class TestPycmbsPlots(unittest.TestCase):
             H.plot()
         H.plot(climits=[0., 1.])
 
-    def test_cross_comparison_InvalidInit(self):
-        with self.assertRaises(ValueError):
-            C = CrossComparisonPlot(upper='nothing')
-        with self.assertRaises(ValueError):
-            C = CrossComparisonPlot(lower='nothing')
 
-    def test_cross_comparison_Add(self):
-        C = CrossComparisonPlot()
-        C.add(self.D, 'data1')
-        C.add(self.D, 'data2')
-        with self.assertRaises(ValueError):
-            C.add(np.random.random(100), 'test')
-        C.data.update({'mykey': 'test'})
-        with self.assertRaises(ValueError):
-            C.add(self.D, label='mykey')
-
-    def test_cross_comparison_get_sequence(self):
-        C = CrossComparisonPlot()
-        C.add(self.D, 'data1')
-        C.add(self.D, 'data3')
-        C.add(self.D, 'data2')
-        s = C._get_sequence_labels()
-        self.assertTrue(s[0]=='data1')
-        self.assertTrue(s[1]=='data3')
-        self.assertTrue(s[2]=='data2')
-
-    def test_cross_comparison_plot(self):
-        C = CrossComparisonPlot()
-        C.add(self.D, 'data1')
-        C.add(self.D, 'data3')
-        C.add(self.D, 'data2')
-        C.plot(rmin=1., rmax=2., dmin=1., dmax=2.)
 
 if __name__ == "__main__":
     unittest.main()
