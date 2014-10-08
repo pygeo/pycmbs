@@ -132,7 +132,7 @@ class Report(object):
         self.write('   \centering')
         self.write('   \includegraphics[width=4cm]{' + figpath + '} ')
         if caption is not None:
-            self.write('   \caption{' + caption.replace('_', '-') + '}')
+            self.write('   \caption{' + caption.replace('_', '-').replace('#', '-') + '}')
         self.write('\\end{figure}')
         self._write_separator()
 
@@ -170,20 +170,25 @@ class Report(object):
 
         self.figure_counter += 1
         figname = 'fig_' + str(self.figure_counter).zfill(5) + '.' + self.format
+        self._include_figure(figname, caption=caption, width=width, height=height)
 
+        print('Saving figure %s' % self.outdir + figname)
+        f.savefig(self.outdir + figname, bbox_inches=bbox_inches, dpi=self.dpi)
+
+    def _include_figure(self, figname, caption='', width='\\textwidth', height='\\textheight,keepaspectratio'):
+        """
+        include figure in latex file
+        """
         self._write_separator()
         self.write('\\begin{figure}[htp]')
         self.write('   \centering')
         self.write('   \includegraphics[width=' + width + ', height=' + height + ']{'
                    + figname + '} ')
         if len(caption) > 0:
-            self.write('   \caption{' + caption.replace('_', '-') + '}')
+            self.write('   \caption{' + caption.replace('_', '-').replace('#','-') + '}')
             self.write('   \label{fig:' + str(self.figure_counter) + '}')
         self.write('\\end{figure}')
         self._write_separator()
-
-        print('Saving figure %s' % self.outdir + figname)
-        f.savefig(self.outdir + figname, bbox_inches=bbox_inches, dpi=self.dpi)
 
     def section(self, s):
         """
@@ -279,7 +284,7 @@ class Report(object):
 
     def close_table(self, caption='Put a figure caption here'):
         """ closes a table """
-        self.write('    \caption{' + caption.replace('_', '-') + '}')
+        self.write('    \caption{' + caption.replace('_', '-').replace('#','-') + '}')
         self.write('\end{table}')
 
     def input(self, filename):
