@@ -1134,7 +1134,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
              vmin=None, vmax=None, proj='robin', lon_0=0., lat_0=0.,
              cticks=None, cticklabels=None, ax=None,
              drawparallels=True, overlay=None, titlefontsize=14,
-             zonal_timmean=None, region=None, savegraphicfile=None, return_plot_handler=False):
+             zonal_timmean=None, region=None, savegraphicfile=None, return_plot_handler=False, logplot=False):
     """
     This is a wrapper function to replace the old map_plot routine
     It provides a similar interface, but makes usage of the new
@@ -1162,6 +1162,9 @@ def map_plot(x, use_basemap=False, show_zonal=False,
         backend = 'basemap'
     else:
         backend = 'imshow'
+
+    if logplot:
+        raise ValueError('Logplot option not supported yet!')
 
     proj_prop = {'projection': proj, 'lon_0': lon_0, 'lat_0': lat_0}
     ctick_prop = {'ticks': cticks, 'labels': cticklabels}

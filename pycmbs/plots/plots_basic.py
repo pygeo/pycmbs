@@ -3395,7 +3395,7 @@ def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=No
     #todo: add option to add units
     """
 
-    print('Depreciated function')
+    #~ print('Depreciated function')
 
     # set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)
