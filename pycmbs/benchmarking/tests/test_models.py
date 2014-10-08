@@ -20,6 +20,7 @@ import datetime
 
 from nose.tools import assert_raises
 
+import tempfile
 
 class TestPycmbsBenchmarkingModels(unittest.TestCase):
 
@@ -59,13 +60,13 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
 
     def test_save_prefix_missing(self):
         m = self.model
-        odir = './odir/'
+        odir = tempfile.mkdtemp() + os.sep
         with self.assertRaises(ValueError):
             m.save(odir)
 
     def test_save_create_odir(self):
         m = self.model
-        odir = './odir/'
+        odir = tempfile.mkdtemp() + os.sep
         if os.path.exists(odir):
             os.system('rm -rf ' + odir)
         m.save(odir, prefix='test')
@@ -74,7 +75,7 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
 
     def test_save(self):
         m = self.model
-        odir = './odir/'
+        odir = tempfile.mkdtemp() + os.sep
 
         sisfile = odir + 'testoutput_SIS.nc'
         albfile = odir + 'testoutput_ALBEDO.nc'
@@ -94,8 +95,6 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
         os.system('rm -rf ' + odir)
 
 
-
-
 if __name__ == "__main__":
     unittest.main()
-# vim: expandtab shiftwidth=4 softtabstop=4
+
