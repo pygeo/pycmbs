@@ -10,6 +10,7 @@ This module allows a flexible choice of the netCDF backend
 
 import os
 
+valid_backends = ['netCDF4']
 
 class NetCDFHandler(object):
     def __init__(self, netcdf_backend='netCDF4'):
@@ -23,13 +24,17 @@ class NetCDFHandler(object):
 
         """
         self.type = netcdf_backend
+
+        if self.type not in valid_backends:
+            raise ValueError('Invalid data backend!')
+
         if self.type.lower() == 'netcdf4':
             import netCDF4 as Cdf
         else:
             raise ValueError('Invalid netCDF backend!')
         self.handler = Cdf
 
-    def open_file(self, filename, mode):
+    def open_file(self, filename, mode, format='NETCDF4'):
         """
         Open a netCDF file using the predefined backend
 
@@ -39,6 +44,9 @@ class NetCDFHandler(object):
             name of file to read
         mode : str
             specify read or write data access ['w','r']
+        format : str
+            output file format specifieralue
+            ['NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', or 'NETCDF3_CLASSIC']
 
         Returns
         -------
@@ -64,6 +72,7 @@ class NetCDFHandler(object):
             self.create_dimension = self.F.createDimension
             self.create_variables = self.F.createVariable
         else:
+            print self.type, format
             raise ValueError('Something went wrong!')
 
     def get_variable_keys(self):
@@ -130,17 +139,15 @@ class NetCDFHandler(object):
     def get_variable_handler(self, varname):
         """
         Get handler to a variable
-
-        Returns
-        -------
-
         """
+
         if self.type.lower() == 'netcdf4':
             return self.F.variables[varname]
         else:
             raise ValueError('Something went wrong!')
 
     def _get_scale_factor(self, varname):
+        var = self.get_variable_handler(varname)
         if self.type.lower() == 'netcdf4':
             # netCDF4 library already applies the scaling factor!
             return 1.
@@ -159,11 +166,19 @@ class NetCDFHandler(object):
             raise ValueError('Invalid backend!')
 
     def _get_add_offset(self, varname):
+        var = self.get_variable_handler(varname)
         if self.type.lower() == 'netcdf4':
             # netCDF4 library already applies the add_offset!
             return 0.
         else:
             raise ValueError('Something went wrong!')
+
+    def _get_time(self):
+        att = self.F.get('Metadata').attrs
+        if 'Date&Time' in att.keys():
+            return att['Date&Time']
+        else:
+            return None
 
     def assign_value(self, varname, value):
         """
@@ -198,7 +213,7 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Something went wrong!')
 
-    def create_variable(self, varname, dtype, dim, fill_value=None):
+    def create_variable(self, varname, dtype, dim, complevel=6, zlib=True, fill_value=None):
         """
         create a new variable in a netCDF file
 
@@ -208,15 +223,19 @@ class NetCDFHandler(object):
             datatype of variable
         dim : tuple
             tuple specifying the dimensions of the variables
+        zlib : bool
+            compress outout using zlib
+        complevel : int
+            compression level
         fill_value : float
             fill value for data
         """
 
         if self.type.lower() == 'netcdf4':
             if fill_value is not None:
-                self.F.createVariable(varname, dtype, dimensions=dim, fill_value=fill_value)
+                self.F.createVariable(varname, dtype, dimensions=dim, fill_value=fill_value, zlib=zlib, complevel=complevel)
             else:
-                self.F.createVariable(varname, dtype, dimensions=dim)
+                self.F.createVariable(varname, dtype, dimensions=dim, zlib=zlib, complevel=complevel)
         else:
             raise ValueError('Something went wrong!')
 
