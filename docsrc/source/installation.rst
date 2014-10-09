@@ -248,6 +248,26 @@ Have a look at the troublesolver_.
 pycmbs init
 
 
+Running tests
+-------------
+
+pyCMBS code comes with a rich suite of test routines. We follow the concept of unittests using the nosetests tools. Tests should be always executed in the following cases:
+
+* after installation
+* before comitting code to the repository
+* before merging a branch in the master branch
+
+Tests can be simply executed using the *Makefile* in the main installation directory as::
+
+    make tests
+
+As an alternative you can also check the coverage of tests in the code using::
+
+    make coverage
+
+which gives you a report on test coverage in */coverage/index.html*.
+
+
 .. _installation_details:
 
 Further information and trouble solving
