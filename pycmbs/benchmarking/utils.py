@@ -149,6 +149,10 @@ def get_generic_landseamask(shift_lon, mask_antarctica=True,
     #/// mask Antarctica if desired ///
     if mask_antarctica:
         ls_mask.data[ls_mask.lat < -60.] = False
+
+    # ensure that also the mask attribute is set properly
+    ls_mask._apply_mask(~msk)
+
     return ls_mask
 
 
@@ -181,5 +185,8 @@ def get_T63_landseamask(shift_lon, mask_antarctica=True, area='land'):
     ls_mask.data = ls_mask.data.astype('bool')
     if mask_antarctica:
         ls_mask.data[ls_mask.lat < -60.] = False
+
+    # ensure that also the mask attribute is set properly
+    ls_mask._apply_mask(~msk)
 
     return ls_mask
