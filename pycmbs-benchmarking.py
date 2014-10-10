@@ -633,9 +633,10 @@ def main():
         varoptions = PCFG.options[variable]
         thelabels = labels_dict[variable]
         fl = global_gleckler._draw_legend(thelabels, title=variable.upper())
-        rep.figure(fl, width='8cm', bbox_inches=None)
-        fl.savefig(outdir + 'legend_portraet_' + str(lcnt).zfill(5) + '.png', bbox_inches='tight', dpi=200)
-        plt.close(fl.number)
+        if fl is not None:
+            rep.figure(fl, width='8cm', bbox_inches=None)
+            fl.savefig(outdir + 'legend_portraet_' + str(lcnt).zfill(5) + '.png', bbox_inches='tight', dpi=200)
+            plt.close(fl.number)
         del fl
         lcnt += 1
 
@@ -644,10 +645,11 @@ def main():
     for v in global_gleckler.variables:
         rep.subsubsection(v.upper())
         tmpfig = global_gleckler.plot_model_ranking(v, show_text=True, obslabels=labels_dict[v])
-        rep.figure(tmpfig, width='8cm', bbox_inches=None,
-                   caption='Model RANKING for different observational \
-                   datasets: ' + v.upper())
-        plt.close(tmpfig.number)
+        if tmpfig is not None:
+            rep.figure(tmpfig, width='8cm', bbox_inches=None,
+                       caption='Model RANKING for different observational \
+                       datasets: ' + v.upper())
+            plt.close(tmpfig.number)
         del tmpfig
 
         # write a table with model ranking
@@ -659,10 +661,11 @@ def main():
 
         # plot absolute model error
         tmpfig = global_gleckler.plot_model_error(v, obslabels=labels_dict[v])
-        rep.figure(tmpfig, width='8cm', bbox_inches=None,
-                   caption='Model ERROR for different observational \
-                   datasets: ' + v.upper())
-        plt.close(tmpfig.number)
+        if tmpfig is not None:
+            rep.figure(tmpfig, width='8cm', bbox_inches=None,
+                       caption='Model ERROR for different observational \
+                       datasets: ' + v.upper())
+            plt.close(tmpfig.number)
         del tmpfig
 
     ########################################################################
