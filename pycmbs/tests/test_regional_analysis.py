@@ -19,25 +19,8 @@ import tempfile
 class TestData(TestCase):
 
     def setUp(self):
-        # init Data object for testing
-        n = 1000  # slows down significantly! constraint is percentile  test
-        x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
-        d = np.ones((n, 1, 1))
-        self.D.data = d
-        self.D.data[:, 0, 0] = x
-        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
-        self.D.verbose = True
-        self.D.unit = 'myunit'
-        self.D.label = 'testlabel'
-        self.D.filename = 'testinputfilename.nc'
-        self.D.varname = 'testvarname'
-        self.D.long_name = 'This is the longname'
-
-        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
-        self.D.time_str = "days since 0001-01-01 00:00:00"
-        self.D.calendar = 'gregorian'
-        self.D.cell_area = np.ones((1, 1))
+        self.D._init_sample_object(nt=1000, ny=1, nx=1)
 
         self._tmpdir = tempfile.mkdtemp()
 
@@ -188,6 +171,7 @@ class TestData(TestCase):
         # SAVE
         REGSTAT.save('testprefix', format='pkl', dir= self._tmpdir + os.sep)  # save as PKL
         REGSTAT.save('testprefix', format='txt', dir= self._tmpdir + os.sep)  # save as ASCII
+        REGSTAT.save('testprefix', format='tex', dir= self._tmpdir + os.sep)  # save as TEX
 
         # ... now check if saved data is o.k
         #1) standard statistics
@@ -249,3 +233,94 @@ class TestData(TestCase):
         self.assertLess(np.abs(1. - slope / REGSTAT.statistics['corrstat']['analysis_C'][3]['slope']), 0.0000000001)
         self.assertLess(np.abs(1. - intercept / REGSTAT.statistics['corrstat']['analysis_C'][3]['intercept']), 0.0000000001)
         self.assertLess(np.abs(1. - correlation / REGSTAT.statistics['corrstat']['analysis_C'][3]['correlation']), 0.0000000001)
+
+
+    def test_check(self):
+        x = Data(None, None)
+        y = Data(None, None)
+        reg = Data(None, None)
+        reg.data = np.random.random((10, 20))
+        x.data = np.random.random((10, 20))
+        y.data = np.random.random((10, 20))
+
+        REGSTAT = RegionalAnalysis(x, y, reg)
+
+        # invalid report type
+        with self.assertRaises(ValueError):
+            REGSTAT = RegionalAnalysis(x, y, reg, report=np.random.random((10, 20)))
+
+        # invalid geometry
+        x.data = np.random.random((20, 20))
+        with self.assertRaises(ValueError):
+            REGSTAT = RegionalAnalysis(x, y, reg)
+
+        x.data = np.random.random((10, 20))
+        y.data = np.random.random((20, 20))
+        with self.assertRaises(ValueError):
+            REGSTAT = RegionalAnalysis(x, y, reg)
+
+        # 3D data
+        x.data = np.random.random((5, 10, 20))
+        y.data = np.random.random((5, 10, 20))
+        REGSTAT = RegionalAnalysis(x, y, reg)
+
+        # invalid 3D geometery
+        x.data = np.random.random((5, 20, 20))
+        with self.assertRaises(ValueError):
+            REGSTAT = RegionalAnalysis(x, y, reg)
+
+        x.data = np.random.random((10, 5, 20, 20))
+        with self.assertRaises(ValueError):
+            REGSTAT = RegionalAnalysis(x, y, reg)
+
+        x.data = np.random.random((5, 10, 20))
+        y.data = np.random.random((5, 20, 20))
+        with self.assertRaises(ValueError):
+            REGSTAT = RegionalAnalysis(x, y, reg)
+
+
+
+
+    def test_invalid_correlation(self):
+        x = Data(None, None)
+        y = Data(None, None)
+        reg = Data(None, None)
+        reg.data = np.random.random((10, 20))
+        x.data = np.random.random((10, 20))
+        y.data = np.random.random((10, 20))
+
+        REGSTAT = RegionalAnalysis(x, y, reg)
+        REGSTAT.x = None
+
+        res = REGSTAT._get_correlation()
+
+        self.assertTrue(res['analysis_A'] is None)
+        self.assertTrue(res['analysis_B'] is None)
+        self.assertTrue(res['analysis_C'] is None)
+
+    def test_save_init(self):
+        x = Data(None, None)
+        y = Data(None, None)
+        reg = Data(None, None)
+        reg.data = np.random.random((10, 20))
+        x.data = np.random.random((10, 20))
+        y.data = np.random.random((10, 20))
+
+        REGSTAT = RegionalAnalysis(x, y, reg)
+
+        with self.assertRaises(ValueError):
+            REGSTAT.save(format='invalid_format')
+
+    def test_violin_plotting(self):
+        x = Data(None, None)
+        y = Data(None, None)
+        reg = Data(None, None)
+        reg.data = np.random.random((10, 20))
+        x.data = np.random.random((10, 20))
+        y.data = np.random.random((10, 20))
+
+        REGSTAT = RegionalAnalysis(x, y, reg, f_correlation=False, f_statistic=False, f_pdfstatistic=False, f_aggregated_violin=True)
+
+
+
+
