@@ -68,7 +68,10 @@ class NetCDFHandler(object):
                     not be generated!' % filename)
 
         if self.type.lower() == 'netcdf4':
-            self.F = self.handler.Dataset(filename, mode=mode)
+            if mode == 'r':
+                self.F = self.handler.Dataset(filename, mode=mode)
+            elif mode == 'w':
+                self.F = self.handler.Dataset(filename, mode=mode, format=format)  # TODO check format
             self.create_dimension = self.F.createDimension
             self.create_variables = self.F.createVariable
         else:
