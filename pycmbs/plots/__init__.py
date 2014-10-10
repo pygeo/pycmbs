@@ -6,4 +6,6 @@ COPYRIGHT.md
 """
 
 from violin import ViolinPlot
+from violin import ViolinPlotBins
 from plots_basic import *
+
