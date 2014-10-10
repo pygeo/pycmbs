@@ -703,10 +703,9 @@ class SingleMap(MapPlotGeneric):
         unit = self.x._get_unit()
 
         self.pax.set_title(title + '\n', size=fontsize)
-        self.pax.set_title(unit, loc='right', size=fontsize - 2)
+
         if self.show_unit:
             self.pax.set_title(unit, loc='right', size=fontsize - 2)
-
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
@@ -1138,9 +1137,6 @@ def map_plot(x, use_basemap=False, show_zonal=False,
              drawparallels=True, overlay=None, titlefontsize=14,
              zonal_timmean=None, region=None, savegraphicfile=None,
              show_unit=True, regions_to_plot=None, return_plot_handler=False, logplot=False):
-
-
-
     """
     This is a wrapper function to replace the old map_plot routine
     It provides a similar interface, but makes usage of the new
@@ -1178,7 +1174,6 @@ def map_plot(x, use_basemap=False, show_zonal=False,
     M = SingleMap(x, backend=backend, show_statistic=show_stat,
                   stat_type=stat_type, savefile=savefile, ax=ax,
                   show_unit=show_unit)
-
     M.plot(title=title, show_zonal=show_zonal, show_histogram=False,
            show_timeseries=False, nclasses=nclasses,
            colorbar_orientation=colorbar_orientation,
