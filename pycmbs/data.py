@@ -156,7 +156,6 @@ class Data(object):
             backwards compliance, the option oldtime=True can be used
             which will then mimic a similar behaviour as the pylab
             date functions.
-
         calc_cell_area : bool
                 calculate cell area
         """
@@ -467,7 +466,6 @@ class Data(object):
 
     def save(self, filename, varname=None, format='nc',
              delete=False, mean=False, timmean=False, compress=True):
-
         """
         saves the data object to a file
 
@@ -570,7 +568,6 @@ class Data(object):
 
         F.close()
 
-
     def _arr2string(self, a, prefix='', sep='\t'):
         """
         convert a 2D numpy array to an ASCII list
@@ -624,6 +621,10 @@ class Data(object):
             self.varname, which is tried to be used as a first order
         delete : bool
             delete file if existing without asking
+        compress : bool
+            compress resulting file if supported by backend
+        format : str
+            output file format specifier as used by netCDF4 library
         """
 
         # check if output file already there
@@ -643,7 +644,7 @@ class Data(object):
 
         # create new file
         File = NetCDFHandler()
-        File.open_file(filename, 'w')
+        File.open_file(filename, 'w', format=format)
 
         # create dimensions
         if hasattr(self, 'data'):
@@ -672,9 +673,9 @@ class Data(object):
 
         if hasattr(self, 'data'):
             if self.data.ndim == 3:
-                File.create_variable(varname, 'd', ('time', 'ny', 'nx'))
+                File.create_variable(varname, 'd', ('time', 'ny', 'nx'), zlib=compress)
             elif self.data.ndim == 2:
-                File.create_variable(varname, 'd', ('ny', 'nx'))
+                File.create_variable(varname, 'd', ('ny', 'nx'), zlib=compress)
 
         if self.lat is not None:
             File.create_variable('lat', 'd', ('ny', 'nx'))
@@ -715,7 +716,10 @@ class Data(object):
             if hasattr(self, 'long_name'):
                 if self.long_name is not None:
                     File.F.variables[varname].long_name = self.long_name
-            File.F.variables[varname].units = self.unit
+            if hasattr(self, 'unit'):
+                if self.unit is not None:
+                    File.F.variables[varname].units = self.unit
+
             File.F.variables[varname].scale_factor = 1.
             File.F.variables[varname].add_offset = 0.
             File.F.variables[varname].coordinates = "lon lat"
@@ -865,10 +869,10 @@ class Data(object):
         2) if this does not work:
             a) directory is write protected --> write to temporary directory
             b) unknown grid --> try to select another grid, using cdo selgrid
-        3) if all this does not work, then cell_area is set to unity for all grid cells and a WARNING is raised
-
-        TODO IMPLEMENT UNITTEST!!!
-
+        3) it could be that the cdo's dont support the input filetype. In that case
+           it is tried to read the lat/lon information using the netCDF4 library
+           store these fields in a dummy nc3 file and then apply the cdo's
+        4) if all this does not work, then cell_area is set to unity for all grid cells and a WARNING is raised
         """
 
         # TODO unittest implementation
@@ -876,6 +880,15 @@ class Data(object):
         if hasattr(self, 'cell_area'):
             if self.cell_area is not None:
                 return
+
+        if not self._calc_cell_area: # in case that cell area shall explicitely NOT be caluclated
+            if self.ndim == 2:
+                self.cell_area = np.ones(self.data.shape)
+            elif self.ndim == 3:
+                self.cell_area = np.ones(self.data[0, :, :].shape)
+            else:
+                raise ValueError('Invalid geometry!')
+            return
 
         if (self.lat is None) or (self.lon is None):
             self._log_warning("WARNING: cell area can not be calculated (missing coordinates)!")
@@ -901,14 +914,27 @@ class Data(object):
                     cdo.gridarea(options='-f nc', output=cell_file, input=self.filename)
                     print '   Cell area file generated sucessfully in temporary file: ' + cell_file
                 except:
-                    #--- not sucessfull so far ... last try here by selecting an alternative grid (if available)
+                    # not sucessfull so far ... last try here by selecting an alternative grid (if available)
                     print("   Try to calculate gridarea using alternative grid")
                     cell_file = tempfile.mktemp(prefix='cell_area_', suffix='.nc')  # generate some temporary filename
                     try:
                         cdo.gridarea(options='-f nc', output=cell_file, input='-selgrid,2 ' + self.filename)
                         print '   Cell area file generated sucessfully in temporary file: ' + cell_file
                     except:
-                        print('WARNING: no cell area could be generated!')
+                        try:
+                            # store lat/lon coordinates in nc3 file and then apply the cdo's (last try)
+                            coord_file = tempfile.mktemp(prefix='coordinates_', suffix='.nc')
+                            tmpdat = Data(None, None)
+                            tmpdat.lat = self.lat
+                            tmpdat.lon = self.lon
+                            tmpxxx = np.zeros(self.lat.shape)
+                            tmpdat.data = np.ma.array(tmpxxx, mask=tmpxxx != tmpxxx)
+                            tmpdat.save(coord_file, format='nc3')
+                            del tmpxxx, tmpdat
+                            cell_file = tempfile.mktemp(prefix='cell_area_', suffix='.nc')
+                            cdo.gridarea(options='-f nc', output=cell_file, input=coord_file)
+                        except:
+                            print('WARNING: no cell area could be generated!')
 
         # read cell_area file ---
         if os.path.exists(cell_file):
@@ -1134,9 +1160,11 @@ class Data(object):
 
         self.time_var = time_var
 
+
+        netcdf_backend = 'netCDF4'
         # read data
         if fmt == 'nc':
-            self.data = self.read_netcdf(self.varname)
+            self.data = self.read_netcdf(self.varname, netcdf_backend=netcdf_backend)
         else:
             raise ValueError('ERROR: invalid input format')
 
@@ -1167,7 +1195,7 @@ class Data(object):
         if self.lon_name is None:
             self.lon_name = 'lon'
         if self.lat_name is not None:
-            self.lat = self.read_netcdf(self.lat_name)
+            self.lat = self.read_netcdf(self.lat_name, netcdf_backend=netcdf_backend)
             # ensure that lat has NOT dimension (1,nlat)
             if self.lat is not None:
                 if self.lat.ndim == 2:
@@ -1177,7 +1205,7 @@ class Data(object):
             self.lat = None
 
         if not self.lon_name is None:
-            self.lon = self.read_netcdf(self.lon_name)
+            self.lon = self.read_netcdf(self.lon_name, netcdf_backend=netcdf_backend)
             #ensure that lon has NOT dimension (1,nlon)
             if self.lon is not None:
                 if self.lon.ndim == 2:
@@ -1192,7 +1220,7 @@ class Data(object):
         # read time
         if self.time_var is not None:
             # returns either None or a masked array
-            self.time = self.read_netcdf(self.time_var)
+            self.time = self.read_netcdf(self.time_var, netcdf_backend=netcdf_backend)
             if hasattr(self.time, 'mask'):
                 self.time = self.time.data
             else:
@@ -2023,14 +2051,20 @@ class Data(object):
         else:
             raise ValueError('Unsupported Data geometry!')
 
-        #--- calculate conditional statistics ---
+        # calculate conditional statistics ---
         vals = np.unique(m).astype(int)
+        if isinstance(vals, np.ma.core.MaskedArray):
+            # for masked arrays the unique() returns also a placeholder
+            # for the invalid data. To avoid that, we ensure here
+            # that only the real mask values are stored
+            vals = vals.data[~vals.mask]
 
         def _get_stat(a, msk, v):
             # get statistics of a single 2D field and a specific value v
             # a: masked array
             # msk: mask to use for analysis
             # v: float
+
             x = a[msk == v].flatten()
             m = np.nan
             s = np.nan
@@ -2539,14 +2573,14 @@ class Data(object):
         else:
             pass
 
-    def read_netcdf(self, varname):
+    def read_netcdf(self, varname, netcdf_backend='NETCDF4'):
         """
         read data from netCDF file
 
         varname : str
             name of variable to be read
         """
-        File = NetCDFHandler()
+        File = NetCDFHandler(netcdf_backend=netcdf_backend)
         File.open_file(self.filename, 'r')
 
         if self.verbose:
@@ -3393,6 +3427,31 @@ class Data(object):
         self.time_str = 'days since 0001-01-01 00:00:00'
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
+
+
+    #-----------------------------------------------------------------------
+
+    def _convert_time_YYYYMMDD(self):
+        """
+        convert time that was given as YYYYMMDD
+        and set time variable of Data object
+        """
+        s = map(str, self.time)
+        T = []
+        for t in s:
+            y = t[0:4]
+            m = t[4:6]
+            d = t[6:8]  # always the first day is used as default
+            h = '00'
+            tn = y + '-' + m + '-' + d + ' ' + h + ':00'
+            T.append(tn)
+        T = np.asarray(T)
+        self.calendar = 'gregorian'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        #convert first to datetime object and then use own function !!!
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
+
+
 
     def _convert_timeYYYYMM(self):
         """
