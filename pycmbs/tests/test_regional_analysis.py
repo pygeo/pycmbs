@@ -319,7 +319,7 @@ class TestData(TestCase):
         x.data = np.random.random((10, 20))
         y.data = np.random.random((10, 20))
 
-        REGSTAT = RegionalAnalysis(x, y, reg, f_correlation=False, f_statistic=False, f_pdfstatistic=False, f_aggregated_violin=True)
+        REGSTAT = RegionalAnalysis(x, y, reg, f_correlation=False, f_statistic=False, f_aggregated_violin=True)
 
 
 
