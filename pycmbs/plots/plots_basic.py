@@ -1938,7 +1938,8 @@ class GlecklerPlot(object):
             print var
             print self.pos
             print self.data
-            raise ValueError('FATAL error: no model keys provided!')
+            print('FATAL error: no model keys provided!')
+            return None
 
         fig = plt.figure()
         gs = gridspec.GridSpec(1, 2, wspace=0.05, hspace=0.05, bottom=0.2, width_ratios=[3, 1])
