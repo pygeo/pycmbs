@@ -338,15 +338,35 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     it is not a parameter specific function
     use it as a template for specific analysis
 
-    @param      plot_options: class of PlotOptions which specifies the
-    options how plots shall look like!
-
-    @param obs_type: type of observation (variable to be analyzed);
-    needs to be consistent with the variables specified in main.py and
-    the config file (e.g. 'sis','rain')
-
-    @param obs_name: name of observational record as specified in the
-    INI file e.g. HOAPS, CMSAF ...
+    Parameters
+    ----------
+    plot_options : PlotOptions
+        class of PlotOptions which specifies the
+        options how plots shall look like!
+    model_list : list
+        list of Model objects
+    obs_type : str
+        type of observation (variable to be analyzed);
+        needs to be consistent with the variables specified in main.py and
+        the config file (e.g. 'sis','rain')
+    obs_name : str
+        name of observational record as specified in the
+        INI file e.g. HOAPS, CMSAF ...
+    GP : GlecklerPlot
+        class of GlecklerPlot, used as global handler to collect
+        statistical results over different variables
+    GM : GlobalMeanPlot
+        collection of all releavan data for generating Global mean plot
+    shift_lon : bool
+        shift longitudes if True
+    use_basemap : bool
+        project data in plots
+    report : Report
+        handler to report generator
+    interval : str
+        ['monthly', 'seasonal']
+    GM_HT_clim : HstackTimeseries
+        handler to global mean plots using class for stacked timeseries
     """
 
     # GENERAL CHECKS
@@ -360,9 +380,9 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
         raise ValueError("Report option was not enabled")
 
     # PLOT OPTIONS
+    # gives a dictionary with all the options for the current variable
+    local_plot_options = plot_options.options[obs_type]
 
-    local_plot_options = plot_options.options[
-        obs_type]  # gives a dictionary with all the options for the current variable
     if 'OPTIONS' not in local_plot_options.keys():
         raise ValueError('No OPTIONS specified for analysis of variable %s' % obs_type)
     if obs_name not in local_plot_options.keys():
@@ -619,7 +639,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
         # land/sea mask
         if ls_mask is not None:
-            actmask = ls_mask.data & valid_obs
+            actmask = (ls_mask.data.mask) & (valid_obs)
         else:
             actmask = valid_obs
         model_data._apply_mask(actmask)
