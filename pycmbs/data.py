@@ -3765,6 +3765,9 @@ class Data(object):
         apply a mask to C{Data}. All data where mask==True
         will be masked. Former data and mask will be stored.
 
+        When a Data object is provided as a mask, the mask
+        attribute of the data field will be used for mask identification
+
         Parameters
         ----------
         msk1 : ndarray or Data object
@@ -3809,7 +3812,7 @@ class Data(object):
             for i in xrange(self.nt):
                 tmp = self.data[i,:,:].copy()
                 tmp[~msk] = np.nan
-                self.data[i,:,:] = tmp[:,:]
+                self.data[i,:,:] = tmp[:,:]*1.
                 del tmp
 
                 if hasattr(self, 'std'):
