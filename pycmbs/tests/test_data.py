@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 This file is part of pyCMBS. (c) 2012-2014
 For COPYING and LICENSE details, please refer to the file
@@ -26,8 +25,6 @@ import tempfile
 from nose.tools import assert_raises
 
 import matplotlib.pyplot as plt
-
-
 
 class TestData(unittest.TestCase):
 
@@ -98,15 +95,12 @@ class TestData(unittest.TestCase):
         self.assertEqual(s1,'2001-01-05 00:00:00+00:00')
         self.assertEqual(s2,ref2)
 
-
     def test_get_time_indices_InvalidSwappedDates(self):
         d1 = pl.num2date(pl.datestr2num('2001-01-05'))
         d2 = pl.num2date(pl.datestr2num('2001-05-05'))
         self.D._oldtime = True
         with self.assertRaises(ValueError):
             i1,i2 = self.D._get_time_indices(d2,d1)  # not that this is swapped
-
-
 
     def test_get_time_indices_InvalidDates(self):
         i1, i2 = self.D._get_time_indices(None, None)
@@ -2433,6 +2427,12 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             r = self.D.ny
 
+
+# TODO would need to implement a test which ensures that the area weights are properly calculated,
+# independent whether the input file format is supported by the CDO's or not.
+
+
+
     def test_set_cell_area(self):
         x = self.D.copy()
         del x.cell_area
@@ -2523,6 +2523,7 @@ class TestData(unittest.TestCase):
         for i in xrange(x.nt):
             self.assertEqual(x.data[i,0,1], xref.data[i,0,1]*t[i])
             self.assertEqual(y.data[i,0,1], xref.data[i,0,1]*t[i])
+
 
 
 
