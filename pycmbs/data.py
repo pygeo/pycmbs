@@ -2111,11 +2111,19 @@ class Data(object):
         # output arrays are all of shape (nt,nvals)
         # now we reformat output as such that the ID is the key for the dictionary
         res = {}
+        try:
+            thedate = self.date
+        except:
+            thedate = None
+
         for i in xrange(len(vals)):
             id = vals[i]
             res.update({id: {'mean': means[:, i], 'std': stds[:, i], 'sum': sums[:, i], 'min': mins[:, i],
-                             'max': maxs[:, i]}})
-        return res
+                             'max': maxs[:, i], 'time' : thedate}})
+        if len(res) == 0:
+            return None
+        else:
+            return res
 
     def set_time(self):
         """
@@ -2133,6 +2141,8 @@ class Data(object):
         if self.time_str == 'day as %Y%m%d.%f':
             # in case of YYYYMMDD, convert to other time with basedate 0001-01-01 00:00:00
             self._convert_time()
+        if self.time_str == 'day as YYYYMMDD':
+            self._convert_time_YYYYMMDD()
         elif self.time_str == 'month as %Y%m.%f':
             self._convert_timeYYYYMM()
         elif self.time_str == 'year as %Y.%f':
@@ -2573,7 +2583,7 @@ class Data(object):
         else:
             pass
 
-    def read_netcdf(self, varname, netcdf_backend='NETCDF4'):
+    def read_netcdf(self, varname, netcdf_backend='netCDF4'):
         """
         read data from netCDF file
 
