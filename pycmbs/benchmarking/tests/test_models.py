@@ -25,23 +25,8 @@ import tempfile
 class TestPycmbsBenchmarkingModels(unittest.TestCase):
 
     def setUp(self):
-        n=1000  # slows down significantly! constraint is percentile  test
-        x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
-        d=np.ones((n, 1, 1))
-        self.D.data = d
-        self.D.data[:,0,0]=x
-        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
-        self.D.verbose = True
-        self.D.unit = 'myunit'
-        self.D.label = 'testlabel'
-        self.D.filename = 'testinputfilename.nc'
-        self.D.varname = 'testvarname'
-        self.D.long_name = 'This is the longname'
-        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
-        self.D.time_str = "days since 0001-01-01 00:00:00"
-        self.D.calendar = 'gregorian'
-        self.D.oldtime=False
+        self.D._init_sample_object(nt=1000, ny=1, nx=1)
 
         # generate dummy Model object
         data_dir = './test/'
@@ -94,6 +79,32 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
             os.remove(albfile)
         os.system('rm -rf ' + odir)
 
+    def test_cmip5_init_singlemember(self):
+        data_dir = tempfile.mkdtemp()
+
+        # invalid model identifier
+        with self.assertRaises(ValueError):
+            M = models.CMIP5RAW_SINGLE(data_dir, 'MPI-M:MPI-ESM-LR1', 'amip', {}, intervals='monthly')
+        with self.assertRaises(ValueError):
+            M = models.CMIP5RAW_SINGLE(data_dir, 'MPI-M:MPI-ESM-LR#1#2', 'amip', {}, intervals='monthly')
+        M1 = models.CMIP5RAW_SINGLE(data_dir, 'MPI-M:MPI-ESM-LR#1', 'amip', {}, intervals='monthly')
+        M2 = models.CMIP5RAW_SINGLE(data_dir, 'MPI-M:MPI-ESM-LR#728', 'amip', {}, intervals='monthly')
+        self.assertEqual(M1.ens_member, 1)
+        self.assertEqual(M2.ens_member, 728)
+
+    def test_cmip5_singlemember_filename(self):
+        data_dir = tempfile.mkdtemp()
+
+        # generate testfile
+        testfile = data_dir + os.sep + 'MPI-M' + os.sep + 'MPI-ESM-LR' + os.sep + 'amip' + os.sep + 'mon' + os.sep + 'atmos' + os.sep + 'Amon' + os.sep + 'r1i1p1' + os.sep + 'ta' + os.sep + 'ta_Amon_MPI-ESM-LR_amip_r1i1p1_197901-200812.nc'
+        os.makedirs(os.path.dirname(testfile))
+        os.system('touch ' + testfile)
+        self.assertTrue(os.path.exists(testfile))
+
+        M = models.CMIP5RAW_SINGLE(data_dir, 'MPI-M:MPI-ESM-LR#1', 'amip', {}, intervals='monthly')
+        f = M.get_single_ensemble_file('ta', mip='Amon', realm='atmos')
+        self.assertTrue(os.path.exists(f))
+        self.assertEqual(f, testfile)
 
 if __name__ == "__main__":
     unittest.main()
