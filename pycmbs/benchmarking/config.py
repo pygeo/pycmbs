@@ -13,9 +13,12 @@ import glob
 from cdo import Cdo
 
 from pycmbs.data import Data
-from pycmbs.region import Region
+from pycmbs.region import Region, RegionParser
+from pycmbs.polygon import Raster
+from pycmbs.polygon import Polygon as pycmbsPolygon
 
 from pycmbs.benchmarking.utils import get_data_pool_directory
+from pycmbs.benchmarking.utils import get_generic_landseamask, get_T63_landseamask
 
 
 class ConfigFile(object):
@@ -75,7 +78,7 @@ class ConfigFile(object):
             s = l[7:]
             self.options.update({'report': s.replace(' ', '')})
         else:
-            sys.exit('report missing in configuration file!')
+            raise ValueError('Report missing in configuration file!')
 
         l = self.f.readline().replace('\n', '')
         if 'REPORT_FORMAT=' in l.upper():
@@ -86,14 +89,15 @@ class ConfigFile(object):
             else:
                 self.options.update({'report_format': s})
         else:
-            sys.exit('report format missing in configuration file!')
+            raise ValueError('report format missing in configuration file!')
+
 
         l = self.f.readline().replace('\n', '')
         if 'AUTHOR=' in l.upper():
             s = l[7:]
             self.options.update({'author': s})
         else:
-            sys.exit('author missing in configuration file!')
+            raise ValueError('author missing in configuration file!')
 
         l = self.f.readline().replace('\n', '')
         if 'TEMP_DIR=' in l.upper():
@@ -131,7 +135,7 @@ class ConfigFile(object):
         if 'OUTPUT_DIRECTORY=' in l.upper():
             s = l[17:]
             if s[-1] != os.sep:
-                s = s + os.sep
+                s = s + os.sep  # this is the root output directory
             if not os.path.exists(s):
                 os.makedirs(s)
             self.options.update({'outputdir': s.replace(' ', '')})
@@ -236,7 +240,7 @@ class ConfigFile(object):
 
         for k in self.dtypes:
             if k.upper() not in ['CMIP5', 'JSBACH_BOT', 'JSBACH_RAW',
-                                 'CMIP3', 'JSBACH_RAW2', 'CMIP5RAW']:
+                                 'CMIP3', 'JSBACH_RAW2', 'CMIP5RAW', 'CMIP5RAWSINGLE']:
                 raise ValueError('Unknown model type: %s' % k)
         sys.stdout.write(" *** Done reading config file. \n")
 
@@ -302,6 +306,107 @@ class PlotOptions(object):
 
     def __init__(self):
         self.options = {}
+
+    def _import_regional_file(self, region_file, varname, targetgrid=None, logfile=None):
+        """
+        check if the regional file can be either imported or if
+        regions are provided as vector data. In the latter case
+        the regions are rasterized and results are stored in a netCDF
+        file
+
+        Parameters
+        ----------
+        region_file : str
+            name of file defining the region. This is either a netCDF
+            file which contains the mask as different integer values
+            or it is a *.reg file which contains the regions as
+            vector data.
+        varname : str
+            name of variable in netCDF file
+        targetgrid : str
+            name of targetgrid; either 't63grid' or the name of a file
+            with a valid geometry
+
+        Returns
+        -------
+            region_filename, region_file_varname
+        """
+
+        if not os.path.exists(region_file):
+            raise ValueError('ERROR: region file is not existing: ' + region_file)
+
+        ext = os.path.splitext(region_file)[1]
+        if ext == '.nc':
+            # netCDF file was given. Try to read variable
+            if varname is None:
+                raise ValueError('ERROR: no variable name given!')
+            try:
+                tmp = Data(region_file, varname, read=True)
+            except:
+                raise ValueError('ERROR: the regional masking file can not be read!')
+            del tmp
+
+            # everything is fine
+            return region_file, varname
+
+        elif ext == '.reg':
+            # regions were given as vector files. Read it and
+            # rasterize the data and store results in a temporary
+            # file
+            import tempfile
+
+            if targetgrid is None:
+                raise ValueError('ERROR: targetgrid needs to be specified for vectorization of regions!')
+
+            if targetgrid == 't63grid':
+                ls_mask = get_T63_landseamask(True, area='global', mask_antarctica=False)
+            else:
+                ls_mask = get_generic_landseamask(True, area='global', target_grid=targetgrid,
+                                                  mask_antarctica=False)
+
+            # temporary netCDF filename
+            region_file1 = tempfile.mktemp(prefix='region_mask_', suffix='.nc')
+            R = RegionParser(region_file)  # read region vector data
+            M = Raster(ls_mask.lon, ls_mask.lat)
+            polylist = []
+            if logfile is not None:
+                logf = open(logfile, 'w')
+            else:
+                logf = None
+
+            id = 1
+            for k in R.regions.keys():
+                reg = R.regions[k]
+                polylist.append(pycmbsPolygon(id, zip(reg.lon, reg.lat)))
+                if logf is not None:  # store mapping table
+                    logf.write(k + '\t' + str(id) + '\n')
+                id += 1
+
+            M.rasterize_polygons(polylist)
+            if logf is not None:
+                logf.close()
+
+            # generate dummy output file
+            O = Data(None, None)
+            O.data = M.mask
+            O.lat = ls_mask.lat
+            O.lon = ls_mask.lon
+            varname = 'regions'
+            O.save(region_file1, varname=varname, format='nc', delete=True)
+            print('Regionfile was store in file: %s' % region_file1)
+
+            # check again that file is readable
+            try:
+                tmp = Data(region_file1, varname, read=True)
+            except:
+                print region_file1, varname
+                raise ValueError('ERROR: the generated region file is not readable!')
+            del tmp
+
+            return region_file1, varname
+
+        else:
+            raise ValueError('ERROR: unsupported file type')
 
     def read(self, cfg):
         """
@@ -550,23 +655,19 @@ class PlotOptions(object):
                 pass
             else:
                 if not os.path.exists(d['OPTIONS']['region_file']):
-                    raise ValueError('Regional masking file not existing: %s' % d['OPTIONS'][k])
+                    print d['OPTIONS']['region_file']
+                    raise ValueError('Regional masking file not existing: %s' % d['OPTIONS']['region_file'])
                 else:
-                    if 'region_file_varname' in d['OPTIONS'].keys():
-                        try:
-                            tmp = Data(d['OPTIONS']['region_file'], d['OPTIONS']['region_file_varname'], read=True)
-                        except:
-                            raise ValueError('ERROR: the regional masking file can not be read!')
-                    else:
-                        raise ValueError('You need to specify also the name for the variable of the regional '
-                                         'mask! (region_file_varname)')
+                    region_filename, region_file_varname = self._import_regional_file(d['OPTIONS']['region_file'], d['OPTIONS'].pop('region_file_varname', None), d['OPTIONS']['targetgrid'])
+                    self.options[v]['OPTIONS'].update({'region_file': region_filename})
+                    self.options[v]['OPTIONS'].update({'region_file_varname': region_file_varname})
 
         if cerr > 0:
             raise ValueError('There were errors in the initialization \
                               of plotting options!')
 
 
-class AnalysisRegions():
+class xxxxxxxxxAnalysisRegions():
     """
     Class to handle information about regions to analyze in the framework
     """
