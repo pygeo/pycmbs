@@ -103,7 +103,7 @@ class TestData(unittest.TestCase):
         G = Geostatistic(self.x, range_bins=bins)
 
         with self.assertRaises(ValueError):  # missing center
-            lon, lat = G.get_coordinates_at_distance(2.5)
+            lon, lat = G.get_coordinates_at_distance(2.5, dist_threshold=1.)
         G.set_center_position(5., -20.)
-        lon, lat = G.get_coordinates_at_distance(2.5)
+        lon, lat = G.get_coordinates_at_distance(2.5, dist_threshold=1.)
 
