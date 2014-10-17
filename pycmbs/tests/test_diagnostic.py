@@ -206,22 +206,23 @@ class TestData(TestCase):
 
 
     def test_RegionalAnalysis_xNone(self):
-        region = RegionIndex('test', 1, 1, 1, 1, label='test')
+        region = RegionIndex(55, 1, 1, 1, 1, label='test')
         R = RegionalAnalysis(None, self.D, region)
         self.assertEqual(R.x, None)
 
     def test_RegionalAnalysis_InvalidX(self):
-        region = RegionIndex('test', 1, 1, 1, 1, label='test')
+        region = RegionIndex(77, 1, 1, 1, 1, label='test')
         with self.assertRaises(ValueError):
             R = RegionalAnalysis([123.], self.D, region)
 
     def test_RegionalAnalysis_InvalidY(self):
-        region = RegionIndex('test', 1, 1, 1, 1, label='test')
+        region = RegionIndex(88, 1, 1, 1, 1, label='test')
         with self.assertRaises(ValueError):
             R = RegionalAnalysis(self.D, [123.], region)
 
     def test_RegionalAnalysis_yNone(self):
-        region = RegionIndex('test', 1, 1, 1, 1, label='test')
+
+        region = RegionIndex(55, 1, 1, 1, 1, label='test')
         R = RegionalAnalysis(self.D, None, region)
         self.assertEqual(R.y, None)
 
@@ -231,7 +232,7 @@ class TestData(TestCase):
             R = RegionalAnalysis(self.D, self.D, region)
 
     def test_RegionalAnalysis_InvalidGeometry(self):
-        region = RegionIndex(5, 1, 1, 1, 1, label='test')
+        region = RegionIndex(99, 1, 1, 1, 1, label='test')
         x = self.D.copy()
         y = self.D.copy()
         y.data = np.random.random((2,3,4,5))

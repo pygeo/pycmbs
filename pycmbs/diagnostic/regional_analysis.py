@@ -11,27 +11,30 @@ import scipy as sci
 from scipy import stats
 
 from matplotlib import pylab as plt
-
 from mpl_toolkits.axes_grid import make_axes_locatable
 import matplotlib.axes as maxes
 import matplotlib.cm as cm
 import matplotlib.colors as col
 import matplotlib as mpl
+from scipy import linalg, dot
+import matplotlib.gridspec as gridspec
+import pickle
+
 from pycmbs.plots import pm_bar, add_nice_legend
 from pycmbs.mapping import map_plot
 from pycmbs.data import Data
-from scipy import linalg, dot
-import matplotlib.gridspec as gridspec
 from pycmbs.anova import *
 from pycmbs.taylor import Taylor
-### from pylab import *
-import pickle
+from pycmbs.benchmarking.report import Report
+
+from pycmbs.plots.violin import ViolinPlot
+
 
 class RegionalAnalysis(object):
     """
     a class to perform comparisons between two datasets on a regional basis
     """
-    def __init__(self, x, y, region, f_standard=True, f_correlation=True):
+    def __init__(self, x, y, region, f_correlation=True, f_statistic=True,  f_aggregated_violin=False, report=None):
         """
 
         Parameters
@@ -41,18 +44,27 @@ class RegionalAnalysis(object):
         y : Data
             second dataset
         region : Data
-            region to analyze in both datasets; needs to
-        f_standard : bool
+            region to analyze in both datasets; needs to have same geometry
+            as the datasets
+        f_statistic : bool
             calculate standard first and second moment statistics
         f_correlation : bool
             calculate correlation statistics between datasets
+        f_aggregated_violin : bool
+            generate a violin plot for the whole statistics over
+            all timesteps
+        report : Report
+            Report class. When provided, figures are integrated
+            into the report on the fly
         """
 
         self.region = region
         self._preprocessed = False
-        self.f_standard = f_standard
         self.f_correlation = f_correlation
+        self.f_statistic = f_statistic
+        self.f_aggregated_violin = f_aggregated_violin
         self.statistics = {}
+        self.report=report
 
         if x is not None:
             if not isinstance(x, Data):
@@ -84,6 +96,9 @@ class RegionalAnalysis(object):
         """
         check consistency of data
         """
+        if self.report is not None:
+            if not isinstance(self.report, Report):
+                raise ValueError('Report is of invalid object type')
         if not isinstance(self.region, Data):
             raise ValueError('Region needs to be of instance C{Data}!')
         if self.x is not None:
@@ -114,42 +129,12 @@ class RegionalAnalysis(object):
             else:
                 raise ValueError('Unknown geometry!')
 
-        #--- check datatypes
-        #if not isinstance(self.region,Region):
-        #    raise ValueError, 'Error: RegionalAnalysis
-        #- region is not of type Region!'
-
-        #--- check geometries
+        # check geometries
         if self.x.shape != self.y.shape:
             print self.x.shape, self.y.shape
             raise ValueError('ERROR: RegionalAnalyis - \
                                inconsistent geometries!')
 
-#---
-
-    def xxxxx_prepare(self):
-
-        #--- apply regional mask
-        if self.region.type == 'latlon':
-            self.x.get_aoi_lat_lon(self.region)
-            self.y.get_aoi_lat_lon(self.region)
-        else:
-            raise ValueError('RegionalAnalysis does not work with \
-                              regions that are not specified by lat/lon!')
-            self.x = self.x.get_aoi(self.region)
-            self.y = self.y.get_aoi(self.region)
-
-        #--- reduce data volume by cutting unnecessary data
-        self.x = self.x.cut_bounding_box(return_object=True)
-        self.y = self.y.cut_bounding_box(return_object=True)
-
-        #--- temporal mean if desired
-        if self.use_mean:
-            self.x = self.x.timmean(return_object=True)
-            self.y = self.y.timmean(return_object=True)
-        self._preprocessed = True
-
-#---
 
     def _get_correlation(self, pthres=1.01):
         """
@@ -171,8 +156,6 @@ class RegionalAnalysis(object):
         if (self.x is None) or (self.y is None):
             return {'analysis_A': None, 'analysis_B': None, 'analysis_C': None}
 
-        #x.get_valid_data
-
         #=======================================================================
         # A) calculate once correlation and then calculate regional statistics
         RO, PO = self.x.correlate(self.y, pthres=pthres,
@@ -190,15 +173,10 @@ class RegionalAnalysis(object):
         ids = []
         stdx = []
         stdy = []
-        vals = np.unique(self.region.data.flatten())
+        vals = self._get_unique_region_ids()
         for v in vals:
-            # print('Regional analysis - correlation for ID: %s ' % str(v).zfill(3))
-            msk = self.region.data == v  # generate mask
-            x = self.x.copy()
-            y = self.y.copy()
-            x._apply_mask(msk)
-            y._apply_mask(msk)
-            del msk
+            x = self._get_masked_data(self.x, v)
+            y = self._get_masked_data(self.y, v)
 
             #=======================================================================
             # B) calculate regional statistics based on entire dataset for a region
@@ -235,7 +213,7 @@ class RegionalAnalysis(object):
             pvalues1.append(p_value1)
             intercepts1.append(intercept1)
 
-            print('TODO: how to deal with area weighting in global correlation analyis ????')
+            print('TODO: how to deal with area weighting in global correlation analyis ????')  # TODO
 
             del x, y, xm, ym
         ids = np.asarray(ids)
@@ -279,38 +257,144 @@ class RegionalAnalysis(object):
         """
         perform calculation of regional statistics
 
-        The routine calculates the following statistics for EACH regions
-        a) timeseries of first and second order moments (mean, std)
-        b)
+        Parameters
+        ----------
+        pthres : float
+            threshold for significance level
+            e.g. 0.05 corresponds to the 95% level
+            values > 1. mean that no masking is applied to
+            insignificant results
 
         Returns
         -------
         returns a dictionary with details on regional statistics
         """
 
-        #--- 1) standard statistic for X and Y datasets ---
+        if self.f_statistic:  # calculate general statistic
+            self._calc_general_statistic()
+        if self.f_correlation:
+            self._calc_correlation(pthres=pthres)
+        if self.f_aggregated_violin:
+            self._calc_global_violin()
+
+    def _get_unique_region_ids(self):
+        return np.unique(self.region.data.flatten())
+
+    def _get_masked_data(self, x, id):
+        """
+        mask dataobject for a particular region
+        and return masked object. The geometry is not changed.
+
+        Parameters
+        ----------
+        x : Data
+            data to be masked
+        id : int
+            region ID
+        """
+
+        # TODO cut bounding box for better performance when
+        # bug in cut_bouding_box has been fixed
+
+        if id not in self._get_unique_region_ids():
+            print('WARNING: ID %s not found in data!')
+            return x
+
+        msk = self.region.data == id
+        d = x.copy()
+        d._apply_mask(msk)
+        del msk
+        return d
+
+    def _calc_pdf_analysis(self):
+        """
+        do PDF analysis for regions
+        """
+        vals = self._get_unique_region_ids()
+        for v in vals:
+            x = self._get_masked_data(self.x, v)
+            y = self._get_masked_data(self.y, v)
+            x.label = x._get_label() + '-' + ' Region ' + str(v).zfill(5)
+            y.label = y._get_label() + '-' + ' Region ' + str(v).zfill(5)
+            pdf = PDFAnalysis(x, Y=y, report=self.report, qq=False, labels=None)
+            pdf.plot()
+            del pdf
+
+
+    def _calc_global_violin(self):
+        """
+        generate single violin plot that summarizes information
+        for all regions
+        """
+
+        assert False # not finally implemented
+
+
+        xdata = []
+        labels=[]
+        if self.y is not None:
+            ydata = []
+        else:
+            ydata = None
+
+        vals = self._get_unique_region_ids()
+        for v in vals:
+            x = self._get_masked_data(self.x, v)
+            xdata.append(x.data.flatten())
+            labels.append(str(v).zfill(5))  # todo replace by original region labels
+            del x
+
+            if self.y is not None:
+                y = self._get_masked_data(self.y, v)
+                ydata.append(y.data.flatten())
+                del y
+
+        print 'Generating Violin plot ...'
+        V = ViolinPlot(xdata, ydata, labels=labels)
+        V.plot()
+
+
+        print 'Done !'
+        if self.report is not None:
+            self.report.figure(V.ax.figure, caption='Violin plot for ' + self.variable.upper())
+            plt.close(V.ax.figure.number)
+        del V
+
+#~ [ngroups, nsamp]
+#~
+    #~ def __init__(self, data, data2=None, labels=None, ax=None,
+                 #~ boxplot=True, figsize=(10, 6)):
+#~
+#~
+#~
+#~
+#~ Calculate Violin plot for each region
+#~ generate a list with all regions as ID/label and generate a single plot
+#~ that plots a vilon plot for each region
+#~
+#~ In best case the CTRL and EXPERIMENT data is plotted together in the Violin plot!
+
+
+
+    def _calc_general_statistic(self):
+        """
+        calculate standard statistics for each region
+        """
         xstat = None
         ystat = None
-        if self.f_standard:
-            if self.x is not None:
-                # returns a dictionary with statistics for each region (could be for all timesteps!)
-                xstat = self.x.condstat(self.region)
-            if self.y is not None:
-                ystat = self.y.condstat(self.region)
-
+        if self.x is not None:
+            xstat = self.x.condstat(self.region)
+        if self.y is not None:
+            ystat = self.y.condstat(self.region)
         self.statistics.update({'xstat': xstat})
         self.statistics.update({'ystat': ystat})
 
-        #--- 2) correlation statistics ---
-        corrstat = None
-        if self.f_correlation:
-            self.statistics.update({'corrstat': self._get_correlation(pthres=pthres)})
-
-        #--- 3) weighted squared difference --> Reichler index for different regions !
-        #todo: how to do the weighting ????
-        #stop
-
-#---
+    def _calc_correlation(self, pthres=1.01):
+        """
+        calculate correlation between X and Y in different ways
+        """
+        ### TODO weighting when calculating correlation
+        self.statistics.update({'corrstat': self._get_correlation(pthres=pthres)})
 
     def save(self, prefix='', format='txt', dir=None):
         """
@@ -326,8 +410,10 @@ class RegionalAnalysis(object):
             directory where results shall be written to
         """
 
-        if format not in ['txt', 'pkl']:
+        if format not in ['txt', 'pkl', 'tex']:
             raise ValueError('Invalid format for output [txt,pkl]: %s' % format)
+        else:
+            self.format = format
         if dir is None:
             raise ValueError('You need to specify an output directory!')
         if not os.path.exists(dir):
@@ -342,11 +428,11 @@ class RegionalAnalysis(object):
             if os.path.exists(oname):
                 os.remove(oname)
             pickle.dump(self.statistics, open(oname, 'w'))
-        elif format == 'txt':
-            self._save_standard_statistics(dir + prefix + '_regional_statistics_standard.txt')
-            self._save_correlation_statistics_A(dir + prefix + '_regional_statistics_correlation_A.txt')
-            self._save_correlation_statistics_B(dir + prefix + '_regional_statistics_correlation_B.txt')
-            self._save_correlation_statistics_C(dir + prefix + '_regional_statistics_correlation_C.txt')
+        elif format in ['txt', 'tex']:
+            self._save_standard_statistics(dir + prefix + '_regional_statistics_standard.' + format)
+            self._save_correlation_statistics_A(dir + prefix + '_regional_statistics_correlation_A.' + format)
+            self._save_correlation_statistics_B(dir + prefix + '_regional_statistics_correlation_B.' + format)
+            self._save_correlation_statistics_C(dir + prefix + '_regional_statistics_correlation_C.' + format)
         else:
             raise ValueError('Unsupported output format!')
 
@@ -357,14 +443,24 @@ class RegionalAnalysis(object):
         | id | slope | intercept | correlation | pvalue |
 
         """
-        sep = '\t'
+        if self.format == 'txt':
+            sep = '\t'
+            eol = '\n'
+        elif self.format == 'tex':
+            sep = ' & '
+            eol = ' \\\\  \n'
+
         if os.path.exists(fname):
             os.remove(fname)
-        if os.path.splitext(fname)[1] != '.txt':
-            fname += '.txt'
+        if os.path.splitext(fname)[1] != '.' + self.format:
+            fname += '.' + self.format
         o = open(fname, 'w')
         # header
-        o.write('id' + sep + 'slope' + sep + 'intercept' + sep + 'correlation' + sep + 'pvalue' + '\n')
+        if self.format == 'tex':
+            if self.report is not None:
+                self.report.open_table()
+            o.write('\\begin{tabular}{lcccc}' + eol)
+        o.write('id' + sep + 'slope' + sep + 'intercept' + sep + 'correlation' + sep + 'pvalue' + eol)
         # data
         corrstat = self.statistics['corrstat']['analysis_' + tok]
         for k in corrstat.keys():
@@ -372,8 +468,16 @@ class RegionalAnalysis(object):
                 + sep + str(corrstat[k]['slope']) \
                 + sep + str(corrstat[k]['intercept']) \
                 + sep + str(corrstat[k]['correlation']) \
-                + sep + str(corrstat[k]['pvalue']) + '\n'
+                + sep + str(corrstat[k]['pvalue']) + eol
             o.write(s)
+        if self.format == 'tex':
+            if self.report is not None:
+                self.report.write('    \\input{' + fname + '}')
+                self.report.close_table(caption='Regional statistics, correlation ' + tok)
+            o.write('\end{tabular}')
+            if self.report is not None:
+                self.report.barrier()
+
         o.close()
 
     def _save_correlation_statistics_C(self, fname):
@@ -392,16 +496,26 @@ class RegionalAnalysis(object):
         The results correspond to e.g the *mean* correlation coefficient for a particular region
 
         | id | rmean | rstd | rsum | rmin | rmax |
-
         """
-        sep = '\t'
+
+        if self.format == 'txt':
+            sep = '\t'
+            eol = '\n'
+        elif self.format == 'tex':
+            sep = ' & '
+            eol = ' \\\\  \n'
+
         if os.path.exists(fname):
             os.remove(fname)
-        if os.path.splitext(fname)[1] != '.txt':
-            fname += '.txt'
+        if os.path.splitext(fname)[1] != '.' + self.format:
+            fname += '.' + self.format
         o = open(fname, 'w')
         # header
-        o.write('id' + sep + 'r-mean' + sep + 'r-std' + sep + 'r-sum' + sep + 'r-min' + sep + 'r-max' + '\n')
+        if self.format == 'tex':
+            if self.report is not None:
+                self.report.open_table()
+            o.write('\\begin{tabular}{lccccc}' + eol)
+        o.write('id' + sep + 'r-mean' + sep + 'r-std' + sep + 'r-sum' + sep + 'r-min' + sep + 'r-max' + eol)
 
         # data
         corrstat = self.statistics['corrstat']['analysis_A']
@@ -411,8 +525,17 @@ class RegionalAnalysis(object):
                 + sep + str(corrstat[k]['std'][0]) \
                 + sep + str(corrstat[k]['sum'][0]) \
                 + sep + str(corrstat[k]['min'][0]) \
-                + sep + str(corrstat[k]['max'][0]) + '\n'
+                + sep + str(corrstat[k]['max'][0]) + eol
             o.write(s)
+        if self.format == 'tex':
+            if self.report is not None:
+                self.report.write('    \\input{' + fname + '}')
+                self.report.close_table(caption='Regional statistics, correlation A')
+            o.write('\end{tabular}')
+            if self.report is not None:
+                self.report.barrier()
+
+
         o.close()
 
     def _save_standard_statistics(self, fname):
@@ -423,19 +546,36 @@ class RegionalAnalysis(object):
 
         This information is stored separatley for each region ID in a separate file!
 
+        The output is written dependent on the format.
+
+        Parameters
+        ----------
+        fname : str
+            filename for storing results
         """
         root = os.path.splitext(fname)[0]
-        sep = '\t'
+        if self.format == 'txt':
+            sep = '\t'
+            eol = '\n'
+        elif self.format == 'tex':
+            sep = ' & '
+            eol = ' \\\\  \n'
+        else:
+            raise ValueError('Invalid format')
 
         ids = self.statistics['xstat'].keys()
         for id in ids:
-            fname = root + '_' + str(id).zfill(16) + '.txt'
+            fname = root + '_' + str(id).zfill(16) + '.' + self.format
             if os.path.exists(fname):
                 os.remove(fname)
             o = open(fname, 'w')
 
             # header
-            o.write('time' + sep + 'xmean' + sep + 'ymean' + sep + 'xstd' + sep + 'ystd' + '\n')
+            if self.format == 'tex':
+                if self.report is not None:
+                    self.report.open_table()
+                o.write('\\begin{tabular}{lcccccccc}' + eol)
+            o.write('time' + sep + 'xmean' + sep + 'ymean' + sep + 'xstd' + sep + 'ystd' + sep + 'xmin' + sep + 'ymin' + sep + 'xmax' + sep +'ymax' + eol)
 
             # data
             for i in xrange(len(self.statistics['xstat'][id]['mean'])):
@@ -447,102 +587,17 @@ class RegionalAnalysis(object):
                     + str(self.statistics['xstat'][id]['min'][i]) + sep \
                     + str(self.statistics['ystat'][id]['min'][i]) + sep \
                     + str(self.statistics['xstat'][id]['max'][i]) + sep \
-                    + str(self.statistics['ystat'][id]['max'][i]) + '\n'
+                    + str(self.statistics['ystat'][id]['max'][i]) + eol
                 o.write(s)
+            if self.format == 'tex':
+                if self.report is not None:
+                    self.report.write('    \\input{' + fname + '}')
+                    self.report.close_table(caption='General regional statistics')
+                o.write('\end{tabular}')
+                if self.report is not None:
+                    self.report.barrier()
+
             o.close()
-
-    def xxxxxxxxxxxxxprint_table(self, format='txt', filename=None):
-        """
-        print table of regional statistics
-        """
-
-        def _get_string(d, id):
-            #d: dictionary (self.statistics)
-            #id region id
-
-            #xmean,xstd,ymean,ystd
-
-            sep = '\t'
-            s = str(id) + sep
-
-            #xstat and ystat needs to be printed separately, as it can be a function of time !!!
-            # xstat = d['xstat']
-            # if xstat == None:
-            #     s += '' + sep + '' + sep
-            # else:
-            #     m = d['xstat']['id'] == id
-            #     s += str(d['xstat']['mean'][m]) + sep + str(d['xstat']['std'][m]) + sep
-            #
-            # ystat = d['ystat']
-            # if ystat == None:
-            #     s += '' + sep + '' + sep
-            # else:
-            #     m = d['ystat']['id'] == id
-            #     s += str(d['ystat']['mean'][m]) + sep + str(d['ystat']['std'][m]) + sep
-
-            # id, mean correlation, std of correlation
-            if d['corrstat']['corrstat1'] is None:
-                s += '' + sep + '' + sep
-            else:
-                stat = d['corrstat']['corrstat1']
-                m = stat['id'] == id
-                if len(m) > 0:
-                    if sum(m) == 1:
-                        s += str(stat['mean'][0][m][0]) + sep + str(stat['std'][0][m][0]) + sep
-                    else:
-                        print id
-                        print m
-                        raise ValueError('The ID seems not to be unique here!')
-                else:
-                    s += '' + sep + '' + sep
-
-            #--- corrstat2 ---
-            if d['corrstat']['corrstat2'] is None:
-                s += '' + sep + '' + sep + '' + sep + '' + sep + '' + sep + '' + sep
-            else:
-                stat = d['corrstat']['corrstat2']
-                m = stat['id'] == id
-
-                if len(m) > 0:
-                    if sum(m) == 1:
-                        s += str(stat['correlation'][m][0]) + sep + str(stat['pvalue'][m][0]) \
-                            + sep + str(stat['slope'][m][0]) + sep + str(stat['intercept'][m][0]) \
-                            + sep + str(stat['stdx'][m][0]) + sep + str(stat['stdy'][m][0]) + sep
-                    else:
-                        print id
-                        print m
-                        raise ValueError('The ID seems not to be unique here!')
-                else:
-                    s += '' + sep + '' + sep + '' + sep + '' + sep + '' + sep + '' + sep
-            return s
-
-        if filename is not None:
-            if os.path.exists(filename):
-                os.remove(filename)
-            o = open(filename, 'w')
-
-        #--- loop over all regions ---
-        keys = np.unique(self.region.data.flatten())
-        keys.sort()
-        sep = '\t'
-        header = 'id' + sep + 'r1' + sep + 'sig_r1' + sep + 'r2' + sep + 'pval2' + sep + 'slope2'\
-                 + sep + 'intercept2' + sep + 'stdx' + sep + 'stdy' + sep
-        print header
-        if filename is not None:
-            o.write(header + '\n')
-        for k in keys:
-            s = _get_string(self.statistics, k)  # get formatted string for a particular region
-            print s
-            if filename is not None:
-                if format == 'txt':
-                    o.write(s + '\n')
-                else:
-                    raise ValueError('Unsupported output format!')
-
-        if filename is not None:
-            o.close()
-
-#---
 
     def plot_taylor(self, dia=None, color='red'):
         """

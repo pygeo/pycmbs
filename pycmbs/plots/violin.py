@@ -4,6 +4,7 @@ This file is part of pyCMBS. (c) 2012-2014
 For COPYING and LICENSE details, please refer to the file
 COPYRIGHT.md
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -67,6 +68,9 @@ class ViolinPlot(object):
         """
         if self.data is not None:
             if len(self.labels) != len(self.data):
+                print len(self.labels)
+                print self.labels
+                print len(self.data)
                 raise ValueError('Invalid geometry of labels and data!')
         if self.data2 is not None:
             if len(self.data) != len(self.data2):
@@ -106,6 +110,9 @@ class ViolinPlot(object):
             specifies if the plot should be on the left side
         """
         from scipy.stats import gaussian_kde
+
+        if len(data) == 0:
+            return None
         amplitude = kwargs.pop('amplitude', 0.33)
         x = np.linspace(min(data), max(data), 101)
         v = gaussian_kde(data).evaluate(x)
@@ -143,8 +150,9 @@ class ViolinPlot(object):
             self._plot_half_violin(d2, pos, left=True, facecolor=color2)
 
             # division line between the two half
-            self.ax.plot([pos]*2, [min(min(d1), min(d2)),
-                         max(max(d1), max(d2))], '-', color='grey')
+            if len(d1)>0 & len(d2)>0:
+                self.ax.plot([pos]*2, [min(min(d1), min(d2)),
+                            max(max(d1), max(d2))], '-', color='grey')
 
     def _set_xticks(self, rotation=30.):
         """
@@ -188,6 +196,84 @@ class ViolinPlot(object):
                             vert=True, sym='')
 
 
+class ViolinPlotBins(ViolinPlot):
+    """
+    Violinplot for binned data. Instead of plotting a Violin plot for
+    each group of data, this class allows to plot binned data
+    """
+
+    def __init__(self, data, data2=None, bins=None, **kwargs):
+        """
+        Parameters
+        ----------
+        data : ndarray/dict
+            data to be plotted. Can be of any geometry. Data is however
+            flattened and then rearranged according to the bins.
+        data2 : ndarray/dict
+            second dataset to be plotted
+        bins : ndarray
+            [obligatory]
+            bins for the data. the bins correspond to the lower boundary
+            of the bin interval. Thus e.g.
+            [-1., 2., 5.] corresponds to intervals defined as
+            -1 <= x < 2
+            2 <= x < 5
+            x > 5  TODO perhaps also with an upper limit to be provided by user?
+        """
+        self.bins = bins
+        self._check_bins()
+        if 'labels' in kwargs.keys():
+            raise ValueError('ERROR: labels can not be provided for this class!')
+        super(ViolinPlotBins, self).__init__(self._remap_data(data),
+              self._remap_data(data2), labels=self._remap_labels(),
+              **kwargs)
+
+    def _remap_labels(self):
+        """
+        format label string
+        """
+        return ['>=' + str(b) for b in self.bins]
+
+    def _remap_data(self, x, bins=None):
+        """
+        Remap and bin data.
+        Flattens the data and then stores
+
+        Parameters
+        ----------
+        x : ndarray
+            data array (will be flattened)
+        bins : ndarray
+            see documentation of class
+
+        Returns
+        -------
+        data : list
+            of structure [nbins, data_per_bin]
+        """
+        self._check_bins()
+
+        x = x.flatten()
+        print x.min(), x.max()
+        data = []  # TODO this is slow how to do better?
+        for i in xrange(len(self.bins)-1):
+            lb = self.bins[i]
+            ub = self.bins[i+1]
+            data.append(x[(x>=lb) & (x<ub)])
+        data.append(x[(x>=ub)])
+        return data
+
+    def _check_bins(self):
+        if self.bins is None:
+            raise ValueError('ERROR: bins need to be provided!')
+        if np.any(np.diff(self.bins) <= 0.):
+            raise ValueError('ERROR: bins are not in ascending order!')
+
+
+
+
+
+
 def _classic_example():
     """
     some example how to do violin plotting
@@ -207,6 +293,12 @@ def _classic_example():
     data2 = [np.random.normal(size=100) for i in pos]
     V2 = ViolinPlot(data, data2=data2, labels=['A', 'B', 'C', 'D', 'E'])
     V2.plot()
+
+    # example with binned data
+    data = np.random.random((10,20,30))*6.-3.
+    data2 = np.random.random((40,50,60))*6.-3.
+    VB = ViolinPlotBins(data, data2=data2, bins=np.linspace(-3.,3.,11))
+    VB.plot()
 
     plt.show()
 

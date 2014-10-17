@@ -40,7 +40,9 @@ class CMIP5Data(Model):
         kwargs : dict
             other keyword arguments
         """
-        super(CMIP5Data, self).__init__(data_dir, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
+        if name == '':
+            name = model
+        super(CMIP5Data, self).__init__(data_dir, dic_variables, name=name, shift_lon=shift_lon, **kwargs)
 
         self.model = model
         self.experiment = experiment
@@ -57,7 +59,11 @@ class CMIP5Data(Model):
         -------
         string with unique combination of models and experiment
         """
-        return self.model.replace(' ', '') + '-' + self.experiment.replace(' ', '')
+        s = self.model.replace(' ', '') + '-' + self.experiment.replace(' ', '')
+        s = s.replace('#','-')
+        if hasattr(self, 'ens_member'):
+            s += '-' + str(self.ens_member)
+        return s
 
 #-----------------------------------------------------------------------
 
@@ -106,6 +112,9 @@ class CMIP5Data(Model):
             elif self.type == 'CMIP5RAW':
                 filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
                              (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
+            elif self.type == 'CMIP5RAWSINGLE':
+                print 'todo needs implementation!'
+                assert False
             elif self.type == 'CMIP3':
                 filename1 = ("%s/%s_%s_%s_%s.%s" %
                              (custom_path, self.experiment, self.model, varname, model_suffix, file_format))
@@ -178,11 +187,11 @@ class CMIP5Data(Model):
         else:
             print interval
             raise ValueError('Unsupported interval!')
-        mdata = Data(mdata_clim_file, varname, read=True, label=self.model, unit=units, lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel, time_cycle=thetime_cylce)
-        mdata_std = Data(mdata_clim_std_file, varname, read=True, label=self.model + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, level=thelevel, time_cycle=thetime_cylce)
+        mdata = Data(mdata_clim_file, varname, read=True, label=self._unique_name, unit=units, lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel, time_cycle=thetime_cylce)
+        mdata_std = Data(mdata_clim_std_file, varname, read=True, label=self._unique_name + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, level=thelevel, time_cycle=thetime_cylce)
         mdata.std = mdata_std.data.copy()
         del mdata_std
-        mdata_N = Data(mdata_N_file, varname, read=True, label=self.model + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel)
+        mdata_N = Data(mdata_N_file, varname, read=True, label=self._unique_name + ' std', unit='-', lat_name=lat_name, lon_name=lon_name, shift_lon=False, scale_factor=scf, level=thelevel)
         mdata.n = mdata_N.data.copy()
         del mdata_N
 
@@ -191,7 +200,7 @@ class CMIP5Data(Model):
         mdata.timsort()
 
         #4) read monthly data
-        mdata_all = Data(file_monthly, varname, read=True, label=self.model, unit=units, lat_name=lat_name, lon_name=lon_name, shift_lon=False, time_cycle=12, scale_factor=scf, level=thelevel)
+        mdata_all = Data(file_monthly, varname, read=True, label=self._unique_name, unit=units, lat_name=lat_name, lon_name=lon_name, shift_lon=False, time_cycle=12, scale_factor=scf, level=thelevel)
         mdata_all.adjust_time(day=15)
 
         #mask_antarctica masks everything below 60 degrees S.
@@ -228,6 +237,7 @@ class CMIP5Data(Model):
 
         @return: C{Data} object for snow
         """
+        assert False
         data_file = '/net/nas2/export/eo/workspace/m300028/GPA/input/historical_r1i1p1-LR_snow_fract.nc'  # todo change this !!!
 
         #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
@@ -256,6 +266,8 @@ class CMIP5Data(Model):
         a) seasonal means for air temperature
         b) global mean timeseries for TAS at original temporal resolution
         """
+        print 'Needs revision to support CMIP RAWDATA!!'
+        assert False
 
         if interval != 'season':
             raise ValueError('Other data than seasonal not supported at the moment for CMIP5 data and temperature!')
@@ -281,9 +293,9 @@ class CMIP5Data(Model):
             print 'WARNING: Temperature file not found: ', filename
             return None
 
-        tas = Data(filename, 'tas', read=True, label=self.model, unit='K', lat_name='lat', lon_name='lon', shift_lon=False)
+        tas = Data(filename, 'tas', read=True, label=self._unique_name, unit='K', lat_name='lat', lon_name='lon', shift_lon=False)
 
-        tasall = Data(filename1, 'tas', read=True, label=self.model, unit='K', lat_name='lat', lon_name='lon', shift_lon=False)
+        tasall = Data(filename1, 'tas', read=True, label=self._unique_name, unit='K', lat_name='lat', lon_name='lon', shift_lon=False)
         if tasall.time_cycle != 12:
             raise ValueError('Timecycle of 12 expected here!')
 
@@ -318,9 +330,11 @@ class CMIP5Data(Model):
         s_stop_time = str(self.stop_time)[0:10]
 
         if self.type == 'CMIP5':
-            filename1 = self.data_dir + 'rsds/' + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            filename1 = self.data_dir + 'rsds' + os.sep + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self._get_ensemble_filename('rsds')
+            filename1 = self._get_ensemble_filename(the_variable)
+        elif self.type == 'CMIP5RAWSINGLE':
+            filename1 = self.get_single_ensemble_file(the_variable, mip='Amon', realm='atmos', temporal_resolution='mon')
         else:
             raise ValueError('Unknown model type! not supported here!')
 
@@ -370,11 +384,11 @@ class CMIP5Data(Model):
             return None
 
         #3) read data
-        sis = Data(sis_clim_file, 'rsds', read=True, label=self.model, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
-        sis_std = Data(sis_clim_std_file, 'rsds', read=True, label=self.model + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
+        sis = Data(sis_clim_file, 'rsds', read=True, label=self._unique_name, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
+        sis_std = Data(sis_clim_std_file, 'rsds', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
         sis.std = sis_std.data.copy()
         del sis_std
-        sis_N = Data(sis_N_file, 'rsds', read=True, label=self.model + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
+        sis_N = Data(sis_N_file, 'rsds', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
         sis.n = sis_N.data.copy()
         del sis_N
 
@@ -383,7 +397,7 @@ class CMIP5Data(Model):
         sis.timsort()
 
         #4) read monthly data
-        sisall = Data(file_monthly, 'rsds', read=True, label=self.model, unit='W m^{-2}', lat_name='lat', lon_name='lon', shift_lon=False)
+        sisall = Data(file_monthly, 'rsds', read=True, label=self._unique_name, unit='W m^{-2}', lat_name='lat', lon_name='lon', shift_lon=False)
         if not sisall._is_monthly():
             raise ValueError('Timecycle of 12 expected here!')
         sisall.adjust_time(day=15)
@@ -413,10 +427,14 @@ class CMIP5Data(Model):
 
     def get_surface_shortwave_radiation_up(self, interval='season', force_calc=False, **kwargs):
 
+        the_variable = 'rsus'
+
         if self.type == 'CMIP5':
-            filename1 = self.data_dir + 'rsus/' + self.experiment + '/ready/' + self.model + '/rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
+            filename1 = self.data_dir + the_variable + os.sep + self.experiment + os.sep + 'ready' + os.sep + self.model + os.sep + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
         elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self._get_ensemble_filename('rsus')
+            filename1 = self._get_ensemble_filename(the_variable)
+        elif self.type == 'CMIP5RAWSINGLE':
+            filename1 = self.get_single_ensemble_file(the_variable, mip='Amon', realm='atmos', temporal_resolution='mon')
         else:
             raise ValueError('Unknown type! not supported here!')
 
@@ -467,11 +485,11 @@ class CMIP5Data(Model):
             return None
 
         #3) read data
-        sup = Data(sup_clim_file, 'rsus', read=True, label=self.model, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
-        sup_std = Data(sup_clim_std_file, 'rsus', read=True, label=self.model + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
+        sup = Data(sup_clim_file, 'rsus', read=True, label=self._unique_name, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
+        sup_std = Data(sup_clim_std_file, 'rsus', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
         sup.std = sup_std.data.copy()
         del sup_std
-        sup_N = Data(sup_N_file, 'rsus', read=True, label=self.model + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
+        sup_N = Data(sup_N_file, 'rsus', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
         sup.n = sup_N.data.copy()
         del sup_N
 
@@ -480,7 +498,7 @@ class CMIP5Data(Model):
         sup.timsort()
 
         #4) read monthly data
-        supall = Data(file_monthly, 'rsus', read=True, label=self.model, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
+        supall = Data(file_monthly, 'rsus', read=True, label=self._unique_name, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
         supall.adjust_time(day=15)
         if not supall._is_monthly():
             raise ValueError('Monthly timecycle expected here!')
@@ -520,8 +538,8 @@ class CMIP5Data(Model):
             return None
         else:
             Fu_i = Fu[0]
-        lab = Fu_i.label
-        Fd = self.get_surface_shortwave_radiation_down(interval=interval, **{'CMIP5': {'valid_mask': 'land'}, 'CMIP5RAW': {'valid_mask': 'land'}})  # todo: take routine name from the configuration setup in JSON file !!!!
+        lab = Fu_i._get_label()
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval, **{'CMIP5': {'valid_mask': 'land'}, 'CMIP5RAW': {'valid_mask': 'land'}, 'CMIP5RAWSINGLE': {'valid_mask': 'land'} })  # todo: take routine name from the configuration setup in JSON file !!!!
         if Fd is None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None
@@ -557,7 +575,6 @@ class CMIP5Data(Model):
 
         return Fu_i, retval
 
-
 class CMIP5RAWData(CMIP5Data):
     """
     This class is supposed to use CMIP5 data in RAW format.
@@ -566,7 +583,7 @@ class CMIP5RAWData(CMIP5Data):
     of ensemble means
     """
     def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
-        super(CMIP5RAWData, self).__init__(data_dir, model, experiment, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
+        super(CMIP5RAWData, self).__init__(data_dir, model, experiment, dic_variables, name=name, shift_lon=shift_lon, **kwargs)
         self.model = model
         self.experiment = experiment
         self.data_dir = data_dir
@@ -619,6 +636,65 @@ class CMIP5RAWData(CMIP5Data):
                                       stop_time=self.stop_time)
 
         return res_file
+
+
+
+class CMIP5RAW_SINGLE(CMIP5RAWData):
+    """
+    This class is supposed to use CMIP5 data in RAW format.
+
+    It is supposed to handle single emsemble members
+    """
+
+    def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
+        """
+        Parameters
+        ----------
+        model_type : str
+            model type like specified in the configuration file. It is
+            supossed to be of format MPI-M:MPI-ESM-LR#1 etc.
+            where after # there needs to be an integer number specifying
+            the emsemble member number
+        """
+
+        if name == '':
+            name = model
+
+        # split between model type and ensemble member
+        s = model.split('#')
+        if len(s) != 2:
+            print model, s
+            raise ValueError('ERROR: invalid ensemble member specification')
+        else:
+            model = s[0]
+            self.ens_member = int(s[1])
+
+        self.institute = model.split(':')[0]
+
+        super(CMIP5RAWData, self).__init__(data_dir, model, experiment, dic_variables, name=name, shift_lon=shift_lon, **kwargs)
+
+        self.model = model
+        self.experiment = experiment
+        self.data_dir = data_dir
+        self.shift_lon = shift_lon
+        self.type = 'CMIP5RAWSINGLE'
+        self._unique_name = self._get_unique_name()
+
+    def get_single_ensemble_file(self, variable, mip='Amon', realm='atmos', temporal_resolution='mon'):
+        data_dir = self.data_dir
+        if data_dir[-1] != os.sep:
+            data_dir += os.sep
+
+        model = self.model.split(':')[1]
+        fp = data_dir + self.institute + os.sep + model + os.sep + self.experiment + os.sep + temporal_resolution + os.sep + realm + os.sep + mip + os.sep + 'r' + str(self.ens_member) + 'i1p1' + os.sep + variable + os.sep + variable + '_' + mip + '_' + model + '_' + self.experiment + '_r' + str(self.ens_member) + 'i1p1_*.nc'
+
+        files = glob.glob(fp)
+        if len(files) == 0:
+            return None
+        if len(files) != 1:
+            print files
+            raise ValueError('More than one file found!')
+        return files[0]
 
 class CMIP3Data(CMIP5Data):
     """

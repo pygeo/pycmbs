@@ -20,7 +20,7 @@ class TestData(unittest.TestCase):
 
     def setUp(self):
         D = Data(None, None)
-        D.data = np.random.random((10, 20))
+        D.data = np.random.random((55, 20))
         lon = np.arange(-10.,10.)  # -10 ... 9
         lat = np.arange(-60., 50., 2.)  # -60 ... 48
         D.lon, D.lat = np.meshgrid(lon, lat)
@@ -39,6 +39,12 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):  # missing range bins
             G = Geostatistic(self.x)
 
+        # 3D is invalid
+        y = self.x.copy()
+        y.data = np.random.random((10,20,30))
+        with self.assertRaises(ValueError):  # missing range bins
+            G = Geostatistic(self.x, range_bins = np.random.random(10))
+
         y = self.x.copy()  # missing 3D
         y.data = np.random.random((10,20,30))
         with self.assertRaises(ValueError):
@@ -50,12 +56,18 @@ class TestData(unittest.TestCase):
         bins = np.arange(10)
         G = Geostatistic(self.x, range_bins=bins)
 
-    #~ def test_plot(self):
-        #~ bins = np.arange(3)*10000
-        #~ G = Geostatistic(self.x, range_bins=bins)
-        #~ G.set_center_position(0., 0.)
-        #~ G.plot_semivariogram()
+    def test_plot(self):
+        bins = np.arange(3) / 6.
+        G = Geostatistic(self.x, range_bins=bins)
+        G.set_center_position(0., 0.)
+        G.plot_semivariogram()
 
+    def test_percentiles(self):
+        bins = np.arange(10)
+        G = Geostatistic(self.x, range_bins=bins)
+        G.set_center_position(5., -20.)
+        p = [0.05, 0.1, 0.5]
+        G.plot_percentiles(p, ax=None, logy=False, ref_lags=None)
 
     def test_set_center(self):
         bins = np.arange(10)
@@ -86,4 +98,12 @@ class TestData(unittest.TestCase):
         self.assertEqual(i_lat, 54)
         self.assertEqual(i_lon, 0)
 
+    def test_get_coordinate_at_distance(self):
+        bins = np.arange(10)
+        G = Geostatistic(self.x, range_bins=bins)
+
+        with self.assertRaises(ValueError):  # missing center
+            lon, lat = G.get_coordinates_at_distance(2.5)
+        G.set_center_position(5., -20.)
+        lon, lat = G.get_coordinates_at_distance(2.5)
 

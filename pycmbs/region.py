@@ -130,6 +130,13 @@ class RegionPolygon(RegionGeneric):
         self.lat = lat
         self.type = 'polygon'
 
+    def _xcoords(self):
+        return self.lon
+
+    def _ycoords(self):
+        return self.lat
+
+
 
 class RegionShape(object):
     """

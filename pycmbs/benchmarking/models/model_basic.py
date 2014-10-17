@@ -99,6 +99,7 @@ class Model(Data):
             cmd = 'dat = self.' + routine
 
             if hasattr(self, routine[0:routine.index('(')]):  # check if routine name is there
+                print cmd
                 exec(cmd)
 
                 # if a tuple is returned, then it is the data + a tuple for the original global mean field

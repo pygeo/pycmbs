@@ -10,9 +10,18 @@ from pycmbs.data import Data
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 class Geostatistic(object):
     def __init__(self, x, range_bins=None):
+        """
+        Geostatistical calculations on a data object
+
+        Parameters
+        ----------
+        x : Data
+            data to be analyzed
+        range_bins : list
+            list of bins to perform analysis
+        """
         assert isinstance(x, Data)
         if range_bins is None:
             raise ValueError('ERROR: you need to specifiy the range bins!')
@@ -125,6 +134,8 @@ class Geostatistic(object):
         v = []
         for b in bounds:
             d = self._get_data_distance(0., b)
+            if d is None:
+                continue
             if len(d) < 1:
                 continue
             r.append(b)
@@ -164,8 +175,12 @@ class Geostatistic(object):
         v = []
         for b in bounds:
             d = self._get_data_distance(0., b)
-            r.append(b)
-            v.append(0.5 * np.ma.var(d))  # semivariance
+            if d is None:
+                r.append(b)
+                v.append(np.nan)
+            else:
+                r.append(b)
+                v.append(0.5 * np.ma.var(d))  # semivariance
         o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
         self.statistic.update({'semivariogram': o})
 

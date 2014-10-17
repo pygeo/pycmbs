@@ -23,7 +23,7 @@ from pycmbs.benchmarking.utils import get_T63_landseamask
 from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
 from pycmbs.benchmarking import analysis
-from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData
+from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, CMIP5RAW_SINGLE
 from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
 from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data
 from pycmbs.benchmarking.models import MeanModel
@@ -128,7 +128,8 @@ def main():
     outdir = CF.options['outputdir']
     if outdir[-1] != os.sep:
         outdir += os.sep
-    os.environ['PYCMBS_OUTPUTDIR'] = CF.options['outputdir']
+
+    os.environ['PYCMBS_OUTPUTDIR'] = outdir
     os.environ['PYCMBS_OUTPUTFORMAT'] = CF.options['report_format']
 
     os.environ['DATA_WARNING_FILE'] = outdir + 'data_warnings_' \
@@ -356,7 +357,11 @@ def main():
                               'scale_factor': 1.,
                               'valid_mask': 'land'
                           },
-                          'CMIP5':
+                          'CMIP5' :
+                          {
+                              'valid_mask': 'land'
+                          },
+                          'CMIP5RAWSINGLE' :
                           {
                               'valid_mask': 'land'
                           }
@@ -458,6 +463,14 @@ def main():
                                     start_time=start_time,
                                     stop_time=stop_time,
                                     shift_lon=shift_lon)
+        elif 'CMIP5RAWSINGLE' in CF.dtypes[i].upper():
+            themodel = CMIP5RAW_SINGLE(data_dir, model, experiment, varmethods,
+                                    intervals=CF.intervals, lat_name='lat',
+                                    lon_name='lon', label=model,
+                                    start_time=start_time,
+                                    stop_time=stop_time,
+                                    shift_lon=shift_lon)
+
         elif CF.dtypes[i].upper() == 'JSBACH_BOT':
             themodel = JSBACH_BOT(data_dir, varmethods, experiment,
                                   intervals=CF.intervals,
@@ -547,7 +560,7 @@ def main():
                  CF.options['author'],
                  outdir=outdir,
                  dpi=300, format=CF.options['report_format'])
-    cmd = 'cp ' + os.environ['PYCMBSPATH'] + '/logo/Phytonlogo5.pdf ' + rep.outdir
+    cmd = 'cp ' + os.environ['PYCMBSPATH'] + os.sep + 'logo' + os.sep + 'Phytonlogo5.pdf ' + rep.outdir
     os.system(cmd)
 
     ########################################################################
@@ -574,7 +587,7 @@ def main():
                     + ',GP=global_gleckler,shift_lon=shift_lon, \
                         use_basemap=use_basemap,report=rep,\
                         interval=CF.intervals[variable],\
-                        plot_options=PCFG,regions=REGIONS.regions)'
+                        plot_options=PCFG)'
                 eval(cmd)
 
     ########################################################################
@@ -633,9 +646,10 @@ def main():
         varoptions = PCFG.options[variable]
         thelabels = labels_dict[variable]
         fl = global_gleckler._draw_legend(thelabels, title=variable.upper())
-        rep.figure(fl, width='8cm', bbox_inches=None)
-        fl.savefig(outdir + 'legend_portraet_' + str(lcnt).zfill(5) + '.png', bbox_inches='tight', dpi=200)
-        plt.close(fl.number)
+        if fl is not None:
+            rep.figure(fl, width='8cm', bbox_inches=None)
+            fl.savefig(outdir + 'legend_portraet_' + str(lcnt).zfill(5) + '.png', bbox_inches='tight', dpi=200)
+            plt.close(fl.number)
         del fl
         lcnt += 1
 
@@ -644,10 +658,11 @@ def main():
     for v in global_gleckler.variables:
         rep.subsubsection(v.upper())
         tmpfig = global_gleckler.plot_model_ranking(v, show_text=True, obslabels=labels_dict[v])
-        rep.figure(tmpfig, width='8cm', bbox_inches=None,
-                   caption='Model RANKING for different observational \
-                   datasets: ' + v.upper())
-        plt.close(tmpfig.number)
+        if tmpfig is not None:
+            rep.figure(tmpfig, width='8cm', bbox_inches=None,
+                       caption='Model RANKING for different observational \
+                       datasets: ' + v.upper())
+            plt.close(tmpfig.number)
         del tmpfig
 
         # write a table with model ranking
@@ -659,10 +674,11 @@ def main():
 
         # plot absolute model error
         tmpfig = global_gleckler.plot_model_error(v, obslabels=labels_dict[v])
-        rep.figure(tmpfig, width='8cm', bbox_inches=None,
-                   caption='Model ERROR for different observational \
-                   datasets: ' + v.upper())
-        plt.close(tmpfig.number)
+        if tmpfig is not None:
+            rep.figure(tmpfig, width='8cm', bbox_inches=None,
+                       caption='Model ERROR for different observational \
+                       datasets: ' + v.upper())
+            plt.close(tmpfig.number)
         del tmpfig
 
     ########################################################################

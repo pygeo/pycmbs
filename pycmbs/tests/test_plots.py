@@ -9,11 +9,13 @@ import unittest
 from pycmbs import plots
 from pycmbs.data import Data
 from pycmbs.plots import ReichlerPlot, ScatterPlot, LinePlot, HistogrammPlot, ZonalPlot
-from pycmbs.plots import map_difference, map_season, GlecklerPlot
+from pycmbs.plots import map_difference, map_season, GlecklerPlot, GlobalMeanPlot
 from pycmbs.plots import xx_map_plot, HstackTimeseries, HovmoellerPlot
 from pycmbs.plots import rotate_ticks, CorrelationAnalysis
+
 from pycmbs.plots.violin import _classic_example as Violin_example
 from pycmbs.plots import GlobalMeanPlot
+
 
 import scipy
 import os
@@ -162,12 +164,27 @@ class TestPycmbsPlots(unittest.TestCase):
             HT.add_data(x, 'model' + str(i).zfill(3) )
         HT.plot(cmap='RdBu_r', interpolation='nearest', vmin=-1., vmax=1., nclasses=15, title='Testtitle')
 
-
-    def test_Hovmoeller(self):
-        H = HovmoellerPlot(self.D)
+    def test_HstackTimeSeries_invalidData(self):
+        HT = HstackTimeseries()
+        x = np.random.random((50, 60))*2.-1.
         with self.assertRaises(ValueError):
-            H.plot()
-        H.plot(climits=[0., 1.])
+            HT.add_data(x, 'test' )
+
+
+    def test_HstackTimeSeries_inconsistent_data_geometries(self):
+        HT = HstackTimeseries()
+        x = np.random.random(100)*2.-1.
+        y = np.random.random(1000)*2.-1.
+        HT.add_data(x, 'A')
+        with self.assertRaises(ValueError):
+            HT.add_data(y, 'B')
+
+    def test_HstackTimeSeries_duplicate_keys(self):
+        HT = HstackTimeseries()
+        x = np.random.random(100)*2.-1.
+        HT.add_data(x, 'A')
+        with self.assertRaises(ValueError):
+            HT.add_data(x, 'A')
 
     def test_violin_plot(self):
         Violin_example()
@@ -180,13 +197,39 @@ class TestPycmbsPlots(unittest.TestCase):
         G.plot(self.D, show_std=True)
         G.plot_mean_result()
 
-# map_season
 
+    def test_HstackTimeSeries_monthly_ticks(self):
+        HT = HstackTimeseries()
+        f = plt.figure()
+        ax = f.add_subplot(111)
+        ax.plot(np.arange(12))
+        HT._set_monthly_xtick_labels(ax)
 
+    def test_HstackTimeSeries_noplotdone(self):
+        HT = HstackTimeseries()
+        with self.assertRaises(ValueError):
+            HT._add_colorbar()
 
+    def test_GlobalMean(self):
+        GM1 = GlobalMeanPlot(climatology=False)
+        self.assertEqual(GM1.nplots, 1)
+        f = plt.figure()
+        ax1 = f.add_subplot(111)
+        axA = f.add_subplot(211)
+        axB = f.add_subplot(212)
+        with self.assertRaises(ValueError):
+            GM2 = GlobalMeanPlot(climatology=True, ax=ax1)
+        GM2 = GlobalMeanPlot(climatology=True, ax=axA, ax1=axB)
+        self.assertEqual(GM2.nplots, 2)
+
+    def test_Hovmoeller(self):
+        H = HovmoellerPlot(self.D)
+        with self.assertRaises(ValueError):
+            H.plot()
+        H.plot(climits=[0., 1.])
 
 
 
 if __name__ == "__main__":
     unittest.main()
-# vim: expandtab shiftwidth=4 softtabstop=4
+
