@@ -23,6 +23,7 @@ cdef class Polygon(object):
     # functions to return the attributes are therefore explicitely needed!
 
     cdef int id
+    cdef float value
     cdef list poly
 
     def __init__(self, int id, list coordinates):
@@ -36,6 +37,13 @@ cdef class Polygon(object):
         """
         self.poly = coordinates
         self.id = id
+        self.value = np.nan
+
+    property value:
+        def __get__(self):
+          return self.value
+        def __set__(self, float value):
+          self.value = value
 
     property id:
         def __get__(self):

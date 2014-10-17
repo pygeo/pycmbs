@@ -59,9 +59,14 @@ class Geostatistic(object):
             j = None
         return i, j
 
-    def plot_semivariogram(self, ax=None, color='red', logy=False):
+    def plot_semivariogram(self, ax=None, color='red', logy=False, ref_lags=None):
         """
         plot semivariogram
+
+        Parameters
+        ----------
+        ref_lags : list
+            list of reference lags. If given, then these lags are plotted in the figure as well
         """
         if not hasattr(self, '_distance'):
             self._calculate_distance()
@@ -76,11 +81,16 @@ class Geostatistic(object):
         else:
             ax.plot(r, sigma, 'x', color=color)
         ax.set_ylabel('$\sigma^2$ / 2 (isotropic)')
-        ax.set_xlabel('distance [km]')
+        ax.set_xlabel('distance from center [km]')
         ax.grid()
+
+        if ref_lags is not None:
+            for d in ref_lags:
+                ax.plot([d,d],ax.get_ylim(), color='grey')
+
         return ax
 
-    def plot_percentiles(self, p, ax=None, logy=False):
+    def plot_percentiles(self, p, ax=None, logy=False, ref_lags=None):
         """
         plot percentiles
 
@@ -100,6 +110,10 @@ class Geostatistic(object):
         ax.set_xlabel('distance [km]')
         ax.grid()
         ax.legend(loc='upper left', prop={'size': 10}, ncol=3)
+        if ref_lags is not None:
+            for d in ref_lags:
+                ax.plot([d,d],ax.get_ylim(), color='grey')
+
         return ax
 
     def calc_percentile(self, p):
@@ -134,6 +148,8 @@ class Geostatistic(object):
         if not hasattr(self, '_distance'):
             self._calculate_distance()
         m = (self._distance >= lb) & (self._distance < ub)
+        if m.sum() == 0:
+            return None
         o = self.x.data[m].flatten()
         if isinstance(o, np.ma.core.MaskedArray):
             o = o.data[~o.mask]  # ensure that nparray is returned
@@ -168,3 +184,57 @@ class Geostatistic(object):
         if not hasattr(self, 'lon_center'):
             raise ValueError('ERROR: You need to specify first the center position!')
         self._distance = self.x.distance(self.lon_center, self.lat_center) / 1000.
+
+    def get_coordinates_at_distance(self, d, N=360):
+        """
+        return an ordered list of coordinates that are closest to the
+        specified radius.
+
+        This can be used to generate e.g. a Polygon for plotting.
+        The approach is that a circle is drawn around the center location
+        and the all points with cloes radius in each direction is stored
+
+        Parameters
+        ----------
+        d : float
+            distance [km]
+        N : int
+            number of samples
+        """
+
+        if not hasattr(self, 'lon_center'):
+            raise ValueError('Missing coordinate!')
+        if not hasattr(self, 'lat_center'):
+            raise ValueError('Missing coordinate!')
+        if not hasattr(self, '_distance'):
+            self._calculate_distance()
+
+        # get closest points as preselection
+        di = np.round(self._distance-d,0).astype('int')
+        msk = di == 0
+        lons = self.x.lon[msk].flatten()
+        lats = self.x.lat[msk].flatten()
+        dist = self._distance[msk].flatten()
+
+        if len(lons) == 0:
+            return None, None
+
+        theta = np.linspace(0., 2.*np.pi, N)  # angle
+        LON = []
+        LAT = []
+        for t in theta:
+            x = self.lon_center + d*np.cos(t)
+            y = self.lat_center + d*np.sin(t)
+
+            # search for closest point
+            dd = np.sqrt((lons-x)**2. + (lats-y)**2.)
+
+            LON.append(lons[dd.argmin()])
+            LAT.append(lats[dd.argmin()])
+
+        return LON, LAT
+
+
+
+
+

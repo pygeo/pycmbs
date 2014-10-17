@@ -33,10 +33,15 @@ except:
 
 import matplotlib as mpl
 import numpy as np
+
 import matplotlib.gridspec as grd
+import matplotlib.path as mpath
+import matplotlib.patches as mpatches
+from matplotlib.collections import PatchCollection
 
 from pycmbs.data import Data
 from pycmbs.plots import ZonalPlot
+from pycmbs.polygon_utils import Polygon
 
 
 class MapPlotGeneric(object):
@@ -208,7 +213,9 @@ class MapPlotGeneric(object):
             else:
                 print('INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
 
-    def _draw_basemap(self, proj_prop=None, drawparallels=True, **kwargs):
+    def _draw_basemap(self, proj_prop=None, drawparallels=True, vmin_polygons=None, vmax_polygons=None, **kwargs):
+        """
+        """
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
@@ -224,9 +231,17 @@ class MapPlotGeneric(object):
 
         self.__basemap_ancillary(the_map, drawparallels=drawparallels)
 
+        # add polygons to map
         if self.polygons is not None:
-            for p in self.polygons:
-                self._add_single_polygon_basemap(the_map, p)
+            if False:  # individual polygons
+                for p in self.polygons:
+                    self._add_single_polygon_basemap(the_map, p)
+            else:  # plot all polygons at once
+                self._add_polygons_as_collection_basemap(the_map, vmin=vmin_polygons, vmax=vmax_polygons)
+
+    def _add_polygons_as_collection_basemap(self, plot_handler, **kwargs):
+        collection = self._polygons2collection(plot_handler=plot_handler, **kwargs)
+        self._add_collection(collection)
 
     def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
         """
@@ -254,11 +269,33 @@ class MapPlotGeneric(object):
         mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
         self.pax.add_patch(mapboundary)
 
-    def _draw_cartopy(self, proj_prop=None, **kwargs):
+    # convert normal axis to GeoAxis
+    def _ax2geoax(self, ax, ccrs_obj):
+        """
+        This routine converts a given matplotlib axis to a GeoAxis.
+        It is ensured that the axis has the same position and size.
+
+        Parameters
+        ----------
+        ax : axis
+            matplotlib axis to be modified
+        ccrs_obj : cartopy.crs
+            reference system object
+
+        Example
+        -------
+        ax2 = _ax2geoax(ax2, ccrs.Robinson())
+        """
+        b = ax.get_position()
+        rect = [b.x0, b.y0, b.width, b.height]
+        ax.set_visible(False)
+        return ax.figure.add_axes(rect, label="pax", projection=ccrs_obj)
+
+    def _draw_cartopy(self, proj_prop=None, vmin_polygons=None, vmax_polygons=None, **kwargs):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
-        if proj_prop['projection'] == 'robin':
+        if proj_prop['projection'] in ['robin','TransverseMercator', 'mercator']:
             pass
         else:
             raise ValueError('Unsupported projection type')
@@ -268,29 +305,21 @@ class MapPlotGeneric(object):
         lon = self.x.lon
         lat = self.x.lat
 
-        # convert normal axis to GeoAxis
-        def _ax2geoax(ax, ccrs_obj):
-            """
-            This routine converts a given matplotlib axis to a GeoAxis.
-            It is ensured that the axis has the same position and size.
+        if proj_prop['projection'] == 'robin':
+            act_ccrs = ccrs.Robinson()
+        elif proj_prop['projection'] == 'TransverseMercator':
+            act_ccrs = ccrs.TransverseMercator(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
+        elif proj_prop['projection'] == 'mercator':
+            if 'extent' in proj_prop.keys():
+                ymin = proj_prop['extent']['ymin']
+                ymax = proj_prop['extent']['ymax']
+            else:
+                raise ValueError('Need to specify extent!')
+            act_ccrs = ccrs.Mercator(central_longitude=proj_prop.pop('central_longitude', 0.), min_latitude=ymin, max_latitude=ymax)
+        else:
+            raise ValueError('Unsupported projection')
 
-            Parameters
-            ----------
-            ax : axis
-                matplotlib axis to be modified
-            ccrs_obj : cartopy.crs
-                reference system object
-
-            Example
-            -------
-            ax2 = _ax2geoax(ax2, ccrs.Robinson())
-            """
-            b = ax.get_position()
-            rect = [b.x0, b.y0, b.width, b.height]
-            ax.set_visible(False)
-            return ax.figure.add_axes(rect, label="pax", projection=ccrs_obj)
-
-        self.pax = _ax2geoax(self.pax, ccrs.Robinson())
+        self.pax = self._ax2geoax(self.pax, act_ccrs)
 
         # add cyclic coordinates if possible
         if self.x._equal_lon():
@@ -304,24 +333,156 @@ class MapPlotGeneric(object):
                 Z = Z1
 
         # plot and ancillary plots
-        self.pax.set_global()  # ensure global plot
+        if 'extent' in proj_prop.keys():
+            if proj_prop['projection'] == 'mercator':
+                pass
+            else:
+                xmin = proj_prop['extent']['xmin']
+                xmax = proj_prop['extent']['xmax']
+                ymin = proj_prop['extent']['ymin']
+                ymax = proj_prop['extent']['ymax']
+
+                self.pax.set_extent([xmin, xmax, ymin, ymax])
+        else:
+            self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
-        self.pax.gridlines()
+        self.pax.gridlines()  #draw_labels=kwargs.pop('draw_labels', True))
 
         # plot polygons
         if self.polygons is not None:
-            for p in self.polygons:
-                self._add_single_polygon_cartopy(p)
+            if False:  # plot all polygons individually
+                for p in self.polygons:
+                    self._add_single_polygon_cartopy(p)
+            else:  # all polygons as collection
+                self._add_polygons_as_collection_cartopy(act_ccrs, vmin=vmin_polygons, vmax=vmax_polygons)
 
-    def _add_single_polygon_cartopy(self, p, color='red', linewidth=1):
+    def _add_collection(self, collection):
+        if self.backend == 'imshow':
+            raise ValueError('Collections not tested yet with backend IMSHOW')
+        elif self.backend == 'cartopy':
+            self.pax.add_collection(collection)
+        elif self.backend == 'basemap':
+            self.pax.add_collection(collection)
+        else:
+            raise ValueError('INVALID backend!')
+
+    def _add_polygons_as_collection_cartopy(self, plot_handler, **kwargs):
+        """
+        add polygons as collection
+        """
+        collection = self._polygons2collection(plot_handler=plot_handler, **kwargs)
+        self._add_collection(collection)
+
+    def _polygons2collection(self, vmin=None, vmax=None, color='red', cmap='jet', plot_handler=None):
+        """
+        generate collection from list of polygons
+
+        Parameters
+        ----------
+        color : str
+            color for edges of polygons
+        vmin : float
+            minimum for scaling
+        vmax : float
+            maximum for scaling
+        cmap : str, colormap object
+            colormap specification
+        """
+
+        if plot_handler is None:
+            raise ValueError('No plotting handler provided!')
+
+        Path = mpath.Path
+        patches = []
+        pdata = np.ones(len(self.polygons)) * np.nan
+
+        cnt = 0
+
+        def _get_codes(Path, n):
+            """
+            specify how vertices are interconnected (here simple connection by lines)
+            """
+            codes = [Path.MOVETO]
+            for i in xrange(n-1):
+                codes.append(Path.LINETO)
+            return codes
+
+
+        for p in self.polygons:
+
+            # convert lat/lon to map coordinates
+            x, y = self._get_map_coordinates(p._xcoords(), p._ycoords(), plot_handler=plot_handler)
+            x.append(x[0])
+            y.append(y[0])
+            verts = np.asarray([x, y]).T
+
+            codes = _get_codes(Path, len(verts))
+
+            # construct object and append to library of objects
+            path = mpath.Path(verts, codes, closed=True)
+            patches.append(mpatches.PathPatch(path))
+
+            # store data information
+            if p.value is not None:
+                pdata[cnt] = p.value
+
+            cnt += 1
+
+        pdata = np.asarray(pdata)
+        pdata = np.ma.array(pdata, mask=np.isnan(pdata))
+
+        # generate collection
+        if vmin is None:
+            vmin = pdata.min()
+        if vmax is None:
+            vmax = pdata.max()
+
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        collection = PatchCollection(patches, cmap=cmap, norm=norm, alpha=1., match_original=False, edgecolors=color)
+        collection.set_array(pdata)
+
+        return collection
+
+    def _get_map_coordinates(self, lons, lats, plot_handler=None):
+        if self.backend == 'imshow':
+            print ValueError('Not implemented for backend IMSHOW')
+        elif self.backend == 'basemap':
+            if plot_handler is None:
+                raise ValueError('ERROR: no basemap handler provided!')
+            x, y = plot_handler(lons, lats)
+            return list(x), list(y)
+        elif self.backend == 'cartopy':
+            X = plot_handler.transform_points(ccrs.PlateCarree(), lons, lats)  # gives an array (N, 3) with x,y,z as columns
+            x = X[:,0]
+            y = X[:,1]
+            return list(x), list(y)
+        else:
+            raise ValueError('Invalid backend!')
+
+    def _add_single_polygon_cartopy(self, p0, color='red', linewidth=1):
         """
         add a polygon to a map
+
+        Parameters
+        ----------
+        p : Polygon, dict
+            this is a Polygon object from polygon_utils or a dictionary
+            if a dictionary is provided, this needs to have the following structure
+            {'id' : int, 'polygon' : Polygon, 'color' : str}
+            This allows to specifiy properties for each polygon individually
         """
         from matplotlib.patches import Polygon as mplPolygon
 
+        if isinstance(p0, dict):
+            p = p0['polygon']
+            color = p0['color']
+        else:
+            p = p0
+
         lons = list(p._xcoords())
         lats = list(p._ycoords())
+
         lons.append(lons[0])
         lats.append(lats[0])
         lons = np.asarray(lons)
@@ -621,7 +782,7 @@ class SingleMap(MapPlotGeneric):
              ctick_prop=None,
              vmin=None, vmax=None, nclasses=10,
              title=None, proj_prop=None, drawparallels=True,
-             titlefontsize=14, polygons=None):
+             titlefontsize=14, polygons=None, vmin_polygons=None, vmax_polygons=None):
         """
         routine to plot a single map
 
@@ -648,6 +809,7 @@ s
             list of Polygon object of e.g. a regions to draw
         """
 
+
         if colorbar_orientation not in ['vertical', 'horizontal']:
             raise ValueError('Invalid colorbar orientation')
 
@@ -670,9 +832,9 @@ s
 
         # do plot using current backend
         if self.backend == 'basemap':
-            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels)
+            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         elif self.backend == 'cartopy':
-            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop)
+            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         else:
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
 
@@ -687,6 +849,56 @@ s
 
         # save data if required
         self.save()
+
+    def plot_around_coordinate(self, clon, clat, radius, show_center=True, **kwargs):
+        """
+        generate map plot around a specific location
+        The projection properties are ignored if they are provided
+        in kwargs
+
+        Parameters
+        ----------
+        clon : float
+            center longitude coordinate [deg]
+        clat : float
+            center latitude coordinate [deg]
+        show_center : bool
+            show center coordinates by a marker
+        """
+
+        # update projection parameters
+        proj_prop = kwargs.pop('proj_prop', None)
+        proj_prop = {}
+
+        xmin = clon - radius  # todo how to handle across dateline or near the poles
+        xmax = clon + radius
+        ymin = clat - radius
+        ymax = clat + radius
+
+        proj_prop.update({'projection' : 'TransverseMercator'})
+        proj_prop.update({'central_longitude' : clon})
+        proj_prop.update({'central_latitude' : clat})
+        proj_prop.update({'extent' : {'xmin' : xmin, 'xmax' : xmax, 'ymin' : ymin, 'ymax' : ymax}})
+
+        # generate Polygon to plot center location that gives a circle
+        if show_center:
+            theta = np.linspace(0., 2.*np.pi, 360)
+            r = 0.02 * radius  # size as function of overall radius
+            x = clon + r*np.cos(theta)
+            y = clat + r*np.sin(theta)
+            P = Polygon(1, zip(x,y))
+
+        if 'polygons' in kwargs.keys():
+            polygons = kwargs.pop('polygons')
+            if polygons is None:
+                polygons = [P]
+            else:
+                polygons.append(P)
+        else:
+            polygons = [P]
+
+        self.plot(proj_prop=proj_prop, polygons=polygons, **kwargs)
+
 
     def _adjust_figure(self):
         """
@@ -922,7 +1134,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
              vmin=None, vmax=None, proj='robin', lon_0=0., lat_0=0.,
              cticks=None, cticklabels=None, ax=None,
              drawparallels=True, overlay=None, titlefontsize=14,
-             zonal_timmean=None, region=None, savegraphicfile=None, return_plot_handler=False):
+             zonal_timmean=None, region=None, savegraphicfile=None, return_plot_handler=False, logplot=False):
     """
     This is a wrapper function to replace the old map_plot routine
     It provides a similar interface, but makes usage of the new
@@ -950,6 +1162,9 @@ def map_plot(x, use_basemap=False, show_zonal=False,
         backend = 'basemap'
     else:
         backend = 'imshow'
+
+    if logplot:
+        raise ValueError('Logplot option not supported yet!')
 
     proj_prop = {'projection': proj, 'lon_0': lon_0, 'lat_0': lat_0}
     ctick_prop = {'ticks': cticks, 'labels': cticklabels}

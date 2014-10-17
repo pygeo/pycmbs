@@ -9,6 +9,7 @@ import numpy as np
 from pycmbs.polygon_utils import Polygon
 from polygon_utils import fast_point_in_poly
 
+
 class Raster(object):
 
     def __init__(self, lon, lat):
@@ -104,12 +105,9 @@ class Raster(object):
                             raise ValueError('Overlapping polygons not supported yet!')
                     else:
                         pass
-
         elif method == 'faster':  # an alternative implementation. This is however not necessarily faster than 'full'
             print 'Using CYTHON method for rasterization!'
             self.mask = fast_point_in_poly(self.lon, self.lat, P)
-
-
         elif method == 'fast':
             xmin, xmax, ymin, ymax = P.bbox()
             # determine bounding box very roughly NOT THAT THIS MIGHT BE NOT CORRECT

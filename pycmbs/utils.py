@@ -74,6 +74,9 @@ class Dict2TXT(object):
         keys = d.keys()
         keys.sort()
 
+        if len(keys) == 0:
+            return '', ''
+
         for k in keys:
             if parent == '':
                 pstr = str(k)
@@ -89,7 +92,20 @@ class Dict2TXT(object):
                     newtag = newtag[1:]
                 h += newtag
                 s += str(d[k])
+
             s += self.fieldsep
             h += self.fieldsep
 
-        return h, s
+        def _remove_trailing_sep(S, sep):
+            # remove multiple separators at the end
+            if S[-1:] == sep:
+                S = S[:-1]
+                S = _remove_trailing_sep(S, sep)
+            return S
+
+
+
+        ho = _remove_trailing_sep(h, self.fieldsep)
+        so = _remove_trailing_sep(s, self.fieldsep)
+
+        return ho, so

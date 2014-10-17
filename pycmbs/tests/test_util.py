@@ -60,6 +60,10 @@ class TestStatistic(TestCase):
         value_check(d[1])
         value_check(d[2])
 
+    def test_convert(self):
+        D = Dict2TXT(self.x)
+        with self.assertRaises(ValueError):
+            D._convert([1,2,3])
 
 
 

@@ -25,6 +25,8 @@ import tempfile
 
 from nose.tools import assert_raises
 
+import matplotlib.pyplot as plt
+
 
 
 class TestData(unittest.TestCase):
@@ -1069,9 +1071,46 @@ class TestData(unittest.TestCase):
             self.D.num2date(t)
 
     def test_save_ascii(self):
+        self.D = Data(None, None)
+        self.D._init_sample_object(nt=10, ny=1, nx=1)
         self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
         self.assertTrue(os.path.exists(self._tmpdir + os.sep + 'testexport.txt'))
         os.remove(self._tmpdir + os.sep + 'testexport.txt')
+
+    def test_save_ascii_not_time(self):
+        self.D = Data(None, None)
+        self.D._init_sample_object(nt=10, ny=1, nx=1)
+        self.D.time = None
+        with self.assertRaises(ValueError):
+            self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
+
+    def test_save_ascii_invalid_geometry(self):
+        self.D = Data(None, None)
+        self.D._init_sample_object(nt=10, ny=1, nx=1)
+        self.D.data = np.random.random((self.D.nt,5,6,7))
+        with self.assertRaises(ValueError):
+            self.D._save_ascii(self._tmpdir + os.sep + 'testexport.txt', delete=True)
+
+    def test_arr2string(self):
+
+        x = Data(None, None)
+        x._init_sample_object(nt=3, ny=1, nx=2)
+
+        # save string in ASCII file and then reload this
+        s = x._arr2string(x.data[1,:,:], prefix='')
+        fname = tempfile.mktemp(suffix='.txt')
+        F = open(fname, 'w')
+        F.write(s)
+        F.close()
+        d = np.loadtxt(fname, delimiter='\t')
+
+        self.assertEqual(d[0,0], x.lon[0,0])
+        self.assertEqual(d[1,0], x.lon[0,1])
+        self.assertEqual(d[0,1], x.lat[0,0])
+        self.assertEqual(d[1,1], x.lat[0,1])
+
+        self.assertAlmostEqual(d[0,2], x.data[1,0,0], 5)
+        self.assertAlmostEqual(d[1,2], x.data[1,0,1], 5)
 
     def test_save_ascii_FileExistingAlreadyDelete(self):
         if not os.path.exists(self._tmpdir + os.sep + 'testexport.txt'):
@@ -2442,6 +2481,50 @@ class TestData(unittest.TestCase):
         self.assertTrue((res2.data == res6.data).all())
 
         #3) the right values have been actually masked
+
+
+    def test_get_days_per_month(self):
+
+        x = Data(None, None)
+        x._init_sample_object(nt=36, ny=100, nx=50)
+        tref = []
+        for i in xrange(12): # no leap year
+            tref.append(datetime.datetime(2001, i+1, 15))
+        for i in xrange(12):  # leap year
+            tref.append(datetime.datetime(2004, i+1, 15))
+        for i in xrange(12):  # special leap year
+            tref.append(datetime.datetime(2000, i+1, 15))
+        x.time = x.date2num(tref)
+
+        # reference days
+        dref = [31,28, 31, 30 ,31 ,30 ,31,31,30,31,30,31]
+        dref += [31,29, 31, 30 ,31 ,30 ,31,31,30,31,30,31]
+        dref += [31,29, 31, 30 ,31 ,30 ,31,31,30,31,30,31]
+
+        mlen = x._get_days_per_month()
+        for i in xrange(len(mlen)):
+            print i, len(mlen), len(dref)
+            self.assertEqual(mlen[i], dref[i])
+
+    def test_mul_tvec(self):
+        x = Data(None, None)
+        x._init_sample_object(nt=10, ny=1, nx=2)
+        xref = x.copy()
+
+        t = np.arange(10)
+
+        with self.assertRaises(ValueError):
+            x.mul_tvec(np.arange(3), copy=True)
+        with self.assertRaises(ValueError):
+            x.mul_tvec(np.random.random((10,20)), copy=True)
+
+        x.mul_tvec(t, copy=False)
+        y = xref.mul_tvec(t, copy=True)
+        for i in xrange(x.nt):
+            self.assertEqual(x.data[i,0,1], xref.data[i,0,1]*t[i])
+            self.assertEqual(y.data[i,0,1], xref.data[i,0,1]*t[i])
+
+
 
 if __name__ == '__main__':
     unittest.main()

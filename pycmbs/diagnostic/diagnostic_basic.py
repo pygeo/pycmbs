@@ -541,8 +541,10 @@ class EOF(object):
 
         D.label = label + 'EOF ' + str(k + 1).zfill(3) + ' (' + str(round(self._var[k] * 100., 2)) + '%)'  # caution: labeling is always k+1!
 
+        #~ map_plot(D, use_basemap=use_basemap, logplot=logplot, ax=ax, region=region, vmin=vmin, vmax=vmax,
+                 #~ cmap_data=cmap, title=title, contours=contours, nclasses=nclasses, levels=levels)
         map_plot(D, use_basemap=use_basemap, logplot=logplot, ax=ax, region=region, vmin=vmin, vmax=vmax,
-                 cmap_data=cmap, title=title, contours=contours, nclasses=nclasses, levels=levels)
+                 cmap_data=cmap, title=title, nclasses=nclasses)
 
     def reconstruct_data(self, maxn=None, input=None):
         """

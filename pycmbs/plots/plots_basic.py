@@ -21,7 +21,8 @@ from matplotlib import pylab
 
 from matplotlib.patches import Polygon
 import matplotlib.path as mpath
-from matplotlib.collections import PatchCollection
+from matplotlib.collections import PatchCollection, LineCollection
+import matplotlib.pylab as pl
 
 from mpl_toolkits.basemap import Basemap, shiftgrid
 from scipy import stats
@@ -820,9 +821,40 @@ class LinePlot(object):
             tick.label.set_fontsize(self.ticksize)
             tick.label.set_rotation(self.xtickrotation)
 
-#-----------------------------------------------------------------------
+    def _plot_std_bars(self, ax, x, s, color='grey'):
+        """
+        plot stdv bars; it is assumed that the timestep of the two
+        input variables is consistent.
 
-    def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, **kwargs):
+        Parameters
+        ----------
+        ax : axis
+            axis to plot to
+        x : Data
+            data to plot
+        s : Data
+            standard deviations
+        """
+
+        if x.shape != s.shape:
+            print x.shape, s.shape
+            raise ValueError('Invalid shapes!')
+
+        if x.ndim != 1:
+            raise ValueError('Currently only 1D data supported')
+
+        segments = []
+        for i in xrange(x.nt):
+            yref = x.data[i]
+            dnum = pl.date2num(x.date[i])  # the conversion using pylab is required as otherwise there is a 1-day shift! Reason seems to be that matplotlib converts the numerical value automatically using num2date()
+            xx = [dnum, dnum]
+            yy = [yref-s.data[i], yref+s.data[i]]
+            segments.append(list(zip(xx, yy)))
+        collection = LineCollection(segments, colors=color)
+        ax.add_collection(collection)
+
+
+    def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, std=None, **kwargs):
         """
         plot LinePlot data. If a spatial field is provided, this is aggregated
         using the fldmean() function of C{Data}
@@ -845,7 +877,13 @@ class LinePlot(object):
             the label of the provided C{Data} object is used
         norm_std : bool
             normalize timeseries with its stdv. This is a useful option when comparing trends of variables with different amplitudes
+        std : Data
+            standard deviation; if given, then error bars are automatically plotted
         """
+
+        if std is not None:
+            if std.shape != x.shape:
+                raise ValueError('Inconsistent shapes!')
 
         if len(x.time) > 0:
             if ax is None:
@@ -856,8 +894,14 @@ class LinePlot(object):
                 set_axiscolor = True
             if x.ndim == 1:  # if a vector already provided
                 y = x.data * 1.
+                if std is not None:
+                    top = y + std.data * 1.
+                    bot = y - std.data * 1.
             else:
                 y = x.fldmean()  # ... otherwise use fldmean() to get timeseries
+                if std is not None:
+                    raise ValueError('Spatial aggregation for errors not supported yet!')  # would need covariance structure
+
             if norm_std:
                 y /= y.std()
             if label is None:
@@ -881,6 +925,9 @@ class LinePlot(object):
 
             self.labels.append(label)
 
+            if std is not None:
+                self._plot_std_bars(ax, x, std)
+
             p = ax.plot(x.date, y, label=label, **kwargs)[0]
             self.lines.append(p)
             if self.regress:
@@ -900,9 +947,6 @@ class LinePlot(object):
             if set_ytickcolor:
                 for tl in ax.get_yticklabels():
                     tl.set_color(p.get_color())
-
-#-----------------------------------------------------------------------
-
 
 class GlobalMeanPlot(object):
     """
@@ -3351,7 +3395,7 @@ def add_nice_legend(ax, im, cmap, cticks=None, dummy=False, fontsize=8, label=No
     #todo: add option to add units
     """
 
-    print('Depreciated function')
+    #~ print('Depreciated function')
 
     # set legend aligned with plot (nice looking)
     divider = make_axes_locatable(ax)

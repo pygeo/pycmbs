@@ -14,6 +14,8 @@ from pycmbs.examples import download
 import matplotlib.pyplot as plt
 from pycmbs.diagnostic import EOF
 
+plt.close('all')
+
 air = download.get_sample_file(name='air')
 air.label = 'air temperature'
 
@@ -22,7 +24,9 @@ clim = air.get_climatology(return_object=True)
 
 # calculate EOF based on climatology because of performance issues for this example.
 E = EOF(clim)
-E.plot_EOF(0,show_coef=True, use_basemap=True)  # map_plot argument can be used here
-E.plot_EOF(1,show_coef=True, use_basemap=True)
+E.plot_EOF([0,1], use_basemap=True)  # map_plot argument can be used here
+
+#~ E.plot_EOF(0,show_coef=False, use_basemap=True)  # map_plot argument can be used here
+#~ E.plot_EOF(1,show_coef=False, use_basemap=True)
 
 plt.show()
