@@ -354,7 +354,10 @@ class MapPlotGeneric(object):
 
         print 'In mapping: Z.shape', Z.shape
 
-        self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
+        try:
+            self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
+        except:
+            print '*** WARNING: something did not work with pcolormesh plotting in mapping.py'
         self.pax.gridlines()  #draw_labels=kwargs.pop('draw_labels', True))
 
         # plot polygons
