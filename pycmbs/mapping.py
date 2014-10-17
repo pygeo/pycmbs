@@ -356,7 +356,7 @@ class MapPlotGeneric(object):
 
         # plot polygons
         if self.polygons is not None:
-            if len(polygons) > 0:
+            if len(self.polygons) > 0:
                 if False:  # plot all polygons individually
                     for p in self.polygons:
                         self._add_single_polygon_cartopy(p)
