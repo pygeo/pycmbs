@@ -306,6 +306,10 @@ class MapPlotGeneric(object):
         lon = self.x.lon
         lat = self.x.lat
 
+        if np.prod(lon.shape) == 0:  # no geometry
+            print 'ERROR: invalid shape for plotting!'
+            return
+
         if proj_prop['projection'] == 'robin':
             act_ccrs = ccrs.Robinson()
         elif proj_prop['projection'] == 'TransverseMercator':
@@ -352,11 +356,12 @@ class MapPlotGeneric(object):
 
         # plot polygons
         if self.polygons is not None:
-            if False:  # plot all polygons individually
-                for p in self.polygons:
-                    self._add_single_polygon_cartopy(p)
-            else:  # all polygons as collection
-                self._add_polygons_as_collection_cartopy(act_ccrs, vmin=vmin_polygons, vmax=vmax_polygons)
+            if len(polygons) > 0:
+                if False:  # plot all polygons individually
+                    for p in self.polygons:
+                        self._add_single_polygon_cartopy(p)
+                else:  # all polygons as collection
+                    self._add_polygons_as_collection_cartopy(act_ccrs, vmin=vmin_polygons, vmax=vmax_polygons)
 
     def _add_collection(self, collection):
         if self.backend == 'imshow':
