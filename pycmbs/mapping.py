@@ -352,7 +352,7 @@ class MapPlotGeneric(object):
             self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
 
-        print 'In mapping: Z.shape', Z.shape
+        #~ print 'In mapping: Z.shape', Z.shape
 
         try:
             self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
