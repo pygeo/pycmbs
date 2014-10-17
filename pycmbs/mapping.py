@@ -351,6 +351,9 @@ class MapPlotGeneric(object):
         else:
             self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
+
+        print 'In mapping: Z.shape', Z.shape
+
         self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
         self.pax.gridlines()  #draw_labels=kwargs.pop('draw_labels', True))
 
