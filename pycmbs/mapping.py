@@ -358,6 +358,7 @@ class MapPlotGeneric(object):
             self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
         except:
             print '*** WARNING: something did not work with pcolormesh plotting in mapping.py'
+            self.im = None
         self.pax.gridlines()  #draw_labels=kwargs.pop('draw_labels', True))
 
         # plot polygons
@@ -853,6 +854,9 @@ s
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         else:
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
+
+        if self.im is None:  # in case some error happend with plotting
+            return
 
         # colorbar
         if self.show_colorbar:
