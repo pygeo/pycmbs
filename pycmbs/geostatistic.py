@@ -192,15 +192,25 @@ class Geostatistic(object):
             f = ax.figure
         return f, ax
 
-    def _calculate_distance(self):
+    def _calculate_distance(self, data=None):
         """
         calculate distance [km]
+
+        Parameters
+        ----------
+        data : Data
+            if given, then this object is taken for distance calculations instead of self.x
         """
         if not hasattr(self, 'lon_center'):
             raise ValueError('ERROR: You need to specify first the center position!')
-        self._distance = self.x.distance(self.lon_center, self.lat_center) / 1000.
+        if data is None:
+            ref = self.x
+        else:
+            ref = data
 
-    def get_coordinates_at_distance(self, d, N=360):
+        self._distance = ref.distance(self.lon_center, self.lat_center) / 1000.
+
+    def get_coordinates_at_distance(self, d, N=360, dist_threshold=None, oversampling_factor=None):
         """
         return an ordered list of coordinates that are closest to the
         specified radius.
@@ -215,20 +225,45 @@ class Geostatistic(object):
             distance [km]
         N : int
             number of samples
+        dist_threshold : float
+            threshold [km] to identify closest points
+        oversampling_factor : float
+            if None, then nothing happens. If > 1. then the distance
+            calculations will be done on an oversampled grid. This allows
+            to plot e.g. nicer overlays (e.g. circles) with the data
         """
 
         if not hasattr(self, 'lon_center'):
             raise ValueError('Missing coordinate!')
         if not hasattr(self, 'lat_center'):
             raise ValueError('Missing coordinate!')
-        if not hasattr(self, '_distance'):
-            self._calculate_distance()
+        if dist_threshold is None:
+            raise ValueError('You need to provide a distance threshold!')
+
+        if oversampling_factor is None:
+            refobj = self.x
+            if not hasattr(self, '_distance'):
+                self._calculate_distance()
+        else:
+            if oversampling_factor < 1.:
+                raise ValueError('Oversampling factor needs to be > 1!')
+            refobj = self.x.copy()
+            ny = int(refobj.ny*oversampling_factor)
+            nx = int(refobj.nx*oversampling_factor)
+
+            lonn = np.linspace(refobj.lon.min(), refobj.lon.max(), nx)
+            latn = np.linspace(refobj.lat.min(), refobj.lat.max(), ny)
+            refobj.lon, refobj.lat = np.meshgrid(lonn, latn)
+
+            self._calculate_distance(data=refobj)
 
         # get closest points as preselection
-        di = np.round(self._distance-d,0).astype('int')
-        msk = di == 0
-        lons = self.x.lon[msk].flatten()
-        lats = self.x.lat[msk].flatten()
+        #di = np.round(np.abs(self._distance-d),0).astype('int')
+        di = np.abs(self._distance-d)
+        #msk = di == 0
+        msk = di < dist_threshold
+        lons = refobj.lon[msk].flatten()
+        lats = refobj.lat[msk].flatten()
         dist = self._distance[msk].flatten()
 
         if len(lons) == 0:
