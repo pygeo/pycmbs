@@ -204,6 +204,7 @@ class MapPlotGeneric(object):
         if self.stat_type not in ['mean', 'median', 'sum']:
             raise ValueError('Invalid statistic type: %s' % self.stat_type)
         if self.backend not in installed_backends:
+            print installed_backends
             raise ValueError('Invalid plotting backend: %s' % self.backend)
         if self.backend == 'basemap':
             if 'cartopy' in installed_backends:
