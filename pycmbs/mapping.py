@@ -409,7 +409,12 @@ class MapPlotGeneric(object):
             return codes
 
 
-        for p in self.polygons:
+        for p0 in self.polygons:
+
+            if isinstance(p0, dict):
+                p = p0['polygon']
+            else:
+                p = p0
 
             # convert lat/lon to map coordinates
             x, y = self._get_map_coordinates(p._xcoords(), p._ycoords(), plot_handler=plot_handler)
@@ -794,8 +799,6 @@ class SingleMap(MapPlotGeneric):
             dictionary for projection properties. Is needed if projected
             maps shall be drawn. The projection parameters given need
             to be compliant with the backend used for plotting
-
-
         ctick_prop : dict
             dictionary that specifies the properties for the colorbar
             ticks. Currently the following keys are supported:
