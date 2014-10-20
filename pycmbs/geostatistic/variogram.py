@@ -7,26 +7,72 @@ from scipy.optimize import minimize
 from scipy.spatial.distance import pdist, squareform
 
 
-
 class Variogram(object):
 
     def __init__(self, **kwargs):
         pass
 
-    def _semivariance(self, x, lon, lat, h, dh):
+    def _orthodrome(self, lon1_deg, lat1_deg, lon2_deg, lat2_deg, radius=6371000.):
+        """
+        calculate the orthodrome between two points with coordinates
+        given in radians
+        http://en.wikipedia.org/wiki/Great-circle_distance
+        see also CDO code in file Gridcell.c
+
+        @todo: how to deal with latitudes across the dateline ?
+
+        Note that the same routine is also implemented for Data object at the moment!!
+
+        Parameters
+        ----------
+        lon/lat : float
+            coordinates of two points [degree]
+        radius : float
+            Earth radius (sphere) in [m]
+
+        """
+
+        lat1 = np.deg2rad(lat1_deg)
+        lon1 = np.deg2rad(lon1_deg)
+        lat2 = np.deg2rad(lat2_deg)
+        lon2 = np.deg2rad(lon2_deg)
+
+        return np.arccos(np.sin(lat1) * np.sin(lat2) + np.cos(lat1)
+                         * np.cos(lat2) * np.cos(np.abs(lon2 - lon1))) * radius
+
+
+    def _paired_distance(self, lon, lat):
+        """
+        calculate paired distance between data points [km]
+        returns a matrix with squared distances
+        """
+
+        assert False
+
+        # convert distance threshold to degree
+        #~ h_deg = h_km
+#~
+#~
+        #~ 1deg == 111.km *cos(lat)
+
+        #~ print 'WARNING: still km calculation needed here !!!'
+
+        return squareform( pdist( np.vstack([lon, lat]).T, 'eucledian' ) )
+
+
+    def _semivariance(self, x, lon, lat, h_km, dh_km):
         """
         calculate semivariogram for a single lag
 
         Parameters
         ----------
-        h : float
-            distance lag
-        dh : float
-            buffer zone for distance lag h
+        h_km : float
+            distance lag [km]
+        dh_km : float
+            buffer zone for distance lag h [km]
         """
 
         assert (x.ndim == 1)
-
 
         N = len(x)
 
@@ -34,16 +80,19 @@ class Variogram(object):
         # TODO: this is calculating only Eucledian distance at the moment!
         # TODO replace this by proper calculation of orthodrome!
 
-        pd = squareform( pdist( np.vstack([lon, lat]).T, 'eucledian' ) )
+        pd = self._paired_distance(lon, lat)
         assert pd.shape[0] == N
 
         # calculate semivariance
         Z = list()
         for i in xrange(N):  # TODO: do this more efficient (e.g. only looking for points which are within distance anyway)
             for j in xrange(i+1,N):
-                if (pd[i,j] >= h-dh) and (pd[i,j] <= h+dh):
+                if (pd[i,j] >= h_km-dh_km) and (pd[i,j] <= h_km+dh_km):
                     Z.append((x[i]-x[j])**2.)
-        return np.sum(Z) / (2. * len(Z))
+        if len(Z) > 0:
+            return np.sum(Z) / (2. * len(Z))
+        else:
+            return np.nan
 
 
     def semivariogram(self, x, lon, lat, lags):
@@ -73,7 +122,7 @@ class Variogram(object):
 
         gamma = np.ones(len(lags)) * np.nan
         for i in xrange(len(lags)):
-            gamma[i] = self._semivariance(x, lon, lat, lags[i])
+            gamma[i] = self._semivariance(x, lon, lat, float(lags[i]))
         return lags, gamma
 
 class SphericalVariogram(Variogram):

@@ -10,10 +10,12 @@ from unittest import TestCase
 import unittest
 
 from nose.tools import assert_raises
-from pycmbs.geostatistic import Geostatistic
+
 
 import numpy as np
+
 from pycmbs.data import Data
+from pycmbs.geostatistic import Geostatistic, Variogram
 
 
 class TestData(unittest.TestCase):
@@ -108,9 +110,43 @@ class TestData(unittest.TestCase):
         lon, lat = G.get_coordinates_at_distance(2.5, dist_threshold=1.)
 
 
-    def test_variogram_calculation(self):
-        assert False
+    def test_variogram_semivariance(self):
 
+        V = Variogram()
+        #~ V._semivariance(self, x, lon, lat, h_km, dh_km)
+        #~ _semivariance(self, x, lon, lat, h, dh):
+
+        #~ assert False
+
+    def test_variogram_paired_distance(self):
+        V = Variogram()
+        #~ lon =
+        #~ lat =
+        # orthodrome calculations
+        #~ pd = V._paired_distance()
+        #~ self.assertEqual(...)
+
+    def test_semivariogram_calculation(self):
+        V = Variogram()
+        x = np.random.random(100)
+        lon = np.random.random(100)
+        lat = np.random.random(100)
+        lags = [1,2,3,4]
+        #~ V.semivariogram(x, lon, lat, lags)
+
+    def test_variogram_orthodrome(self):
+        # example distance Berlin-Tokio
+        # http://de.wikipedia.org/wiki/Orthodrome
+
+        lat_berlin = 52.517
+        lon_berlin = 13.4
+        lat_tokio = 35.70
+        lon_tokio = 139.767
+
+        V = Variogram()
+        r = V._orthodrome(lon_tokio, lat_tokio, lon_berlin, lat_berlin, radius=6370.*1000.)
+        print r, r-8918000.
+        self.assertTrue(abs(r-8918000.)<1000.)
 
 
 
