@@ -47,42 +47,17 @@ class Geostatistic(object):
 
         # calculate distance
         d = self.x.distance(self.lon_center, self.lat_center, earth_radius=6371.) / 1000.
-        #~ plt.close('all')
-        #~ plt.imshow(d)
-        #~ plt.colorbar()
-
-
-        #~ d = self._get_data_distance(0., self.maxdist)
         msk = d < self.maxdist
-
-        #~ print msk.sum()
-        #~ print self.lon_center, self.lat_center
-        #~ print d.shape
-        #~ print d.min(), d.max()
-        #~ print self.maxdist
-
         x = self.x.copy()
-
-        #~ lon, lat, data = self.x.get_valid_data()
-        #~ print 'Valid data: ', len(lon), lon.shape
-
         del self.x
 
         x._apply_mask(msk)
         self.x = x.cut_bounding_box(return_object=True)
 
-        #~ print self.x.shape
         lon, lat, data = self.x.get_valid_data()
-        #~ print 'Valid data: ', len(lon), lon.shape
-
-
-        #~ stop
-
-
-        #~ self.x = x.copy()
         del x
 
-        self._distfiltered=True
+        self._distfiltered = True
 
     def _check(self):
         if np.any(np.diff(self.lags) < 0.):

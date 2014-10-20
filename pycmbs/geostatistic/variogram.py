@@ -47,26 +47,26 @@ class Variogram(object):
                          * np.cos(lat2) * np.cos(np.abs(lon2 - lon1))) * radius
 
 
-    def _paired_distance(self, lon, lat, radius=6371.):
-        """
-        calculate paired distance between data points [km]
-        returns a matrix with squared distances [km]
-        """
-
-        assert len(lon) == len(lat)
-        N = len(lon)
-
-        pd = np.zeros((N,N))*np.nan
-
-        for i in xrange(N):
-            for j in xrange(i+1,N):
-                d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)
-                pd[i,j] = d
-                pd[j,i] = d
-        for i in xrange(N):
-            pd[i,i] = 0.
-
-        return pd
+    #~ def _paired_distance(self, lon, lat, radius=6371.):
+        #~ """
+        #~ calculate paired distance between data points [km]
+        #~ returns a matrix with squared distances [km]
+        #~ """
+#~
+        #~ assert len(lon) == len(lat)
+        #~ N = len(lon)
+#~
+        #~ pd = np.zeros((N,N))*np.nan
+#~
+        #~ for i in xrange(N):
+            #~ for j in xrange(i+1,N):
+                #~ d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)
+                #~ pd[i,j] = d
+                #~ pd[j,i] = d
+        #~ for i in xrange(N):
+            #~ pd[i,i] = 0.
+#~
+        #~ return pd
 
 
     def _semivariance(self, x, lon, lat, h_km, dh_km, radius=6371.):
@@ -86,13 +86,6 @@ class Variogram(object):
         assert (x.ndim == 1)
 
         N = len(x)
-
-        # calculate pairwise distance
-        # TODO: this is calculating only Eucledian distance at the moment!
-        # TODO replace this by proper calculation of orthodrome!
-
-        #~ pd = self._paired_distance(lon, lat)
-        #~ assert pd.shape[0] == N
 
         # calculate semivariance
         Z = list()
