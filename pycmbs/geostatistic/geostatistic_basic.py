@@ -7,11 +7,13 @@ COPYRIGHT.md
 """
 
 from pycmbs.data import Data
+from variogram import Variogram
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 class Geostatistic(object):
-    def __init__(self, x, range_bins=None):
+    def __init__(self, x, lags=None):
         """
         Geostatistical calculations on a data object
 
@@ -23,16 +25,25 @@ class Geostatistic(object):
             list of bins to perform analysis
         """
         assert isinstance(x, Data)
-        if range_bins is None:
+        if lags is None:
             raise ValueError('ERROR: you need to specifiy the range bins!')
         self.x = x
-        self.range_bins = np.asarray(range_bins)
+        self.lags = np.asarray(lags)
         self._check()
         self.statistic = {}
 
     def _check(self):
-        if np.any(np.diff(self.range_bins) < 0.):
+        if np.any(np.diff(self.lags) < 0.):
             raise ValueError('Bins are not in ascending order!')
+
+        # ensure qual binning  of lags
+        di = np.diff(self.lags)
+        if np.any(di != di[0]):
+            raise ValueError('Only equal bins currently supported"')
+        if np.any(np.diff(self.lags) < 0.):
+            raise ValueError('Bins are not in ascending order!')
+
+
         if self.x.data.ndim != 2:
             raise ValueError('Currently only support for 2D data')
 
@@ -129,7 +140,7 @@ class Geostatistic(object):
         """
         p [0 ... 1]
         """
-        bounds = self.range_bins
+        bounds = self.lags
         r = []
         v = []
         for b in bounds:
@@ -169,18 +180,38 @@ class Geostatistic(object):
     def calc_semivariance(self):
         """
         calculate semivariance for selected range bins
+
+        Parameters
+        ----------
+        maxdist : float
+            maximum distance [km]
+
         """
-        bounds = self.range_bins
-        r = []
-        v = []
-        for b in bounds:
-            d = self._get_data_distance(0., b)
-            if d is None:
-                r.append(b)
-                v.append(np.nan)
-            else:
-                r.append(b)
-                v.append(0.5 * np.ma.var(d))  # semivariance
+        assert self.x.ndim == 2
+
+
+        # get flattened data
+        lon, lat, data = self.x.get_valid_data()
+
+        V = Variogram()
+        dlag = self.lags[1]-self.lags[0]  # assume equal lag binning
+        r, v = V.semivariogram(data, lon, lat, self.lags, dlag)
+
+        if False:  # old buggy implementation
+            bounds = self.range_bins
+            r = []
+            v = []
+            assert False
+
+            for b in bounds:
+                d = self._get_data_distance(0., b)
+                if d is None:
+                    r.append(b)
+                    v.append(np.nan)
+                else:
+                    r.append(b)
+                    v.append(0.5 * np.ma.var(d))  # semivariance
+
         o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
         self.statistic.update({'semivariogram': o})
 

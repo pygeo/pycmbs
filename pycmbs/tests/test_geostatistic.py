@@ -22,7 +22,8 @@ class TestData(unittest.TestCase):
 
     def setUp(self):
         D = Data(None, None)
-        D.data = np.random.random((55, 20))
+        tmp = np.random.random((55, 20))
+        D.data = np.ma.array(tmp, mask=tmp!=tmp)
         lon = np.arange(-10.,10.)  # -10 ... 9
         lat = np.arange(-60., 50., 2.)  # -60 ... 48
         D.lon, D.lat = np.meshgrid(lon, lat)
@@ -45,7 +46,7 @@ class TestData(unittest.TestCase):
         y = self.x.copy()
         y.data = np.random.random((10,20,30))
         with self.assertRaises(ValueError):  # missing range bins
-            G = Geostatistic(self.x, range_bins = np.random.random(10))
+            G = Geostatistic(self.x, lags = np.random.random(10))
 
         y = self.x.copy()  # missing 3D
         y.data = np.random.random((10,20,30))
@@ -54,33 +55,33 @@ class TestData(unittest.TestCase):
 
         bins = np.random.random(10)
         with self.assertRaises(ValueError):
-            G = Geostatistic(self.x, range_bins=bins)
+            G = Geostatistic(self.x, lags=bins)
         bins = np.arange(10)
-        G = Geostatistic(self.x, range_bins=bins)
+        G = Geostatistic(self.x, lags=bins)
 
     def test_plot(self):
         bins = np.arange(3) / 6.
-        G = Geostatistic(self.x, range_bins=bins)
+        G = Geostatistic(self.x, lags=bins)
         G.set_center_position(0., 0.)
         G.plot_semivariogram()
 
     def test_percentiles(self):
         bins = np.arange(10)
-        G = Geostatistic(self.x, range_bins=bins)
+        G = Geostatistic(self.x, lags=bins)
         G.set_center_position(5., -20.)
         p = [0.05, 0.1, 0.5]
         G.plot_percentiles(p, ax=None, logy=False, ref_lags=None)
 
     def test_set_center(self):
         bins = np.arange(10)
-        G = Geostatistic(self.x, range_bins=bins)
+        G = Geostatistic(self.x, lags=bins)
         G.set_center_position(5., -20.)
         self.assertEqual(G.lon_center, 5.)
         self.assertEqual(G.lat_center, -20.)
 
     def test_center_pos(self):
         bins = np.arange(10)
-        G = Geostatistic(self.x, range_bins=bins)
+        G = Geostatistic(self.x, lags=bins)
         # forgot to set center
         with self.assertRaises(ValueError):
             G._get_center_pos()
@@ -102,7 +103,7 @@ class TestData(unittest.TestCase):
 
     def test_get_coordinate_at_distance(self):
         bins = np.arange(10)
-        G = Geostatistic(self.x, range_bins=bins)
+        G = Geostatistic(self.x, lags=bins)
 
         with self.assertRaises(ValueError):  # missing center
             lon, lat = G.get_coordinates_at_distance(2.5, dist_threshold=1.)

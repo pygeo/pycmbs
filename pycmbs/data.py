@@ -3766,8 +3766,6 @@ class Data(object):
         else:
             raise ValueError('Unsupported dimension!')
 
-#-----------------------------------------------------------------------
-
     def get_valid_data(self, return_mask=False, mode='all'):
         """
         this routine calculates from the masked array
@@ -3787,9 +3785,6 @@ class Data(object):
             'one': at least a single dataset needs to be valid
         """
 
-        n = len(self.time)
-
-        # vectorize the data
         if hasattr(self, 'lon'):
             if self.lon is not None:
                 lon = self.lon.reshape(-1)
@@ -3805,21 +3800,38 @@ class Data(object):
         else:
             lat = None
 
-        data = self.data.reshape(n, -1)
-        # set pixels with NaN to invalid
-        data.mask[np.isnan(data.data)] = True
 
-        # extract only valid (not masked data)
-        if mode == 'all':
-            # identify all ngrid cells where all timesteps are valid
-            msk = np.sum(~data.mask, axis=0) == n
-        elif mode == 'one':
-            # identify ONE grid cell where all timesteps are valid
-            msk = np.sum(~data.mask, axis=0) > 0
+
+        if self.ndim == 3:
+
+            n = len(self.time)
+
+            # vectorize the data
+
+            data = self.data.reshape(n, -1)
+            # set pixels with NaN to invalid
+            data.mask[np.isnan(data.data)] = True
+
+            # extract only valid (not masked data)
+            if mode == 'all':
+                # identify all ngrid cells where all timesteps are valid
+                msk = np.sum(~data.mask, axis=0) == n
+            elif mode == 'one':
+                # identify ONE grid cell where all timesteps are valid
+                msk = np.sum(~data.mask, axis=0) > 0
+            else:
+                raise ValueError('Invalid option in get_valid_data() %s' % mode)
+
+            data = data[:, msk]
+
+        elif self.ndim == 2:
+            data = self.data.reshape(-1)
+            msk = data.mask
+            data = data[msk]
+
         else:
-            raise ValueError('Invalid option in get_valid_data() %s' % mode)
+            raise ValueError('Unsupported dimension!')
 
-        data = data[:, msk]
         if lon is not None:
             lon = lon[msk]
         if lat is not None:
