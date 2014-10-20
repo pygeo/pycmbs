@@ -95,23 +95,32 @@ cdef class Variogram(object):
         cdef int i
         cdef int j
         cdef double d
-        cdef list Z
+        cdef double zval
+        cdef int zcnt
+#~         cdef list Z
 
         assert (x.ndim == 1)
 
         N = len(x)
 
         # calculate semivariance
-        Z = list()
+#~         Z = list()
+        zcnt = 0
+        zval = 0.
         for i in xrange(N):  # TODO: do this more efficient (e.g. only looking for points which are within distance anyway)
-            print 'Variogramm calculation:', i, N
+            if i % 2 == 0:
+                print 'Variogramm calculation:', i, N
             for j in xrange(i+1,N):
                 # calculate distance between points
                 d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)
                 if (d >= h_km-dh_km) and (d <= h_km+dh_km):
-                    Z.append((x[i]-x[j])**2.)
-        if len(Z) > 0:
-            return np.sum(Z) / (2. * len(Z))
+#~                     Z.append((x[i]-x[j])**2.)
+                    zval += (x[i]-x[j])**2.
+                    zcnt += 1
+#~         if len(Z) > 0:
+        if zcnt > 0:
+            return 0.5 * zval / float(zcnt)
+#~             return np.sum(Z) / (2. * len(Z))
         else:
             return np.nan
 
