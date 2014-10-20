@@ -3677,9 +3677,6 @@ class Data(object):
             applied to current object
         """
 
-        if self.ndim != 3:
-            raise ValueError('Cutting of bounding box not implemented for data other than 3D!')
-
         # get bounding box
         # note that the indices can not be used directly for array
         # slicing. One tyipically needs to add '1' to the last index
@@ -3689,7 +3686,13 @@ class Data(object):
             D = self.copy()
         else:
             D = self
-        D.data = D.data[:, i1:i2 + 1, j1:j2 + 1]
+
+        if self.ndim == 3:
+            D.data = D.data[:, i1:i2 + 1, j1:j2 + 1]
+        elif self.ndim == 2:
+            D.data = D.data[i1:i2 + 1, j1:j2 + 1]
+        else:
+            raise ValueError('Cutting of bounding box not implemented for data other than 2D/3D!')
         if hasattr(self, 'lat'):
             if D.lat is not None:
                 D.lat = D.lat[i1:i2 + 1, j1:j2 + 1]
@@ -4935,6 +4938,10 @@ class Data(object):
             latitude [deg]
         earth_radius : float
             earth radius [km]
+
+        Returns
+        -------
+        returns distance [m]
         """
         from pycmbs.grid import Grid
         assert hasattr(self, 'lat')

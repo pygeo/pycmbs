@@ -97,6 +97,7 @@ class Variogram(object):
         # calculate semivariance
         Z = list()
         for i in xrange(N):  # TODO: do this more efficient (e.g. only looking for points which are within distance anyway)
+            print 'Variogramm calculation:', i, N
             for j in xrange(i+1,N):
                 # calculate distance between points
                 d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)

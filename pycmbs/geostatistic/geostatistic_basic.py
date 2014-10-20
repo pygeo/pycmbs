@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class Geostatistic(object):
-    def __init__(self, x, lags=None):
+    def __init__(self, x, lags=None, maxdist=None):
         """
         Geostatistical calculations on a data object
 
@@ -23,6 +23,8 @@ class Geostatistic(object):
             data to be analyzed
         range_bins : list
             list of bins to perform analysis
+        maxdist : float
+            maximum distance for analyis [km]
         """
         assert isinstance(x, Data)
         if lags is None:
@@ -31,6 +33,56 @@ class Geostatistic(object):
         self.lags = np.asarray(lags)
         self._check()
         self.statistic = {}
+
+
+        self.maxdist = maxdist
+        self._distfiltered=False
+
+
+    def _filter_data_maxdist(self):
+        """
+        filters the data obect to contain only values within a maximum distance
+        This allows more efficient calculations afterwards
+        """
+
+        # calculate distance
+        d = self.x.distance(self.lon_center, self.lat_center, earth_radius=6371.) / 1000.
+        #~ plt.close('all')
+        #~ plt.imshow(d)
+        #~ plt.colorbar()
+
+
+        #~ d = self._get_data_distance(0., self.maxdist)
+        msk = d < self.maxdist
+
+        #~ print msk.sum()
+        #~ print self.lon_center, self.lat_center
+        #~ print d.shape
+        #~ print d.min(), d.max()
+        #~ print self.maxdist
+
+        x = self.x.copy()
+
+        #~ lon, lat, data = self.x.get_valid_data()
+        #~ print 'Valid data: ', len(lon), lon.shape
+
+        del self.x
+
+        x._apply_mask(msk)
+        self.x = x.cut_bounding_box(return_object=True)
+
+        #~ print self.x.shape
+        lon, lat, data = self.x.get_valid_data()
+        #~ print 'Valid data: ', len(lon), lon.shape
+
+
+        #~ stop
+
+
+        #~ self.x = x.copy()
+        del x
+
+        self._distfiltered=True
 
     def _check(self):
         if np.any(np.diff(self.lags) < 0.):
@@ -88,8 +140,12 @@ class Geostatistic(object):
         ref_lags : list
             list of reference lags. If given, then these lags are plotted in the figure as well
         """
-        if not hasattr(self, '_distance'):
-            self._calculate_distance()
+        #~ if not hasattr(self, '_distance'):
+            #~ self._calculate_distance()
+
+        if self.maxdist is not None:
+            if not self._distfiltered:
+                self._filter_data_maxdist()
 
         f, ax = self._get_figure_ax(ax)
         self.calc_semivariance()
@@ -117,6 +173,11 @@ class Geostatistic(object):
         p : list
             list of percentiles [0 ... 1]
         """
+
+        if self.maxdist is not None:
+            if not self._distfiltered:
+                self._filter_data_maxdist()
+
         f, ax = self._get_figure_ax(ax)
         for e in p:
             self.calc_percentile(e)
@@ -191,9 +252,10 @@ class Geostatistic(object):
 
         # determine first all data within a certain distance only
 
-
+        #~ print 'Getting valid data'
         # get flattened data
         lon, lat, data = self.x.get_valid_data()
+        #~ print 'GOT valid data'
 
         # estimate experimental variogram
         V = Variogram()
