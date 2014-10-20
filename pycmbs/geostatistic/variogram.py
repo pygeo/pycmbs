@@ -4,12 +4,77 @@ Variogram modelling
 
 import numpy as np
 from scipy.optimize import minimize
+from scipy.spatial.distance import pdist, squareform
+
 
 
 class Variogram(object):
 
     def __init__(self, **kwargs):
         pass
+
+    def _semivariance(self, x, lon, lat, h, dh):
+        """
+        calculate semivariogram for a single lag
+
+        Parameters
+        ----------
+        h : float
+            distance lag
+        dh : float
+            buffer zone for distance lag h
+        """
+
+        assert (x.ndim == 1)
+
+
+        N = len(x)
+
+        # calculate pairwise distance
+        # TODO: this is calculating only Eucledian distance at the moment!
+        # TODO replace this by proper calculation of orthodrome!
+
+        pd = squareform( pdist( np.vstack([lon, lat]).T, 'eucledian' ) )
+        assert pd.shape[0] == N
+
+        # calculate semivariance
+        Z = list()
+        for i in xrange(N):  # TODO: do this more efficient (e.g. only looking for points which are within distance anyway)
+            for j in xrange(i+1,N):
+                if (pd[i,j] >= h-dh) and (pd[i,j] <= h+dh):
+                    Z.append((x[i]-x[j])**2.)
+        return np.sum(Z) / (2. * len(Z))
+
+
+    def semivariogram(self, x, lon, lat, lags):
+        """
+        calculate semivariogram for different lags
+
+        Returns
+        -------
+        lags : ndarray
+            vector fo lags
+        gamma : ndarray
+            and corresponding semivariance
+
+        Parameters
+        ----------
+        x : ndarray
+            array with data values
+        lags : ndarray, list
+            array with lag values
+        lon : ndarray
+            longitude coordinates
+        lat : ndarray
+            latitude coordinates
+        """
+        assert (lon.shape == lat.shape)
+        assert(lon.shape == x.shape)
+
+        gamma = np.ones(len(lags)) * np.nan
+        for i in xrange(len(lags)):
+            gamma[i] = self._semivariance(x, lon, lat, lags[i])
+        return lags, gamma
 
 class SphericalVariogram(Variogram):
 

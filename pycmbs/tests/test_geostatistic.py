@@ -107,3 +107,10 @@ class TestData(unittest.TestCase):
         G.set_center_position(5., -20.)
         lon, lat = G.get_coordinates_at_distance(2.5, dist_threshold=1.)
 
+
+    def test_variogram_calculation(self):
+        assert False
+
+
+
+
