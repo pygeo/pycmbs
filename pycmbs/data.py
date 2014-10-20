@@ -3826,7 +3826,7 @@ class Data(object):
 
         elif self.ndim == 2:
             data = self.data.reshape(-1)
-            msk = data.mask
+            msk = ~data.mask
             data = data[msk]
 
         else:
