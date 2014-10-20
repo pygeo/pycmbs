@@ -124,28 +124,28 @@ class TestData(unittest.TestCase):
         # just test if it works; no reference solution yet
         g = V._semivariance(x, lon, lat, h_km, dh_km)
 
-    def test_variogram_paired_distance(self):
-        V = Variogram()
-        lat_berlin = 52.517
-        lon_berlin = 13.4
-        lat_tokio = 35.70
-        lon_tokio = 139.767
-
-        lon = [lon_berlin, lon_berlin, lon_tokio, lon_berlin, lon_tokio]
-        lat = [lat_berlin, lat_berlin, lat_tokio, lat_berlin, lat_tokio]
-
-        dref = 8918.  # reference distance
-        pd = V._paired_distance(lon, lat, radius=6370.)
-        for i in xrange(len(lon)):
-            self.assertEqual(pd[i,i], 0.)
-        for i in xrange(len(lon)):
-            for j in xrange(len(lon)):
-                self.assertEqual(pd[i,j], pd[j,i])
-
-        self.assertEqual(pd[0,1], 0.)
-        self.assertTrue(pd[1,2] <= dref)
-        self.assertTrue(pd[2,3] <= dref)
-        self.assertTrue(pd[0,4] <= dref)
+    #~ def test_variogram_paired_distance(self):
+        #~ V = Variogram()
+        #~ lat_berlin = 52.517
+        #~ lon_berlin = 13.4
+        #~ lat_tokio = 35.70
+        #~ lon_tokio = 139.767
+#~
+        #~ lon = [lon_berlin, lon_berlin, lon_tokio, lon_berlin, lon_tokio]
+        #~ lat = [lat_berlin, lat_berlin, lat_tokio, lat_berlin, lat_tokio]
+#~
+        #~ dref = 8918.  # reference distance
+        #~ pd = V._paired_distance(lon, lat, radius=6370.)
+        #~ for i in xrange(len(lon)):
+            #~ self.assertEqual(pd[i,i], 0.)
+        #~ for i in xrange(len(lon)):
+            #~ for j in xrange(len(lon)):
+                #~ self.assertEqual(pd[i,j], pd[j,i])
+#~
+        #~ self.assertEqual(pd[0,1], 0.)
+        #~ self.assertTrue(pd[1,2] <= dref)
+        #~ self.assertTrue(pd[2,3] <= dref)
+        #~ self.assertTrue(pd[0,4] <= dref)
 
     def test_semivariogram_calculation(self):
         V = Variogram()
