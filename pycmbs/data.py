@@ -3828,7 +3828,6 @@ class Data(object):
             data = self.data.reshape(-1)
             msk = ~data.mask
             data = data[msk]
-
         else:
             raise ValueError('Unsupported dimension!')
 

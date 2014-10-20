@@ -69,7 +69,7 @@ class Variogram(object):
         return pd
 
 
-    def _semivariance(self, x, lon, lat, h_km, dh_km):
+    def _semivariance(self, x, lon, lat, h_km, dh_km, radius=6371.):
         """
         calculate semivariogram for a single lag
 
@@ -79,6 +79,8 @@ class Variogram(object):
             distance lag [km]
         dh_km : float
             buffer zone for distance lag h [km]
+        radius : float
+            earth radius [km]
         """
 
         assert (x.ndim == 1)
@@ -89,14 +91,16 @@ class Variogram(object):
         # TODO: this is calculating only Eucledian distance at the moment!
         # TODO replace this by proper calculation of orthodrome!
 
-        pd = self._paired_distance(lon, lat)
-        assert pd.shape[0] == N
+        #~ pd = self._paired_distance(lon, lat)
+        #~ assert pd.shape[0] == N
 
         # calculate semivariance
         Z = list()
         for i in xrange(N):  # TODO: do this more efficient (e.g. only looking for points which are within distance anyway)
             for j in xrange(i+1,N):
-                if (pd[i,j] >= h_km-dh_km) and (pd[i,j] <= h_km+dh_km):
+                # calculate distance between points
+                d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)
+                if (d >= h_km-dh_km) and (d <= h_km+dh_km):
                     Z.append((x[i]-x[j])**2.)
         if len(Z) > 0:
             return np.sum(Z) / (2. * len(Z))

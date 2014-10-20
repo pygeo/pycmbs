@@ -189,10 +189,13 @@ class Geostatistic(object):
         """
         assert self.x.ndim == 2
 
+        # determine first all data within a certain distance only
+
 
         # get flattened data
         lon, lat, data = self.x.get_valid_data()
 
+        # estimate experimental variogram
         V = Variogram()
         dlag = self.lags[1]-self.lags[0]  # assume equal lag binning
         r, v = V.semivariogram(data, lon, lat, self.lags, dlag)
