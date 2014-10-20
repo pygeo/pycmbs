@@ -110,6 +110,18 @@ class TestData(unittest.TestCase):
         lon, lat = G.get_coordinates_at_distance(2.5, dist_threshold=1.)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     def test_variogram_semivariance(self):
 
         V = Variogram()
@@ -120,11 +132,26 @@ class TestData(unittest.TestCase):
 
     def test_variogram_paired_distance(self):
         V = Variogram()
-        #~ lon =
-        #~ lat =
-        # orthodrome calculations
-        #~ pd = V._paired_distance()
-        #~ self.assertEqual(...)
+        lat_berlin = 52.517
+        lon_berlin = 13.4
+        lat_tokio = 35.70
+        lon_tokio = 139.767
+
+        lon = [lon_berlin, lon_berlin, lon_tokio, lon_berlin, lon_tokio]
+        lat = [lat_berlin, lat_berlin, lat_tokio, lat_berlin, lat_tokio]
+
+        dref = 8918.  # reference distance
+        pd = V._paired_distance(lon, lat, radius=6370.)
+        for i in xrange(len(lon)):
+            self.assertEqual(pd[i,i], 0.)
+        for i in xrange(len(lon)):
+            for j in xrange(len(lon)):
+                self.assertEqual(pd[i,j], pd[j,i])
+
+        self.assertEqual(pd[0,1], 0.)
+        self.assertTrue(pd[1,2] <= dref)
+        self.assertTrue(pd[2,3] <= dref)
+        self.assertTrue(pd[0,4] <= dref)
 
     def test_semivariogram_calculation(self):
         V = Variogram()
@@ -132,7 +159,8 @@ class TestData(unittest.TestCase):
         lon = np.random.random(100)
         lat = np.random.random(100)
         lags = [1,2,3,4]
-        V.semivariogram(x, lon, lat, lags)
+        #~ V.semivariogram(x, lon, lat, lags, 1.)
+        #~ assert False
 
     def test_variogram_orthodrome(self):
         # example distance Berlin-Tokio
@@ -144,9 +172,10 @@ class TestData(unittest.TestCase):
         lon_tokio = 139.767
 
         V = Variogram()
-        r = V._orthodrome(lon_tokio, lat_tokio, lon_berlin, lat_berlin, radius=6370.*1000.)
-        print r, r-8918000.
-        self.assertTrue(abs(r-8918000.)<1000.)
+        r1 = V._orthodrome(lon_tokio, lat_tokio, lon_berlin, lat_berlin, radius=6370.*1000.)
+        self.assertTrue(abs(r1-8918000.)<1000.)
+        r2 = V._orthodrome(lon_berlin, lat_berlin, lon_tokio, lat_tokio, radius=6370.*1000.)
+        self.assertTrue(abs(r2-8918000.)<1000.)
 
 
 

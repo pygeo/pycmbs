@@ -4,7 +4,7 @@ Variogram modelling
 
 import numpy as np
 from scipy.optimize import minimize
-from scipy.spatial.distance import pdist, squareform
+#~ from scipy.spatial.distance import pdist, squareform
 
 
 class Variogram(object):
@@ -41,13 +41,29 @@ class Variogram(object):
                          * np.cos(lat2) * np.cos(np.abs(lon2 - lon1))) * radius
 
 
-    def _paired_distance(self, lon, lat):
+    def _paired_distance(self, lon, lat, radius=6371.):
         """
         calculate paired distance between data points [km]
-        returns a matrix with squared distances
+        returns a matrix with squared distances [km]
         """
 
-        assert False
+        assert len(lon) == len(lat)
+        N = len(lon)
+
+        pd = np.zeros((N,N))*np.nan
+
+        for i in xrange(N):
+            for j in xrange(i+1,N):
+                d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)
+                pd[i,j] = d
+                pd[j,i] = d
+        for i in xrange(N):
+            pd[i,i] = 0.
+
+        return pd
+
+
+        #~ assert False
 
         # convert distance threshold to degree
         #~ h_deg = h_km
@@ -57,7 +73,8 @@ class Variogram(object):
 
         #~ print 'WARNING: still km calculation needed here !!!'
 
-        return squareform( pdist( np.vstack([lon, lat]).T, 'eucledian' ) )
+
+        #~ return squareform( pdist( np.vstack([lon, lat]).T, 'eucledian' ) )
 
 
     def _semivariance(self, x, lon, lat, h_km, dh_km):
@@ -95,7 +112,7 @@ class Variogram(object):
             return np.nan
 
 
-    def semivariogram(self, x, lon, lat, lags):
+    def semivariogram(self, x, lon, lat, lags, dlag):
         """
         calculate semivariogram for different lags
 
@@ -116,13 +133,17 @@ class Variogram(object):
             longitude coordinates
         lat : ndarray
             latitude coordinates
+        lags : ndarray
+            lags [km]
+        dlag : float
+            distance of lags [km] to specifiy valid buffer zone
         """
         assert (lon.shape == lat.shape)
         assert(lon.shape == x.shape)
 
         gamma = np.ones(len(lags)) * np.nan
         for i in xrange(len(lags)):
-            gamma[i] = self._semivariance(x, lon, lat, float(lags[i]))
+            gamma[i] = self._semivariance(x, lon, lat, float(lags[i]), dlag)
         return lags, gamma
 
 class SphericalVariogram(Variogram):
