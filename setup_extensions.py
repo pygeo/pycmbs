@@ -17,8 +17,7 @@ from distutils.core import setup
 from Cython.Build import cythonize
 
 setup(
-  #~ ext_modules = cythonize("./pycmbs/polygon_utils.pyx", "./pycmbs/geostatistic/variogram.pyx"),
-  ext_modules = cythonize("./pycmbs/geostatistic/variogram_base.pyx"),
+  ext_modules = cythonize(["./pycmbs/polygon_utils.pyx", "./pycmbs/geostatistic/variogram_base.pyx"]),
 )
 
 # run as ... to build extension
