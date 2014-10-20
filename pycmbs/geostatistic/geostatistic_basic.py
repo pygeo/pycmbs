@@ -230,6 +230,13 @@ class Geostatistic(object):
         #~ print 'Getting valid data'
         # get flattened data
         lon, lat, data = self.x.get_valid_data()
+
+        # convert to ndarray
+        msk = ~data.mask
+        lon = lon.data[msk]
+        lat = lat.data[msk]
+        data = data.data[msk]
+
         #~ print 'GOT valid data'
 
         # estimate experimental variogram

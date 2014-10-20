@@ -41,7 +41,6 @@ cdef class Variogram(object):
             coordinates of two points [degree]
         radius : float
             Earth radius (sphere) in [m]
-
         """
 
         cdef double lat1, lon1, lat2, lon2
@@ -54,6 +53,65 @@ cdef class Variogram(object):
         return np.arccos(np.sin(lat1) * np.sin(lat2) + np.cos(lat1)
                          * np.cos(lat2) * np.cos(np.abs(lon2 - lon1))) * radius
 
+    def _orthodrome_arr(self, double lon1_deg, double lat1_deg, np.ndarray[DTYPE_t, ndim=1] lon2_deg, np.ndarray[DTYPE_t, ndim=1] lat2_deg, double radius=6371000.):
+        """
+        calculate the orthodrome between two points with coordinates
+        given in radians
+        http://en.wikipedia.org/wiki/Great-circle_distance
+        see also CDO code in file Gridcell.c
+
+        @todo: how to deal with latitudes across the dateline ?
+
+        Note that the same routine is also implemented for Data object at the moment!!
+
+        Parameters
+        ----------
+        lon/lat : float
+            coordinates of two points [degree]
+        radius : float
+            Earth radius (sphere) in [m]
+        """
+
+        cdef double lat1
+        cdef double lon1
+        cdef np.ndarray[DTYPE_t, ndim=1] lat2
+        cdef np.ndarray[DTYPE_t, ndim=1] lon2
+        cdef deg2rad = np.pi / 180.
+
+        lat1 = lat1_deg * deg2rad
+        lon1 = lon1_deg * deg2rad
+        lat2 = lat2_deg * deg2rad
+        lon2 = lon2_deg * deg2rad
+
+#~         print np.shape(lat2)
+#~         print type(lat2)
+#~
+#~         print np.sin(lat2)
+#~
+#~         print np.sin(lat1) * np.sin(lat1)
+#~         print type(np.sin(lat1))
+
+
+#~         return 0.
+
+#~         return sin(lat2)  # only length 1 arrays ...
+#~         return 0.
+
+#~         return np.sin(lat2)   << here is the problem !
+
+#~         return np.arccos(np.sin(lat1) * np.sin(lat2))
+
+        return np.arccos(np.sin(lat1) * np.sin(lat2) + np.cos(lat1)
+                          * np.cos(lat2) * np.cos(np.abs(lon2 - lon1))) * radius
+
+
+#~         return res   # problem is really in return value!!!
+
+
+#~         return np.arccos(np.sin(lat1) * np.sin(lat2) + np.cos(lat1)
+#~                           * np.cos(lat2) * np.cos(np.abs(lon2 - lon1))) * radius
+
+#~         return 0.
 
     #~ def _paired_distance(self, lon, lat, radius=6371.):
         #~ """
@@ -77,7 +135,7 @@ cdef class Variogram(object):
         #~ return pd
 
 
-    def _semivariance(self, x, lon, lat, double h_km, double dh_km, double radius=6371.):
+    def _semivariance(self, np.ndarray[DTYPE_t, ndim=1] x, np.ndarray[DTYPE_t, ndim=1] lon, np.ndarray[DTYPE_t, ndim=1] lat, double h_km, double dh_km, double radius=6371.):
         """
         calculate semivariogram for a single lag
 
@@ -94,30 +152,52 @@ cdef class Variogram(object):
         cdef int N
         cdef int i
         cdef int j
-        cdef double d
+#~         cdef double d
+        cdef np.ndarray[DTYPE_t, ndim=1] d
         cdef double zval
         cdef int zcnt
-#~         cdef list Z
 
         assert (x.ndim == 1)
 
         N = len(x)
 
         # calculate semivariance
-#~         Z = list()
         zcnt = 0
         zval = 0.
         for i in xrange(N):  # TODO: do this more efficient (e.g. only looking for points which are within distance anyway)
             if i % 2 == 0:
                 print 'Variogramm calculation:', i, N
-            for j in xrange(i+1,N):
+#~                 print lon[i+1:]
+#~                 print lat[i+1:]
+
+            # calculate distances
+            d = self._orthodrome_arr(lon[i], lat[i], lon[i+1:], lat[i+1:], radius=radius)
+            md = (d>=h_km-dh_km) & (d <= h_km+dh_km)
+            Z = (x[i+1:] - x[i])**2.
+            zval += np.sum(Z[md])
+            zcnt += np.sum(md)
+
+
+
+#~             print d
+#~             print len(d)
+
+#~             d = self._orthodrome_arr(lon[i], lat[i], lon[i+1:], lat[i+1:], radius=radius)
+#~             assert False
+
+#~             for j in xrange(i+1,N):
                 # calculate distance between points
-                d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)
-                if (d >= h_km-dh_km) and (d <= h_km+dh_km):
+#~                 d = self._orthodrome(lon[i], lat[i], lon[j], lat[j], radius=radius)
+
+#~                 if (d >= h_km-dh_km) and (d <= h_km+dh_km):
 #~                     Z.append((x[i]-x[j])**2.)
-                    zval += (x[i]-x[j])**2.
-                    zcnt += 1
+#~                     zval += (x[i]-x[j])**2.
+#~                     zcnt += 1
 #~         if len(Z) > 0:
+
+#~         print zcnt, zval
+#~         assert False
+
         if zcnt > 0:
             return 0.5 * zval / float(zcnt)
 #~             return np.sum(Z) / (2. * len(Z))
@@ -160,5 +240,8 @@ cdef class Variogram(object):
         gamma = np.ones(len(lags)) * np.nan
         for i in xrange(len(lags)):
             gamma[i] = self._semivariance(x, lon, lat, float(lags[i]), dlag)
+
+            # TODO implement different lags directly in semivariogram calculation ??? not redo calculations of all distances again!
+            # which lags should be really calculated ???
         return lags, gamma
 
