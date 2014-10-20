@@ -109,26 +109,19 @@ class TestData(unittest.TestCase):
         G.set_center_position(5., -20.)
         lon, lat = G.get_coordinates_at_distance(2.5, dist_threshold=1.)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     def test_variogram_semivariance(self):
 
         V = Variogram()
-        #~ V._semivariance(self, x, lon, lat, h_km, dh_km)
-        #~ _semivariance(self, x, lon, lat, h, dh):
 
-        #~ assert False
+        x = np.random.random(100)
+        lon = np.random.random(100)*10.-90.
+        lat = np.random.random(100)*10.-90.
+
+        h_km = 20.
+        dh_km = 2.
+
+        # just test if it works; no reference solution yet
+        g = V._semivariance(x, lon, lat, h_km, dh_km)
 
     def test_variogram_paired_distance(self):
         V = Variogram()

@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+"""
+This file is part of pyCMBS. (c) 2012-2014
+For COPYING and LICENSE details, please refer to the file
+COPYRIGHT.md
+"""
+
 """
 Variogram modelling
 """
@@ -61,20 +69,6 @@ class Variogram(object):
             pd[i,i] = 0.
 
         return pd
-
-
-        #~ assert False
-
-        # convert distance threshold to degree
-        #~ h_deg = h_km
-#~
-#~
-        #~ 1deg == 111.km *cos(lat)
-
-        #~ print 'WARNING: still km calculation needed here !!!'
-
-
-        #~ return squareform( pdist( np.vstack([lon, lat]).T, 'eucledian' ) )
 
 
     def _semivariance(self, x, lon, lat, h_km, dh_km):
