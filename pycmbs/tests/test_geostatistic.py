@@ -132,7 +132,7 @@ class TestData(unittest.TestCase):
         lon = np.random.random(100)
         lat = np.random.random(100)
         lags = [1,2,3,4]
-        #~ V.semivariogram(x, lon, lat, lags)
+        V.semivariogram(x, lon, lat, lags)
 
     def test_variogram_orthodrome(self):
         # example distance Berlin-Tokio
