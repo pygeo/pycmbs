@@ -12,8 +12,6 @@ Variogram modelling
 
 import numpy as np
 from scipy.optimize import minimize
-#~ from scipy.spatial.distance import pdist, squareform
-
 
 class Variogram(object):
 
