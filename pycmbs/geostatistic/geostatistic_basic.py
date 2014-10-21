@@ -237,8 +237,6 @@ class Geostatistic(object):
         lat = lat.data[msk]
         data = data.data[msk]
 
-        #~ print 'GOT valid data'
-
         # estimate experimental variogram
         V = Variogram()
         dlag = self.lags[1]-self.lags[0]  # assume equal lag binning
@@ -319,12 +317,14 @@ class Geostatistic(object):
             latn = np.linspace(refobj.lat.min(), refobj.lat.max(), ny)
             refobj.lon, refobj.lat = np.meshgrid(lonn, latn)
 
+            #~ print 'Oversampling done'
+
             self._calculate_distance(data=refobj)
 
+            #~ print 'distance calculation done!'
+
         # get closest points as preselection
-        #di = np.round(np.abs(self._distance-d),0).astype('int')
         di = np.abs(self._distance-d)
-        #msk = di == 0
         msk = di < dist_threshold
         lons = refobj.lon[msk].flatten()
         lats = refobj.lat[msk].flatten()

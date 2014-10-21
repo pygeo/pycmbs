@@ -187,6 +187,9 @@ cdef class Variogram(object):
         assert(lon.shape == x.shape)
 
         gamma = np.ones(len(lags)) * np.nan
+        # TODO: this loop could be omitted !!! as the differences between all pixels
+        # are already calculated within the _semivariance routine.
+        # one should store results for different lags there!
         for i in xrange(len(lags)):
             gamma[i] = self._semivariance(x, lon, lat, float(lags[i]), dlag)
         return lags, gamma
