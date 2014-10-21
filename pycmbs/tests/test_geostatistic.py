@@ -26,7 +26,9 @@ class TestData(unittest.TestCase):
         D.data = np.ma.array(tmp, mask=tmp!=tmp)
         lon = np.arange(-10.,10.)  # -10 ... 9
         lat = np.arange(-60., 50., 2.)  # -60 ... 48
-        D.lon, D.lat = np.meshgrid(lon, lat)
+        LON, LAT = np.meshgrid(lon, lat)
+        D.lon = np.ma.array(LON, mask=LON!=LON)
+        D.lat = np.ma.array(LAT, mask=LAT!=LAT)
         self.x = D
 
     def tearDown(self):
