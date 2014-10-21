@@ -227,12 +227,12 @@ class Geostatistic(object):
 
         # determine first all data within a certain distance only
 
-        #~ print 'Getting valid data'
         # get flattened data
         lon, lat, data = self.x.get_valid_data()
 
         # convert to ndarray
         msk = ~data.mask
+
         lon = lon.data[msk]
         lat = lat.data[msk]
         data = data.data[msk]
@@ -244,21 +244,7 @@ class Geostatistic(object):
         dlag = self.lags[1]-self.lags[0]  # assume equal lag binning
         r, v = V.semivariogram(data, lon, lat, self.lags, dlag)
 
-        if False:  # old buggy implementation
-            bounds = self.range_bins
-            r = []
-            v = []
-            assert False
-
-            for b in bounds:
-                d = self._get_data_distance(0., b)
-                if d is None:
-                    r.append(b)
-                    v.append(np.nan)
-                else:
-                    r.append(b)
-                    v.append(0.5 * np.ma.var(d))  # semivariance
-
+        # store results
         o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
         self.statistic.update({'semivariogram': o})
 
