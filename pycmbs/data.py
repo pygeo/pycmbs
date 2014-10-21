@@ -600,13 +600,12 @@ class Data(object):
 
         for i in xrange(ny):
             for j in xrange(nx):
-                if a.mask[i,j]:  # in case of masked values
+                if a.mask[i, j]:  # in case of masked values
                     pass
                 else:
-                    s += prefix + str(self.lon[i,j]) + sep + str(self.lat[i,j]) + sep + str(a[i,j]) + eol
+                    s += prefix + str(self.lon[i, j]) + sep + str(self.lat[i, j]) + sep + str(a[i, j]) + eol
 
         return s
-
 
     def _save_netcdf(self, filename, varname=None, delete=False, compress=True, format='NETCDF4'):
         """
@@ -885,7 +884,7 @@ class Data(object):
             if self.ndim == 2:
                 self.cell_area = np.ones(self.data.shape)
             elif self.ndim == 3:
-                self.cell_area = np.ones(self.data[0, :, :].shape)
+                self.cell_area = np.ones(self.data[0,:,:].shape)
             else:
                 raise ValueError('Invalid geometry!')
             return
@@ -1159,7 +1158,6 @@ class Data(object):
             raise ValueError('Error: file not existing: %s' % self.filename)
 
         self.time_var = time_var
-
 
         netcdf_backend = 'netCDF4'
         # read data
@@ -3438,9 +3436,7 @@ class Data(object):
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-
     #-----------------------------------------------------------------------
-
     def _convert_time_YYYYMMDD(self):
         """
         convert time that was given as YYYYMMDD
@@ -3460,8 +3456,6 @@ class Data(object):
         self.time_str = 'days since 0001-01-01 00:00:00'
         #convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
-
-
 
     def _convert_timeYYYYMM(self):
         """
@@ -3802,8 +3796,6 @@ class Data(object):
                 lat = None
         else:
             lat = None
-
-
 
         if self.ndim == 3:
 
@@ -4253,7 +4245,7 @@ class Data(object):
             d.data -= x
         elif x.ndim == 2:  # x is an array
             for i in xrange(len(self.time)):
-                d.data[i, :, :] -= x[:, :]
+                d.data[i,:,:] -= x[:,:]
         else:
             raise ValueError('Invalid geometry in detrend()')
         return d
@@ -4355,7 +4347,7 @@ class Data(object):
         if np.shape(self.data) != np.shape(x.data):
             if self.data.ndim == 3:
                 if x.data.ndim == 2:
-                    if np.shape(self.data[0, :, :]) == np.shape(x.data):
+                    if np.shape(self.data[0,:,:]) == np.shape(x.data):
                         #second and third dimension match
                         pass
                     else:
@@ -4377,9 +4369,9 @@ class Data(object):
             d = self
         if np.shape(d.data) == np.shape(x.data):
             d.data /= x.data
-        elif np.shape(d.data[0, :, :]) == np.shape(x.data):
+        elif np.shape(d.data[0,:,:]) == np.shape(x.data):
             for i in xrange(len(self.time)):
-                d.data[i, :, :] /= x.data
+                d.data[i,:,:] /= x.data
         else:
             raise ValueError('Can not handle this geometry in div()')
 
@@ -4419,11 +4411,11 @@ class Data(object):
         if False:
             # slow implementation ...
             for i in xrange(self.nt):
-                o.data[i, :, :] = self.data[i, :, :] * x[i]
+                o.data[i,:,:] = self.data[i,:,:] * x[i]
         else:
             # fast implementation using broadcasting ...
             # http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
-            o.data[:, :, :] = self.data[:, :, :] * x[:, np.newaxis, np.newaxis]
+            o.data[:,:,:] = self.data[:,:,:] * x[:, np.newaxis, np.newaxis]
 
         if copy:
             return o
@@ -4451,7 +4443,7 @@ class Data(object):
         if np.shape(self.data) != np.shape(x.data):
             if self.data.ndim == 3:
                 if x.data.ndim == 2:
-                    if np.shape(self.data[0, :, :]) == np.shape(x.data):
+                    if np.shape(self.data[0,:,:]) == np.shape(x.data):
                         # second and third dimension match
                         pass
                     else:
@@ -4473,9 +4465,9 @@ class Data(object):
             d = self
         if np.shape(d.data) == np.shape(x.data):
             d.data = d.data * x.data
-        elif np.shape(d.data[0, :, :]) == np.shape(x.data):
+        elif np.shape(d.data[0,:,:]) == np.shape(x.data):
             for i in xrange(len(self.time)):
-                d.data[i, :, :] = d.data[i, :, :] * x.data
+                d.data[i,:,:] = d.data[i,:,:] * x.data
         else:
             raise ValueError('Can not handle this geometry in div()')
 
@@ -4707,7 +4699,7 @@ class Data(object):
         reg.label = 'trend line'
         nt = self.data.shape[0]
         for i in range(nt):
-            reg.data[i, :, :] = Sout.data * i + Iout.data
+            reg.data[i,:,:] = Sout.data * i + Iout.data
 
         # substract regression line
         res = self.sub(reg)
@@ -4786,9 +4778,9 @@ class Data(object):
         data = self.data
         time = self.time
 
-        dummy_data = np.ma.array(np.ones(data[0, :, :].shape) * data.fill_value,
+        dummy_data = np.ma.array(np.ones(data[0,:,:].shape) * data.fill_value,
                                  fill_value=data.fill_value,
-                                 mask=np.ones(data[0, :, :].shape) * True)
+                                 mask=np.ones(data[0,:,:].shape) * True)
 
         months = self._get_months()
         mondif = np.diff(months)
@@ -4835,17 +4827,17 @@ class Data(object):
         flip dataset up down
         """
         if self.data.ndim == 3:
-            self.data = self.data[:, ::-1, :]
+            self.data = self.data[:, ::-1,:]
         elif self.data.ndim == 2:
-            self.data = self.data[:: -1, :]
+            self.data = self.data[:: -1,:]
         else:
             raise ValueError('Unsupported geometry for _flipud()')
         if hasattr(self, 'cell_area'):
             if self.cell_area is not None:
-                self.cell_area = self.cell_area[::-1, :]
+                self.cell_area = self.cell_area[::-1,:]
         if hasattr(self, 'lat'):
             if self.lat is not None:
-                self.lat = self.lat[::-1, :]
+                self.lat = self.lat[::-1,:]
 
     def _is_sorted(self):
         """
@@ -4913,7 +4905,7 @@ class Data(object):
                         r[:, i, j] = _runningMeanFast(self.data[:, i, j], N)
                 # ensure that smoothed data is centred in time!
             tmp = np.ones_like(self.data) * np.nan
-            tmp[N / 2:len(tmp) - N / 2, :, :] = r[:-(N - 1), :, :]  # center data!
+            tmp[N / 2:len(tmp) - N / 2,:,:] = r[:-(N - 1),:,:]  # center data!
 
         # results
         tmp = np.ma.array(tmp, mask=np.isnan(tmp))
