@@ -48,7 +48,7 @@ setup(name='pycmbs',
 
 
 # compile extensions
-os.system('sh compile_extensions.sh')
+#~ os.system('sh compile_extensions.sh')
 
 
 ########################################################################
