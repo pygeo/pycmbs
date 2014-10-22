@@ -109,14 +109,14 @@ cdef class Variogram(object):
         #~ return pd
 
 
-    def _semivariance(self, np.ndarray[DTYPE_t, ndim=1] x, np.ndarray[DTYPE_t, ndim=1] lon, np.ndarray[DTYPE_t, ndim=1] lat, double h_km, double dh_km, double radius=6371.):
+    def _semivariance(self, np.ndarray[DTYPE_t, ndim=1] x, np.ndarray[DTYPE_t, ndim=1] lon, np.ndarray[DTYPE_t, ndim=1] lat, np.ndarray[DTYPE_t, ndim=1] lags_km, double dh_km, double radius=6371.):
         """
         calculate semivariogram for a single lag
 
         Parameters
         ----------
-        h_km : float
-            distance lag [km]
+        h_km : ndarray
+            distance lags [km]
         dh_km : float
             buffer zone for distance lag h [km]
         radius : float
@@ -125,34 +125,41 @@ cdef class Variogram(object):
 
         cdef int N
         cdef int i
-        cdef int j
+        cdef int k
         cdef np.ndarray[DTYPE_t, ndim=1] d
-        cdef double zval
-        cdef int zcnt
+        cdef double h_km
+        cdef np.ndarray[DTYPE_t, ndim=1] zcnt
+        cdef np.ndarray[DTYPE_t, ndim=1] zval
 
         assert (x.ndim == 1)
 
         N = len(x)
+        Nlags = len(lags_km)
 
         # calculate semivariance
-        zcnt = 0
-        zval = 0.
+        zcnt = np.zeros(len(lags_km))
+        zval = np.zeros(len(lags_km))
         for i in xrange(N):
-            if i % 1000 == 0:
+            if i % 5000 == 0:
                 print '    Variogramm calculation:', i, N
 
             # calculate distances for whole array to be fast
             d = self._orthodrome_arr(lon[i], lat[i], lon[i+1:], lat[i+1:], radius=radius)
-            md = (d>=h_km-dh_km) & (d <= h_km+dh_km)
-            Z = (x[i+1:] - x[i])**2.
-            zval += np.sum(Z[md])
-            zcnt += np.sum(md)
+            for k in xrange(Nlags):  # calculate semivariance for all lags at once
+                h_km = lags_km[k]
+                md = (d>=h_km-dh_km) & (d <= h_km+dh_km)
+                Z = (x[i+1:] - x[i])**2.
+                zval[k] += np.sum(Z[md])
+                zcnt[k] += float(np.sum(md))
+                del Z, md
 
-        if zcnt > 0:
-            return 0.5 * zval / float(zcnt)
-        else:
-            return np.nan
+        for k in xrange(Nlags):
+            if zcnt[k] > 0:
+                zval[k] = 0.5 * zval[k] / zcnt[k]
+            else:
+                zval[k] = np.nan
 
+        return zval
 
     def semivariogram(self, x, lon, lat, lags, dlag):
         """
@@ -186,11 +193,9 @@ cdef class Variogram(object):
         assert (lon.shape == lat.shape)
         assert(lon.shape == x.shape)
 
-        gamma = np.ones(len(lags)) * np.nan
-        # TODO: this loop could be omitted !!! as the differences between all pixels
-        # are already calculated within the _semivariance routine.
-        # one should store results for different lags there!
-        for i in xrange(len(lags)):
-            gamma[i] = self._semivariance(x, lon, lat, float(lags[i]), dlag)
+        gamma = self._semivariance(x, lon, lat, lags, dlag)
+
         return lags, gamma
+
+
 
