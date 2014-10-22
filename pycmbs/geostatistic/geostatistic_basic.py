@@ -65,7 +65,9 @@ class Geostatistic(object):
 
         # ensure qual binning  of lags
         di = np.diff(self.lags)
-        if np.any(di != di[0]):
+        if np.any(np.abs(di-di[0])>1.E-10):
+            print di
+            print di[0]
             raise ValueError('Only equal bins currently supported"')
         if np.any(np.diff(self.lags) < 0.):
             raise ValueError('Bins are not in ascending order!')
@@ -317,11 +319,8 @@ class Geostatistic(object):
             latn = np.linspace(refobj.lat.min(), refobj.lat.max(), ny)
             refobj.lon, refobj.lat = np.meshgrid(lonn, latn)
 
-            #~ print 'Oversampling done'
-
             self._calculate_distance(data=refobj)
 
-            #~ print 'distance calculation done!'
 
         # get closest points as preselection
         di = np.abs(self._distance-d)

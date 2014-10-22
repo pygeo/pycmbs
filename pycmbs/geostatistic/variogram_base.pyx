@@ -140,7 +140,7 @@ cdef class Variogram(object):
         zcnt = np.zeros(len(lags_km))
         zval = np.zeros(len(lags_km))
         for i in xrange(N):
-            if i % 5000 == 0:
+            if i % 100 == 0:
                 print '    Variogramm calculation:', i, N
 
             # calculate distances for whole array to be fast
