@@ -167,7 +167,7 @@ class RegionShape(object):
         for s in sf.shapes():
             lon = [p[0] for p in s.points]
             lat = [p[1] for p in s.points]
-            self.regions.update({id : RegionPolygon(id, lon, lat, label='reg#' + str(id))})
+            self.regions.update({id: RegionPolygon(id, lon, lat, label='reg#' + str(id))})
             id += 1
 
 

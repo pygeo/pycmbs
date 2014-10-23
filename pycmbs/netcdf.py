@@ -12,6 +12,7 @@ import os
 
 valid_backends = ['netCDF4']
 
+
 class NetCDFHandler(object):
     def __init__(self, netcdf_backend='netCDF4'):
         """
