@@ -124,7 +124,7 @@ class TestData(unittest.TestCase):
         dh_km = 2.
 
         # just test if it works; no reference solution yet
-        g = V._semivariance(x, lon, lat, h_km, dh_km)
+        g = V._semivariance(x, lon, lat, np.asarray([h_km]), dh_km)
 
     #~ def test_variogram_paired_distance(self):
         #~ V = Variogram()
@@ -154,7 +154,7 @@ class TestData(unittest.TestCase):
         x = np.random.random(100)
         lon = np.random.random(100)
         lat = np.random.random(100)
-        lags = [1,2,3,4]
+        lags = np.asarray([1.,2.,3.,4.])
         V.semivariogram(x, lon, lat, lags, 1.)
 
     def test_variogram_orthodrome(self):

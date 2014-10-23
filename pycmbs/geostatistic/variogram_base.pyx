@@ -161,7 +161,7 @@ cdef class Variogram(object):
 
         return zval
 
-    def semivariogram(self, x, lon, lat, lags, dlag):
+    def semivariogram(self, np.ndarray[DTYPE_t, ndim=1] x, np.ndarray[DTYPE_t, ndim=1] lon, np.ndarray[DTYPE_t, ndim=1] lat, np.ndarray[DTYPE_t, ndim=1] lags, double dlag):
         """
         calculate semivariogram for different lags
 
@@ -190,8 +190,9 @@ cdef class Variogram(object):
 
         cdef int i
 
-        assert (lon.shape == lat.shape)
-        assert(lon.shape == x.shape)
+        assert (np.shape(lon) == np.shape(lat))
+        assert (np.shape(lon) == np.shape(x))
+
 
         gamma = self._semivariance(x, lon, lat, lags, dlag)
 

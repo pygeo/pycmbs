@@ -72,6 +72,7 @@ def license_missing(filename):
     # check first if directory shall be skipped
     skip_dirs = ['docsrc']
     skip_files = ['emd.py']
+    skip_tags = ['cartopy']
     for sd in skip_dirs:  # skip predefined directories
         if sd in os.path.dirname(filename):
             return False
@@ -85,4 +86,7 @@ def license_missing(filename):
     fh.close()
     if os.path.basename(filename) in skip_files:
         license_missing = False
+    for k in skip_tags:
+        if k in filename:
+            license_missing = False
     return license_missing
