@@ -19,8 +19,16 @@ ctypedef np.double_t DTYPE_t  # double type for numpy arrays
 
 cdef class Variogram(object):
 
+    cdef double dlag
+
     def __init__(self, **kwargs):
-        pass
+        self.dlag = np.nan
+
+    property dlag:
+        def __get__(self):
+          return self.dlag
+        def __set__(self, double value):
+          self.dlag = value
 
     def _orthodrome(self, double lon1_deg, double lat1_deg, double lon2_deg, double lat2_deg, double radius=6371000.):
         """
@@ -193,7 +201,7 @@ cdef class Variogram(object):
         assert (np.shape(lon) == np.shape(lat))
         assert (np.shape(lon) == np.shape(x))
 
-
+        self.dlag = dlag
         gamma = self._semivariance(x, lon, lat, lags, dlag)
 
         return lags, gamma

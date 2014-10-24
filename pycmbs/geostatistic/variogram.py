@@ -32,6 +32,8 @@ class SphericalVariogram(Variogram):
         returns a dictionary with model parameters
         """
 
+        self.dlag = np.diff(h)[0]
+
         self._h = np.asarray(h)*1.
         self._gamma = gamma
 
