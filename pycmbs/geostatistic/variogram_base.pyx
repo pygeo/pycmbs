@@ -13,7 +13,6 @@ Variogram modelling
 import numpy as np
 cimport numpy as np
 
-from scipy.optimize import minimize
 
 ctypedef np.double_t DTYPE_t  # double type for numpy arrays
 
