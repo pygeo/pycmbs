@@ -7,7 +7,7 @@ COPYRIGHT.md
 """
 
 from pycmbs.data import Data
-from variogram import Variogram
+from variogram import SphericalVariogram
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -108,7 +108,7 @@ class Geostatistic(object):
             j = None
         return i, j
 
-    def plot_semivariogram(self, ax=None, color='red', logy=False, ref_lags=None):
+    def plot_semivariogram(self, ax=None, color='red', logy=False, ref_lags=None, fit_variogram=False):
         """
         plot semivariogram
 
@@ -125,14 +125,21 @@ class Geostatistic(object):
                 self._filter_data_maxdist()
 
         f, ax = self._get_figure_ax(ax)
-        self.calc_semivariance()
+        V = self.calc_semivariance()
         r = self.statistic['semivariogram']['r']
         sigma = self.statistic['semivariogram']['sigma']
 
-        if logy:
-            ax.semilogy(r, sigma, 'x', color=color)
+        # plot fitted semivariogram if desired
+        if fit_variogram:
+            param = V.fit(r, sigma)
+            V.plot(V._h, V._gamma, ax=ax)  # plots experimental variogram and fitted model
         else:
-            ax.plot(r, sigma, 'x', color=color)
+            if logy:
+                ax.semilogy(r, sigma, 'x', color=color)
+            else:
+                ax.plot(r, sigma, 'x', color=color)
+
+        # set additional labels
         ax.set_ylabel('$\sigma^2$ / 2 (isotropic)')
         ax.set_xlabel('distance from center [km]')
         ax.grid()
@@ -215,7 +222,7 @@ class Geostatistic(object):
             o = o.data[~o.mask]  # ensure that nparray is returned
         return o
 
-    def calc_semivariance(self):
+    def calc_semivariance(self, model='spherical'):
         """
         calculate semivariance for selected range bins
 
@@ -240,13 +247,18 @@ class Geostatistic(object):
         data = data.data[msk]
 
         # estimate experimental variogram
-        V = Variogram()
+        if model == 'spherical':
+            V = SphericalVariogram()
+        else:
+            raise ValueError('Invalid variogram type')
         dlag = self.lags[1]-self.lags[0]  # assume equal lag binning
         r, v = V.semivariogram(data, lon, lat, self.lags, dlag)
 
         # store results
         o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
         self.statistic.update({'semivariogram': o})
+
+        return V
 
     def _get_figure_ax(self, ax):
         if ax is None:

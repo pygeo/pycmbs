@@ -14,6 +14,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 from variogram_base import Variogram
+import matplotlib.pyplot as plt
 
 class SphericalVariogram(Variogram):
 
@@ -50,8 +51,10 @@ class SphericalVariogram(Variogram):
         range = x[2]
 
         y = self.model(self._h, sill, nugget, range)
-
-        return np.sum((y - self._gamma)**2.)
+        r = np.sum((y - self._gamma)**2.)
+        if range < 0.:  # no negative range values!
+            r += 10.**5.
+        return r
 
     def model(self, h, sill, nugget, range):
         """
@@ -71,18 +74,26 @@ class SphericalVariogram(Variogram):
 
         return gamma
 
-    def plot(self, h, gamma):
+    def plot(self, h, gamma, ax=None, color='red'):
         """
         plot semivariogram
         """
-        f = plt.figure()
-        ax = f.add_subplot(111)
-        ax.plot(h, gamma, 'x')
+        if ax is None:
+            f = plt.figure()
+            ax = f.add_subplot(111)
+        else:
+            ax = ax
+
+        ax.plot(h, gamma, 'x', color=color)
         ax.set_ylabel('$\gamma$')
         ax.set_xlabel('$lag distance [km]$')
 
+        print 'model parameters: ', self.model_parameters
+
         gmodel = self.model(h, self.model_parameters['sill'], self.model_parameters['nugget'], self.model_parameters['range'])
-        ax.plot(h, gmodel, '-', color='red')
+        print gmodel
+
+        ax.plot(h, gmodel, '-', color=color)
 
 
 
