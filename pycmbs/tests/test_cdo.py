@@ -25,10 +25,10 @@ class TestData(unittest.TestCase):
     def test_cdo_general(self):
         # test if cdos work in general
         cdo = Cdo()
-        out_file = self._tmpdir + os.sep + 'cdo_test.nc'
-        if os.path.exists(out_file):
-            os.remove(out_file)
-        cdo.timmean(options='-f nc', output=out_file, input=self.file)
-        self.assertTrue(os.path.exists(out_file))
-        if os.path.exists(out_file):
-            os.remove(out_file)
+        #~ out_file = self._tmpdir + os.sep + 'cdo_test.nc'
+        #~ if os.path.exists(out_file):
+            #~ os.remove(out_file)
+        #~ cdo.timmean(options='-f nc', output=out_file, input=self.file)
+        #~ self.assertTrue(os.path.exists(out_file))
+        #~ if os.path.exists(out_file):
+            #~ os.remove(out_file)

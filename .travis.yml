@@ -30,6 +30,7 @@ before_install:
 - sudo /usr/bin/pip install --use-mirrors PIL
 - sudo /usr/bin/python setup.py install
 - popd
+- sudo sh compile_extensions.sh
 script:
 - nosetests --with-coverage --cover-package=pycmbs
 after_success:

@@ -7,11 +7,13 @@ COPYRIGHT.md
 """
 
 from pycmbs.data import Data
+from variogram import SphericalVariogram
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 class Geostatistic(object):
-    def __init__(self, x, range_bins=None):
+    def __init__(self, x, lags=None, maxdist=None):
         """
         Geostatistical calculations on a data object
 
@@ -21,18 +23,56 @@ class Geostatistic(object):
             data to be analyzed
         range_bins : list
             list of bins to perform analysis
+        maxdist : float
+            maximum distance for analyis [km]
         """
         assert isinstance(x, Data)
-        if range_bins is None:
+        if lags is None:
             raise ValueError('ERROR: you need to specifiy the range bins!')
         self.x = x
-        self.range_bins = np.asarray(range_bins)
+        self.lags = np.asarray(lags)
         self._check()
         self.statistic = {}
 
+
+        self.maxdist = maxdist
+        self._distfiltered=False
+
+
+    def _filter_data_maxdist(self):
+        """
+        filters the data obect to contain only values within a maximum distance
+        This allows more efficient calculations afterwards
+        """
+
+        # calculate distance
+        d = self.x.distance(self.lon_center, self.lat_center, earth_radius=6371.) / 1000.
+        msk = d < self.maxdist
+        x = self.x.copy()
+        del self.x
+
+        x._apply_mask(msk)
+        self.x = x.cut_bounding_box(return_object=True)
+
+        lon, lat, data = self.x.get_valid_data()
+        del x
+
+        self._distfiltered = True
+
     def _check(self):
-        if np.any(np.diff(self.range_bins) < 0.):
+        if np.any(np.diff(self.lags) < 0.):
             raise ValueError('Bins are not in ascending order!')
+
+        # ensure qual binning  of lags
+        di = np.diff(self.lags)
+        if np.any(np.abs(di-di[0])>1.E-10):
+            print di
+            print di[0]
+            raise ValueError('Only equal bins currently supported"')
+        if np.any(np.diff(self.lags) < 0.):
+            raise ValueError('Bins are not in ascending order!')
+
+
         if self.x.data.ndim != 2:
             raise ValueError('Currently only support for 2D data')
 
@@ -68,7 +108,7 @@ class Geostatistic(object):
             j = None
         return i, j
 
-    def plot_semivariogram(self, ax=None, color='red', logy=False, ref_lags=None):
+    def plot_semivariogram(self, ax=None, color='red', logy=False, ref_lags=None, fit_variogram=False):
         """
         plot semivariogram
 
@@ -77,18 +117,29 @@ class Geostatistic(object):
         ref_lags : list
             list of reference lags. If given, then these lags are plotted in the figure as well
         """
-        if not hasattr(self, '_distance'):
-            self._calculate_distance()
+        #~ if not hasattr(self, '_distance'):
+            #~ self._calculate_distance()
+
+        if self.maxdist is not None:
+            if not self._distfiltered:
+                self._filter_data_maxdist()
 
         f, ax = self._get_figure_ax(ax)
-        self.calc_semivariance()
+        V = self.calc_semivariance()
         r = self.statistic['semivariogram']['r']
         sigma = self.statistic['semivariogram']['sigma']
 
-        if logy:
-            ax.semilogy(r, sigma, 'x', color=color)
+        # plot fitted semivariogram if desired
+        if fit_variogram:
+            param = V.fit(r, sigma)
+            V.plot(V._h, V._gamma, ax=ax)  # plots experimental variogram and fitted model
         else:
-            ax.plot(r, sigma, 'x', color=color)
+            if logy:
+                ax.semilogy(r, sigma, 'x', color=color)
+            else:
+                ax.plot(r, sigma, 'x', color=color)
+
+        # set additional labels
         ax.set_ylabel('$\sigma^2$ / 2 (isotropic)')
         ax.set_xlabel('distance from center [km]')
         ax.grid()
@@ -106,6 +157,11 @@ class Geostatistic(object):
         p : list
             list of percentiles [0 ... 1]
         """
+
+        if self.maxdist is not None:
+            if not self._distfiltered:
+                self._filter_data_maxdist()
+
         f, ax = self._get_figure_ax(ax)
         for e in p:
             self.calc_percentile(e)
@@ -129,7 +185,7 @@ class Geostatistic(object):
         """
         p [0 ... 1]
         """
-        bounds = self.range_bins
+        bounds = self.lags
         r = []
         v = []
         for b in bounds:
@@ -166,23 +222,43 @@ class Geostatistic(object):
             o = o.data[~o.mask]  # ensure that nparray is returned
         return o
 
-    def calc_semivariance(self):
+    def calc_semivariance(self, model='spherical'):
         """
         calculate semivariance for selected range bins
+
+        Parameters
+        ----------
+        maxdist : float
+            maximum distance [km]
+
         """
-        bounds = self.range_bins
-        r = []
-        v = []
-        for b in bounds:
-            d = self._get_data_distance(0., b)
-            if d is None:
-                r.append(b)
-                v.append(np.nan)
-            else:
-                r.append(b)
-                v.append(0.5 * np.ma.var(d))  # semivariance
+        assert self.x.ndim == 2
+
+        # determine first all data within a certain distance only
+
+        # get flattened data
+        lon, lat, data = self.x.get_valid_data()
+
+        # convert to ndarray
+        msk = ~data.mask
+
+        lon = lon.data[msk]
+        lat = lat.data[msk]
+        data = data.data[msk]
+
+        # estimate experimental variogram
+        if model == 'spherical':
+            V = SphericalVariogram()
+        else:
+            raise ValueError('Invalid variogram type')
+        dlag = self.lags[1]-self.lags[0]  # assume equal lag binning
+        r, v = V.semivariogram(data, lon, lat, self.lags, dlag)
+
+        # store results
         o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
         self.statistic.update({'semivariogram': o})
+
+        return V
 
     def _get_figure_ax(self, ax):
         if ax is None:
@@ -257,10 +333,9 @@ class Geostatistic(object):
 
             self._calculate_distance(data=refobj)
 
+
         # get closest points as preselection
-        #di = np.round(np.abs(self._distance-d),0).astype('int')
         di = np.abs(self._distance-d)
-        #msk = di == 0
         msk = di < dist_threshold
         lons = refobj.lon[msk].flatten()
         lats = refobj.lat[msk].flatten()

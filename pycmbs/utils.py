@@ -103,8 +103,6 @@ class Dict2TXT(object):
                 S = _remove_trailing_sep(S, sep)
             return S
 
-
-
         ho = _remove_trailing_sep(h, self.fieldsep)
         so = _remove_trailing_sep(s, self.fieldsep)
 

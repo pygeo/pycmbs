@@ -296,7 +296,7 @@ class MapPlotGeneric(object):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
-        if proj_prop['projection'] in ['robin','TransverseMercator', 'mercator']:
+        if proj_prop['projection'] in ['robin', 'TransverseMercator', 'mercator']:
             pass
         else:
             raise ValueError('Unsupported projection type')
@@ -359,7 +359,7 @@ class MapPlotGeneric(object):
         except:
             print '*** WARNING: something did not work with pcolormesh plotting in mapping.py'
             self.im = None
-        self.pax.gridlines()  #draw_labels=kwargs.pop('draw_labels', True))
+        self.pax.gridlines()  # draw_labels=kwargs.pop('draw_labels', True))
 
         # plot polygons
         if self.polygons is not None:
@@ -417,10 +417,9 @@ class MapPlotGeneric(object):
             specify how vertices are interconnected (here simple connection by lines)
             """
             codes = [Path.MOVETO]
-            for i in xrange(n-1):
+            for i in xrange(n - 1):
                 codes.append(Path.LINETO)
             return codes
-
 
         for p0 in self.polygons:
 
@@ -472,8 +471,8 @@ class MapPlotGeneric(object):
             return list(x), list(y)
         elif self.backend == 'cartopy':
             X = plot_handler.transform_points(ccrs.PlateCarree(), lons, lats)  # gives an array (N, 3) with x,y,z as columns
-            x = X[:,0]
-            y = X[:,1]
+            x = X[:, 0]
+            y = X[:, 1]
             return list(x), list(y)
         else:
             raise ValueError('Invalid backend!')
@@ -826,7 +825,6 @@ s
             list of Polygon object of e.g. a regions to draw
         """
 
-
         if colorbar_orientation not in ['vertical', 'horizontal']:
             raise ValueError('Invalid colorbar orientation')
 
@@ -895,18 +893,18 @@ s
         ymin = clat - radius
         ymax = clat + radius
 
-        proj_prop.update({'projection' : 'TransverseMercator'})
-        proj_prop.update({'central_longitude' : clon})
-        proj_prop.update({'central_latitude' : clat})
-        proj_prop.update({'extent' : {'xmin' : xmin, 'xmax' : xmax, 'ymin' : ymin, 'ymax' : ymax}})
+        proj_prop.update({'projection': 'TransverseMercator'})
+        proj_prop.update({'central_longitude': clon})
+        proj_prop.update({'central_latitude': clat})
+        proj_prop.update({'extent': {'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax}})
 
         # generate Polygon to plot center location that gives a circle
         if show_center:
-            theta = np.linspace(0., 2.*np.pi, 360)
+            theta = np.linspace(0., 2. * np.pi, 360)
             r = 0.02 * radius  # size as function of overall radius
-            x = clon + r*np.cos(theta)
-            y = clat + r*np.sin(theta)
-            P = Polygon(1, zip(x,y))
+            x = clon + r * np.cos(theta)
+            y = clat + r * np.sin(theta)
+            P = Polygon(1, zip(x, y))
 
         if 'polygons' in kwargs.keys():
             polygons = kwargs.pop('polygons')
@@ -918,7 +916,6 @@ s
             polygons = [P]
 
         self.plot(proj_prop=proj_prop, polygons=polygons, **kwargs)
-
 
     def _adjust_figure(self):
         """

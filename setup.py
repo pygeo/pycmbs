@@ -13,6 +13,7 @@ from distutils.core import setup as setup_dist  # todo use only one setup
 
 import pycmbs
 from Cython.Build import cythonize
+import os
 
 install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib"]
 
@@ -41,9 +42,14 @@ setup(name='pycmbs',
       scripts=["pycmbs-benchmarking.py"],
       license="MIT license")
 
-setup_dist(
-  ext_modules = cythonize("./pycmbs/polygon_utils.pyx"),
-)
+#~ setup_dist(
+  #~ ext_modules = cythonize("./pycmbs/polygon_utils.pyx"),
+#~ )
+
+
+# compile extensions
+#~ os.system('sh compile_extensions.sh')
+
 
 ########################################################################
 # Some useful information on shipping packages
