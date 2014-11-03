@@ -17,6 +17,8 @@ import sys
 import matplotlib.pyplot as pyplot
 import numpy as np
 
+from pycmbs.utils import get_month_string
+
 
 def agg_hourly(d, v, timestamp='mid', mode='mean'):
     """
@@ -204,13 +206,16 @@ class hovmoeller:
 
         self.hov = None
 
-#-----------------------------------------------------------------------------------------------------------------------
-
-    def plot(self, xticks=None, xlabel=None, ylabel=None, title='', grid=True, climits=None, figsize=None, origin=None, xtickrotation=0, cmap='jet', showcolorbar=True, ax=None, show_uncertainties=False, norm_uncertainties=False, input=None, showxticks=True, nclasses=11):
+    def plot(self, xticks=None, xlabel=None, ylabel=None, title='',
+            grid=True, climits=None, figsize=None, origin=None,
+            xtickrotation=0, cmap='jet', showcolorbar=True, ax=None,
+            show_uncertainties=False, norm_uncertainties=False,
+            input=None, showxticks=True, nclasses=11, lat_tick=np.arange(-90., 90 + 30., 30.),
+            monthsamp=1, yearonly=True):
         """
         Generates a Hovmoeller plot
 
-        Two different options are available to generate the plot. The plot can be either based on caluclation from
+        Two different options are available to generate the plot. The plot can be either based on calculation from
         the Hovmoeller class itself. This requires that self.hov was calculated already using e.g. time_to_lat().
         The second option is, that a Data object is provided by the *input* variable. In this case, the zonal mean is calculated from
         the Data object all required processing is done in this routine.
@@ -237,6 +242,12 @@ class hovmoeller:
             show the xticks in the Hovmoeller plot
         nclasses : int
             number of classes for colorbar
+        lat_tick : ndarray
+            tick labels for latitude (default: every 30 degree)
+        monthsamp : int
+            sampling interval for months
+        yearonly : bool
+            if True, then only the years are shown as labels in the timeseries
 
         input is expected to have dimensions [nlat,ntime] and can be precalculated using Data.get_zonal_mean().T
         input is expected to be a Data object!
@@ -252,7 +263,7 @@ class hovmoeller:
                 #////////////////////////////////////////////////
 
                 input1 = input.get_zonal_mean(return_object=True)
-                input1.adjust_time(day=1, month=1)
+                input1.adjust_time(day=1) #, month=1)
 
                 nlat, nt = input1.data.shape
                 if nt != len(self.time):
@@ -261,11 +272,11 @@ class hovmoeller:
                     raise ValueError('inconsistent time shape!')
 
                 self.hov = input1.data
-                self.yearonly = True
+                self.yearonly = yearonly
 
                 #/// check if latitudes are in increasing order ?
                 lats = input1.lat * 1.
-                if np.all(np.diff(lats) > 0):
+                if np.all(np.diff(lats) >= 0):
                     f_invert = False
 
                 else:
@@ -273,27 +284,27 @@ class hovmoeller:
                     #change sequence of data!
                     lats = lats[::-1]
 
-                    if not np.all(np.diff(lats) > 0):
-                        raise ValueError('Latitudes can not be put into ascending order!!!!')
+                    if not np.all(np.diff(lats) >= 0):
+                        raise ValueError('Latitudes can not be put into ascending order!')
 
                 #/// monthly ticks ///
                 data_days = generate_monthly_timeseries(pl.date2num(input1.date))  # convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
                 all_days = np.unique(data_days)
                 if showxticks:
-                    self.generate_xticks(all_days, monthsamp=1)  # todo
+                    self.generate_xticks(all_days, monthsamp=monthsamp)
 
-                dlat = 30.  # todo
-
-                lat_tick = np.arange(-90., 90 + dlat, dlat)  # positions for yticks (degree)
+                # use only ticks that are within the current latitudes
+                mlat = (lat_tick>= lats.min()) & (lat_tick <= lats.max())
+                lat_tick1 = lat_tick[mlat]
 
                 #interpolate the tick grid to the data grid
-                lat_pos = np.interp(lat_tick, lats, np.arange(len(lats)))  # index positions
+                lat_pos = np.interp(lat_tick1, lats, np.arange(len(lats)))  # index positions
 
                 if f_invert:  # invert position back
                     #lat_tick = lat_tick[::-1]
                     lat_pos = lat_pos[::-1]
 
-                yticklabels = np.asarray(map(str, lat_tick))
+                yticklabels = np.asarray(map(str, lat_tick1))
 
                 if self.transpose:
                     scal = self.rescalex
@@ -305,7 +316,7 @@ class hovmoeller:
                 self.y_major_locator = pl.FixedLocator(yticks)
                 self.y_major_formatter = pl.FixedFormatter(yticklabels)
 
-                ylabel = 'latitude [degree]'
+                ylabel = 'latitude'
 
         if climits is None:
             raise ValueError('Hovmoeller, please specify climits')
@@ -702,21 +713,23 @@ class hovmoeller:
         last_year = dd[0].year
 
         xticks.append(all_days[0])
-        strmon = str(dd[0].month).zfill(2)
-
+        strmon = get_month_string(dd[0].month)
         if self.yearonly:
             xticklabels.append(str(dd[0].year))
         else:
-            xticklabels.append(strmon + '/' + str(dd[0].year))
+            xticklabels.append(strmon + '\n' + str(dd[0].year))
+
         for d in dd:
-            #~ print d, last_month
             if (d.month != last_month) | (d.year != last_year):
                 xticks.append(pl.date2num(d))  # save tick location
-                mstr = str(d.month).zfill(2)
+                mstr = get_month_string(d.month)
                 if self.yearonly:
                     xticklabels.append(str(d.year))
                 else:
-                    xticklabels.append(mstr + '/' + str(d.year))
+                    if (d.year != last_year):
+                        xticklabels.append(mstr + '\n' + str(d.year))
+                    else:
+                        xticklabels.append(mstr + '\n' + '')
                 last_month = d.month
                 last_year = d.year
 
@@ -726,18 +739,20 @@ class hovmoeller:
             scal = self.rescalex
         xticks = np.asarray(xticks)
 
-        #/// remap to image coordinates
+        # /// remap to image coordinates
         ny, nx = np.shape(self.hov)
         w = (xticks - pl.date2num(self.t_min)) / (pl.date2num(self.t_max) - pl.date2num(self.t_min))  # weights for positions on x-axis
+
         xticks = w * nx * scal
         xticks = list(xticks)
 
-        #here we have monthly ticks which we can now subsample
+        # here we have monthly ticks which we can now subsample
         xticks = xticks[::monthsamp]
         xticklabels = xticklabels[::monthsamp]
 
         self.x_major_locator = pl.FixedLocator(xticks)
         self.x_major_formatter = pl.FixedFormatter(xticklabels)
+
 
 
 

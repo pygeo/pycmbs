@@ -351,32 +351,32 @@ class CorrelationAnalysis(object):
 
         from pycmbs.diagnostic import Diagnostic
 
-        #--- calculate diagnostics
+        # calculate diagnostics
         D = Diagnostic(self.x, y=self.y)
         D._mat2vec(mask=self.mask)  # here is the point fo regional statistics
         rmse = D.get_rmse_value()
         r = D.get_correlation_value()
         n = D. get_n()
 
-#-----------------------------------------------------------------------
-
 
 class HovmoellerPlot(object):
-    def __init__(self, D, rescaley=10, rescalex=10, yticksampling=1,
-                 monthly=False, ax=None, figsize=(10, 5)):
+
+    def __init__(self, D, rescaley=10, rescalex=10,
+                 ax=None, figsize=(10, 5)):
         """
 
         Parameters
         ----------
-        D : Data object
-            Data object that should be used for plotting the Hovmoeller
-            diagram
-
-
-        if the argument lat is provided it is assumed that lat/lon are 2D matrices
-        In this case the value is expected to be a 3D variables as
-        value(time,ny,nx)
+        D : Data
+            Data object that should be used for plotting the Hovmoeller diagram
+        rescaley : float/int
+            rescaling factor for Hovmoeller plot in y-direction. This results in a stretched dataset
+        rescalex : float/int
+            rescaling factor for Hovmoeller plot in x-direction. This results in a stretched dataset
         """
+
+        assert isinstance(D, Data)
+
         if ax is None:
             self.figure = plt.figure(figsize=figsize)
             self.ax = self.figure.add_subplot(111)
@@ -391,20 +391,18 @@ class HovmoellerPlot(object):
 
     def plot(self, title=None, climits=None, showxticks=True,
              showcolorbar=True, cmap='jet', xtickrotation=90,
-             ylim=None):
+             ylim=None, lat_tick=np.arange(-90., 90 + 30., 30.), yearonly=True, monthsamp=1):
         if climits is None:
             raise ValueError('CLIMITS needs to be specified!')
         self.hov.plot(input=self.x, ax=self.ax, title=title,
                       ylabel='lat', xlabel='days', origin='lower',
                       xtickrotation=xtickrotation, climits=climits,
                       showxticks=showxticks, showcolorbar=showcolorbar,
-                      cmap=cmap)
+                      cmap=cmap, lat_tick=lat_tick, yearonly=yearonly, monthsamp=monthsamp)
         if ylim is not None:
             self.ax.set_ylim(ylim)
         if title is None:
             self.ax.set_title(self.x.label)
-
-#-----------------------------------------------------------------------
 
 
 class ReichlerPlot(object):
