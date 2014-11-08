@@ -4,8 +4,8 @@ Installation
 Below we describe how you properly install pyCMBS in your environment.
 Currently, there are three different ways to install pyCMBS
 
- 1. Easy installation using *pip* (recommended)
- 2. Source code installation from code repository
+ 1. Easy installation using *pip* (note: not checked for a while be careful!)
+ 2. Source code installation from code repository (currently recommended)
  3. Source code installation from tarball
 
 All approaches are detailed below. Special informations for users working
@@ -82,10 +82,13 @@ Detailed installation instructions for pyCMBS
 
 In the following, we will summarize the different approaches to install pyCMBS.
 
-Installation using *pip* (the easiest way)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installation using *pip* (the easiest way ... theoretically)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using `pip <https://pypi.python.org/pypi/pip>`_ is the easiest (and recommended) way to install pyCMBS.
+Using `pip <https://pypi.python.org/pypi/pip>`_ is in general the easiest way to install pyCMBS if you dont want to develop by your own.
+
+NOTICE however that this installation procedure was not tested thoroughly with present version. Please be therefore careful.
+
 The installation with *pip* was tested without the cartopy plotting backend so far.
 
 If you have *pip* not yet installed on your machine, then the first step
@@ -140,8 +143,13 @@ To retrieve the code do the following::
     # retrieve the code
     git clone
 
+
+Now you have in principle two options. You either decide that the code should be installed in the python dist-packages directory, then you do::
+
     # do installation
     python setup.py install
+
+or if you want to hack the code, it is highly recommended to simply set the right PYTHONPATH environment variable::
 
     # or as an alternative for developers, just set the PYTHONPATH
     # environment variable to the pycmbs root directory and also adapt
