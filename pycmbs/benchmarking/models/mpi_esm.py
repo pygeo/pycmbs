@@ -180,13 +180,30 @@ class JSBACH_BOT(Model):
         return rain
 
 
+class JSBACH_SPECIAL(JSBACH_RAW2):
+    """
+    special class for Gorans purposes
+    """
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='nc', **kwargs)
+
+        super(JSBACH_SPECIAL, self).__init__(filename, dic_variables, name=name, **kwargs)
+        self.raw_outdata = ''
+
 class JSBACH_RAW2(Model):
     """
     Class for RAW JSBACH model output
     works on the real raw output
     """
 
-    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, **kwargs):
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='grb', **kwargs):
+        """
+        Parameters
+        ----------
+        input_format : str
+            specifies file format of input data
+            ['nc','grb']
+        """
+
 
         #Model.__init__(self,filename,dic_variables,name=name,**kwargs)
         super(JSBACH_RAW2, self).__init__(filename, dic_variables, name=name, **kwargs)
@@ -196,6 +213,11 @@ class JSBACH_RAW2(Model):
         #self.get_data()
         self.type = 'JSBACH_RAW2'
 
+        self.input_format = input_format
+        assert self.input_format in ['nc', 'grb']
+
+        self.raw_outdata = 'outdata/jsbach/'
+
         self._unique_name = self._get_unique_name()
 
         # do preprocessing of streams (only needed once!) ---
@@ -204,6 +226,18 @@ class JSBACH_RAW2(Model):
         self.model_dict = copy.deepcopy(model_dict)
 
         self.model = 'JSBACH'
+
+    def _get_filenames_jsbach_stream(self):
+        return self.data_dir + self.raw_outdata + self.experiment + '_jsbach_main_mm_*.' + self.input_format
+
+    def _get_filenames_veg_stream(self):
+        return self.data_dir + self.raw_outdata + self.experiment + '_jsbach_veg_mm_*.' + self.input_format
+
+    def _get_filenames_land_stream(self):
+        return self.data_dir + self.raw_outdata + self.experiment + '_jsbach_land_mm_*.' + self.input_format
+
+    def _get_filenames_surf_stream(self):
+        return self.data_dir + self.raw_outdata + self.experiment + '_jsbach_surf_mm_*.' + self.input_format
 
     def _preproc_streams(self):
         """
@@ -228,7 +262,9 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_main_mm_*.grb')
+            print self._get_filenames_jsbach_stream()
+            stop
+            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_jsbach_stream())
             if os.path.exists(codetable):
                 cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
             else:
@@ -244,7 +280,7 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_veg.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_veg_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_veg_mm_*.grb')
+            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_veg_stream())
             if os.path.exists(codetable):
                 cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
             else:
@@ -260,7 +296,7 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_land.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_land_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_land_mm_*.grb')
+            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_land_stream())
             if os.path.exists(codetable):
                 cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
             else:
@@ -276,7 +312,7 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_surf.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_surf_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_surf_mm_*.grb')
+            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_surf_stream())
             if os.path.exists(codetable):
                 cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
             else:
@@ -307,7 +343,7 @@ class JSBACH_RAW2(Model):
         if os.path.exists(outfile):
             pass
         else:
-            cdo.mergetime(options='-f nc', output=outfile, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_VIS_albedo.grb')
+            cdo.mergetime(options='-f nc', output=outfile, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_VIS_albedo.' + self.input_format)
         self.files.update({'albedo_vis': outfile})
 
         print '   ALBEDO NIR stream ...'
@@ -315,7 +351,7 @@ class JSBACH_RAW2(Model):
         if os.path.exists(outfile):
             pass
         else:
-            cdo.mergetime(options='-f nc', output=outfile, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_NIR_albedo.grb')
+            cdo.mergetime(options='-f nc', output=outfile, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_NIR_albedo.' + self.input_format)
         self.files.update({'albedo_nir': outfile})
 
     def _get_unique_name(self):
