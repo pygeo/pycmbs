@@ -62,6 +62,7 @@ class RegionGeneric(object):
     """
     Generic class to define regions
     """
+
     def __init__(self, id, label=None):
         self.lon = None
         self.lat = None

@@ -54,7 +54,6 @@ class Raster(object):
         """
         self.mask = np.zeros(self.lon.shape) * np.nan
         for P in polygons:
-            print P
             self._rasterize_single_polygon(P, method=method)
         self.mask = np.ma.array(self.mask, mask=np.isnan(self.mask))
 
@@ -94,8 +93,8 @@ class Raster(object):
         if method == 'full':
             ny, nx = self.lon.shape
             for i in xrange(ny):
-                if i % 10 == 0:
-                    print i, ny
+                #~ if i % 10 == 0:
+                print 'Rasterization ... ', i, ny, nx, 100.*float(i)/float(ny), '%'
                 for j in xrange(nx):
                     if P.point_in_poly(self.lon[i, j], self.lat[i, j]):
                         if np.isnan(self.mask[i, j]):
