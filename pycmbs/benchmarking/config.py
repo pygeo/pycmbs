@@ -240,7 +240,7 @@ class ConfigFile(object):
 
         for k in self.dtypes:
             if k.upper() not in ['CMIP5', 'JSBACH_BOT', 'JSBACH_RAW',
-                                 'CMIP3', 'JSBACH_RAW2', 'CMIP5RAW', 'CMIP5RAWSINGLE']:
+                                 'CMIP3', 'JSBACH_RAW2', 'CMIP5RAW', 'CMIP5RAWSINGLE', 'JSBACH_SPECIAL']:
                 raise ValueError('Unknown model type: %s' % k)
         sys.stdout.write(" *** Done reading config file. \n")
 
@@ -296,8 +296,6 @@ class ConfigFile(object):
 
         return res
 
-
-#-----------------------------------------------------------------------------------------------------------------------
 
 class PlotOptions(object):
     """

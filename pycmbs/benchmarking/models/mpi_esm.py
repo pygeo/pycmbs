@@ -180,22 +180,13 @@ class JSBACH_BOT(Model):
         return rain
 
 
-class JSBACH_SPECIAL(JSBACH_RAW2):
-    """
-    special class for Gorans purposes
-    """
-    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='nc', **kwargs)
-
-        super(JSBACH_SPECIAL, self).__init__(filename, dic_variables, name=name, **kwargs)
-        self.raw_outdata = ''
-
 class JSBACH_RAW2(Model):
     """
     Class for RAW JSBACH model output
     works on the real raw output
     """
 
-    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='grb', **kwargs):
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='grb', raw_outdata='outdata/jsbach/', **kwargs):
         """
         Parameters
         ----------
@@ -204,8 +195,6 @@ class JSBACH_RAW2(Model):
             ['nc','grb']
         """
 
-
-        #Model.__init__(self,filename,dic_variables,name=name,**kwargs)
         super(JSBACH_RAW2, self).__init__(filename, dic_variables, name=name, **kwargs)
 
         self.experiment = experiment
@@ -216,7 +205,7 @@ class JSBACH_RAW2(Model):
         self.input_format = input_format
         assert self.input_format in ['nc', 'grb']
 
-        self.raw_outdata = 'outdata/jsbach/'
+        self.raw_outdata = raw_outdata
 
         self._unique_name = self._get_unique_name()
 
@@ -262,8 +251,10 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_', dir=get_temporary_directory())  # temporary file
-            print self._get_filenames_jsbach_stream()
-            stop
+            #~ print self.data_dir
+            #~ print self.raw_outdata
+            #~ print 'Files: ', self._get_filenames_jsbach_stream()
+            #~ stop
             cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_jsbach_stream())
             if os.path.exists(codetable):
                 cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
@@ -594,8 +585,13 @@ class JSBACH_RAW2(Model):
 
         return mdata, retval
 
-#-----------------------------------------------------------------------
 
+class JSBACH_SPECIAL(JSBACH_RAW2):
+    """
+    special class for Gorans purposes
+    """
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='nc', raw_outdata='', **kwargs):
+        super(JSBACH_SPECIAL, self).__init__(filename, dic_variables, experiment, name=name, shift_lon=shift_lon, model_dict=model_dict, input_format=input_format, raw_outdata=raw_outdata, **kwargs)
 
 class JSBACH_RAW(Model):
     """

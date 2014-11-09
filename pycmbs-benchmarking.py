@@ -25,7 +25,7 @@ from pycmbs.benchmarking import config
 from pycmbs.benchmarking import analysis
 from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, CMIP5RAW_SINGLE
 from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
-from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data
+from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data, JSBACH_SPECIAL
 from pycmbs.benchmarking.models import MeanModel
 from pycmbs.benchmarking.utils import get_temporary_directory
 
@@ -138,7 +138,7 @@ def main():
         os.remove(os.environ['DATA_WARNING_FILE'])
 
     # init regions
-    REGIONS = config.AnalysisRegions()
+    #~ REGIONS = config.AnalysisRegions()
 
     for thevar in plot_options.options.keys():
         if thevar in plot_options.options.keys():
@@ -492,6 +492,14 @@ def main():
                                    stop_time=stop_time,
                                    name=model, shift_lon=shift_lon,
                                    model_dict=model_dict)
+        elif CF.dtypes[i].upper() == 'JSBACH_SPECIAL':
+            themodel = JSBACH_SPECIAL(data_dir, varmethods, experiment,
+                                   intervals=CF.intervals,
+                                   start_time=start_time,
+                                   stop_time=stop_time,
+                                   name=model, shift_lon=shift_lon,
+                                   model_dict=model_dict)
+            stop
         elif CF.dtypes[i].upper() == 'CMIP3':
             themodel = CMIP3Data(data_dir, model, experiment, varmethods,
                                  intervals=CF.intervals, lat_name='lat',
