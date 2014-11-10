@@ -228,6 +228,15 @@ class JSBACH_RAW2(Model):
     def _get_filenames_surf_stream(self):
         return self.data_dir + self.raw_outdata + self.experiment + '_jsbach_surf_mm_*.' + self.input_format
 
+    def _get_filenames_albedo_VIS(self):
+        return self.data_dir + self.raw_outdata + self.experiment + '_jsbach_mm_*_VIS_albedo.' + self.input_format
+
+    def _get_filenames_albedo_NIR(self):
+        return self.data_dir + self.raw_outdata + self.experiment + '_jsbach_mm_*_NIR_albedo.' + self.input_format
+
+    def _get_filenames_echam_BOT(self):
+        return self.data_dir + self.raw_outdata + '../echam6/' + self.experiment + '_echam6_BOT_mm_*.sz'
+
     def _preproc_streams(self):
         """
         It is assumed that the standard JSBACH postprocessing scripts have been applied.
@@ -255,12 +264,13 @@ class JSBACH_RAW2(Model):
             #~ print self.raw_outdata
             #~ print 'Files: ', self._get_filenames_jsbach_stream()
             #~ stop
-            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_jsbach_stream())
-            if os.path.exists(codetable):
-                cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
-            else:
-                cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
-            os.remove(tmp)
+            if len(glob.glob(self._get_filenames_jsbach_stream())) > 0:  # check if input files existing at all
+                cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_jsbach_stream())
+                if os.path.exists(codetable):
+                    cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
+                else:
+                    cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
+                os.remove(tmp)
         self.files.update({'jsbach': outfile})
 
         # veg stream
@@ -271,12 +281,13 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_veg.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_veg_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_veg_stream())
-            if os.path.exists(codetable):
-                cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
-            else:
-                cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
-            os.remove(tmp)
+            if len(glob.glob(self._get_filenames_veg_stream())) > 0:  # check if input files existing at all
+                cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_veg_stream())
+                if os.path.exists(codetable):
+                    cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
+                else:
+                    cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
+                os.remove(tmp)
         self.files.update({'veg': outfile})
 
         # veg land
@@ -287,12 +298,13 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_land.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_land_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_land_stream())
-            if os.path.exists(codetable):
-                cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
-            else:
-                cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
-            os.remove(tmp)
+            if len(glob.glob(self._get_filenames_land_stream())) > 0:  # check if input files existing at all
+                cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_land_stream())
+                if os.path.exists(codetable):
+                    cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
+                else:
+                    cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
+                os.remove(tmp)
         self.files.update({'land': outfile})
 
         # surf stream
@@ -303,12 +315,15 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_jsbach_surf.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_jsbach_surf_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_surf_stream())
-            if os.path.exists(codetable):
-                cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
-            else:
-                cdo.monmean(options='-f nc', output=outfile, input=tmp)  # monmean needed here, as otherwise interface does not work
-            os.remove(tmp)
+            if len(glob.glob(self._get_filenames_surf_stream())) > 0:  # check if input files existing at all
+                print glob.glob(self._get_filenames_surf_stream())
+                cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_surf_stream())
+                if os.path.exists(codetable):
+                    cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
+                else:
+                    cdo.monmean(options='-f nc', output=outfile, input=tmp)  # monmean needed here, as otherwise interface does not work
+                os.remove(tmp)
+
         self.files.update({'surf': outfile})
 
         # ECHAM BOT stream
@@ -319,22 +334,24 @@ class JSBACH_RAW2(Model):
         else:
             codetable = self.data_dir + 'log/' + self.experiment + '_echam6_echam.codes'
             tmp = tempfile.mktemp(suffix='.nc', prefix=self.experiment + '_echam6_echam_', dir=get_temporary_directory())  # temporary file
-            cdo.mergetime(options='-f nc', output=tmp, input=self.data_dir + 'outdata/echam6/' + self.experiment + '_echam6_BOT_mm_*.sz')
-            if os.path.exists(codetable):
-                cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
-            else:
-                cdo.monmean(options='-f nc', output=outfile, input=tmp)  # monmean needed here, as otherwise interface does not work
-            os.remove(tmp)
+            if len(glob.glob(self._get_filenames_echam_BOT())) > 0:  # check if input files existing at all
+                cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_echam_BOT())
+                if os.path.exists(codetable):
+                    cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
+                else:
+                    cdo.monmean(options='-f nc', output=outfile, input=tmp)  # monmean needed here, as otherwise interface does not work
+                os.remove(tmp)
         self.files.update({'echam': outfile})
 
         # ALBEDO file
-        #albedo files as preprocessed by a script of Thomas
+        # albedo files as preprocessed by a script of Thomas
         print '   ALBEDO VIS stream ...'
         outfile = get_temporary_directory() + self.experiment + '_jsbach_VIS_albedo_mm_full.nc'
         if os.path.exists(outfile):
             pass
         else:
-            cdo.mergetime(options='-f nc', output=outfile, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_VIS_albedo.' + self.input_format)
+            if len(glob.glob(self._get_filenames_albedo_VIS())) > 0:  # check if input files existing at all
+                cdo.mergetime(options='-f nc', output=outfile, input=self._get_filenames_albedo_VIS())
         self.files.update({'albedo_vis': outfile})
 
         print '   ALBEDO NIR stream ...'
@@ -342,7 +359,8 @@ class JSBACH_RAW2(Model):
         if os.path.exists(outfile):
             pass
         else:
-            cdo.mergetime(options='-f nc', output=outfile, input=self.data_dir + 'outdata/jsbach/' + self.experiment + '_jsbach_mm_*_NIR_albedo.' + self.input_format)
+            if len(glob.glob(self._get_filenames_albedo_NIR())) > 0:  # check if input files existing at all
+                cdo.mergetime(options='-f nc', output=outfile, input=self._get_filenames_albedo_NIR())
         self.files.update({'albedo_nir': outfile})
 
     def _get_unique_name(self):

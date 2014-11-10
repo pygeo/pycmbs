@@ -499,7 +499,6 @@ def main():
                                    stop_time=stop_time,
                                    name=model, shift_lon=shift_lon,
                                    model_dict=model_dict)
-            stop
         elif CF.dtypes[i].upper() == 'CMIP3':
             themodel = CMIP3Data(data_dir, model, experiment, varmethods,
                                  intervals=CF.intervals, lat_name='lat',
