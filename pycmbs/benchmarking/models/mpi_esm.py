@@ -632,7 +632,7 @@ class JSBACH_SPECIAL(JSBACH_RAW2):
     def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='nc', raw_outdata='', **kwargs):
         super(JSBACH_SPECIAL, self).__init__(filename, dic_variables, experiment, name=name, shift_lon=shift_lon, model_dict=model_dict, input_format=input_format, raw_outdata=raw_outdata, **kwargs)
 
-class JSBACH_RAW(Model):
+class xxxxxxxxJSBACH_RAW(Model):
     """
     Class for RAW JSBACH model output
     works on manually preprocessed already concatenated data

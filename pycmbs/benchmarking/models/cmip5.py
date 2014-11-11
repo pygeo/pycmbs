@@ -304,7 +304,10 @@ class CMIP5Data(Model):
 
         return tas, retval
 
-    def get_surface_shortwave_radiation_down(self, interval='season', force_calc=False, **kwargs):
+    def get_surface_shortwave_radiation_down(self, interval='season', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
+
+    def xxxxxxxxxxxxxxxxxxxget_surface_shortwave_radiation_down(self, interval='season', force_calc=False, **kwargs):
         """
         return data object of
         a) seasonal means for SIS
@@ -418,7 +421,11 @@ class CMIP5Data(Model):
 
         return sis, retval
 
-    def get_surface_shortwave_radiation_up(self, interval='season', force_calc=False, **kwargs):
+
+    def get_surface_shortwave_radiation_up(self, interval='season', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
+
+    def xxxxxget_surface_shortwave_radiation_up(self, interval='season', force_calc=False, **kwargs):
 
         the_variable = 'rsus'
 

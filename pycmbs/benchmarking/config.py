@@ -800,7 +800,8 @@ class CFGWriter(object):
                           'albedo_nir', 'surface_upward_flux', 'tree',
                           'temperature', 'rain', 'evap', 'hair', 'wind',
                           'twpa', 'wvpa', 'late', 'budg',
-                          'phenology_faPAR', 'gpp']
+                          'gpp']
+        # 'phenology_faPAR'
 
         if format.lower() not in ['pdf', 'png']:
             raise ValueError('Invalid output format for report: %s' % format)

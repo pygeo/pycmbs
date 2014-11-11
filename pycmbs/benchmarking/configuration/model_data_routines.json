@@ -14,7 +14,7 @@
     "seaice_extent": "get_model_data_generic(interval=interval, **{'CMIP3': {'scale_factor': 100.0, 'lat_name': 'lat', 'variable': 'SICOMO', 'valid_mask': 'ocean', 'unit': '-', 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk', 'level': 0, 'file_format': 'nc', 'lon_name': 'lon', 'model_prefix': '', 'model_suffix': '1860-2100.ext'}, 'CMIP5': {'model_prefix': 'OImon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'sic', 'valid_mask': 'ocean', 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk', 'model_suffix': 'ens_mean_185001-200512', 'unit': '-', 'lon_name': 'lon'}})",
     "sis": "get_surface_shortwave_radiation_down(interval=interval,**{'CMIP5':{'valid_mask':'land'}, 'CMIP5RAW':{'valid_mask':'land'},'JSBACH_RAW':{'valid_mask':'land'}, 'JSBACH_RAW2': {'variable': 'swdown_acc', 'unit': '$W/m^2$', 'lat_name': 'lat', 'lon_name': 'lon', 'file_format': 'nc', 'scale_factor': 1., 'valid_mask': 'land'}})",
     "snow": "get_snow_fraction()",
-    "surface_upward_flux": "get_surface_shortwave_radiation_up(interval=interval, **{'JSBACH_RAW':{'valid_mask':'land'}, 'JSBACH_RAW2': {'variable': 'swdown_reflect_acc','unit' : '$W/m^2$','lat_name': 'lat','lon_name': 'lon', 'file_format': 'nc','scale_factor': 1.,'valid_mask': 'land'} })",
+    "surface_upward_flux": "get_surface_shortwave_radiation_up(interval=interval, **{'JSBACH_RAW':{'valid_mask':'land'}, 'JSBACH_RAW2': {'variable': 'swdown_reflect_acc','unit' : '$W/m^2$','lat_name': 'lat','lon_name': 'lon', 'file_format': 'nc','scale_factor': 1.,'valid_mask': 'land'}, 'JSBACH_RAW2': {'variable': 'swdown_reflect_acc', 'unit': '$W/m^2$', 'lat_name': 'lat', 'lon_name': 'lon', 'file_format': 'nc', 'scale_factor': 1., 'valid_mask': 'land'} })",
     "temperature": "get_temperature_2m(interval=interval,**{'JSBACH_RAW':{'valid_mask':'land'}, 'JSBACH_RAW2' : {'variable': 'temp2', 'unit': 'K', 'lat_name': 'lat', 'lon_name': 'lon', 'file_format': 'nc', 'scale_factor': 1., 'valid_mask': 'global'}})",
     "tree": "get_tree_fraction(interval=interval)",
     "twpa": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 1.0, 'file_format': 'nc', 'variable': 'clwvi', 'valid_mask': 'ocean', 'model_suffix': 'ensmean', 'unit': 'kg/m^2', 'lon_name': 'lon'}})",
@@ -22,12 +22,4 @@
     "wvpa": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'prw', 'valid_mask': 'ocean', 'model_suffix': 'ensmean', 'unit': 'kg m^2', 'lon_name': 'lon'}})",
     "cfc": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'clt', 'valid_mask': 'global', 'custom_path':'/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/models/clt', 'model_suffix': 'ensmean', 'unit': 'per', 'lon_name': 'lon'}})"
 }
-
-
-
-
-
-
-
-
 

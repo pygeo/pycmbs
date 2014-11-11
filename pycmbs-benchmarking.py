@@ -158,33 +158,7 @@ def main():
     stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
     #~ xxxxxxxxmodel_dict = {'rain': {'CMIP5':
-                           #~ {
-                               #~ 'variable': 'pr',
-                               #~ 'unit': 'mm/day',
-                               #~ 'lat_name': 'lat',
-                               #~ 'lon_name': 'lon',
-                               #~ 'model_suffix': 'ensmean',
-                               #~ 'model_prefix': 'Amon',
-                               #~ 'file_format': 'nc',
-                               #~ 'scale_factor': 86400.,
-                               #~ 'valid_mask': 'ocean'
-                           #~ },
-#~
-#~
-                           #~ 'JSBACH_RAW2':
-                           #~ {
-                               #~ 'variable': 'precip_acc',
-                               #~ 'unit': 'mm/day',
-                               #~ 'lat_name': 'lat',
-                               #~ 'lon_name': 'lon',
-                               #~ 'file_format': 'nc',
-                               #~ 'scale_factor': 86400.,
-                               #~ 'valid_mask': 'global'
-                           #~ }
-#~
-#~
-                           #~ },
-#~
+
 #~
                   #~ 'evap': {'CMIP5':
                            #~ {
@@ -365,19 +339,7 @@ def main():
                               #~ 'valid_mask': 'land'
                           #~ }
 #~
-                          #~ },
-#~
-                  #~ 'surface_upward_flux': {'JSBACH_RAW2':
-                                          #~ {
-                                              #~ 'variable': 'swdown_reflect_acc',
-                                              #~ 'unit': '$W/m^2$',
-                                              #~ 'lat_name': 'lat',
-                                              #~ 'lon_name': 'lon',
-                                              #~ 'file_format': 'nc',
-                                              #~ 'scale_factor': 1.,
-                                              #~ 'valid_mask': 'land'
-                                          #~ }
-                                          #~ },
+
 #~
                   #~ 'albedo_vis': {'JSBACH_RAW2':
                                  #~ {

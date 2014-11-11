@@ -41,7 +41,7 @@ Steps to integrate a new observational dataset into pyCMBS are as follows:
 * decide for the variable the observational dataset belongs to --> variable name; you can look in the configuration file (.cfg) to get the currently supported variable names
 * modify the corresponding INI file
 
- * let's say, that you have chosen *sis* (surface solar irradiance) as the variable and you have a new surface radiation dataset. Then the corresponding INI file would be *sis.ini*. The INI files can be found in the *configuration* folder. 
+ * let's say, that you have chosen *sis* (surface solar irradiance) as the variable and you have a new surface radiation dataset. Then the corresponding INI file would be *sis.ini*. The INI files can be found in the *configuration* folder.
  * You can however also generate an own, new configuration folder, by simply typing *pycmbs.py init* in a fresh directory
 
  * The content of the INI file is self explanatory. You have a global section which specifies how the analysis for this particular variable shall be made (e.g. which diagnostics and plots shall be generated). Below, you have for each observational dataset a section which specifies the details for each observation. Such a section looks e.g. like the following::
@@ -76,7 +76,7 @@ add_to_report : bool
     [True,False], specifies if the observational dataset should be included in the report or not. This allows to have a lot of configurations in the INI file, but use only a few of them.
 
 valid_mask : str
-    [land,ocean,global], specifies which area(s) are supposed to contain valid data. Other regions are automatically masked. Thus if you specify e.g. *land*, then the ocean will be masked. It is important, that you use a 
+    [land,ocean,global], specifies which area(s) are supposed to contain valid data. Other regions are automatically masked. Thus if you specify e.g. *land*, then the ocean will be masked. It is important, that you use a
 
 Adding a new observation is as simple as copy/paste an already existing section and modify the entries like you need it. That's it ... well at least on a technicla point. If everything is working properly and if the diagnostics you want to apply for this observational dataset are usefull is a different question.
 
@@ -87,7 +87,7 @@ Recepies for handling problems
 In 80% of the cases, pyCMBS will handle your new data smoothly. However, it might happen that your file(s) are different from the files pyCMBS was tested so far with. For these cases the following steps might help to solve your problem:
 
 Is the file o.k?
- 
+
  * Have a look at the file with other tools like e.g. ncview or panoply
  * make also an "ncdump -h" to check the metadata of the file
 
@@ -133,6 +133,17 @@ does everything you tell it to do. What to do is specified in the INI files for
 each variable. Note however, that you are free to do what you want and you can
 implement a new analysis routine which is doing right the thing you want it to
 do.
+
+
+
+????>>>>>
+model_data_routines.json
+
+specify routines and aprameters how to read data for a certain variable and model
+here it is sufficient to specify the routine that are implemented in some master class as the child
+classes all herit the corresponding routines
+
+e.g. JSBACH_RAW2 routine are also available in JSBACH_SPECIAL !!!!
 
 4. **Last step** is to tell pyCMBS that the analysis script you implemented is
 existing. This is again done, by simply registering it in the following file::
