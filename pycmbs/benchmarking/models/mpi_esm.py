@@ -602,7 +602,7 @@ class JSBACH_RAW2(Model):
 
         mdata_mean = mdata_all.fldmean()
 
-        #/// return data as a tuple list
+        # return data as a tuple list
         retval = (mdata_all.time, mdata_mean, mdata_all)
 
         del mdata_all
@@ -612,7 +612,11 @@ class JSBACH_RAW2(Model):
 
 class JSBACH_SPECIAL(JSBACH_RAW2):
     """
-    special class for Gorans purposes
+    special class for more flexible reading of JSBACH input data
+    it allows to specify the input format and the directory of the input data
+
+    in case that you use a different setup, it is probably easiest to
+    just copy this class and make the required adaptations.
     """
     def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='nc', raw_outdata='', **kwargs):
         super(JSBACH_SPECIAL, self).__init__(filename, dic_variables, experiment, name=name, shift_lon=shift_lon, model_dict=model_dict, input_format=input_format, raw_outdata=raw_outdata, **kwargs)
@@ -628,6 +632,7 @@ class JSBACH_RAW(Model):
 
         print('WARNING: This model class should be depreciated as it contained a lot of hardcoded dependencies and is only intermediate')
         #TODO: depreciate this class
+        stop
 
         self.experiment = experiment
         self.shift_lon = shift_lon

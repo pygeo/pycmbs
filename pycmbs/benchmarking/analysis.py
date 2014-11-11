@@ -576,21 +576,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
 
     if f_mapseasons is True:  # seasonal mean plot for observations
 
-        #~ plt.close('all')
-        #~ map_plot(obs_orig)
-        #~ plt.show()
-#~
-        #~ print obs_orig.data
-        #~ print obs_orig.date
-        #~ print obs_orig.shape
-        #~ print obs_orig.time_cycle
-        #~ print 'nclasses', nclasses
-
-        #~ map_season(obs_orig, vmin=vmin, vmax=vmax, cmap_data='jet',
-                              #~ show_zonal=False, zonal_timmean=True, use_basemap=use_basemap, nclasses=nclasses)
-
-
-
         f_season = map_season(obs_orig, use_basemap=use_basemap,
                               cmap_data='jet',
                               show_zonal=False, zonal_timmean=True,
@@ -600,9 +585,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
                               show_stat=True, drawparallels=False,
                               titlefontsize=8)
 
-        #~ plt.show()
-#~
-        #~ stop
         if len(obs_orig.data) == 4:
             report.figure(f_season, caption='Seasonal mean ' + obs_name)
         else:
