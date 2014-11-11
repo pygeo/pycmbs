@@ -828,6 +828,8 @@ s
         if colorbar_orientation not in ['vertical', 'horizontal']:
             raise ValueError('Invalid colorbar orientation')
 
+        nclasses = int(nclasses)
+
         self.show_zonal = show_zonal
         self.colorbar_orientation = colorbar_orientation
         self.show_histogram = show_histogram

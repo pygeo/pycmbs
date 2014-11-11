@@ -186,8 +186,14 @@ class JSBACH_RAW2(Model):
     works on the real raw output
     """
 
-    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='grb', raw_outdata='outdata/jsbach/', **kwargs):
+    #def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='grb', raw_outdata='outdata/jsbach/', **kwargs):
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, input_format='grb', raw_outdata='outdata/jsbach/', **kwargs):
         """
+
+        The assignment of certain variables to different input streams is done in the routine
+        get_jsbach_data_generic()
+
+
         Parameters
         ----------
         input_format : str
@@ -212,7 +218,7 @@ class JSBACH_RAW2(Model):
         # do preprocessing of streams (only needed once!) ---
         self.files = {}
         self._preproc_streams()
-        self.model_dict = copy.deepcopy(model_dict)
+        #~ self.model_dict = copy.deepcopy(model_dict)
 
         self.model = 'JSBACH'
 
@@ -265,12 +271,18 @@ class JSBACH_RAW2(Model):
             #~ print 'Files: ', self._get_filenames_jsbach_stream()
             #~ stop
             if len(glob.glob(self._get_filenames_jsbach_stream())) > 0:  # check if input files existing at all
+                print 'Mering the following files:' , self._get_filenames_jsbach_stream()
                 cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_jsbach_stream())
                 if os.path.exists(codetable):
                     cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
                 else:
                     cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
-                os.remove(tmp)
+                print 'Outfile: ', outfile
+                #~ os.remove(tmp)
+
+                print 'Temporary name: ', tmp
+
+
         self.files.update({'jsbach': outfile})
 
         # veg stream
@@ -374,6 +386,9 @@ class JSBACH_RAW2(Model):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
+
+        This routine uses the definitions of the routines how to
+        read upward and downward fluxes
         """
 
         if self.start_time is None:
@@ -381,19 +396,26 @@ class JSBACH_RAW2(Model):
         if self.stop_time is None:
             raise ValueError('Stop time needs to be specified')
 
-        print ''
-        print 'in get_albedo() before call: ', self.model_dict['sis']
-        print ''
+        #~ tmpdict = copy.deepcopy(kwargs)
+        #~ print self.dic_vars
 
-        sw_down = self.get_surface_shortwave_radiation_down(interval=interval)
-        sw_up = self.get_surface_shortwave_radiation_up(interval=interval)
+        routine_up = self.dic_vars['surface_upward_flux']
+        routine_down = self.dic_vars['sis']
 
-        #climatological mean
+        #sw_down = self.get_surface_shortwave_radiation_down(interval=interval, **kwargs)
+        cmd = 'sw_down = self.' + routine_down
+        exec(cmd)
+
+        #sw_up = self.get_surface_shortwave_radiation_up(interval=interval, **kwargs)
+        cmd = 'sw_up = self.' + routine_up
+        exec(cmd)
+
+        # climatological mean
         alb = sw_up[0].div(sw_down[0])
         alb.label = self.experiment + ' albedo'
         alb.unit = '-'
 
-        #original data
+        # original data
         alb_org = sw_up[1][2].div(sw_down[1][2])
         alb_org.label = self.experiment + ' albedo'
         alb_org.unit = '-'
@@ -402,7 +424,7 @@ class JSBACH_RAW2(Model):
 
         return alb, retval
 
-    def get_albedo_data_vis(self, interval='season'):
+    def get_albedo_data_vis(self, interval='season', **kwargs):
         """
         This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
@@ -413,10 +435,10 @@ class JSBACH_RAW2(Model):
         interval : str
             ['season','monthly']
         """
-        tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        #~ tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
-    def get_albedo_data_nir(self, interval='season'):
+    def get_albedo_data_nir(self, interval='season', **kwargs):
         """
         This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
@@ -427,24 +449,20 @@ class JSBACH_RAW2(Model):
         interval : str
             ['season','monthly']
         """
-        tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        #~ tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
-    def get_surface_shortwave_radiation_up(self, interval='season'):
-        tmpdict = copy.deepcopy(self.model_dict['surface_upward_flux'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+    def get_surface_shortwave_radiation_up(self, interval='season', **kwargs):
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
-    def get_surface_shortwave_radiation_down(self, interval='season'):
-        tmpdict = copy.deepcopy(self.model_dict['sis'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+    def get_surface_shortwave_radiation_down(self, interval='season', **kwargs):
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
-    def get_rainfall_data(self, interval='season'):
-        tmpdict = copy.deepcopy(self.model_dict['rain'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+    def get_rainfall_data(self, interval='season', **kwargs):
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
-    def get_temperature_2m(self, interval='season'):
-        tmpdict = copy.deepcopy(self.model_dict['temperature'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+    def get_temperature_2m(self, interval='season', **kwargs):
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_jsbach_data_generic(self, interval='season', **kwargs):
         """
@@ -453,7 +471,6 @@ class JSBACH_RAW2(Model):
             variable - name of the variable as the short_name in the netcdf file
 
             kwargs is a dictionary with keys for each model. Then a dictionary with properties follows
-
         """
 
         if not self.type in kwargs.keys():
@@ -469,8 +486,8 @@ class JSBACH_RAW2(Model):
         # no defaults; everything should be explicitely specified in either the config file or the dictionaries
 
         varname = locdict.pop('variable')
-        units = locdict.pop('unit', 'Crazy Unit')
-        #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
+        units = locdict.pop('unit', 'Unit not specified')
+
 
         lat_name = locdict.pop('lat_name', 'lat')
         lon_name = locdict.pop('lon_name', 'lon')
@@ -489,7 +506,7 @@ class JSBACH_RAW2(Model):
             print self.type
             raise ValueError('Invalid data format here!')
 
-        #define from which stream of JSBACH data needs to be taken for specific variables
+        # define from which stream of JSBACH data needs to be taken for specific variables
         if varname in ['swdown_acc', 'swdown_reflect_acc']:
             filename1 = self.files['jsbach']
         elif varname in ['precip_acc']:
@@ -596,7 +613,7 @@ class JSBACH_RAW2(Model):
 
         mdata_mean = mdata_all.fldmean()
 
-        #/// return data as a tuple list
+        # return data as a tuple list
         retval = (mdata_all.time, mdata_mean, mdata_all)
 
         del mdata_all
@@ -606,7 +623,11 @@ class JSBACH_RAW2(Model):
 
 class JSBACH_SPECIAL(JSBACH_RAW2):
     """
-    special class for Gorans purposes
+    special class for more flexible reading of JSBACH input data
+    it allows to specify the input format and the directory of the input data
+
+    in case that you use a different setup, it is probably easiest to
+    just copy this class and make the required adaptations.
     """
     def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='nc', raw_outdata='', **kwargs):
         super(JSBACH_SPECIAL, self).__init__(filename, dic_variables, experiment, name=name, shift_lon=shift_lon, model_dict=model_dict, input_format=input_format, raw_outdata=raw_outdata, **kwargs)
@@ -622,6 +643,7 @@ class JSBACH_RAW(Model):
 
         print('WARNING: This model class should be depreciated as it contained a lot of hardcoded dependencies and is only intermediate')
         #TODO: depreciate this class
+        stop
 
         self.experiment = experiment
         self.shift_lon = shift_lon
@@ -658,8 +680,6 @@ class JSBACH_RAW(Model):
             rawfile = files[0]
         mdata, retval = self._do_preprocessing(rawfile, variable, y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
         return mdata, retval
-
-#-----------------------------------------------------------------------
 
     def get_albedo_data(self, interval='monthly', **kwargs):
         """

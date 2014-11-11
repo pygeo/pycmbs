@@ -43,6 +43,7 @@ class Model(Data):
         # check
         if intervals is None:
             raise ValueError('Invalid intervals for Model data: needs specification!')
+
         # set a list with different datasets for different models
         self.dic_vars = dic_variables
         self.intervals = intervals
@@ -109,6 +110,9 @@ class Model(Data):
                 else:
                     self.variables.update({k: dat})  # update field with data
             else:
+                print k
+                print self.dic_vars
+                print routine
                 print('WARNING: unknown function to read data (skip!), variable: %s ' % k)
                 self.variables.update({k: None})
 

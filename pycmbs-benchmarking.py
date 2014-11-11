@@ -82,9 +82,6 @@ def create_dummy_configuration():
 
     os.system('rm -rf ' + odir + os.sep + '.svn')
 
-########################################################################
-
-
 def main():
     plt.close('all')
     if len(sys.argv) > 1:
@@ -104,11 +101,14 @@ def main():
             raise ValueError('Currently not more than one command \
                                line parameter supported!')
     else:  # default
-        file = 'pyCMBS.cfg'
+        print 'da sammer!'
         print('*******************************************')
         print('* WELCOME to pycmbs.py                    *')
         print('* Happy benchmarking ...                  *')
         print('*******************************************')
+        print ''
+        print 'please specify a configuration filename as argument'
+        sys.exit()
 
     ####################################################################
     # CONFIGURATION and OPTIONS
@@ -137,9 +137,6 @@ def main():
     if os.path.exists(os.environ['DATA_WARNING_FILE']):
         os.remove(os.environ['DATA_WARNING_FILE'])
 
-    # init regions
-    #~ REGIONS = config.AnalysisRegions()
-
     for thevar in plot_options.options.keys():
         if thevar in plot_options.options.keys():
             print('Variable: %s' % thevar)
@@ -160,264 +157,266 @@ def main():
     start_time = pylab.num2date(pylab.datestr2num(s_start_time))
     stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
-    model_dict = {'rain': {'CMIP5':
-                           {
-                               'variable': 'pr',
-                               'unit': 'mm/day',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'model_suffix': 'ensmean',
-                               'model_prefix': 'Amon',
-                               'file_format': 'nc',
-                               'scale_factor': 86400.,
-                               'valid_mask': 'ocean'
-                           },
-
-
-                           'JSBACH_RAW2':
-                           {
-                               'variable': 'precip_acc',
-                               'unit': 'mm/day',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'file_format': 'nc',
-                               'scale_factor': 86400.,
-                               'valid_mask': 'global'
-                           }
-                           },
-
-
-                  'evap': {'CMIP5':
-                           {
-                               'variable': 'evspsbl',
-                               'unit': 'mm/day',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'model_suffix': 'ensmean',
-                               'file_format': 'nc',
-                               'model_prefix': 'Amon',
-                               'scale_factor': 86400.,
-                               'valid_mask': 'ocean'
-                           }
-                           },
-
-                  'twpa': {'CMIP5':
-                           {
-                               'variable': 'clwvi',
-                               'unit': 'kg/m^2',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'model_suffix': 'ensmean',
-                               'file_format': 'nc',
-                               'model_prefix': 'Amon',
-                               'scale_factor': 1.,
-                               'valid_mask': 'ocean'
-                           }
-                           },
-
-                  'wind': {'CMIP5':
-                          {
-                              'variable': 'sfcWind',
-                              'unit': 'm/s',
-                              'lat_name': 'lat',
-                              'lon_name': 'lon',
-                              'model_suffix': 'ensmean',
-                              'file_format': 'nc',
-                              'model_prefix': 'Amon',
-                              'scale_factor': 1.,
-                              'valid_mask': 'ocean'
-                          }
-                  },
-
-                  'wvpa': {'CMIP5':
-                           {
-                               'variable': 'prw',
-                               'unit': 'kg m^2',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'model_suffix': 'ensmean',
-                               'file_format': 'nc',
-                               'model_prefix': 'Amon',
-                               'scale_factor': 1,
-                               'valid_mask': 'ocean'
-                           }
-                           },
-
-                  'late': {'CMIP5':
-                           {
-                               'variable': 'hfls',
-                               'unit': 'W/m^2',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'model_suffix': 'ensmean',
-                               'file_format': 'nc',
-                               'model_prefix': 'Amon',
-                               'scale_factor': 1,
-                               'valid_mask': 'ocean'
-                           }
-                           },
-
-                  'hair': {'CMIP5':
-                           {
-                               'variable': 'huss',
-                               'unit': '$kg/kg^2$',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'model_suffix': 'ensmean',
-                               'file_format': 'nc',
-                               'model_prefix': 'Amon',
-                               'scale_factor': 1,
-                               'valid_mask': 'ocean'
-                           }
-                           },
-
-                  'seaice_concentration': {'CMIP5':
-                                           {
-                                               'variable': 'sic',
-                                               'unit': '-',
-                                               'lat_name': 'lat',
-                                               'lon_name': 'lon',
-                                               'model_suffix': 'ens_mean_185001-200512',
-                                               'file_format': 'nc',
-                                               'model_prefix': 'OImon',
-                                               'scale_factor': 1,
-                                               'valid_mask': 'ocean',
-                                               'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
-                                           },
-
-                                           'CMIP3':
-                                           {
-                                               'variable': 'SICOMO',
-                                               'unit': '-',
-                                               'lat_name': 'lat',
-                                               'lon_name': 'lon',
-                                               'model_suffix': '1860-2100.ext',
-                                               'file_format': 'nc',
-                                               'model_prefix': '',
-                                               'scale_factor': 100.,
-                                               'valid_mask': 'ocean',
-                                               'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
-                                               'level': 0
-                                           },
-                                           },
-
-                  'seaice_extent': {'CMIP5':
-                                   {
-                                    'variable': 'sic',
-                                    'unit': '-',
-                                    'lat_name': 'lat',
-                                    'lon_name': 'lon',
-                                    'model_suffix': 'ens_mean_185001-200512',
-                                    'file_format': 'nc',
-                                    'model_prefix': 'OImon',
-                                    'scale_factor': 1,
-                                    'valid_mask': 'ocean',
-                                    'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
-                                    },
-
-                                    'CMIP3':
-                                   {
-                                    'variable': 'SICOMO',
-                                       'unit': '-',
-                                       'lat_name': 'lat',
-                                       'lon_name': 'lon',
-                                       'model_suffix': '1860-2100.ext',
-                                       'file_format': 'nc',
-                                       'model_prefix': '',
-                                       'scale_factor': 100.,
-                                       'valid_mask': 'ocean',
-                                       'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
-                                       'level': 0
-                                   },
-                  },
-
-                  'budg': {'CMIP5':
-                           {
-                               'variable': 'budg',
-                               'unit': 'mm/d',
-                               'lat_name': 'lat',
-                               'lon_name': 'lon',
-                               'model_suffix': 'ensmean',
-                               'file_format': 'nc',
-                               'model_prefix': 'Amon',
-                               'scale_factor': 86400.,
-                               'valid_mask': 'ocean',
-                               'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
-                           }
-                           },
-
-
-                  'sis': {'JSBACH_RAW2':
-                          {
-                              'variable': 'swdown_acc',
-                              'unit': '$W/m^2$',
-                              'lat_name': 'lat',
-                              'lon_name': 'lon',
-                              'file_format': 'nc',
-                              'scale_factor': 1.,
-                              'valid_mask': 'land'
-                          },
-                          'CMIP5' :
-                          {
-                              'valid_mask': 'land'
-                          },
-                          'CMIP5RAWSINGLE' :
-                          {
-                              'valid_mask': 'land'
-                          }
-
-                          },
-
-                  'surface_upward_flux': {'JSBACH_RAW2':
-                                          {
-                                              'variable': 'swdown_reflect_acc',
-                                              'unit': '$W/m^2$',
-                                              'lat_name': 'lat',
-                                              'lon_name': 'lon',
-                                              'file_format': 'nc',
-                                              'scale_factor': 1.,
-                                              'valid_mask': 'land'
-                                          }
-                                          },
-
-                  'albedo_vis': {'JSBACH_RAW2':
-                                 {
-                                     'variable': 'var14',
-                                     'unit': '-',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'file_format': 'nc',
-                                     'scale_factor': 1.,
-                                     'valid_mask': 'land'
-                                 }
-                                 },
-
-                  'albedo_nir': {'JSBACH_RAW2':
-                                 {
-                                     'variable': 'var15',
-                                     'unit': '-',
-                                     'lat_name': 'lat',
-                                     'lon_name': 'lon',
-                                     'file_format': 'nc',
-                                     'scale_factor': 1.,
-                                     'valid_mask': 'land'
-                                 }
-                                 },
-
-                  'temperature': {
-                      'JSBACH_RAW2':
-                      {
-                          'variable': 'temp2',
-                          'unit': 'K',
-                          'lat_name': 'lat',
-                          'lon_name': 'lon',
-                          'file_format': 'nc',
-                          'scale_factor': 1.,
-                          'valid_mask': 'global'
-                      }
-                  }
-
-                  }
+    #~ xxxxxxxxmodel_dict = {'rain': {'CMIP5':
+                           #~ {
+                               #~ 'variable': 'pr',
+                               #~ 'unit': 'mm/day',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'model_suffix': 'ensmean',
+                               #~ 'model_prefix': 'Amon',
+                               #~ 'file_format': 'nc',
+                               #~ 'scale_factor': 86400.,
+                               #~ 'valid_mask': 'ocean'
+                           #~ },
+#~
+#~
+                           #~ 'JSBACH_RAW2':
+                           #~ {
+                               #~ 'variable': 'precip_acc',
+                               #~ 'unit': 'mm/day',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'file_format': 'nc',
+                               #~ 'scale_factor': 86400.,
+                               #~ 'valid_mask': 'global'
+                           #~ }
+#~
+#~
+                           #~ },
+#~
+#~
+                  #~ 'evap': {'CMIP5':
+                           #~ {
+                               #~ 'variable': 'evspsbl',
+                               #~ 'unit': 'mm/day',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'model_suffix': 'ensmean',
+                               #~ 'file_format': 'nc',
+                               #~ 'model_prefix': 'Amon',
+                               #~ 'scale_factor': 86400.,
+                               #~ 'valid_mask': 'ocean'
+                           #~ }
+                           #~ },
+#~
+                  #~ 'twpa': {'CMIP5':
+                           #~ {
+                               #~ 'variable': 'clwvi',
+                               #~ 'unit': 'kg/m^2',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'model_suffix': 'ensmean',
+                               #~ 'file_format': 'nc',
+                               #~ 'model_prefix': 'Amon',
+                               #~ 'scale_factor': 1.,
+                               #~ 'valid_mask': 'ocean'
+                           #~ }
+                           #~ },
+#~
+                  #~ 'wind': {'CMIP5':
+                          #~ {
+                              #~ 'variable': 'sfcWind',
+                              #~ 'unit': 'm/s',
+                              #~ 'lat_name': 'lat',
+                              #~ 'lon_name': 'lon',
+                              #~ 'model_suffix': 'ensmean',
+                              #~ 'file_format': 'nc',
+                              #~ 'model_prefix': 'Amon',
+                              #~ 'scale_factor': 1.,
+                              #~ 'valid_mask': 'ocean'
+                          #~ }
+                  #~ },
+#~
+                  #~ 'wvpa': {'CMIP5':
+                           #~ {
+                               #~ 'variable': 'prw',
+                               #~ 'unit': 'kg m^2',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'model_suffix': 'ensmean',
+                               #~ 'file_format': 'nc',
+                               #~ 'model_prefix': 'Amon',
+                               #~ 'scale_factor': 1,
+                               #~ 'valid_mask': 'ocean'
+                           #~ }
+                           #~ },
+#~
+                  #~ 'late': {'CMIP5':
+                           #~ {
+                               #~ 'variable': 'hfls',
+                               #~ 'unit': 'W/m^2',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'model_suffix': 'ensmean',
+                               #~ 'file_format': 'nc',
+                               #~ 'model_prefix': 'Amon',
+                               #~ 'scale_factor': 1,
+                               #~ 'valid_mask': 'ocean'
+                           #~ }
+                           #~ },
+#~
+                  #~ 'hair': {'CMIP5':
+                           #~ {
+                               #~ 'variable': 'huss',
+                               #~ 'unit': '$kg/kg^2$',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'model_suffix': 'ensmean',
+                               #~ 'file_format': 'nc',
+                               #~ 'model_prefix': 'Amon',
+                               #~ 'scale_factor': 1,
+                               #~ 'valid_mask': 'ocean'
+                           #~ }
+                           #~ },
+#~
+                  #~ 'seaice_concentration': {'CMIP5':
+                                           #~ {
+                                               #~ 'variable': 'sic',
+                                               #~ 'unit': '-',
+                                               #~ 'lat_name': 'lat',
+                                               #~ 'lon_name': 'lon',
+                                               #~ 'model_suffix': 'ens_mean_185001-200512',
+                                               #~ 'file_format': 'nc',
+                                               #~ 'model_prefix': 'OImon',
+                                               #~ 'scale_factor': 1,
+                                               #~ 'valid_mask': 'ocean',
+                                               #~ 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
+                                           #~ },
+#~
+                                           #~ 'CMIP3':
+                                           #~ {
+                                               #~ 'variable': 'SICOMO',
+                                               #~ 'unit': '-',
+                                               #~ 'lat_name': 'lat',
+                                               #~ 'lon_name': 'lon',
+                                               #~ 'model_suffix': '1860-2100.ext',
+                                               #~ 'file_format': 'nc',
+                                               #~ 'model_prefix': '',
+                                               #~ 'scale_factor': 100.,
+                                               #~ 'valid_mask': 'ocean',
+                                               #~ 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
+                                               #~ 'level': 0
+                                           #~ },
+                                           #~ },
+#~
+                  #~ 'seaice_extent': {'CMIP5':
+                                   #~ {
+                                    #~ 'variable': 'sic',
+                                    #~ 'unit': '-',
+                                    #~ 'lat_name': 'lat',
+                                    #~ 'lon_name': 'lon',
+                                    #~ 'model_suffix': 'ens_mean_185001-200512',
+                                    #~ 'file_format': 'nc',
+                                    #~ 'model_prefix': 'OImon',
+                                    #~ 'scale_factor': 1,
+                                    #~ 'valid_mask': 'ocean',
+                                    #~ 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk'
+                                    #~ },
+#~
+                                    #~ 'CMIP3':
+                                   #~ {
+                                    #~ 'variable': 'SICOMO',
+                                       #~ 'unit': '-',
+                                       #~ 'lat_name': 'lat',
+                                       #~ 'lon_name': 'lon',
+                                       #~ 'model_suffix': '1860-2100.ext',
+                                       #~ 'file_format': 'nc',
+                                       #~ 'model_prefix': '',
+                                       #~ 'scale_factor': 100.,
+                                       #~ 'valid_mask': 'ocean',
+                                       #~ 'custom_path': '/home/m300028/shared/dev/svn/pyCMBS/dirk',
+                                       #~ 'level': 0
+                                   #~ },
+                  #~ },
+#~
+                  #~ 'budg': {'CMIP5':
+                           #~ {
+                               #~ 'variable': 'budg',
+                               #~ 'unit': 'mm/d',
+                               #~ 'lat_name': 'lat',
+                               #~ 'lon_name': 'lon',
+                               #~ 'model_suffix': 'ensmean',
+                               #~ 'file_format': 'nc',
+                               #~ 'model_prefix': 'Amon',
+                               #~ 'scale_factor': 86400.,
+                               #~ 'valid_mask': 'ocean',
+                               #~ 'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data'
+                           #~ }
+                           #~ },
+#~
+#~
+                  #~ 'sis': {'JSBACH_RAW2':
+                          #~ {
+                              #~ 'variable': 'swdown_acc',
+                              #~ 'unit': '$W/m^2$',
+                              #~ 'lat_name': 'lat',
+                              #~ 'lon_name': 'lon',
+                              #~ 'file_format': 'nc',
+                              #~ 'scale_factor': 1.,
+                              #~ 'valid_mask': 'land'
+                          #~ },
+                          #~ 'CMIP5' :
+                          #~ {
+                              #~ 'valid_mask': 'land'
+                          #~ },
+                          #~ 'CMIP5RAWSINGLE' :
+                          #~ {
+                              #~ 'valid_mask': 'land'
+                          #~ }
+#~
+                          #~ },
+#~
+                  #~ 'surface_upward_flux': {'JSBACH_RAW2':
+                                          #~ {
+                                              #~ 'variable': 'swdown_reflect_acc',
+                                              #~ 'unit': '$W/m^2$',
+                                              #~ 'lat_name': 'lat',
+                                              #~ 'lon_name': 'lon',
+                                              #~ 'file_format': 'nc',
+                                              #~ 'scale_factor': 1.,
+                                              #~ 'valid_mask': 'land'
+                                          #~ }
+                                          #~ },
+#~
+                  #~ 'albedo_vis': {'JSBACH_RAW2':
+                                 #~ {
+                                     #~ 'variable': 'var14',
+                                     #~ 'unit': '-',
+                                     #~ 'lat_name': 'lat',
+                                     #~ 'lon_name': 'lon',
+                                     #~ 'file_format': 'nc',
+                                     #~ 'scale_factor': 1.,
+                                     #~ 'valid_mask': 'land'
+                                 #~ }
+                                 #~ },
+#~
+                  #~ 'albedo_nir': {'JSBACH_RAW2':
+                                 #~ {
+                                     #~ 'variable': 'var15',
+                                     #~ 'unit': '-',
+                                     #~ 'lat_name': 'lat',
+                                     #~ 'lon_name': 'lon',
+                                     #~ 'file_format': 'nc',
+                                     #~ 'scale_factor': 1.,
+                                     #~ 'valid_mask': 'land'
+                                 #~ }
+                                 #~ },
+#~
+                  #~ 'temperature': {
+                      #~ 'JSBACH_RAW2':
+                      #~ {
+                          #~ 'variable': 'temp2',
+                          #~ 'unit': 'K',
+                          #~ 'lat_name': 'lat',
+                          #~ 'lon_name': 'lon',
+                          #~ 'file_format': 'nc',
+                          #~ 'scale_factor': 1.,
+                          #~ 'valid_mask': 'global'
+                      #~ }
+                  #~ }
+#~
+                  #~ }
 
     ########################################################################
     # INIT METHODS
@@ -425,11 +424,11 @@ def main():
     # names of analysis scripts for all variables ---
     scripts = CF.get_analysis_scripts()
 
-    # get dictionary with methods how to read data for variables to be analyzed
+    # get dictionary with methods how to read data for model variables to be analyzed
     variables = CF.variables
-    varmethods = CF.get_methods4variables(variables, model_dict)
+    varmethods = CF.get_methods4variables(variables)
 
-    #/// READ DATA ///
+    # READ DATA
     """
     create a Model instance for each model specified
     in the configuration file
@@ -447,7 +446,7 @@ def main():
         model = CF.models[i]
         experiment = CF.experiments[i]
 
-        #--- create model object and read data ---
+        # create model object and read data
         # results are stored in individual variables namex modelXXXXX
         if CF.dtypes[i].upper() == 'CMIP5':
             themodel = CMIP5Data(data_dir, model, experiment, varmethods,
@@ -490,15 +489,15 @@ def main():
                                    intervals=CF.intervals,
                                    start_time=start_time,
                                    stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon,
-                                   model_dict=model_dict)
+                                   name=model, shift_lon=shift_lon) #,
+                                   #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'JSBACH_SPECIAL':
             themodel = JSBACH_SPECIAL(data_dir, varmethods, experiment,
                                    intervals=CF.intervals,
                                    start_time=start_time,
                                    stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon,
-                                   model_dict=model_dict)
+                                   name=model, shift_lon=shift_lon) #,
+                                   #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'CMIP3':
             themodel = CMIP3Data(data_dir, model, experiment, varmethods,
                                  intervals=CF.intervals, lat_name='lat',
@@ -509,13 +508,13 @@ def main():
         else:
             raise ValueError('Invalid model type: %s' % CF.dtypes[i])
 
-        #--- read data for current model ---
+        # read data for current model
 
         # options that specify regrid options etc.
         themodel.plot_options = plot_options
         themodel.get_data()
 
-        # copy current model to a variable named modelXXXX ---
+        # copy current model to a variable named modelXXXX
         cmd = 'model' + str(model_cnt).zfill(4) + ' = ' \
             + 'themodel.copy(); del themodel'
         exec(cmd)  # store copy of cmip5 model in separate variable
@@ -555,6 +554,7 @@ def main():
     ########################################################################
     # END MULTIMODEL MEAN
     ########################################################################
+
     ########################################################################
     # INIT reporting and plotting and diagnostics
     ########################################################################
@@ -580,10 +580,10 @@ def main():
     skeys = scripts.keys()
     for variable in variables:
 
-        #/// register current variable in Gleckler Plot
+        # register current variable in Gleckler Plot
         global_gleckler.add_variable(variable)
 
-        #/// call analysis scripts for each variable
+        # call analysis scripts for each variable
         for k in range(len(skeys)):
             if variable == skeys[k]:
                 print 'Doing analysis for variable ... ', variable
@@ -600,7 +600,7 @@ def main():
     ########################################################################
     # GLECKLER PLOT finalization ...
     ########################################################################
-    #/// generate Gleckler analysis plot for all variables and models analyzed ///
+    # generate Gleckler analysis plot for all variables and models analyzed ///
     global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=False, ticks=[-0.1, -0.05, 0., 0.05, 0.1])
     oname = outdir + 'gleckler.pkl'
     if os.path.exists(oname):
@@ -645,7 +645,7 @@ def main():
         labels_dict.update({variable: thelabels})
         del thelabels
 
-    #/// legend for gleckler plot ///
+    # legend for gleckler plot ///
     lcnt = 1
     for variable in variables:
         if variable not in PCFG.options.keys():
@@ -660,7 +660,7 @@ def main():
         del fl
         lcnt += 1
 
-    #/// plot model ranking between different observational datasets ///
+    # plot model ranking between different observational datasets ///
     rep.subsection('Model ranking consistency')
     for v in global_gleckler.variables:
         rep.subsubsection(v.upper())

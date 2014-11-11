@@ -65,7 +65,8 @@ class CMIP5Data(Model):
             s += '-' + str(self.ens_member)
         return s
 
-#-----------------------------------------------------------------------
+    def get_rainfall_data(self, interval='season', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
 
     def get_model_data_generic(self, interval='season', **kwargs):
         """
@@ -244,8 +245,6 @@ class CMIP5Data(Model):
 
         return Data(data_file, 'snow_fract')
 
-#-----------------------------------------------------------------------
-
     def get_faPAR(self):
         """
         Specifies how to read faPAR information for CMIP5 data
@@ -257,8 +256,6 @@ class CMIP5Data(Model):
 
         #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
         return Data(data_file, 'fapar')
-
-#-----------------------------------------------------------------------
 
     def get_temperature_2m(self, interval=None):
         """
@@ -306,8 +303,6 @@ class CMIP5Data(Model):
         tas.data = np.ma.array(tas.data, mask=tas.data < 0.)
 
         return tas, retval
-
-#-----------------------------------------------------------------------
 
     def get_surface_shortwave_radiation_down(self, interval='season', force_calc=False, **kwargs):
         """
@@ -423,8 +418,6 @@ class CMIP5Data(Model):
 
         return sis, retval
 
-#-----------------------------------------------------------------------
-
     def get_surface_shortwave_radiation_up(self, interval='season', force_calc=False, **kwargs):
 
         the_variable = 'rsus'
@@ -512,8 +505,6 @@ class CMIP5Data(Model):
         #sup.data = np.ma.array(sis.data,mask=sis.data < 1.)
 
         return sup, retval
-
-#-------------------------------------------------------------------------------------------------------------
 
     def get_albedo_data(self, interval='season', **kwargs):
         """
