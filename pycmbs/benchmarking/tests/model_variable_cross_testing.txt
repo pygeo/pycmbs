@@ -2,16 +2,19 @@ This file summarizes which combinations of model types and variables have been c
 
 Last update: 11.11.2014
 
+X = working
+o = implemented, but not tested yet
+
 
 Variable        JSBACH_SPECIAL  JSBACH_RAW2     CMIP5
 
-albedo
+albedo                  X           X
 sis                     X           X
-albedo_vis
-albedo_nir
+albedo_vis      not tested yet as no VIS stream as output from Goran
+albedo_nir      not tested yet as no VIS stream as output from Goran
 surface_upward_flux     X           X
 tree
-temperature         no ECHAM STRE
+temperature         no ECHAM STREAM
 rain                    X           X
 evap            not tested yet, as no obs over land and Streams from Goran only over land
 hair

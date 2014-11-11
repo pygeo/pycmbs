@@ -1,7 +1,7 @@
 {
     "albedo": "get_albedo_data(interval=interval)",
-    "albedo_nir": "get_albedo_data_nir(interval=interval)",
-    "albedo_vis": "get_albedo_data_vis(interval=interval)",
+    "albedo_nir": "get_albedo_data_nir(interval=interval, **{'JSBACH_RAW2': {'variable': 'var15', 'unit': '-', 'lat_name': 'lat', 'lon_name': 'lon', 'file_format': 'nc', 'scale_factor': 1., 'valid_mask': 'land'}} )",
+    "albedo_vis": "get_albedo_data_vis(interval=interval, **{'JSBACH_RAW2': {'variable': 'var14', 'unit': '-', 'lat_name': 'lat', 'lon_name': 'lon', 'file_format': 'nc', 'scale_factor': 1., 'valid_mask': 'land'}} )",
     "budg": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'budg', 'valid_mask': 'ocean', 'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data', 'model_suffix': 'ensmean', 'unit': 'mm/d', 'lon_name': 'lon'}})",
     "evap": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'evspsbl', 'valid_mask': 'land', 'model_suffix': 'ensmean', 'unit': 'mm/day', 'lon_name': 'lon'}})",
     "gpp": "get_gpp_data(interval=interval)",
@@ -22,6 +22,7 @@
     "wvpa": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'prw', 'valid_mask': 'ocean', 'model_suffix': 'ensmean', 'unit': 'kg m^2', 'lon_name': 'lon'}})",
     "cfc": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 1, 'file_format': 'nc', 'variable': 'clt', 'valid_mask': 'global', 'custom_path':'/data/share/mpiles/TRS/PROJECT_RESULTS/EvaClimod/models/clt', 'model_suffix': 'ensmean', 'unit': 'per', 'lon_name': 'lon'}})"
 }
+
 
 
 

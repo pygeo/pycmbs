@@ -397,25 +397,18 @@ class JSBACH_RAW2(Model):
             raise ValueError('Stop time needs to be specified')
 
         #~ tmpdict = copy.deepcopy(kwargs)
-
-        print self.dic_vars
+        #~ print self.dic_vars
 
         routine_up = self.dic_vars['surface_upward_flux']
         routine_down = self.dic_vars['sis']
 
-        print routine_up
-        print routine_down
-        stop
-        #~ interval = self.intervals[k]
-        cmd = 'dat = self.' + routine
+        #sw_down = self.get_surface_shortwave_radiation_down(interval=interval, **kwargs)
+        cmd = 'sw_down = self.' + routine_down
+        exec(cmd)
 
-            #~ if hasattr(self, routine[0:routine.index('(')]):  # check if routine name is there
-                #~ print cmd
-                #~ exec(cmd)
-
-
-        sw_down = self.get_surface_shortwave_radiation_down(interval=interval, **kwargs)
-        sw_up = self.get_surface_shortwave_radiation_up(interval=interval, **kwargs)
+        #sw_up = self.get_surface_shortwave_radiation_up(interval=interval, **kwargs)
+        cmd = 'sw_up = self.' + routine_up
+        exec(cmd)
 
         # climatological mean
         alb = sw_up[0].div(sw_down[0])
