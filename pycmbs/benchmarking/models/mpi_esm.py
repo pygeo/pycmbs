@@ -382,16 +382,37 @@ class JSBACH_RAW2(Model):
         """
         return self.name.replace(' ', '') + '-' + self.experiment.replace(' ', '')
 
-    def get_albedo_data(self, interval='season', **kwargs):
+    def get_albedo_data(self, interval='season'):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
+
+        This routine uses the definitions of the routines how to
+        read upward and downward fluxes
         """
 
         if self.start_time is None:
             raise ValueError('Start time needs to be specified')
         if self.stop_time is None:
             raise ValueError('Stop time needs to be specified')
+
+        #~ tmpdict = copy.deepcopy(kwargs)
+
+        print self.dic_vars
+
+        routine_up = self.dic_vars['surface_upward_flux']
+        routine_down = self.dic_vars['sis']
+
+        print routine_up
+        print routine_down
+        stop
+        #~ interval = self.intervals[k]
+        cmd = 'dat = self.' + routine
+
+            #~ if hasattr(self, routine[0:routine.index('(')]):  # check if routine name is there
+                #~ print cmd
+                #~ exec(cmd)
+
 
         sw_down = self.get_surface_shortwave_radiation_down(interval=interval, **kwargs)
         sw_up = self.get_surface_shortwave_radiation_up(interval=interval, **kwargs)

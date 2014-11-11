@@ -11,14 +11,14 @@ albedo_vis
 albedo_nir
 surface_upward_flux     X           X
 tree
-temperature
+temperature         no ECHAM STRE
 rain                    X           X
-evap
+evap            not tested yet, as no obs over land and Streams from Goran only over land
 hair
 wind
 twpa
 wvpa
-late
+late            not tested yet, as no obs over land and Streams from Goran only over land
 budg
 phenology_faPAR
 gpp

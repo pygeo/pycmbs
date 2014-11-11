@@ -1,5 +1,5 @@
 {
-    "albedo": "get_albedo_data(interval=interval, **{'JSBACH_RAW':{'valid_mask':'land'}, 'JSBACH_RAW2': {'variable': 'swdown_acc', 'unit': '$W/m^2$', 'lat_name': 'lat', 'lon_name': 'lon', 'file_format': 'nc', 'scale_factor': 1., 'valid_mask': 'land'}})",
+    "albedo": "get_albedo_data(interval=interval)",
     "albedo_nir": "get_albedo_data_nir(interval=interval)",
     "albedo_vis": "get_albedo_data_vis(interval=interval)",
     "budg": "get_model_data_generic(interval=interval, **{'CMIP5': {'model_prefix': 'Amon', 'lat_name': 'lat', 'scale_factor': 86400.0, 'file_format': 'nc', 'variable': 'budg', 'valid_mask': 'ocean', 'custom_path': '/net/nas2/export/eo/workspace/m300036/pycmbs-cmsaf/data', 'model_suffix': 'ensmean', 'unit': 'mm/d', 'lon_name': 'lon'}})",

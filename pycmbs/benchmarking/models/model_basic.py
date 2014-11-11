@@ -43,6 +43,7 @@ class Model(Data):
         # check
         if intervals is None:
             raise ValueError('Invalid intervals for Model data: needs specification!')
+
         # set a list with different datasets for different models
         self.dic_vars = dic_variables
         self.intervals = intervals

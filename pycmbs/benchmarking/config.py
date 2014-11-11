@@ -142,7 +142,7 @@ class ConfigFile(object):
         else:
             raise ValueError('OUTPUT directory not specified!')
 
-        #//// create / remove directories
+        # create / remove directories
         if not os.path.exists(self.options['tempdir']):
             print 'Creating temporary output directory: ', self.options['tempdir']
             os.makedirs(self.options['tempdir'])
@@ -181,6 +181,7 @@ class ConfigFile(object):
                         vars_interval.update({r: interval})
             else:
                 l = ' '
+
         return vars, vars_interval
 
     def __get_model_details(self, s):
@@ -242,6 +243,18 @@ class ConfigFile(object):
             if k.upper() not in ['CMIP5', 'JSBACH_BOT', 'JSBACH_RAW',
                                  'CMIP3', 'JSBACH_RAW2', 'CMIP5RAW', 'CMIP5RAWSINGLE', 'JSBACH_SPECIAL']:
                 raise ValueError('Unknown model type: %s' % k)
+
+        # ensure that up/down fluxes are analyzed in case of albedo
+        # in that case the same time sampling is used!
+        if 'albedo' in self.variables:
+            if 'sis' not in self.variables:
+                self.variables.append('sis')
+            self.intervals.update({'sis' : self.intervals['albedo']})
+
+            if 'surface_upward_flux' not in self.variables:
+                self.variables.append('surface_upward_flux')
+            self.intervals.update({'surface_upward_flux' : self.intervals['albedo']})
+
         sys.stdout.write(" *** Done reading config file. \n")
 
     def get_analysis_scripts(self):
@@ -273,6 +286,11 @@ class ConfigFile(object):
         IMPORTANT: all options provided to the routines need to be
         specified here and arguments must be set in calling
         routine get_data()
+
+        Parameters
+        ----------
+        variables : list
+            list of variables to be analzed
         """
 
         jsonfile = self.options['configdir'] + 'model_data_routines.json'
@@ -288,8 +306,19 @@ class ConfigFile(object):
             if k in variables:
                 res.update({k: hlp[k]})
 
-        #--- implement here also dependencies between variables for anylssi
-        #e.g. phenology needs faPAR and snow cover fraction. Ensure here that
+        # ensure that for albedo processing also the routines
+        # for upward and downward shortwave flux are known
+        if 'albedo' in variables:
+            for k in ['surface_upward_flux', 'sis']:
+                if k in hlp.keys():
+                    if k not in res.keys():
+                        res.update({k: hlp[k]})
+                else:
+                    err_msg = 'For albedo processing also the ' + k.upper() + ' routines need to be spectified!'
+                    raise ValueError(err_msg)
+
+        # implement here also dependencies between variables for analysis
+        # e.g. phenology needs faPAR and snow cover fraction. Ensure here that
         # snow cover is also read, even if only phenology option is set
         if ('phenology_faPAR' in variables) and not ('snow' in variables):
             res.update({'snow': hlp['snow']})
@@ -418,7 +447,15 @@ class PlotOptions(object):
         """
         from ConfigParser import SafeConfigParser
 
-        for var in cfg.variables:
+        thevariables = cfg.variables
+        # ensure that up/down information also given, when albedo is used
+        #~ if 'albedo' in thevariables:
+            #~ if 'surface_upward_flux' not in thevariables:
+                #~ thevariables.append('surface_upward_flux')
+            #~ if 'sis' not in thevariables:
+                #~ thevariables.append('sis')
+
+        for var in thevariables:
             parser = SafeConfigParser()
 
             # The plot options are assumed to be in a file that has the same name as the variable to look be analyzed
@@ -473,7 +510,7 @@ class PlotOptions(object):
             false_vars = ['map_difference', 'map_seasons',
                           'reichler_plot', 'hovmoeller_plot',
                           'regional_analysis']
-            for var in cfg.variables:
+            for var in thevariables:
                 lopt = self.options[var]
                 for vv in false_vars:
                     if vv in lopt['OPTIONS'].keys():
@@ -484,7 +521,7 @@ class PlotOptions(object):
         # the same as the models
         # then overwrite options that were set in the INI files
         if cfg.same_time4obs:
-            for var in cfg.variables:
+            for var in thevariables:
                 lopt = self.options[var]
                 lopt['OPTIONS']['start'] = cfg.start_date
                 lopt['OPTIONS']['stop'] = cfg.stop_date
@@ -492,7 +529,7 @@ class PlotOptions(object):
         # map interpolation methods
         # the interpolation method is used by the CDOs. It needs to be
         # a value of [bilinear,conservative,nearest]
-        for var in cfg.variables:
+        for var in thevariables:
             lopt = self.options[var]
             if lopt['OPTIONS']['interpolation'] == 'bilinear':
                 lopt['OPTIONS'].update({'interpolation': 'remapbil'})
