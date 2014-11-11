@@ -186,8 +186,14 @@ class JSBACH_RAW2(Model):
     works on the real raw output
     """
 
-    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='grb', raw_outdata='outdata/jsbach/', **kwargs):
+    #def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='grb', raw_outdata='outdata/jsbach/', **kwargs):
+    def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, input_format='grb', raw_outdata='outdata/jsbach/', **kwargs):
         """
+
+        The assignment of certain variables to different input streams is done in the routine
+        get_jsbach_data_generic()
+
+
         Parameters
         ----------
         input_format : str
@@ -212,7 +218,7 @@ class JSBACH_RAW2(Model):
         # do preprocessing of streams (only needed once!) ---
         self.files = {}
         self._preproc_streams()
-        self.model_dict = copy.deepcopy(model_dict)
+        #~ self.model_dict = copy.deepcopy(model_dict)
 
         self.model = 'JSBACH'
 
@@ -387,9 +393,9 @@ class JSBACH_RAW2(Model):
         if self.stop_time is None:
             raise ValueError('Stop time needs to be specified')
 
-        print ''
-        print 'in get_albedo() before call: ', self.model_dict['sis']
-        print ''
+        #~ print ''
+        #~ print 'in get_albedo() before call: ', self.model_dict['sis']
+        #~ print ''
 
         sw_down = self.get_surface_shortwave_radiation_down(interval=interval)
         sw_up = self.get_surface_shortwave_radiation_up(interval=interval)
@@ -437,8 +443,9 @@ class JSBACH_RAW2(Model):
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
     def get_surface_shortwave_radiation_up(self, interval='season', **kwargs):
-        tmpdict = copy.deepcopy(self.model_dict['surface_upward_flux'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        #~ tmpdict = copy.deepcopy(self.model_dict['surface_upward_flux'])
+        #~ return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_surface_shortwave_radiation_down(self, interval='season', **kwargs):
         tmpdict = copy.deepcopy(self.model_dict['sis'])
@@ -459,7 +466,6 @@ class JSBACH_RAW2(Model):
             variable - name of the variable as the short_name in the netcdf file
 
             kwargs is a dictionary with keys for each model. Then a dictionary with properties follows
-
         """
 
         if not self.type in kwargs.keys():
@@ -495,7 +501,7 @@ class JSBACH_RAW2(Model):
             print self.type
             raise ValueError('Invalid data format here!')
 
-        #define from which stream of JSBACH data needs to be taken for specific variables
+        # define from which stream of JSBACH data needs to be taken for specific variables
         if varname in ['swdown_acc', 'swdown_reflect_acc']:
             filename1 = self.files['jsbach']
         elif varname in ['precip_acc']:

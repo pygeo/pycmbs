@@ -157,7 +157,7 @@ def main():
     start_time = pylab.num2date(pylab.datestr2num(s_start_time))
     stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
-    model_dict = {'rain': {'CMIP5':
+    xxxxxxxxmodel_dict = {'rain': {'CMIP5':
                            {
                                'variable': 'pr',
                                'unit': 'mm/day',
@@ -181,6 +181,8 @@ def main():
                                'scale_factor': 86400.,
                                'valid_mask': 'global'
                            }
+
+
                            },
 
 
@@ -422,11 +424,11 @@ def main():
     # names of analysis scripts for all variables ---
     scripts = CF.get_analysis_scripts()
 
-    # get dictionary with methods how to read data for variables to be analyzed
+    # get dictionary with methods how to read data for model variables to be analyzed
     variables = CF.variables
-    varmethods = CF.get_methods4variables(variables, model_dict)
+    varmethods = CF.get_methods4variables(variables)
 
-    #/// READ DATA ///
+    # READ DATA
     """
     create a Model instance for each model specified
     in the configuration file
@@ -487,15 +489,15 @@ def main():
                                    intervals=CF.intervals,
                                    start_time=start_time,
                                    stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon,
-                                   model_dict=model_dict)
+                                   name=model, shift_lon=shift_lon) #,
+                                   #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'JSBACH_SPECIAL':
             themodel = JSBACH_SPECIAL(data_dir, varmethods, experiment,
                                    intervals=CF.intervals,
                                    start_time=start_time,
                                    stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon,
-                                   model_dict=model_dict)
+                                   name=model, shift_lon=shift_lon) #,
+                                   #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'CMIP3':
             themodel = CMIP3Data(data_dir, model, experiment, varmethods,
                                  intervals=CF.intervals, lat_name='lat',
@@ -506,13 +508,13 @@ def main():
         else:
             raise ValueError('Invalid model type: %s' % CF.dtypes[i])
 
-        #--- read data for current model ---
+        # read data for current model
 
         # options that specify regrid options etc.
         themodel.plot_options = plot_options
         themodel.get_data()
 
-        # copy current model to a variable named modelXXXX ---
+        # copy current model to a variable named modelXXXX
         cmd = 'model' + str(model_cnt).zfill(4) + ' = ' \
             + 'themodel.copy(); del themodel'
         exec(cmd)  # store copy of cmip5 model in separate variable

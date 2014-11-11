@@ -109,6 +109,9 @@ class Model(Data):
                 else:
                     self.variables.update({k: dat})  # update field with data
             else:
+                print k
+                print self.dic_vars
+                print routine
                 print('WARNING: unknown function to read data (skip!), variable: %s ' % k)
                 self.variables.update({k: None})
 

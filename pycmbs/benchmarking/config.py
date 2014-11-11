@@ -263,7 +263,7 @@ class ConfigFile(object):
         d = json.load(open(jsonfile, 'r'))
         return d
 
-    def get_methods4variables(self, variables, model_dict):
+    def get_methods4variables(self, variables):
         """
         for a given list of variables, return a dictionary
         with information on methods how to read the data
@@ -759,7 +759,7 @@ class CFGWriter(object):
         """
         # list which specifies which default variables should be written
         # to the standard configuration file
-        supported_vars = ['albedo', 'sis', 'precipitation', 'albedo_vis',
+        supported_vars = ['albedo', 'sis', 'albedo_vis',
                           'albedo_nir', 'surface_upward_flux', 'tree',
                           'temperature', 'rain', 'evap', 'hair', 'wind',
                           'twpa', 'wvpa', 'late', 'budg',
