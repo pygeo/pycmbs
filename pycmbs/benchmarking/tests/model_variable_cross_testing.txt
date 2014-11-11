@@ -1,0 +1,24 @@
+This file summarizes which combinations of model types and variables have been checked.
+
+Last update: 11.11.2014
+
+
+Variable        JSBACH_SPECIAL  JSBACH_RAW2     CMIP5
+
+albedo
+sis                     X           X
+albedo_vis
+albedo_nir
+surface_upward_flux     X           X
+tree
+temperature
+rain                    X           X
+evap
+hair
+wind
+twpa
+wvpa
+late
+budg
+phenology_faPAR
+gpp

@@ -393,12 +393,8 @@ class JSBACH_RAW2(Model):
         if self.stop_time is None:
             raise ValueError('Stop time needs to be specified')
 
-        #~ print ''
-        #~ print 'in get_albedo() before call: ', self.model_dict['sis']
-        #~ print ''
-
-        sw_down = self.get_surface_shortwave_radiation_down(interval=interval)
-        sw_up = self.get_surface_shortwave_radiation_up(interval=interval)
+        sw_down = self.get_surface_shortwave_radiation_down(interval=interval, **kwargs)
+        sw_up = self.get_surface_shortwave_radiation_up(interval=interval, **kwargs)
 
         # climatological mean
         alb = sw_up[0].div(sw_down[0])
@@ -425,8 +421,8 @@ class JSBACH_RAW2(Model):
         interval : str
             ['season','monthly']
         """
-        tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        #~ tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_albedo_data_nir(self, interval='season', **kwargs):
         """
@@ -439,25 +435,20 @@ class JSBACH_RAW2(Model):
         interval : str
             ['season','monthly']
         """
-        tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        #~ tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_surface_shortwave_radiation_up(self, interval='season', **kwargs):
-        #~ tmpdict = copy.deepcopy(self.model_dict['surface_upward_flux'])
-        #~ return self.get_jsbach_data_generic(interval=interval, **tmpdict)
         return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_surface_shortwave_radiation_down(self, interval='season', **kwargs):
-        tmpdict = copy.deepcopy(self.model_dict['sis'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_rainfall_data(self, interval='season', **kwargs):
-        tmpdict = copy.deepcopy(self.model_dict['rain'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_temperature_2m(self, interval='season', **kwargs):
-        tmpdict = copy.deepcopy(self.model_dict['temperature'])
-        return self.get_jsbach_data_generic(interval=interval, **tmpdict)
+        return self.get_jsbach_data_generic(interval=interval, **kwargs)
 
     def get_jsbach_data_generic(self, interval='season', **kwargs):
         """
@@ -481,8 +472,8 @@ class JSBACH_RAW2(Model):
         # no defaults; everything should be explicitely specified in either the config file or the dictionaries
 
         varname = locdict.pop('variable')
-        units = locdict.pop('unit', 'Crazy Unit')
-        #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
+        units = locdict.pop('unit', 'Unit not specified')
+
 
         lat_name = locdict.pop('lat_name', 'lat')
         lon_name = locdict.pop('lon_name', 'lon')
@@ -675,8 +666,6 @@ class JSBACH_RAW(Model):
             rawfile = files[0]
         mdata, retval = self._do_preprocessing(rawfile, variable, y1, y2, interval=interval, valid_mask=locdict['valid_mask'])
         return mdata, retval
-
-#-----------------------------------------------------------------------
 
     def get_albedo_data(self, interval='monthly', **kwargs):
         """

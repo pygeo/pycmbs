@@ -65,7 +65,8 @@ class CMIP5Data(Model):
             s += '-' + str(self.ens_member)
         return s
 
-#-----------------------------------------------------------------------
+    def get_rainfall_data(self, interval='season', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
 
     def get_model_data_generic(self, interval='season', **kwargs):
         """
