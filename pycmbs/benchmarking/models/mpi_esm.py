@@ -265,12 +265,18 @@ class JSBACH_RAW2(Model):
             #~ print 'Files: ', self._get_filenames_jsbach_stream()
             #~ stop
             if len(glob.glob(self._get_filenames_jsbach_stream())) > 0:  # check if input files existing at all
+                print 'Mering the following files:' , self._get_filenames_jsbach_stream()
                 cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_jsbach_stream())
                 if os.path.exists(codetable):
                     cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
                 else:
                     cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
-                os.remove(tmp)
+                print 'Outfile: ', outfile
+                #~ os.remove(tmp)
+
+                print 'Temporary name: ', tmp
+
+
         self.files.update({'jsbach': outfile})
 
         # veg stream
@@ -370,7 +376,7 @@ class JSBACH_RAW2(Model):
         """
         return self.name.replace(' ', '') + '-' + self.experiment.replace(' ', '')
 
-    def get_albedo_data(self, interval='season'):
+    def get_albedo_data(self, interval='season', **kwargs):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
@@ -388,12 +394,12 @@ class JSBACH_RAW2(Model):
         sw_down = self.get_surface_shortwave_radiation_down(interval=interval)
         sw_up = self.get_surface_shortwave_radiation_up(interval=interval)
 
-        #climatological mean
+        # climatological mean
         alb = sw_up[0].div(sw_down[0])
         alb.label = self.experiment + ' albedo'
         alb.unit = '-'
 
-        #original data
+        # original data
         alb_org = sw_up[1][2].div(sw_down[1][2])
         alb_org.label = self.experiment + ' albedo'
         alb_org.unit = '-'
@@ -402,7 +408,7 @@ class JSBACH_RAW2(Model):
 
         return alb, retval
 
-    def get_albedo_data_vis(self, interval='season'):
+    def get_albedo_data_vis(self, interval='season', **kwargs):
         """
         This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
@@ -416,7 +422,7 @@ class JSBACH_RAW2(Model):
         tmpdict = copy.deepcopy(self.model_dict['albedo_vis'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
-    def get_albedo_data_nir(self, interval='season'):
+    def get_albedo_data_nir(self, interval='season', **kwargs):
         """
         This routine retrieves the JSBACH albedo information for VIS
         it requires a preprocessing with a script that aggregates from tile
@@ -430,19 +436,19 @@ class JSBACH_RAW2(Model):
         tmpdict = copy.deepcopy(self.model_dict['albedo_nir'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
-    def get_surface_shortwave_radiation_up(self, interval='season'):
+    def get_surface_shortwave_radiation_up(self, interval='season', **kwargs):
         tmpdict = copy.deepcopy(self.model_dict['surface_upward_flux'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
-    def get_surface_shortwave_radiation_down(self, interval='season'):
+    def get_surface_shortwave_radiation_down(self, interval='season', **kwargs):
         tmpdict = copy.deepcopy(self.model_dict['sis'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
-    def get_rainfall_data(self, interval='season'):
+    def get_rainfall_data(self, interval='season', **kwargs):
         tmpdict = copy.deepcopy(self.model_dict['rain'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 
-    def get_temperature_2m(self, interval='season'):
+    def get_temperature_2m(self, interval='season', **kwargs):
         tmpdict = copy.deepcopy(self.model_dict['temperature'])
         return self.get_jsbach_data_generic(interval=interval, **tmpdict)
 

@@ -82,9 +82,6 @@ def create_dummy_configuration():
 
     os.system('rm -rf ' + odir + os.sep + '.svn')
 
-########################################################################
-
-
 def main():
     plt.close('all')
     if len(sys.argv) > 1:
@@ -104,11 +101,14 @@ def main():
             raise ValueError('Currently not more than one command \
                                line parameter supported!')
     else:  # default
-        file = 'pyCMBS.cfg'
+        print 'da sammer!'
         print('*******************************************')
         print('* WELCOME to pycmbs.py                    *')
         print('* Happy benchmarking ...                  *')
         print('*******************************************')
+        print ''
+        print 'please specify a configuration filename as argument'
+        sys.exit()
 
     ####################################################################
     # CONFIGURATION and OPTIONS
@@ -136,9 +136,6 @@ def main():
         + CF.options['report'] + '.log'
     if os.path.exists(os.environ['DATA_WARNING_FILE']):
         os.remove(os.environ['DATA_WARNING_FILE'])
-
-    # init regions
-    #~ REGIONS = config.AnalysisRegions()
 
     for thevar in plot_options.options.keys():
         if thevar in plot_options.options.keys():
@@ -555,6 +552,7 @@ def main():
     ########################################################################
     # END MULTIMODEL MEAN
     ########################################################################
+
     ########################################################################
     # INIT reporting and plotting and diagnostics
     ########################################################################
@@ -580,10 +578,10 @@ def main():
     skeys = scripts.keys()
     for variable in variables:
 
-        #/// register current variable in Gleckler Plot
+        # register current variable in Gleckler Plot
         global_gleckler.add_variable(variable)
 
-        #/// call analysis scripts for each variable
+        # call analysis scripts for each variable
         for k in range(len(skeys)):
             if variable == skeys[k]:
                 print 'Doing analysis for variable ... ', variable
@@ -600,7 +598,7 @@ def main():
     ########################################################################
     # GLECKLER PLOT finalization ...
     ########################################################################
-    #/// generate Gleckler analysis plot for all variables and models analyzed ///
+    # generate Gleckler analysis plot for all variables and models analyzed ///
     global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=False, ticks=[-0.1, -0.05, 0., 0.05, 0.1])
     oname = outdir + 'gleckler.pkl'
     if os.path.exists(oname):
@@ -645,7 +643,7 @@ def main():
         labels_dict.update({variable: thelabels})
         del thelabels
 
-    #/// legend for gleckler plot ///
+    # legend for gleckler plot ///
     lcnt = 1
     for variable in variables:
         if variable not in PCFG.options.keys():
@@ -660,7 +658,7 @@ def main():
         del fl
         lcnt += 1
 
-    #/// plot model ranking between different observational datasets ///
+    # plot model ranking between different observational datasets ///
     rep.subsection('Model ranking consistency')
     for v in global_gleckler.variables:
         rep.subsubsection(v.upper())
