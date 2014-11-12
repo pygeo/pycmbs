@@ -140,6 +140,25 @@ class NetCDFHandler(object):
         else:
             raise ValueError('Something went wrong!')
 
+    def set_attribute(self, varname, key, value):
+        """
+        set attributes for a field
+
+        Parameters
+        ----------
+        varname : str
+            name of variable
+        key : str
+            attribute key
+        value : str/float/int
+            attribute value
+        """
+        V = self.get_variable_handler(varname)
+        if self.type.lower() == 'netcdf4':
+            V.setncattr(key, value)
+        else:
+            raise ValueError('Something went wrong!')
+
     def get_variable_handler(self, varname):
         """
         Get handler to a variable
