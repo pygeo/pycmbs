@@ -130,30 +130,23 @@ Check successful installation, like described below_.
 github repository (for developers)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Another alternative to work with pyCMBS is to used the master branch of
-the `code repository <https://github.com/pygeo/pycmbs>`_. The code is hosted on a github repository. All
-dependencies  must have been installed before.
+Assuming that you want to contribute to the development of the pyCMBS,
+follow the `instructions to create your fork <https://help.github.com/articles/fork-a-repo/>`_.
+All dependencies must have been installed and configured properly (check section Installation of dependencies above).
+To retrieve the code into your development environment execute the following command (replace your_user_name
+with the user name you registered with github):
 
-To retrieve the code do the following::
+   # clone your fork
+   git clone https://github.com/your_user_name/pycmbs.git
 
-    # generate some directory
-    mkdir pycmbs
-    cd pycmbs
+If everything went fine, you should have pycmbs directory.
 
-    # retrieve the code
-    git clone
+    # change to your wprking directory and compile cython extensions 
+    cd pycmbs 
+    sh compile_extensions.sh 
 
-
-Now you have in principle two options. You either decide that the code should be installed in the python dist-packages directory, then you do::
-
-    # do installation
-    python setup.py install
-
-or if you want to hack the code, it is highly recommended to simply set the right PYTHONPATH environment variable::
-
-    # or as an alternative for developers, just set the PYTHONPATH
-    # environment variable to the pycmbs root directory and also adapt
-    # you systempath (PATH) such that includes the pycmbs rootdirectory
+Now you need to set your PYTHONPATH and PATH environment variable. 
+Set the PYTHONPATH environment variable to the pycmbs root directory and also adapt you systempath (PATH) so that includes the pycmbs rootdirectory.
 
 Check successful installation, like described below_.
 
