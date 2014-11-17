@@ -103,7 +103,7 @@ class TestData(unittest.TestCase):
             P = np.arange(10)
             R._rasterize_single_polygon(P)
 
-    def test_raster_single_polygon(self):
+    def test_raster_single_polygon(self):  # slow ???
         lon = np.linspace(-180., 180., 361)
         lat = np.linspace(-90., 90., 181)
         LON,LAT=np.meshgrid(lon, lat)
@@ -158,7 +158,7 @@ class TestData(unittest.TestCase):
         self.assertTrue(len(u)==2)
         self.assertTrue(1 in u)
         self.assertTrue(2 in u)
-
+#~
 
     #~ def test_raster_multiple_polygon_fast(self):
         #~ lon = np.linspace(-180., 180., 361)

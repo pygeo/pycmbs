@@ -28,6 +28,8 @@ cdef class Polygon(object):
     cdef int id
     cdef float value
     cdef list poly
+    cdef list _ogr_poly
+
     cdef bint ensure_positive
 
     def __init__(self, int id, list coordinates, ensure_positive=False):
@@ -45,6 +47,7 @@ cdef class Polygon(object):
         self.poly = coordinates
         self.id = id
         self.value = np.nan
+        self._ogr_poly = None
 
         if ensure_positive:
             self._shift_coordinates()
@@ -66,6 +69,13 @@ cdef class Polygon(object):
           return self.poly
         def __set__(self, int value):
           self.poly = value
+
+    property _ogr_poly:
+        def __get__(self):
+          return self._ogr_poly
+        def __set__(self, int value):
+          self._ogr_poly = value
+
 
     def _xcoords(self):
         return np.asarray([t[0] for t in self.poly])
@@ -148,7 +158,7 @@ cdef class Polygon(object):
 
         ring = ogr.Geometry(ogr.wkbLinearRing)
         for p in self.poly:
-            x = p[0]
+            x = p[0]*1.
             if ensure_positive:
                 if x < 0.:
                     x += 360.
@@ -156,13 +166,16 @@ cdef class Polygon(object):
 
         if not self.is_closed():
             # close polygon if needed
-            x = p[0]
+            x = self.poly[0][0]*1.
             if ensure_positive:
                 if x < 0.:
                     x += 360.
             ring.AddPoint(x, self.poly[0][1])
         poly = ogr.Geometry(ogr.wkbPolygon)
         poly.AddGeometry(ring)
+
+        self._ogr_poly = [poly]
+
         return poly
 
     def is_closed(self):
@@ -191,6 +204,43 @@ cdef class Polygon(object):
         self.poly = opoly
 
     def point_in_poly(self, double x, double y):
+        """
+        solve the point in area problem using OGR.
+        in case that the point is within the polygon
+        a valid geometry is returned. Otherwise the
+        geometry object is empty
+
+        Parameters
+        ----------
+        x : float
+            x-coordinate = longitude
+        y : float
+            y-coordinate = latitude
+        """
+        point = ogr.Geometry(ogr.wkbPoint)
+        point.AddPoint(x, y)
+
+        if self._ogr_poly is None:
+            poly = self.convertToOGRPolygon()  # todo this could be done more efficiently by storing the converted polygon once and then simply use it.
+        else:
+            poly = self._ogr_poly[0]
+
+        # now check for intersection
+#~         print poly.ExportToWkt()
+#~         print point.ExportToWkt()
+        intersection = poly.Intersection(point)
+#~         print intersection.ExportToWkt()
+        N = intersection.GetPointCount()
+        if N == 1:
+            return True
+        elif N == 0:
+            return False
+        else:
+            print N
+            raise ValueError('Some invalid number of points! Should be one or zero!')
+
+
+    def xxxxxpoint_in_poly(self, double x, double y):
         """
         Parameters
         ----------
