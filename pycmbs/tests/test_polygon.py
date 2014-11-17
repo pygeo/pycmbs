@@ -9,13 +9,10 @@ from unittest import TestCase
 import unittest
 
 from pycmbs.data import Data
-#~ import os
 import scipy as sc
 import matplotlib.pylab as pl
 import numpy as np
 from scipy import stats
-#~ from dateutil.rrule import rrule
-#~ from dateutil.rrule import MONTHLY
 import datetime
 import matplotlib.pylab as plt
 
@@ -27,24 +24,32 @@ from pycmbs.polygon import Polygon, Raster
 class TestData(unittest.TestCase):
 
     def setUp(self):
-        n=1000  # slows down significantly! constraint is percentile  test
-        x = sc.randn(n)*100.  # generate dummy data
         self.D = Data(None, None)
-        d=np.ones((n, 1, 1))
-        self.D.data = d
-        self.D.data[:,0,0]=x
-        self.D.data = np.ma.array(self.D.data, mask=self.D.data != self.D.data)
-        self.D.verbose = True
-        self.D.unit = 'myunit'
-        self.D.label = 'testlabel'
-        self.D.filename = 'testinputfilename.nc'
-        self.D.varname = 'testvarname'
-        self.D.long_name = 'This is the longname'
-        self.D.time = np.arange(n) + pl.datestr2num('2001-01-01')
-        self.D.time_str = "days since 0001-01-01 00:00:00"
-        self.D.calendar = 'gregorian'
-        self.D.oldtime=False
+        self.D._init_sample_object(nt=1000, ny=1, nx=1)
 
+    def test_is_closed(self):
+        poly = [(150.,20.), (-160.,30.), (-170.,10.), (170.,10.)]
+        P = Polygon(3, poly)
+        self.assertFalse(P.is_closed())
+
+        poly1 = [(150.,20.), (-160.,30.), (-170.,10.), (170.,10.), (150.,20.)]
+        P1 = Polygon(3, poly1)
+        self.assertTrue(P1.is_closed())
+
+    def test_convertOGR(self):
+        poly = [(150.,20.), (-160.,30.), (-170.,10.), (170.,10.)]
+        P = Polygon(3, poly)
+        A = P.convertToOGRPolygon()
+        B = P.convertToOGRPolygon(ensure_positive=True)
+
+    def test_shift(self):
+        poly3 = [(150.,20.), (-160.,30.), (-170.,10.), (170.,10.)]
+        P3 = Polygon(3, poly3)
+        P3._shift_coordinates()  # shift longitudes by 200 degree
+        self.assertEqual(P3.poly[0][0], 150.)
+        self.assertEqual(P3.poly[1][0], 200.)
+        self.assertEqual(P3.poly[2][0], 190.)
+        self.assertEqual(P3.poly[3][0], 170.)
 
     def test_point_in_polygon(self):
         x = 1
@@ -55,6 +60,15 @@ class TestData(unittest.TestCase):
         x = 4
         y = 4
         self.assertFalse(P.point_in_poly(x,y))
+
+    def test_point_in_polygon_latlon(self):
+        # test for point in polygon across dateline
+        x1 = -175.
+        y1 = 50.
+        poly1= [(150.,60.), (-160.,60.), (-170.,45.), (170.,45.)]
+        P1 = Polygon(1, poly1)
+        self.assertTrue(P1.point_in_poly_latlon(x1,y1))
+
 
     def test_polygon_min_max(self):
         x = 1
@@ -106,25 +120,25 @@ class TestData(unittest.TestCase):
         self.assertTrue(len(u)==1)
         self.assertTrue(5. in u)
 
-    def test_raster_single_polygon_fast(self):
-        lon = np.linspace(-180., 180., 361)
-        lat = np.linspace(-90., 90., 181)
-        LON,LAT=np.meshgrid(lon, lat)
+    #~ def test_raster_single_polygon_fast(self):
+        #~ lon = np.linspace(-180., 180., 361)
+        #~ lat = np.linspace(-90., 90., 181)
+        #~ LON,LAT=np.meshgrid(lon, lat)
+#~
+        #~ # test a single polygon
+        #~ poly = [(-10.,-10.), (-10.,20), (15.,0.), (0.,-25.)]
+        #~ P = Polygon(5, poly)
+        #~ R=Raster(LON,LAT)
+        #~ R.mask = np.zeros(LON.shape)*np.nan
+        #~ R._rasterize_single_polygon(P, method='fast')
+        #~ R.mask = np.ma.array(R.mask, mask=np.isnan(R.mask))
+#~
+        #~ u = np.unique(R.mask[~R.mask.mask])
+        #~ self.assertTrue(len(u) == 1)
+        #~ self.assertTrue(5. in u)
 
-        # test a single polygon
-        poly = [(-10.,-10.), (-10.,20), (15.,0.), (0.,-25.)]
-        P = Polygon(5, poly)
-        R=Raster(LON,LAT)
-        R.mask = np.zeros(LON.shape)*np.nan
-        R._rasterize_single_polygon(P, method='fast')
-        R.mask = np.ma.array(R.mask, mask=np.isnan(R.mask))
 
-        u = np.unique(R.mask[~R.mask.mask])
-        self.assertTrue(len(u)==1)
-        self.assertTrue(5. in u)
-
-
-    def test_raster_multiple_polygon(self):
+    def test_raster_multiple_polygon(self):  # this is quite slow!
         lon = np.linspace(-180., 180., 361)
         lat = np.linspace(-90., 90., 181)
         LON,LAT=np.meshgrid(lon, lat)
@@ -145,35 +159,26 @@ class TestData(unittest.TestCase):
         self.assertTrue(1 in u)
         self.assertTrue(2 in u)
 
-        #~ D = Data(None, None)
-        #~ D.data = R.mask
-        #~ D.lat = LAT
-        #~ D.lon = LON
-        #~ fig = plt.figure()
-        #~ ax = fig.add_subplot(111)
-        #~ ax.imshow(R.mask, interpolation='nearest')
-        #~ fig.savefig('testmask.png')
 
-
-    def test_raster_multiple_polygon_fast(self):
-        lon = np.linspace(-180., 180., 361)
-        lat = np.linspace(-90., 90., 181)
-        LON,LAT=np.meshgrid(lon, lat)
-
-        # test a single polygon
-        poly=[]
-        poly1 = [(-10.,-10.), (-10.,20), (15.,0.), (0.,-15.)]
-        poly.append(Polygon(1, poly1))
-
-        poly2 = [(-50.,-80.), (-50.,-70.), (-40.,-70.), (-40.,-75.)]
-        poly.append(Polygon(2, poly2))
-
-        R=Raster(LON,LAT)
-        R.rasterize_polygons(poly, method='fast')
-
-        u = np.unique(R.mask[~R.mask.mask])
-        self.assertTrue(len(u)==2)
-        self.assertTrue(1 in u)
-        self.assertTrue(2 in u)
+    #~ def test_raster_multiple_polygon_fast(self):
+        #~ lon = np.linspace(-180., 180., 361)
+        #~ lat = np.linspace(-90., 90., 181)
+        #~ LON,LAT=np.meshgrid(lon, lat)
+#~
+        #~ # test a single polygon
+        #~ poly=[]
+        #~ poly1 = [(-10.,-10.), (-10.,20), (15.,0.), (0.,-15.)]
+        #~ poly.append(Polygon(1, poly1))
+#~
+        #~ poly2 = [(-50.,-80.), (-50.,-70.), (-40.,-70.), (-40.,-75.)]
+        #~ poly.append(Polygon(2, poly2))
+#~
+        #~ R=Raster(LON,LAT)
+        #~ R.rasterize_polygons(poly, method='fast')
+#~
+        #~ u = np.unique(R.mask[~R.mask.mask])
+        #~ self.assertTrue(len(u)==2)
+        #~ self.assertTrue(1 in u)
+        #~ self.assertTrue(2 in u)
 
 

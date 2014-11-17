@@ -8,6 +8,9 @@ COPYRIGHT.md
 from __future__ import division
 #http://docs.cython.org/src/tutorial/numpy.html#efficient-indexing
 import numpy as np
+import copy
+from osgeo import ogr
+
 cimport numpy as np
 
 ctypedef np.double_t DTYPE_t  # double type for numpy arrays
@@ -25,8 +28,9 @@ cdef class Polygon(object):
     cdef int id
     cdef float value
     cdef list poly
+    cdef bint ensure_positive
 
-    def __init__(self, int id, list coordinates):
+    def __init__(self, int id, list coordinates, ensure_positive=False):
         """
         Parameters
         ----------
@@ -34,10 +38,16 @@ cdef class Polygon(object):
             unique identifier
         coordinates : list of tuples
             list of tuples (x,y) defining the polygon
+        ensure_positive : bool
+            if True, coordinates are shifted such that the longitude
+            ranges from 0...360 degrees
         """
         self.poly = coordinates
         self.id = id
         self.value = np.nan
+
+        if ensure_positive:
+            self._shift_coordinates()
 
     property value:
         def __get__(self):
@@ -85,6 +95,101 @@ cdef class Polygon(object):
         """
         return [self._xmin(), self._xmax(), self._ymin(), self._ymax()]
 
+    def point_in_poly_latlon(self, double lon, double lat):
+        """
+        This routine enables the calculation of the point-in-polygon
+        problem for geographical coordinates. In particular it ensures
+        that it is also working for polygons across the dateline.
+
+        This is done, by shifting the polygon first in a way
+        that no number across the dateline occur.
+
+        It is assumed that longitudes go from -180. ... 180.
+
+        Parameters
+        ----------
+        lon : float
+            longitude [deg]
+        lat : float
+            latitude [deg]
+        """
+        assert self._xmin() >= -180., 'minimum longitudes need to be >= -180.: ' + str(self._xmin())
+        assert self._xmax() <= 180., 'maximum longitudes need to be <= 180.: ' + str(self._xmax())
+
+        # shift coordinates to ensure that only positive coordinates occur
+        if lon < 0.:
+            lon1 = lon + 360.
+        else:
+            lon1 = lon*1.
+
+        tmp = Polygon(self.id, copy.deepcopy(self.poly), ensure_positive=True)  # ensure positive numbers for coordinates!
+        res = tmp.point_in_poly(lon1, lat)
+        del tmp
+        return res
+
+    def _get_point_count(self):
+        return len(self.poly)
+
+    def convertToOGRPolygon(self, ensure_positive=False):
+        """
+        convert polygon to an OGR polygon and return this
+        http://pcjericks.github.io/py-gdalogr-cookbook/geometry.html#calculate-intersection-between-two-geometries
+
+        Parameters
+        ----------
+        ensure_positive : bool
+            if True, then the longitudes are shifted to positive numbers
+            and wrapped around the dateline if necessary, resulting in coordinates
+            from 0 ... 360 instead of -180 ... 180
+        """
+
+        if self._get_point_count() == 0:
+            return None
+
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        for p in self.poly:
+            x = p[0]
+            if ensure_positive:
+                if x < 0.:
+                    x += 360.
+            ring.AddPoint(x, p[1])
+
+        if not self.is_closed():
+            # close polygon if needed
+            x = p[0]
+            if ensure_positive:
+                if x < 0.:
+                    x += 360.
+            ring.AddPoint(x, self.poly[0][1])
+        poly = ogr.Geometry(ogr.wkbPolygon)
+        poly.AddGeometry(ring)
+        return poly
+
+    def is_closed(self):
+        """
+        check if polygon is closed
+        """
+        p1 = self.poly[0]
+        p2 = self.poly[self._get_point_count()-1]
+        if (p1[0] == p2[0]) and (p1[1] == p2[1]):
+            return True
+        else:
+            return False
+
+    def _shift_coordinates(self):
+        """
+        shift coordinates to ensure values for longitude
+        between 0...360 degrees
+        """
+        opoly = []
+        for p in self.poly:
+            if p[0] < 0.:
+                x = p[0] + 360.
+            else:
+                x = p[0]
+            opoly.append((x, p[1]))
+        self.poly = opoly
+
     def point_in_poly(self, double x, double y):
         """
         Parameters
@@ -93,10 +198,6 @@ cdef class Polygon(object):
             x-coordinate of the point to be investigated
         y : float
             y-coordinate of the point to be investigated
-
-        TODO
-        ----
-        does that work also across the deadline and datum line?
         """
 
         cdef int i
