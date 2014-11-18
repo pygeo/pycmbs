@@ -86,13 +86,11 @@ class Raster(object):
         if method != 'full':
             raise ValueError('Only FULL method currently thoroughly validated!')
 
-
         # check if data across the dateline. This is currently not supported yet!
         if method != 'full':
             if P.across_dateline():  # check routine not existing yet!
                 print 'WARNING: seems that polygon is across the dateline. This is currently not supported yet! SKIPPING polygon with ID: ', P.id
                 return
-
 
         id = float(P.id)
 
@@ -105,9 +103,9 @@ class Raster(object):
             ny, nx = self.lon.shape
             for i in xrange(ny):
                 #~ if i % 10 == 0:
-                print 'Rasterization ... ', 100.*float(i)/float(ny), '%'
+                print 'Rasterization ... ', 100. * float(i) / float(ny), '%'
                 for j in xrange(nx):
-                    if P.point_in_poly_latlon(self.lon[i, j], self.lat[i, j]):
+                    if P.point_in_poly(self.lon[i, j], self.lat[i, j]):
                         if np.isnan(self.mask[i, j]):
                             self.mask[i, j] = id
                         else:

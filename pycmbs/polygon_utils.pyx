@@ -106,6 +106,7 @@ cdef class Polygon(object):
         return [self._xmin(), self._xmax(), self._ymin(), self._ymax()]
 
     def point_in_poly_latlon(self, double lon, double lat):
+
         """
         This routine enables the calculation of the point-in-polygon
         problem for geographical coordinates. In particular it ensures
@@ -123,6 +124,9 @@ cdef class Polygon(object):
         lat : float
             latitude [deg]
         """
+
+        raise ValueError('This is far too slow for pixel wise processing!!!')
+
         assert self._xmin() >= -180., 'minimum longitudes need to be >= -180.: ' + str(self._xmin())
         assert self._xmax() <= 180., 'maximum longitudes need to be <= 180.: ' + str(self._xmax())
 
@@ -203,7 +207,7 @@ cdef class Polygon(object):
             opoly.append((x, p[1]))
         self.poly = opoly
 
-    def point_in_poly(self, double x, double y):
+    def xxx_not_so_fast_point_in_poly(self, double x, double y):
         """
         solve the point in area problem using OGR.
         in case that the point is within the polygon
@@ -240,7 +244,7 @@ cdef class Polygon(object):
             raise ValueError('Some invalid number of points! Should be one or zero!')
 
 
-    def xxxxxpoint_in_poly(self, double x, double y):
+    def point_in_poly(self, double x, double y):
         """
         Parameters
         ----------

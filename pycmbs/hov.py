@@ -207,11 +207,11 @@ class hovmoeller:
         self.hov = None
 
     def plot(self, xticks=None, xlabel=None, ylabel=None, title='',
-            grid=True, climits=None, figsize=None, origin=None,
-            xtickrotation=0, cmap='jet', showcolorbar=True, ax=None,
-            show_uncertainties=False, norm_uncertainties=False,
-            input=None, showxticks=True, nclasses=11, lat_tick=np.arange(-90., 90 + 30., 30.),
-            monthsamp=1, yearonly=True):
+             grid=True, climits=None, figsize=None, origin=None,
+             xtickrotation=0, cmap='jet', showcolorbar=True, ax=None,
+             show_uncertainties=False, norm_uncertainties=False,
+             input=None, showxticks=True, nclasses=11, lat_tick=np.arange(-90., 90 + 30., 30.),
+             monthsamp=1, yearonly=True):
         """
         Generates a Hovmoeller plot
 
@@ -263,7 +263,7 @@ class hovmoeller:
                 #////////////////////////////////////////////////
 
                 input1 = input.get_zonal_mean(return_object=True)
-                input1.adjust_time(day=1) #, month=1)
+                input1.adjust_time(day=1)  # , month=1)
 
                 nlat, nt = input1.data.shape
                 if nt != len(self.time):
@@ -294,7 +294,7 @@ class hovmoeller:
                     self.generate_xticks(all_days, monthsamp=monthsamp)
 
                 # use only ticks that are within the current latitudes
-                mlat = (lat_tick>= lats.min()) & (lat_tick <= lats.max())
+                mlat = (lat_tick >= lats.min()) & (lat_tick <= lats.max())
                 lat_tick1 = lat_tick[mlat]
 
                 #interpolate the tick grid to the data grid

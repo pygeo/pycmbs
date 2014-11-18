@@ -359,7 +359,7 @@ class MapPlotGeneric(object):
                     print 'ERROR in set_extent. This is a known problem for cartopy geoaxes (see documentation in set_extent routine). Can not be fixed here.'
                     # try workaround by changing limits
                     try:
-                        self.pax.set_extent([xmin*1.1, xmax*1.1, ymin*1.1, ymax*1.1])
+                        self.pax.set_extent([xmin * 1.1, xmax * 1.1, ymin * 1.1, ymax * 1.1])
                     except:
                         print 'Workaround did also not work, try to continue without setting extent!'
         else:
