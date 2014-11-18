@@ -426,11 +426,11 @@ def main():
                                     shift_lon=shift_lon)
         elif 'CMIP5RAWSINGLE' in CF.dtypes[i].upper():
             themodel = CMIP5RAW_SINGLE(data_dir, model, experiment, varmethods,
-                                    intervals=CF.intervals, lat_name='lat',
-                                    lon_name='lon', label=model,
-                                    start_time=start_time,
-                                    stop_time=stop_time,
-                                    shift_lon=shift_lon)
+                                       intervals=CF.intervals, lat_name='lat',
+                                       lon_name='lon', label=model,
+                                       start_time=start_time,
+                                       stop_time=stop_time,
+                                       shift_lon=shift_lon)
 
         elif CF.dtypes[i].upper() == 'JSBACH_BOT':
             themodel = JSBACH_BOT(data_dir, varmethods, experiment,
@@ -451,14 +451,14 @@ def main():
                                    intervals=CF.intervals,
                                    start_time=start_time,
                                    stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon) #,
+                                   name=model, shift_lon=shift_lon)  # ,
                                    #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'JSBACH_SPECIAL':
             themodel = JSBACH_SPECIAL(data_dir, varmethods, experiment,
-                                   intervals=CF.intervals,
-                                   start_time=start_time,
-                                   stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon) #,
+                                      intervals=CF.intervals,
+                                      start_time=start_time,
+                                      stop_time=stop_time,
+                                      name=model, shift_lon=shift_lon)  # ,
                                    #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'CMIP3':
             themodel = CMIP3Data(data_dir, model, experiment, varmethods,
@@ -585,8 +585,6 @@ def main():
     global_gleckler.fig.savefig(outdir + 'portraet_diagram.pdf', dpi=200, bbox_inches='tight')
 
     plt.close(global_gleckler.fig.number)
-
-
 
     # generate dictionary with observation labels for each variable
     labels_dict = {}

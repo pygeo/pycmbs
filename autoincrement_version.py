@@ -30,7 +30,7 @@ except:
 
 sub += 1
 vn = ''
-for i in xrange(len(V)-1):
+for i in xrange(len(V) -1):
     vn += V[i] + '.'
 vn += str(sub)
 
