@@ -154,7 +154,7 @@ class HstackTimeseries(object):
                 return None
 
         self.x.update({id: x})  # store data for later plotting
-        self.annotations.update({id : annotation})
+        self.annotations.update({id: annotation})
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
              cmap='jet', nclasses=10, title=None, maxheight=1.,
@@ -842,11 +842,10 @@ class LinePlot(object):
             yref = x.data[i]
             dnum = pl.date2num(x.date[i])  # the conversion using pylab is required as otherwise there is a 1-day shift! Reason seems to be that matplotlib converts the numerical value automatically using num2date()
             xx = [dnum, dnum]
-            yy = [yref-s.data[i], yref+s.data[i]]
+            yy = [yref - s.data[i], yref + s.data[i]]
             segments.append(list(zip(xx, yy)))
         collection = LineCollection(segments, colors=color)
         ax.add_collection(collection)
-
 
     def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, std=None, **kwargs):
         """
@@ -941,6 +940,7 @@ class LinePlot(object):
             if set_ytickcolor:
                 for tl in ax.get_yticklabels():
                     tl.set_color(p.get_color())
+
 
 class GlobalMeanPlot(object):
     """
@@ -1317,6 +1317,7 @@ class HistogrammPlot(object):
 
         if show_legend:
             self.ax.legend()
+
 
 class ZonalPlot(object):
     def __init__(self, ax=None, dir='y'):
