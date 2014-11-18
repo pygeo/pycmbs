@@ -16,6 +16,7 @@ from scipy.optimize import minimize
 from variogram_base import Variogram
 import matplotlib.pyplot as plt
 
+
 class SphericalVariogram(Variogram):
 
     def __init__(self, **kwargs):
@@ -35,14 +36,14 @@ class SphericalVariogram(Variogram):
 
         self.dlag = np.diff(h)[0]
 
-        self._h = np.asarray(h)*1.
+        self._h = np.asarray(h) * 1.
         self._gamma = gamma
 
         x0 = self._get_initial_parameters()
 
         res = minimize(self.cost, x0, method='nelder-mead',
-                   options={'xtol': 1e-8, 'disp': False})
-        self.model_parameters = {'sill' : res.x[1], 'range' : res.x[2], 'nugget' : res.x[0]}
+                       options={'xtol': 1e-8, 'disp': False})
+        self.model_parameters = {'sill': res.x[1], 'range': res.x[2], 'nugget': res.x[0]}
         return self.model_parameters
 
     def cost(self, x):
@@ -51,9 +52,9 @@ class SphericalVariogram(Variogram):
         range = x[2]
 
         y = self.model(self._h, sill, nugget, range)
-        r = np.sum((y - self._gamma)**2.)
+        r = np.sum((y - self._gamma) ** 2.)
         if range < 0.:  # no negative range values!
-            r += 10.**5.
+            r += 10. ** 5.
         return r
 
     def model(self, h, sill, nugget, range):
@@ -69,8 +70,8 @@ class SphericalVariogram(Variogram):
         if np.any(h < 0.):
             raise ValueError('Distances are not allowed to be smaller than zero!')
 
-        gamma = c0 + c * (1.5*h/a - 0.5*((h/a)**3.))
-        gamma[h>a] = c0+c
+        gamma = c0 + c * (1.5 * h / a - 0.5 * ((h / a) ** 3.))
+        gamma[h > a] = c0 + c
 
         return gamma
 
@@ -94,7 +95,3 @@ class SphericalVariogram(Variogram):
         print gmodel
 
         ax.plot(h, gmodel, '-', color=color)
-
-
-
-
