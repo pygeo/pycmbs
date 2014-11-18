@@ -91,7 +91,6 @@ class ConfigFile(object):
         else:
             raise ValueError('report format missing in configuration file!')
 
-
         l = self.f.readline().replace('\n', '')
         if 'AUTHOR=' in l.upper():
             s = l[7:]
@@ -249,11 +248,11 @@ class ConfigFile(object):
         if 'albedo' in self.variables:
             if 'sis' not in self.variables:
                 self.variables.append('sis')
-            self.intervals.update({'sis' : self.intervals['albedo']})
+            self.intervals.update({'sis': self.intervals['albedo']})
 
             if 'surface_upward_flux' not in self.variables:
                 self.variables.append('surface_upward_flux')
-            self.intervals.update({'surface_upward_flux' : self.intervals['albedo']})
+            self.intervals.update({'surface_upward_flux': self.intervals['albedo']})
 
         sys.stdout.write(" *** Done reading config file. \n")
 

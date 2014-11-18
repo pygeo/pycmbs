@@ -202,35 +202,42 @@ def rainfall_analysis(model_list, interval='season', GP=None, shift_lon=False, u
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='rain', regions=regions)
 
+
 def wind_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='wind', regions=regions)
+
 
 def twpa_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='twpa', regions=regions)
 
+
 def wvpa_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='wvpa', regions=regions)
+
 
 def hair_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='hair', regions=regions)
 
+
 def late_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='late', regions=regions)
 
+
 def budg_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                   plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='budg', regions=regions)
+
 
 def gpp_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                  plot_options=None, regions=None):
@@ -238,50 +245,60 @@ def gpp_analysis(model_list, interval='season', GP=None, shift_lon=False, use_ba
     beer_analysis(model_list, interval="season", GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options)
 
+
 def cfc_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                  plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='cfc', regions=regions)
+
 
 def nsJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='nsJch', regions=regions)
 
+
 def acJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='acJch', regions=regions)
+
 
 def cuJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='cuJch', regions=regions)
 
+
 def cbJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='cbJch', regions=regions)
+
 
 def stJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='stJch', regions=regions)
 
+
 def ciJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='ciJch', regions=regions)
+
 
 def asJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='asJch', regions=regions)
 
+
 def csJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
     main_analysis(model_list, interval=interval, GP=GP, shift_lon=shift_lon, use_basemap=use_basemap, report=report,
                   plot_options=plot_options, actvar='csJch', regions=regions)
+
 
 def scJch_analysis(model_list, interval='season', GP=None, shift_lon=False, use_basemap=False, report=None,
                    plot_options=None, regions=None):
@@ -509,7 +526,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     #~ plt.show()
 #~
     #~ stop
-
 
     obs_orig._apply_mask(valid_obs)
     obs_monthly._apply_mask(valid_obs)
