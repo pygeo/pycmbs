@@ -60,7 +60,7 @@ class CMIP5Data(Model):
         string with unique combination of models and experiment
         """
         s = self.model.replace(' ', '') + '-' + self.experiment.replace(' ', '')
-        s = s.replace('#','-')
+        s = s.replace('#', '-')
         if hasattr(self, 'ens_member'):
             s += '-' + str(self.ens_member)
         return s
@@ -421,7 +421,6 @@ class CMIP5Data(Model):
 
         return sis, retval
 
-
     def get_surface_shortwave_radiation_up(self, interval='season', **kwargs):
         return self.get_model_data_generic(interval=interval, **kwargs)
 
@@ -537,7 +536,7 @@ class CMIP5Data(Model):
         else:
             Fu_i = Fu[0]
         lab = Fu_i._get_label()
-        Fd = self.get_surface_shortwave_radiation_down(interval=interval, **{'CMIP5': {'valid_mask': 'land'}, 'CMIP5RAW': {'valid_mask': 'land'}, 'CMIP5RAWSINGLE': {'valid_mask': 'land'} })  # todo: take routine name from the configuration setup in JSON file !!!!
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval, **{'CMIP5': {'valid_mask': 'land'}, 'CMIP5RAW': {'valid_mask': 'land'}, 'CMIP5RAWSINGLE': {'valid_mask': 'land'}})  # todo: take routine name from the configuration setup in JSON file !!!!
         if Fd is None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None
@@ -572,6 +571,7 @@ class CMIP5Data(Model):
         retval = (Fu_m.time, Fu_m.fldmean(), Fu_m)
 
         return Fu_i, retval
+
 
 class CMIP5RAWData(CMIP5Data):
     """
@@ -636,7 +636,6 @@ class CMIP5RAWData(CMIP5Data):
         return res_file
 
 
-
 class CMIP5RAW_SINGLE(CMIP5RAWData):
     """
     This class is supposed to use CMIP5 data in RAW format.
@@ -694,6 +693,7 @@ class CMIP5RAW_SINGLE(CMIP5RAWData):
             raise ValueError('More than one file found!')
         return files[0]
 
+
 class CMIP3Data(CMIP5Data):
     """
     Class for CMIP3 model simulations. This class is derived from C{Model}.
@@ -719,4 +719,3 @@ class CMIP3Data(CMIP5Data):
         self.type = 'CMIP3'
 
         self._unique_name = self._get_unique_name()
-

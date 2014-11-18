@@ -17,6 +17,7 @@ import numpy as np
 from pycmbs.benchmarking import preprocessor
 from pycmbs.benchmarking.utils import get_T63_landseamask, get_temporary_directory
 
+
 class Model(Data):
     """
     This class is the main class, specifying a climate model or a particular run
@@ -115,13 +116,6 @@ class Model(Data):
                 print routine
                 print('WARNING: unknown function to read data (skip!), variable: %s ' % k)
                 self.variables.update({k: None})
-
-
-
-
-
-
-
 
 
 class MedianModel(Model):
