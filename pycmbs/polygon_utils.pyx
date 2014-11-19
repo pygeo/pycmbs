@@ -9,7 +9,10 @@ from __future__ import division
 #http://docs.cython.org/src/tutorial/numpy.html#efficient-indexing
 import numpy as np
 import copy
+#~ try:
 from osgeo import ogr
+#~ except:
+#~     print 'WARNING: import of OSGEO did not work. Could cause trouble in usage of polygon funcitonalities!'
 
 cimport numpy as np
 

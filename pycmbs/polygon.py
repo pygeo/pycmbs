@@ -7,7 +7,10 @@ COPYRIGHT.md
 
 import numpy as np
 from pycmbs.polygon_utils import Polygon
-from polygon_utils import fast_point_in_poly
+try:
+    from polygon_utils import fast_point_in_poly
+except:
+    print '*** WARNING: polygon_utils could not be imported! Might cause problems'
 
 
 class Raster(object):
