@@ -1238,7 +1238,8 @@ class Data(object):
 
         # calculate climatology from ORIGINAL (full dataset)
         if hasattr(self, 'time_cycle'):
-            self._climatology_raw = self.get_climatology()
+            if self.time is not None:
+                self._climatology_raw = self.get_climatology()
 
         # perform temporal subsetting
         if self.time is not None:
