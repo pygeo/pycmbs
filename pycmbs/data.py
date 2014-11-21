@@ -3018,8 +3018,6 @@ class Data(object):
         else:
             return y
 
-#-----------------------------------------------------------------------
-
     def _get_weighting_matrix(self):
         """
         get matrix for area weighting of grid cells. For each timestep
@@ -5216,3 +5214,29 @@ class Data(object):
                 return A, B, R, PV
             else:
                 return A, B
+
+
+
+    def get_area(self, valid=True, frac=1.):
+        """
+        calculate area
+
+        Parameters
+        ----------
+        valid : bool
+            return area for valid pixels only; if false, the area from
+            all grid cells is returned
+        frac : float
+            in case that temporal varying data is used, this parameter
+            can define the fraction of timesteps that need to be
+            valid to define a cell as valid
+        """
+        assert hasattr(self, 'cell_area')
+
+        if valid:
+            return self.cell_area[self.get_valid_mask(frac=frac)].sum()
+        else:
+            assert type(self.cell_area) == np.ndarray, 'Only numpy arrays for cell_area supported at the moment for this function'
+            return self.cell_area.sum()
+
+
