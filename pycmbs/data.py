@@ -2000,7 +2000,7 @@ class Data(object):
         > Let us assume you have a data object D and we assign some sample data to it and generate a mask with a few pixels
         > D.data = pl.randn(100,3,1) #some sample data
         > msk = np.asarray([[1,1,3],]).T #(3,1) mask
-        > res = D.condstat(msk) #calculate conditional statistics
+        > res = D.condstat(msk)  # calculate conditional statistics
         > This returns a dictionary with the following keys ['max', 'sum', 'min', 'id', 'mean']
 
         """
@@ -2010,7 +2010,6 @@ class Data(object):
         else:
             m = M
 
-        #--- checks ---
         if self.data.ndim == 2:
             if self.data.shape != m.shape:
                 print self.shape
@@ -2024,7 +2023,7 @@ class Data(object):
         else:
             raise ValueError('Unsupported Data geometry!')
 
-        # calculate conditional statistics ---
+        # calculate conditional statistics
         vals = np.unique(m).astype(int)
         if isinstance(vals, np.ma.core.MaskedArray):
             # for masked arrays the unique() returns also a placeholder
