@@ -3701,11 +3701,13 @@ class Data(object):
             else:
                 return msk
         elif self.data.ndim == 2:
+            res = np.ones(self.data.shape).astype('bool')  # keeps original data mask
+            res[self.data.mask] = False
             if return_frac:
                 thefrac = np.ones(self.data.shape)
-                return np.ones(self.data.shape).astype('bool'), thefrac
+                return res, thefrac
             else:
-                return np.ones(self.data.shape).astype('bool')
+                return res
         elif self.data.ndim == 3:
             n = len(self.data)  # number of timesteps
             hlp = self.data.copy()
