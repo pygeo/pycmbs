@@ -720,8 +720,6 @@ class ScatterPlot(object):
         else:
             return None
 
-#-----------------------------------------------------------------------
-
     def _change_ticklabels(self):
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
