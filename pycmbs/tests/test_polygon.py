@@ -107,7 +107,7 @@ class TestData(unittest.TestCase):
         lon = np.linspace(-180., 180., 361)
         lat = np.linspace(-90., 90., 181)
         LON,LAT=np.meshgrid(lon, lat)
-
+#~ #~
         # test a single polygon
         poly = [(-10.,-10.), (-10.,20), (15.,0.), (0.,-25.)]
         P = Polygon(5, poly)
@@ -115,12 +115,12 @@ class TestData(unittest.TestCase):
         R.mask = np.zeros(LON.shape)*np.nan
         R._rasterize_single_polygon(P)
         R.mask = np.ma.array(R.mask, mask=np.isnan(R.mask))
-
+#~ #~
         u = np.unique(R.mask[~R.mask.mask])
         self.assertTrue(len(u)==1)
         self.assertTrue(5. in u)
 
-    #~ def test_raster_single_polygon_fast(self):
+    #~ xxxxxxxxdef test_raster_single_polygon_fast(self):
         #~ lon = np.linspace(-180., 180., 361)
         #~ lat = np.linspace(-90., 90., 181)
         #~ LON,LAT=np.meshgrid(lon, lat)
@@ -142,22 +142,43 @@ class TestData(unittest.TestCase):
         lon = np.linspace(-180., 180., 361)
         lat = np.linspace(-90., 90., 181)
         LON,LAT=np.meshgrid(lon, lat)
-
+#~ #~
         # test a single polygon
         poly=[]
         poly1 = [(-10.,-10.), (-10.,20), (15.,0.), (0.,-15.)]
         poly.append(Polygon(1, poly1))
-
+#~ #~
         poly2 = [(-50.,-80.), (-50.,-70.), (-40.,-70.), (-40.,-75.)]
         poly.append(Polygon(2, poly2))
-
+#~ #~
         R=Raster(LON,LAT)
         R.rasterize_polygons(poly)
-
+#~ #~
         u = np.unique(R.mask[~R.mask.mask])
         self.assertTrue(len(u)==2)
         self.assertTrue(1 in u)
         self.assertTrue(2 in u)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #~
 
     #~ def test_raster_multiple_polygon_fast(self):
