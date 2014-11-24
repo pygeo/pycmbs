@@ -12,6 +12,7 @@ Variogram modelling
 
 import numpy as np
 from scipy.optimize import minimize
+from scipy import stats
 
 from variogram_base import Variogram
 import matplotlib.pyplot as plt
@@ -44,6 +45,12 @@ class SphericalVariogram(Variogram):
         res = minimize(self.cost, x0, method='nelder-mead',
                        options={'xtol': 1e-8, 'disp': False})
         self.model_parameters = {'sill': res.x[1], 'range': res.x[2], 'nugget': res.x[0]}
+
+        # calculate correlation parameters between model fit and experimental data
+        yfit = self.model(self._h, self.model_parameters['sill'] , self.model_parameters['nugget'], self.model_parameters['range'] )
+        slope, intercept, r_value, p_value, std_err = stats.linregress(gamma, yfit)
+        self.model_parameters.update({'r_value' : r_value, 'slope' : slope, 'intercept' : intercept, 'p_value' : p_value})
+
         return self.model_parameters
 
     def cost(self, x):
