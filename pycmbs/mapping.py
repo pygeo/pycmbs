@@ -612,7 +612,6 @@ class MapPlotGeneric(object):
         if self.zax is not None:
             self._set_axis_invisible(self.zax, frame=True)
 
-        # do plotting
         self.im = self.pax.imshow(self.x.timmean(),
                                   interpolation='nearest', **kwargs)
 

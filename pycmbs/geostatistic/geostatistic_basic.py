@@ -130,9 +130,12 @@ class Geostatistic(object):
         # plot fitted semivariogram if desired
         if fit_variogram:
             param = V.fit(r, sigma)
-            lab = 'r=' + str(np.round(V.model_parameters['r_value'], 2))
-            V.plot(V._h, V._gamma, ax=ax, label=lab)  # plots experimental variogram and fitted model
-            ax.legend(prop={'size' : 8})
+            if False:
+                print r
+                print sigma
+                print 'Parameters: ', param
+                print param['fit_success']
+            V.plot(V._h, V._gamma, ax=ax)  # plots experimental variogram and fitted model
         else:
             if logy:
                 ax.semilogy(r, sigma, 'x', color=color)

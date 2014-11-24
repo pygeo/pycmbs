@@ -24,7 +24,7 @@ from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
 from pycmbs.benchmarking import analysis
 from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, CMIP5RAW_SINGLE
-from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
+from pycmbs.benchmarking.models import JSBACH_BOT  #, JSBACH_RAW
 from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data, JSBACH_SPECIAL
 from pycmbs.benchmarking.models import MeanModel
 from pycmbs.benchmarking.utils import get_temporary_directory

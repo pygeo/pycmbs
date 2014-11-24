@@ -16,6 +16,7 @@ from scipy import stats
 
 from variogram_base import Variogram
 import matplotlib.pyplot as plt
+import pickle
 
 
 class SphericalVariogram(Variogram):
@@ -47,11 +48,12 @@ class SphericalVariogram(Variogram):
         self._h = np.asarray(h) * 1.
         self._gamma = gamma
 
-        x0 = self._get_initial_parameters()
+        x0 = self._get_initial_parameters(sill=gamma.max(), range=self._h[np.argmax(gamma)])
 
         res = minimize(self.cost, x0, method='nelder-mead',
-                       options={'xtol': 1e-8, 'disp': False})
-        self.model_parameters = {'sill': res.x[1], 'range': res.x[2], 'nugget': res.x[0]}
+                       options={'xtol': 1e-8, 'disp': True})
+
+        self.model_parameters = {'sill': res.x[1], 'range': res.x[2], 'nugget': res.x[0], 'fit_success': res['success']}
 
         # calculate correlation parameters between model fit and experimental data
         yfit = self.model(self._h, self.model_parameters['sill'] , self.model_parameters['nugget'], self.model_parameters['range'] )
@@ -89,7 +91,7 @@ class SphericalVariogram(Variogram):
 
         return gamma
 
-    def plot(self, h, gamma, ax=None, color='red', label=''):
+    def plot(self, h, gamma, ax=None, color='red'):
         """
         plot semivariogram
         """
@@ -99,11 +101,13 @@ class SphericalVariogram(Variogram):
         else:
             ax = ax
 
+        # plot original data
         ax.plot(h, gamma, 'x', color=color)
         ax.set_ylabel('$\gamma$')
         ax.set_xlabel('$lag distance [km]$')
 
-        #~ print 'model parameters: ', self.model_parameters
-
-        gmodel = self.model(h, self.model_parameters['sill'], self.model_parameters['nugget'], self.model_parameters['range'])
-        ax.plot(h, gmodel, '-', color=color, label=label)
+        if self.model_parameters['fit_success']:  # if variogram fitting was not sucessfull it is not fitted!
+            lab = 'r=' + str(np.round(self.model_parameters['r_value'], 2))
+            gmodel = self.model(h, self.model_parameters['sill'], self.model_parameters['nugget'], self.model_parameters['range'])
+            ax.plot(h, gmodel, '-', color=color, label=lab)
+            ax.legend(prop={'size' : 8})
