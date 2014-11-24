@@ -55,9 +55,6 @@ class SphericalVariogram(Variogram):
 
         # calculate correlation parameters between model fit and experimental data
         yfit = self.model(self._h, self.model_parameters['sill'] , self.model_parameters['nugget'], self.model_parameters['range'] )
-        print yfit
-        print self._gamma
-        print ''
         slope, intercept, r_value, p_value, std_err = stats.linregress(gamma, yfit)
         self.model_parameters.update({'r_value' : r_value, 'slope' : slope, 'intercept' : intercept, 'p_value' : p_value})
 
@@ -92,7 +89,7 @@ class SphericalVariogram(Variogram):
 
         return gamma
 
-    def plot(self, h, gamma, ax=None, color='red'):
+    def plot(self, h, gamma, ax=None, color='red', label=''):
         """
         plot semivariogram
         """
@@ -106,9 +103,7 @@ class SphericalVariogram(Variogram):
         ax.set_ylabel('$\gamma$')
         ax.set_xlabel('$lag distance [km]$')
 
-        print 'model parameters: ', self.model_parameters
+        #~ print 'model parameters: ', self.model_parameters
 
         gmodel = self.model(h, self.model_parameters['sill'], self.model_parameters['nugget'], self.model_parameters['range'])
-        print gmodel
-
-        ax.plot(h, gmodel, '-', color=color)
+        ax.plot(h, gmodel, '-', color=color, label=label)

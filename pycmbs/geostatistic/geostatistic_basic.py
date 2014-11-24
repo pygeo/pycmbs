@@ -22,7 +22,7 @@ class Geostatistic(object):
         ----------
         x : Data
             data to be analyzed
-        range_bins : list
+        lags : list
             list of bins to perform analysis
         maxdist : float
             maximum distance for analyis [km]
@@ -130,7 +130,9 @@ class Geostatistic(object):
         # plot fitted semivariogram if desired
         if fit_variogram:
             param = V.fit(r, sigma)
-            V.plot(V._h, V._gamma, ax=ax)  # plots experimental variogram and fitted model
+            lab = 'r=' + str(np.round(V.model_parameters['r_value'], 2))
+            V.plot(V._h, V._gamma, ax=ax, label=lab)  # plots experimental variogram and fitted model
+            ax.legend(prop={'size' : 8})
         else:
             if logy:
                 ax.semilogy(r, sigma, 'x', color=color)
