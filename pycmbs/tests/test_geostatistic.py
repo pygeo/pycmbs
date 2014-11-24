@@ -15,7 +15,7 @@ from nose.tools import assert_raises
 import numpy as np
 
 from pycmbs.data import Data
-from pycmbs.geostatistic import Geostatistic, Variogram
+from pycmbs.geostatistic import Geostatistic, Variogram, SphericalVariogram
 
 
 class TestData(unittest.TestCase):
@@ -66,6 +66,8 @@ class TestData(unittest.TestCase):
         G = Geostatistic(self.x, lags=bins)
         G.set_center_position(0., 0.)
         G.plot_semivariogram()
+
+
 
     def test_percentiles(self):
         bins = np.arange(10)
@@ -174,8 +176,22 @@ class TestData(unittest.TestCase):
 
     def test_spherical_variogram_fitting(self):
         bins = np.arange(10)
-        G = Geostatistic(self.x, lags=bins)
-        G.plot_semivariogram(fit_variogram=True)
+
+        h = np.linspace(0., 100.)
+        sill = 2.
+        nugget = 0.3
+        range = 50.
+
+        V = SphericalVariogram()
+        yref = V.model(h, sill, nugget, range)
+
+        P = V.fit (h, yref)
+
+        self.assertAlmostEqual(P['r_value'], 1.)
+        self.assertAlmostEqual(P['range'], 50.)
+        self.assertAlmostEqual(P['nugget'], 0.3)
+        self.assertAlmostEqual(P['p_value'], 0.)
+
 
 
 

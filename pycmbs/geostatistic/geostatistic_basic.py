@@ -250,6 +250,7 @@ class Geostatistic(object):
         else:
             raise ValueError('Invalid variogram type')
         dlag = self.lags[1] - self.lags[0]  # assume equal lag binning
+
         r, v = V.semivariogram(data.astype('float'), lon.astype('float'), lat.astype('float'), self.lags.astype('float'), dlag)
 
         # store results
