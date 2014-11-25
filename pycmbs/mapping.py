@@ -353,15 +353,15 @@ class MapPlotGeneric(object):
                 xmax = proj_prop['extent']['xmax']
                 ymin = proj_prop['extent']['ymin']
                 ymax = proj_prop['extent']['ymax']
-                try:
-                    self.pax.set_extent([xmin, xmax, ymin, ymax])
-                except:
-                    print 'ERROR in set_extent. This is a known problem for cartopy geoaxes (see documentation in set_extent routine). Can not be fixed here.'
-                    # try workaround by changing limits
-                    try:
-                        self.pax.set_extent([xmin * 1.1, xmax * 1.1, ymin * 1.1, ymax * 1.1])
-                    except:
-                        print 'Workaround did also not work, try to continue without setting extent!'
+                #~ try:
+                self.pax.set_extent([xmin, xmax, ymin, ymax], crs=act_ccrs)  # problem was fixed by explicitely setting CRS
+                #~ except:
+                    #~ print 'ERROR in set_extent. This is a known problem for cartopy geoaxes (see documentation in set_extent routine). Can not be fixed here.'
+                    #~ # try workaround by changing limits
+                    #~ try:
+                        #~ self.pax.set_extent([xmin * 1.1, xmax * 1.1, ymin * 1.1, ymax * 1.1])
+                    #~ except:
+                        #~ print 'Workaround did also not work, try to continue without setting extent!'
         else:
             self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
