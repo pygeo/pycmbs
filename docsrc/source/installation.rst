@@ -4,7 +4,7 @@ Installation
 Below we describe how you properly install pyCMBS in your environment.
 Currently, there are three different ways to install pyCMBS
 
- 1. Easy installation using *pip* (note: not checked for a while be careful!)
+ 1. NOT RECOMMENDED AT THE MOMENT Easy installation using *pip* (note: not checked for a while be careful!)
  2. Source code installation from code repository (currently recommended)
  3. Source code installation from tarball
 
@@ -85,6 +85,9 @@ In the following, we will summarize the different approaches to install pyCMBS.
 Installation using *pip* (the easiest way ... theoretically)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+NOT RECOMMENDED AT THE MOMENT AS NOT TESTED!!!
+USE INSTALLATION FROM GITHIB REPOSITORY INSTEAD!!!
+
 Using `pip <https://pypi.python.org/pypi/pip>`_ is in general the easiest way to install pyCMBS if you dont want to develop by your own.
 
 NOTICE however that this installation procedure was not tested thoroughly with present version. Please be therefore careful.
@@ -134,6 +137,10 @@ Another alternative to work with pyCMBS is to used the master branch of
 the `code repository <https://github.com/pygeo/pycmbs>`_. The code is hosted on a github repository. All
 dependencies  must have been installed before.
 
+It is recommended that you first fork the entire project on github to make your own sub-project.
+This will allow you also to make changes in the code and to contribute to the further development.
+The description below applies to both, forked projects as well as the main project branch.
+
 To retrieve the code do the following::
 
     # generate some directory
@@ -143,6 +150,14 @@ To retrieve the code do the following::
     # retrieve the code
     git clone
 
+*Compilation*
+
+Some sub-modules are written in cython to speed up processing. These modules need to be compiled prior to the final installation. This is done by just executing the following command::
+
+    # compile cython code
+    sh compile_extensions.py
+
+*Final installation*
 
 Now you have in principle two options. You either decide that the code should be installed in the python dist-packages directory, then you do::
 
