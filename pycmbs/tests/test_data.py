@@ -2157,7 +2157,8 @@ class TestData(unittest.TestCase):
 
     def test_temporal_smooth_InvalidGeometry(self):
         d = self.D.copy()
-        d.data = np.random.random((2,3))
+        tmp = np.random.random((2,3))
+        d.data = np.ma.array(tmp, mask=tmp != tmp)
         with self.assertRaises(ValueError):
             y3 = d.temporal_smooth(3)
 
