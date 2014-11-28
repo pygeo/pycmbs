@@ -53,8 +53,6 @@ S=ScatterPlot(D)  # scatterplot is initialized with definition of X-axis object
 S.plot(D1)
 S.legend()
 
-stop
-
 print 'Temporal trend ...'
 f=plt.figure()
 ax1=f.add_subplot(221)
