@@ -514,16 +514,12 @@ class ReichlerPlot(object):
 
         return self.ax.figure
 
-#-----------------------------------------------------------------------
-
     def simple_plot(self):
         """
         do a very simple plot of diagnostics
         """
         for i in np.arange(len(self.e2)):
             self.ax.plot(self.e2[i], 'o', label=self.labels[i])
-
-#-----------------------------------------------------------------------
 
     def circle_plot(self):
         """
@@ -559,8 +555,6 @@ class ReichlerPlot(object):
         self.ax.set_xlabel('$\\epsilon / \\bar{\\epsilon}$ [%]')
         self.ax.legend()
 
-#-----------------------------------------------------------------------
-
     def _normalize(self):
         """
         normalize results from different models
@@ -578,8 +572,6 @@ class ReichlerPlot(object):
         E = np.asarray(E)
         EM = E.mean()  # take square root, as e2 is still the squared error!
         self.e_norm = (E - EM) / EM  # see Glecker et al, eq.2
-
-#-----------------------------------------------------------------------
 
 
 class ScatterPlot(object):
