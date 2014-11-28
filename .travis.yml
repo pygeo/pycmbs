@@ -46,10 +46,7 @@ deploy:
 env:
     global:
     - secure: cN9qTk1NsSckHgksATMMdthrFPO9a/rl2F6MNPK3uvCfQui2sIottchC6MT7+2Z2bBaBQN7b3VJLOlSf8WNzNEvIXfQ3FP7hDHQ+w97qsGUAsAVSrF+JNvsC2vESj9A/CCkyr2rejtF9NWmk/Lgx/3YZDGsmeeMNJzCp5MKEY8k=
-notifications:
-  email:true
-    on_success: always
-    on_failure: always
+
 
 
 
