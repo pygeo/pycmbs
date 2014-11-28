@@ -101,7 +101,6 @@ def main():
             raise ValueError('Currently not more than one command \
                                line parameter supported!')
     else:  # default
-        print 'da sammer!'
         print('*******************************************')
         print('* WELCOME to pycmbs.py                    *')
         print('* Happy benchmarking ...                  *')

@@ -7,10 +7,7 @@ COPYRIGHT.md
 
 import numpy as np
 from pycmbs.polygon_utils import Polygon
-try:
-    from polygon_utils import fast_point_in_poly
-except:
-    print '*** WARNING: polygon_utils could not be imported! Might cause problems'
+#from pycmbs.polygon_utils import fast_point_in_poly
 
 
 class Raster(object):
@@ -117,6 +114,7 @@ class Raster(object):
                     else:
                         pass
         elif method == 'faster':  # an alternative implementation. This is however not necessarily faster than 'full'
+            assert False, 'Option currently not supported!'
             print 'Using CYTHON method for rasterization!'
             self.mask = fast_point_in_poly(self.lon, self.lat, P)
         elif method == 'fast':
