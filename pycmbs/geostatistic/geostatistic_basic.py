@@ -331,6 +331,10 @@ class Geostatistic(object):
             ny = int(refobj.ny * oversampling_factor)
             nx = int(refobj.nx * oversampling_factor)
 
+            # in case that no valid coordinates available, no analysis will be made
+            if ~refobj.lon.mask.sum() < 1:
+                return None, None
+
             lonn = np.linspace(refobj.lon.min(), refobj.lon.max(), nx)
             latn = np.linspace(refobj.lat.min(), refobj.lat.max(), ny)
             refobj.lon, refobj.lat = np.meshgrid(lonn, latn)
