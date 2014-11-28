@@ -9,10 +9,10 @@ from __future__ import division
 #http://docs.cython.org/src/tutorial/numpy.html#efficient-indexing
 import numpy as np
 import copy
-#~ try:
-from osgeo import ogr
-#~ except:
-#~     print 'WARNING: import of OSGEO did not work. Could cause trouble in usage of polygon funcitonalities!'
+try:
+    from osgeo import ogr
+except:
+    print 'WARNING: import of OSGEO did not work. Could cause trouble in usage of polygon funcitonalities!'
 
 cimport numpy as np
 
@@ -108,7 +108,7 @@ cdef class Polygon(object):
         """
         return [self._xmin(), self._xmax(), self._ymin(), self._ymax()]
 
-    def point_in_poly_latlon(self, double lon, double lat):
+    def point_in_poly_latlon(self, double lon, double lat, slow_warning=True):
 
         """
         This routine enables the calculation of the point-in-polygon
@@ -128,10 +128,13 @@ cdef class Polygon(object):
             latitude [deg]
         """
 
-        raise ValueError('This is far too slow for pixel wise processing!!!')
+        if slow_warning:
+            raise ValueError('This is far too slow for pixel wise processing!!!')
 
-        assert self._xmin() >= -180., 'minimum longitudes need to be >= -180.: ' + str(self._xmin())
-        assert self._xmax() <= 180., 'maximum longitudes need to be <= 180.: ' + str(self._xmax())
+        if self._xmin() <= -180.:
+            raise ValueError('minimum longitudes need to be >= -180.: ' + str(self._xmin()))
+        if self._xmax() >= 180.:
+            raise ValueError('maximum longitudes need to be <= 180.: ' + str(self._xmax()))
 
         # shift coordinates to ensure that only positive coordinates occur
         if lon < 0.:
@@ -146,6 +149,10 @@ cdef class Polygon(object):
 
     def _get_point_count(self):
         return len(self.poly)
+
+    def test1(self):
+        print 'In function ...'
+        return 'hallo'
 
     def convertToOGRPolygon(self, ensure_positive=False):
         """
