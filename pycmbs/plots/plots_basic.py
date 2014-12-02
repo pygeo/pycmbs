@@ -1087,7 +1087,7 @@ class GlobalMeanPlot(object):
 
     def plot(self, D1, color=None, linewidth=1, show_std=False,
              label=None, linestyle='-', mask=None, group='A',
-             stat_type='mean'):
+             stat_type='mean', show_legend=True):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -1115,6 +1115,8 @@ class GlobalMeanPlot(object):
             specifies a group that will be used to combine plots of the same type. The group is used as a key for a dictionary that stores the results
         stat_type : str
             specifies which statistic shall be plotted ['mean','sum'], either area weighted mean or sum
+        show_legend : bool
+            show legend for results
         """
 
         if stat_type not in ['mean', 'sum']:
@@ -1209,7 +1211,18 @@ class GlobalMeanPlot(object):
         # labels
         self.ax.set_ylabel(D._get_unit())
 
-       # LEGEND always below the figure
+        # LEGEND always below the figure
+        if show_legend:
+            self.legend()
+
+        # grid
+        self.ax.grid()
+
+    def legend(self):
+        """
+        show legend for global mean plot
+        ensures that it is always below the figure
+        """
         if self.nplots == 1:
             lax = self.ax
             loff = 0.2
@@ -1220,10 +1233,6 @@ class GlobalMeanPlot(object):
 
         lax.figure.subplots_adjust(bottom=loff)  # make space on bottom for legend
         lax.legend(self.plots, self.labels, loc='upper center', bbox_to_anchor=(0.5, -loff), fancybox=True, shadow=True, ncol=3, prop={'size': 8})
-
-        self.ax.grid()
-
-#-----------------------------------------------------------------------
 
 
 class HistogrammPlot(object):
