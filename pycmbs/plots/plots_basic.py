@@ -978,8 +978,6 @@ class GlobalMeanPlot(object):
         self.pdata = {}
         self.pdata_clim = {}
 
-#-----------------------------------------------------------------------------------------------------------------------
-
     def plot_mean_result(self, dt=0., colors=None, plot_clim=False):
         """
         plot mean result
@@ -1082,8 +1080,6 @@ class GlobalMeanPlot(object):
         ax.grid()
 
         return f
-
-#-----------------------------------------------------------------------------------------------------------------------
 
     def plot(self, D1, color=None, linewidth=1, show_std=False,
              label=None, linestyle='-', mask=None, group='A',
