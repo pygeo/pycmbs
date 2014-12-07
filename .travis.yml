@@ -11,6 +11,7 @@ before_install:
 - sudo apt-get install python-pip python-dev
 - sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
 - sudo apt-get install python-numpy
+- sudo apt-get install libgdal1h
 - sudo apt-get install libgdal-dev
 - sudo C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4
 - sudo pip install cdo coveralls pytest-cov
