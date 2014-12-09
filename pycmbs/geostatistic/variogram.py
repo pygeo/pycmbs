@@ -45,10 +45,12 @@ class SphericalVariogram(Variogram):
 
         self.dlag = np.diff(h)[0]
 
-        self._h = np.asarray(h) * 1.
-        self._gamma = gamma
+        msk = ~np.isnan(gamma)
 
-        x0 = self._get_initial_parameters(sill=gamma.max(), range=self._h[np.argmax(gamma)])
+        self._h = np.asarray(h[msk]) * 1.
+        self._gamma = gamma[msk]
+
+        x0 = self._get_initial_parameters(sill=self._gamma.max(), range=self._h[np.argmax(self._gamma)])
 
         res = minimize(self.cost, x0, method='nelder-mead',
                        options={'xtol': 1e-8, 'disp': True})
@@ -57,7 +59,9 @@ class SphericalVariogram(Variogram):
 
         # calculate correlation parameters between model fit and experimental data
         yfit = self.model(self._h, self.model_parameters['sill'] , self.model_parameters['nugget'], self.model_parameters['range'] )
-        slope, intercept, r_value, p_value, std_err = stats.linregress(gamma, yfit)
+        slope, intercept, r_value, p_value, std_err = stats.linregress(self._gamma, yfit)
+        print 'gamma: ', self._gamma
+        print 'yfit: ', yfit
         self.model_parameters.update({'r_value' : r_value, 'slope' : slope, 'intercept' : intercept, 'p_value' : p_value})
 
         return self.model_parameters
