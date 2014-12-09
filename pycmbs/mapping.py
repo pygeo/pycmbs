@@ -296,7 +296,7 @@ class MapPlotGeneric(object):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
-        if proj_prop['projection'] in ['robin', 'TransverseMercator', 'mercator']:
+        if proj_prop['projection'] in ['robin', 'TransverseMercator', 'mercator', 'stereo']:
             pass
         else:
             raise ValueError('Unsupported projection type')
@@ -318,6 +318,8 @@ class MapPlotGeneric(object):
 
         if proj_prop['projection'] == 'robin':
             act_ccrs = ccrs.Robinson()
+        elif proj_prop['projection'] == 'stereo':
+            act_ccrs = ccrs.Stereographic(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
         elif proj_prop['projection'] == 'TransverseMercator':
             act_ccrs = ccrs.TransverseMercator(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
         elif proj_prop['projection'] == 'mercator':
