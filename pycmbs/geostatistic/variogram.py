@@ -50,6 +50,10 @@ class SphericalVariogram(Variogram):
         self._h = np.asarray(h[msk]) * 1.
         self._gamma = gamma[msk]
 
+        if len(self._gamma) < 1:
+            self.model_parameters = {'sill': np.nan, 'range': np.nan, 'nugget': np.nan, 'fit_success': False, 'r_value' : np.nan}
+            return self.model_parameters
+
         x0 = self._get_initial_parameters(sill=self._gamma.max(), range=self._h[np.argmax(self._gamma)])
 
         res = minimize(self.cost, x0, method='nelder-mead',
