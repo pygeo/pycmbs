@@ -1194,6 +1194,9 @@ class Data(object):
         else:
             self.lon = None
 
+        if self.lat is None:
+            print('*** WARNING!!! No coordinates available!')
+
         # read time
         if self.time_var is not None:
             # returns either None or a masked array
@@ -1243,10 +1246,14 @@ class Data(object):
 
         # perform temporal subsetting
         if self.time is not None:
-            #- now perform temporal subsetting
-            # BEFORE the conversion to the right time is required!
-            m1, m2 = self._get_time_indices(start_time, stop_time)
-            self._temporal_subsetting(m1, m2)
+
+            # no temporal subsetting for 2D data! --> results in invalid results!
+            if self.ndim == 3:
+                #- now perform temporal subsetting
+                # BEFORE the conversion to the right time is required!
+                m1, m2 = self._get_time_indices(start_time, stop_time)
+                self._temporal_subsetting(m1, m2)
+
 
         # calculate time_cycle automatically if not set already.
         if self.time is not None:
