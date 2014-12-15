@@ -18,6 +18,12 @@ cimport numpy as np
 
 ctypedef np.double_t DTYPE_t  # double type for numpy arrays
 
+
+
+
+
+
+
 cdef class Polygon(object):
     """
     define a polygon
@@ -106,7 +112,10 @@ cdef class Polygon(object):
         ----
         how to handle bbox across coordinate borders ???
         """
+
         return [self._xmin(), self._xmax(), self._ymin(), self._ymax()]
+
+
 
     def point_in_poly_latlon(self, double lon, double lat, slow_warning=True):
 
@@ -150,9 +159,6 @@ cdef class Polygon(object):
     def _get_point_count(self):
         return len(self.poly)
 
-    def test1(self):
-        print 'In function ...'
-        return 'hallo'
 
     def convertToOGRPolygon(self, ensure_positive=False):
         """
@@ -304,7 +310,7 @@ def fast_point_in_poly(np.ndarray[DTYPE_t, ndim=2] lon, np.ndarray[DTYPE_t, ndim
     for i in range(ny):
         if i % 10 == 0:
             print 'Processing line: ', i, ny
-        for j in range(nx):
+        for j in xrange(nx):
             if P.point_in_poly(lon[i, j], lat[i, j]):
                 if np.isnan(mask[i, j]):
                     mask[i, j] = id
@@ -315,3 +321,40 @@ def fast_point_in_poly(np.ndarray[DTYPE_t, ndim=2] lon, np.ndarray[DTYPE_t, ndim
                 pass
 
     return mask
+
+
+
+def get_point_in_poly_mask(np.ndarray[DTYPE_t, ndim=2] mask, np.ndarray[DTYPE_t, ndim=2] lon, np.ndarray[DTYPE_t, ndim=2] lat, Polygon P):
+    """
+    routine to calculte point in polygon problem in a fast way using cython
+
+    note that no checks for geometry consistenc<y are performed
+
+    Parameters
+    ----------
+    mask : ndarray
+    lon : ndarray
+    lat : ndarray
+    P : Polygon
+    id : valu to assign
+    """
+
+    cdef int i, j
+    cdef double id
+
+    id = float(P.id)
+
+    ny, nx = np.shape(lon)
+    for i in xrange(ny):
+        #~ if i % 1 == 0:
+        if i % 1000 == 0:
+            print 'Rasterization complete by ', np.round(100. * float(i) / float(ny),0), '%               \r',
+        for j in xrange(nx):
+            if P.point_in_poly(lon[i, j], lat[i, j]):
+                if np.isnan(mask[i, j]):
+                    mask[i, j] = id
+                else:
+                    print i, j, lon[i, j], lat[i, j]
+                    raise ValueError('Overlapping polygons not supported yet!')
+            else:
+                pass
