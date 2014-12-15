@@ -1235,7 +1235,7 @@ class HistogrammPlot(object):
     """
     class to plot histograms based on C{Data} objects
     """
-    def __init__(self, ax=None, bins=10, normalize=False, percent=True):
+    def __init__(self, ax=None, bins=10, normalize=False, percent=True, showN=False):
         """
         ax : axis
             axis to plot data to. If not specified, then a new figure is created
@@ -1245,6 +1245,8 @@ class HistogrammPlot(object):
             specifies if data should be normalized relative to the sample size
         percent : bool
             resulting frequencies in percent (applies only if normalize=True)
+        showN : bool
+            show number of samples in legend
         """
 
         # Figure init
@@ -1258,6 +1260,7 @@ class HistogrammPlot(object):
         self.bins = bins
         self.normalize = normalize
         self.percent = percent
+        self.showN = showN
 
     def plot(self, X, color='black', linestyle='-', linewidth=1., label='', shown=False, show_legend=False, **kwargs):
         """
@@ -1294,7 +1297,7 @@ class HistogrammPlot(object):
         if 'bins' in kwargs.keys():
             bb = kwargs.pop('bins')
 
-        if shown:
+        if shown or self.showN:
             show_legend = True
             if label == '':
                 label = 'n=' + str(sum(~np.isnan(x)))
