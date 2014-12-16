@@ -23,6 +23,7 @@ import os
 import numpy as np
 
 from setuptools import setup, Extension
+from setuptools import find_packages # Always prefer setuptools over distutils
 
 import json
 
@@ -49,6 +50,18 @@ ext_variogramm = Extension('variogram',
     )
 
 
+def old_get_packages():
+    return ['pycmbs', 'pycmbs/benchmarking', 'pycmbs/tests',
+            'pycmbs/benchmarking/logo', 'pycmbs/examples', 'pycmbs/diagnostic', 'pycmbs/colormaps', 'pycmbs/plots']
+
+def get_packages():
+    #find_packages(exclude=['contrib', 'docs', 'tests*']),
+    return find_packages()
+
+
+
+
+
 setup(name='pycmbs',
 
     version=get_current_version(),
@@ -59,8 +72,10 @@ setup(name='pycmbs',
     # simple. Or you can use find_packages().
     # packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
 
-    packages=['pycmbs', 'pycmbs/benchmarking', 'pycmbs/tests',
-            'pycmbs/benchmarking/logo', 'pycmbs/examples', 'pycmbs/diagnostic', 'pycmbs/colormaps', 'pycmbs/plots'],
+
+
+
+    packages=get_packages(),
     package_dir={'pycmbs': 'pycmbs'},
     package_data={'pycmbs': ['benchmarking/configuration/*',
                            'benchmarking/logo/*', 'version.json']},
