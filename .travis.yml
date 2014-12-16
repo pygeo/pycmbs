@@ -11,13 +11,13 @@ before_install:
 # todo
 # do we really need the sudo commands ???
 
-- apt-get update
+- sudo apt-get update
 
 # general setup
-- apt-get install python-pip python-dev
+- sudo apt-get install python-pip python-dev
 
 # latex environment
-- apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
+- sudo apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
 
 # basic python modules
 #- sudo apt-get install python-numpy
@@ -25,14 +25,14 @@ before_install:
 #- sudo apt-get install python-scipy
 - pip install scipy
 - pip install pyparsing
-- sudo pip install matplotlib
+- pip install matplotlib
 - sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
 
 # projection libraries
 - sudo apt-get install libgeos-dev libproj-dev
 
 # testing environment
-- sudo pip install coveralls pytest-cov
+- pip install coveralls pytest-cov
 
 # I/O related things
 - sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
