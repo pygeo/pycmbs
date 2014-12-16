@@ -43,8 +43,10 @@ before_install:
 - sudo pip install six
 - sudo pip install cython
 - sudo pip install cartopy
-- sudo sh compile_extensions.sh
+
+# do actual installation
 - sudo /usr/bin/python setup.py install
+- sudo sh compile_extensions.sh
 
 script:
 - nosetests --with-coverage --cover-package=pycmbs
