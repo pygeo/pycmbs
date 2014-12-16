@@ -306,6 +306,7 @@ class MapPlotGeneric(object):
         else:
             plot_data_field = False
 
+
         if plot_data_field:
             xm = self.x.timmean()
             Z = xm
@@ -356,7 +357,8 @@ class MapPlotGeneric(object):
                 ymin = proj_prop['extent']['ymin']
                 ymax = proj_prop['extent']['ymax']
                 #~ try:
-                self.pax.set_extent([xmin, xmax, ymin, ymax], crs=act_ccrs)  # problem was fixed by explicitely setting CRS
+                self.pax.set_extent([xmin, xmax, ymin, ymax]) #, crs=act_ccrs)  # problem was fixed by explicitely setting CRS
+                # NO! the problem can not be fixed by providing the CRS explicitely! this results in strange results for the final maps!
                 #~ except:
                     #~ print 'ERROR in set_extent. This is a known problem for cartopy geoaxes (see documentation in set_extent routine). Can not be fixed here.'
                     #~ # try workaround by changing limits
