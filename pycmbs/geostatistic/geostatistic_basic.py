@@ -328,11 +328,14 @@ class Geostatistic(object):
             if oversampling_factor < 1.:
                 raise ValueError('Oversampling factor needs to be > 1!')
             refobj = self.x.copy()
+
+            assert isinstance(refobj.lon, np.ma.core.MaskedArray), 'ERROR: longitudes are expected to be masked arrays!'
             ny = int(refobj.ny * oversampling_factor)
             nx = int(refobj.nx * oversampling_factor)
 
             # in case that no valid coordinates available, no analysis will be made
-            if ~refobj.lon.mask.sum() < 1:
+            if np.sum(~refobj.lon.mask) < 1:
+                print 'No proper coordinates found! (get_coordinates_at_distance) A'
                 return None, None
 
             lonn = np.linspace(refobj.lon.min(), refobj.lon.max(), nx)
@@ -349,6 +352,7 @@ class Geostatistic(object):
         dist = self._distance[msk].flatten()
 
         if len(lons) == 0:
+            print 'No proper coordinates found! (get_coordinates_at_distance) B'
             return None, None
 
         theta = np.linspace(0., 2. * np.pi, N)  # angle
