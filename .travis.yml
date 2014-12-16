@@ -39,7 +39,6 @@ before_install:
 - sudo pip install shapely
 - sudo pip install pyshp
 - sudo pip install six
-- sudo pip install proj4
 - sudo pip install cython
 - sudo pip install cartopy
 
