@@ -21,23 +21,21 @@ COPYRIGHT.md
 
 import os
 import numpy as np
+import json
 
 from setuptools import setup, Extension
 from setuptools import find_packages # Always prefer setuptools over distutils
-
-import json
-
-#~ import pycmbs
+from Cython.Distutils import build_ext
 
 def get_current_version():
     ppath = os.path.dirname(os.path.realpath(__file__))
     return json.load(open(ppath + os.sep + 'pycmbs' + os.sep + 'version.json'))
 
 
-from Cython.Distutils import build_ext
 
-install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy', 'cython', 'scipy']
 
+# requires scipy: http://stackoverflow.com/questions/11128070/cannot-import-minimize-in-scipy
+install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy', 'cython', 'scipy>=0.11']
 
 ext_polygon_utils = Extension('polygon_utils',
     sources = ['.' + os.sep + 'pycmbs' + os.sep + 'polygon_utils.pyx'],

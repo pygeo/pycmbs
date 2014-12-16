@@ -14,14 +14,22 @@ before_install:
 - sudo apt-get update
 
 # general setup
-- sudo apt-get install python-pip python-dev
+- sudo apt-get install python-pip python-dev build-essential
 
 # latex environment
 - sudo apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
 
 # basic python modules
 - sudo apt-get install python-numpy
-- sudo apt-get install python-scipy
+
+# installation of scipy (needs to be >= v0.11)
+# - sudo apt-get install python-scipy
+
+#http://stackoverflow.com/questions/2213551/installing-scipy-with-pip
+- sudo apt-get install libatlas-base-dev gfortran
+- sudo pip install scipy
+
+
 - pip install pyparsing
 - pip install matplotlib
 - sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data

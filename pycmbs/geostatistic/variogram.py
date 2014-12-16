@@ -11,7 +11,11 @@ Variogram modelling
 """
 
 import numpy as np
-from scipy.optimize import minimize
+try:
+    from scipy.optimize import minimize
+except:
+    print 'WARNING: could not import mimimize (requires scipy > 0.11), try alternative'
+    from scipy import fmin as minimize  #http://stackoverflow.com/questions/11128070/cannot-import-minimize-in-scipy
 from scipy import stats
 
 from variogram_base import Variogram
