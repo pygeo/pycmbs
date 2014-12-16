@@ -21,6 +21,7 @@ before_install:
 
 # basic python modules
 - sudo apt-get install python-numpy
+- sudo apt-get install python-scipy
 - sudo pip install matplotlib
 
 # projection libraries
