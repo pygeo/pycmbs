@@ -6,22 +6,46 @@ branches:
     only:
         - master
 before_install:
+
+# todo
+# do we really need the sudo commands ???
+
 - sudo apt-get update
-- sudo apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
+
+# general setup
 - sudo apt-get install python-pip python-dev
-- sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
+
+# latex environment
+- sudo apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
+
+# basic python modules
 - sudo apt-get install python-numpy
+- sudo pip install matplotlib
+
+# testing environment
+- sudo pip install coveralls pytest-cov
+
+
+# I/O related things
+- sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
 - sudo apt-get install libgdal1h
 - sudo apt-get install libgdal-dev
 - sudo C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4
-- sudo pip install cdo coveralls pytest-cov
-- sudo pip install pyshp
-- sudo pip install matplotlib
+
+# cartopy dependencices
 - sudo pip install shapely
+- sudo pip install pyshp
+- sudo pip install six
+- sudo pip install proj4
 - sudo pip install cython
 - sudo pip install cartopy
+
+
+
+
+
 - sudo /usr/bin/python setup.py install
-- sudo sh compile_extensions.sh
+
 script:
 - nosetests --with-coverage --cover-package=pycmbs
 after_success:
