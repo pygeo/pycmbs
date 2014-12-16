@@ -36,7 +36,7 @@ def get_current_version():
 
 from Cython.Distutils import build_ext
 
-install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy', 'cython']
+install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy', 'cython', 'scipy']
 
 
 ext_polygon_utils = Extension('polygon_utils',

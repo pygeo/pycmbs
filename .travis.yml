@@ -23,6 +23,7 @@ before_install:
 - sudo apt-get install python-numpy
 - sudo apt-get install python-scipy
 - sudo pip install matplotlib
+- sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
 
 # projection libraries
 - sudo apt-get install libgeos-dev libproj-dev
@@ -42,7 +43,7 @@ before_install:
 - sudo pip install six
 - sudo pip install cython
 - sudo pip install cartopy
-
+- sudo sh compile_extensions.sh
 - sudo /usr/bin/python setup.py install
 
 script:
