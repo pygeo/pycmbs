@@ -16,13 +16,31 @@ COPYRIGHT.md
 # https://github.com/pypa/sampleproject/blob/master/setup.py
 
 
-from setuptools import setup
+# a small example how to build dependencies is given here:
+# http://stackoverflow.com/questions/11010151/distributing-a-shared-library-and-some-c-code-with-a-cython-extension-module
+
+from setuptools import setup, Extension
 
 import pycmbs
 #~ from Cython.Build import cythonize
 import os
+import numpy as np
+
+from Cython.Distutils import build_ext
 
 install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy']
+
+
+ext_polygon_utils = Extension('polygon_utils',
+    sources = ['.' + os.sep + 'pycmbs' + os.sep + 'polygon_utils.pyx'],
+    include_dirs = [np.get_include()]   # this is needed to get proper information on numpy headers
+    )
+
+ext_variogramm = Extension('variogram',
+    sources = ['.' + os.sep + 'pycmbs' + os.sep + 'geostatistic' + os.sep + 'variogram_base.pyx'],
+    include_dirs = [np.get_include()]   # this is needed to get proper information on numpy headers
+    )
+
 
 setup(name='pycmbs',
 
@@ -93,7 +111,10 @@ setup(name='pycmbs',
     # Specify the Python versions you support here. In particular, ensure
     # that you indicate whether you support Python 2, Python 3 or both.
     'Programming Language :: Python :: 2.7'
-    ]
+    ],
+
+    ext_modules=[ext_polygon_utils, ext_variogramm],
+    cmdclass = {'build_ext': build_ext}
 )
 
 
