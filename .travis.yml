@@ -18,8 +18,8 @@ before_install:
 - sudo pip install pyshp
 - sudo pip install matplotlib
 - sudo pip install shapely
-- sudo pip install cartopy
 - sudo pip install cython
+- sudo pip install cartopy
 - sudo /usr/bin/python setup.py install
 - sudo sh compile_extensions.sh
 script:
