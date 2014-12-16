@@ -20,10 +20,8 @@ before_install:
 - sudo apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
 
 # basic python modules
-#- sudo apt-get install python-numpy
-- pip install numpy
-#- sudo apt-get install python-scipy
-- pip install scipy
+- sudo apt-get install python-numpy
+- sudo apt-get install python-scipy
 - pip install pyparsing
 - pip install matplotlib
 - sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
