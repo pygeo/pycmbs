@@ -19,16 +19,23 @@ COPYRIGHT.md
 # a small example how to build dependencies is given here:
 # http://stackoverflow.com/questions/11010151/distributing-a-shared-library-and-some-c-code-with-a-cython-extension-module
 
-from setuptools import setup, Extension
-
-import pycmbs
-#~ from Cython.Build import cythonize
 import os
 import numpy as np
 
+from setuptools import setup, Extension
+
+import json
+
+#~ import pycmbs
+
+def get_current_version():
+    ppath = os.path.dirname(os.path.realpath(__file__))
+    return json.load(open(ppath + os.sep + 'pycmbs' + os.sep + 'version.json'))
+
+
 from Cython.Distutils import build_ext
 
-install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy']
+install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy', 'cython']
 
 
 ext_polygon_utils = Extension('polygon_utils',
@@ -44,7 +51,7 @@ ext_variogramm = Extension('variogram',
 
 setup(name='pycmbs',
 
-    version=pycmbs.__version__,
+    version=get_current_version(),
 
     description='pyCMBS - python Climate Model Benchmarking Suite',
 
@@ -116,22 +123,6 @@ setup(name='pycmbs',
     ext_modules=[ext_polygon_utils, ext_variogramm],
     cmdclass = {'build_ext': build_ext}
 )
-
-
-
-
-
-
-
-
-
-#~ setup_dist(
-  #~ ext_modules = cythonize("./pycmbs/polygon_utils.pyx"),
-#~ )
-
-
-# compile extensions
-#~ os.system('sh compile_extensions.sh')
 
 
 ########################################################################

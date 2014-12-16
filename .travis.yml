@@ -2,6 +2,7 @@ language: python
 python: 2.7
 virtualenv:
   system_site_packages: true
+
 branches:
     only:
         - master
@@ -22,9 +23,11 @@ before_install:
 - sudo apt-get install python-numpy
 - sudo pip install matplotlib
 
+# projection libraries
+- sudo apt-get install libgeos-dev libproj-dev
+
 # testing environment
 - sudo pip install coveralls pytest-cov
-
 
 # I/O related things
 - sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
@@ -40,16 +43,14 @@ before_install:
 - sudo pip install cython
 - sudo pip install cartopy
 
-
-
-
-
 - sudo /usr/bin/python setup.py install
 
 script:
 - nosetests --with-coverage --cover-package=pycmbs
+
 after_success:
 - coveralls
+
 deploy:
   provider: pypi
   user: pycmbs_devs
@@ -58,6 +59,7 @@ deploy:
   on:
     tags: true
     repo: pygeo/pycmbs
+
 env:
     global:
     - secure: cN9qTk1NsSckHgksATMMdthrFPO9a/rl2F6MNPK3uvCfQui2sIottchC6MT7+2Z2bBaBQN7b3VJLOlSf8WNzNEvIXfQ3FP7hDHQ+w97qsGUAsAVSrF+JNvsC2vESj9A/CCkyr2rejtF9NWmk/Lgx/3YZDGsmeeMNJzCp5MKEY8k=
