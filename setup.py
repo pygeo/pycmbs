@@ -19,10 +19,10 @@ COPYRIGHT.md
 from setuptools import setup
 
 import pycmbs
-from Cython.Build import cythonize
+#~ from Cython.Build import cythonize
 import os
 
-install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib"]
+install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy']
 
 setup(name='pycmbs',
 
@@ -39,7 +39,6 @@ setup(name='pycmbs',
     package_dir={'pycmbs': 'pycmbs'},
     package_data={'pycmbs': ['benchmarking/configuration/*',
                            'benchmarking/logo/*', 'version.json']},
-
 
     author="Alexander Loew",
     author_email='alex@geo2-consult.de',
@@ -72,7 +71,7 @@ setup(name='pycmbs',
 
     entry_points={
         'console_scripts': [
-            'pycmbs-benchmarking = pycmbs-benchmarking:main'
+            'pycmbs_benchmarking = pycmbs_benchmarking:main'
         ]},
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -96,24 +95,6 @@ setup(name='pycmbs',
     'Programming Language :: Python :: 2.7'
     ]
 )
-
-
-
-
-
-
-    #~ entry_points={
-        #~ 'console_scripts': [
-            #~ 'foo = my_package.some_module:main_func',
-            #~ 'bar = other_module:some_func',
-        #~ ],
-        #~ 'gui_scripts': [
-            #~ 'baz = my_package_gui:start_func',
-        #~ ]
-    #~ }
-
-
-
 
 
 
