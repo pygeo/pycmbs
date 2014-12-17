@@ -12,6 +12,7 @@ TESTDIRS = pycmbs/benchmarking/tests pycmbs/tests
 
 clean :
 	find . -name "*.pyc" -exec rm -rf {} \;
+	find . -name "*.so" -exec rm -rf {} \;
 	find . -name "data_warnings.log" -exec rm -rf {} \;
 	rm -rf C:*debuglog.txt
 	rm -rf build

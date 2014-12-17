@@ -24,21 +24,6 @@ class TestCodingStandards(unittest.TestCase):
         self.assertEquals(len(files_missing_license), 0,
                 str(files_missing_license))
 
-def xxxfind_python_files():
-    """
-    find all python files
-    """
-
-    assert False  # needs to be better implemented!!! search for all *.py and *.pyx files!!!
-
-    python_files = glob.glob('./scripts/*.py')
-    python_files += glob.glob('./scripts/*/*.py')
-    python_files += glob.glob('./pycmbs/*.py')
-    python_files += glob.glob('./pycmbs/tests.py')
-    python_files += glob.glob('./pycmbs/benchmarking/*.py')
-    python_files += glob.glob('./pycmbs/benchmarking/tests/*.py')
-    return python_files
-
 def find_python_files():
     """
     find all python files in pyCMBS installation

@@ -29,11 +29,13 @@ required for using pyCMBS sucessfully.
 *Core python packages [obligatory]*
 
 - python 2.7.x
-- `matplotlib v1.3.x <http://matplotlib.org/>`_
+- `matplotlib >v1.3.x <http://matplotlib.org/>`_
 - `numpy <http://www.numpy.org/>`_
-- `scipy <http://www.scipy.org/>`_
+- `scipy >0.11 <http://www.scipy.org/>`_
 
 Note that you should really ensure that your matplotlib installation is greater than version 1.3, as otherwise some features will not work. Standard packages like e.g. shipped as standard with Ubuntu have smaller version numbers (e.g. v1.1.1).
+
+Compatability with python 3.x is not supported yet
 
 *Obligatory additional dependencies*
 

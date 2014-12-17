@@ -2,42 +2,67 @@ language: python
 python: 2.7
 virtualenv:
   system_site_packages: true
+
 branches:
     only:
         - master
 before_install:
+
+# todo
+# do we really need the sudo commands ???
+
 - sudo apt-get update
+
+# general setup
+- sudo apt-get install python-pip python-dev build-essential
+
+# latex environment
 - sudo apt-get install texlive-latex-base texlive-latex-extra texlive-latex-recommended
-- sudo apt-get install python-pip python-dev
-- sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
+
+# basic python modules
 - sudo apt-get install python-numpy
+
+# installation of scipy (needs to be >= v0.11)
+- sudo apt-get install python-scipy
+
+#http://stackoverflow.com/questions/2213551/installing-scipy-with-pip
+- sudo apt-get install libatlas-base-dev gfortran
+#- sudo pip install scipy
+
+- pip install pyparsing
+- pip install matplotlib
+- sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
+
+# projection libraries
+- sudo apt-get install libgeos-dev libproj-dev
+
+# testing environment
+- pip install coveralls pytest-cov
+
+# I/O related things
+- sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
 - sudo apt-get install libgdal1h
 - sudo apt-get install libgdal-dev
 - sudo C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4
-- sudo pip install cdo coveralls pytest-cov
+
+# cartopy dependencices
+- sudo pip install shapely
 - sudo pip install pyshp
-- sudo pip install gdal
-- pushd .
-- git clone https://github.com/SciTools/cartopy.git && cd cartopy
-- sudo add-apt-repository -y ppa:pylab/stable
-- sudo add-apt-repository -y ppa:tukss/ppa
-- sudo apt-get update
-- sudo apt-get install python-scipy python-pip cython
-- sudo /usr/bin/pip install https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
-- sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
-- sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3E5C1192
-- yes | sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-- sudo apt-get update
-- sudo apt-get install libgeos-dev libproj-dev
-- sudo /usr/bin/pip install --use-mirrors shapely nose pyshp pep8 mock
-- sudo /usr/bin/pip install --use-mirrors PIL
+- sudo pip install six
+- sudo pip install cython
+- sudo pip install cartopy
+
+# do actual installation
+#- sudo /usr/bin/python setup.py build_ext
 - sudo /usr/bin/python setup.py install
-- popd
 - sudo sh compile_extensions.sh
+
 script:
 - nosetests --with-coverage --cover-package=pycmbs
+
 after_success:
 - coveralls
+
 deploy:
   provider: pypi
   user: pycmbs_devs
@@ -46,6 +71,7 @@ deploy:
   on:
     tags: true
     repo: pygeo/pycmbs
+
 env:
     global:
     - secure: cN9qTk1NsSckHgksATMMdthrFPO9a/rl2F6MNPK3uvCfQui2sIottchC6MT7+2Z2bBaBQN7b3VJLOlSf8WNzNEvIXfQ3FP7hDHQ+w97qsGUAsAVSrF+JNvsC2vESj9A/CCkyr2rejtF9NWmk/Lgx/3YZDGsmeeMNJzCp5MKEY8k=
