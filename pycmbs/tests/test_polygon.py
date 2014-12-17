@@ -122,7 +122,6 @@ class TestData(unittest.TestCase):
 
         print np.unique(R.mask)
 
-
         R.mask = np.ma.array(R.mask, mask=np.isnan(R.mask))
 
         u = np.unique(R.mask[~R.mask.mask])
