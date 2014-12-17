@@ -18,13 +18,13 @@ python-dev
 numpy
     python numpy is required for data handling
 
-scipy
+scipy >0.11
     python scipy is used for data analysis
 
 netCDF4 library
     The netCDF4 library is the major backend for access to data files.
 
-cdo
+cdo >1.2
     climate data operators are required in the benchmarking environment for efficient data preprocessing and are also used for proper calculation of grid cell areas. The latter is important in many analysis functions to have a proper area weighting.
 
 hdf5 library
@@ -64,7 +64,7 @@ matplotlib basemap
     The Basemap module is required for plotting data on a map.
 
 matplotlib basemap data
-    Some additional data for matplotlib is reuired (e.g. background images)
+    Some additional data for matplotlib is required (e.g. background images)
 
 cartopy
     cartopy is an efficient package for plotting data on a map
