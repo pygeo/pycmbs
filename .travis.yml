@@ -22,6 +22,7 @@ before_install:
 # basic python modules
 - sudo apt-get install python-numpy
 - sudo apt-get install python-scipy
+# todo clarify alternative installation for SCIPY to allow for most recent version ??
 - pip install pyparsing
 - pip install matplotlib
 - sudo apt-get install python-mpltoolkits.basemap python-mpltoolkits.basemap-data
@@ -49,7 +50,8 @@ before_install:
 
 # do actual installation
 - sudo /usr/bin/python setup.py install
-- sudo sh compile_extensions.sh
+- sudo /usr/bin/python setup.py build_ext
+#- sudo sh compile_extensions.sh
 
 script:
 - nosetests --with-coverage --cover-package=pycmbs
