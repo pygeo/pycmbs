@@ -36,7 +36,9 @@ before_install:
 - sudo apt-get install cdo libhdf5-openmpi-dev libnetcdf-dev libopenmpi-dev
 - sudo apt-get install libgdal1h
 - sudo apt-get install libgdal-dev
-- sudo C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4
+- sudo C_INCLUDE_PATH=/usr/include/mpi pip install netCDF4==1.1.1
+# todo: remove particular dependency on entCDF4 version here again!!!
+
 
 # cartopy dependencices
 - sudo pip install shapely
