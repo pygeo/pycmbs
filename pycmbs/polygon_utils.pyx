@@ -346,7 +346,6 @@ def get_point_in_poly_mask(np.ndarray[DTYPE_t, ndim=2] mask, np.ndarray[DTYPE_t,
 
     ny, nx = np.shape(lon)
     for i in xrange(ny):
-        #~ if i % 1 == 0:
         if i % 1000 == 0:
             print 'Rasterization complete by ', np.round(100. * float(i) / float(ny),0), '%               \r',
         for j in xrange(nx):
@@ -354,7 +353,11 @@ def get_point_in_poly_mask(np.ndarray[DTYPE_t, ndim=2] mask, np.ndarray[DTYPE_t,
                 if np.isnan(mask[i, j]):
                     mask[i, j] = id
                 else:
-                    print i, j, lon[i, j], lat[i, j]
+                    print ''
+                    print ''
+                    print i, j, lon[i, j], lat[i, j], mask[i,j]
+                    print ''
+                    print ''
                     raise ValueError('Overlapping polygons not supported yet!')
             else:
                 pass

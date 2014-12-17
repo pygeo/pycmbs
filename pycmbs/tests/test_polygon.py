@@ -108,20 +108,28 @@ class TestData(unittest.TestCase):
             P = np.arange(10)
             R._rasterize_single_polygon(P)
 
-    def test_raster_single_polygon(self):  # slow ???
+    def test_raster_single_polygon(self):
         lon = np.linspace(-180., 180., 361)
         lat = np.linspace(-90., 90., 181)
         LON,LAT=np.meshgrid(lon, lat)
-#~ #~
+
         # test a single polygon
         poly = [(-10.,-10.), (-10.,20), (15.,0.), (0.,-25.)]
         P = Polygon(5, poly)
         R=Raster(LON,LAT)
         R.mask = np.zeros(LON.shape)*np.nan
         R._rasterize_single_polygon(P)
+
+        print np.unique(R.mask)
+
+
         R.mask = np.ma.array(R.mask, mask=np.isnan(R.mask))
-#~ #~
+
         u = np.unique(R.mask[~R.mask.mask])
+
+        print R.mask
+        print u
+
         self.assertTrue(len(u)==1)
         self.assertTrue(5. in u)
 

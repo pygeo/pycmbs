@@ -51,7 +51,7 @@ def _rasterize_polygon(lon, lat, i, method):
         raise ValueError('The ID value is already existing!')
 
     if method == 'full':
-        hlp = np.ones_like(THE_MASK)*np.nan
+        #~ hlp = np.ones_like(THE_MASK)*np.nan
 
         #~ uvals = np.unique(THE_MASK[~np.isnan(THE_MASK)])
         #~ print 'THE_MASK before: ', i, P.id, len(uvals)
@@ -168,7 +168,7 @@ class Raster(object):
 
         THE_POLYGONS = polygons
 
-        nproc = 1
+        nproc = 1  #no parallization as otherwise error occurs
 
         #~ self.mask = np.zeros(self.lon.shape) * np.nan
         THE_MASK = np.zeros(self.lon.shape) * np.nan
@@ -202,24 +202,42 @@ class Raster(object):
 
     def _rasterize_single_polygon(self, i, method='full'):
         """
-        rasterize a single polygon
+        rasterize a single polygon; this function should in general not
+        be used alone, but only be called from rasterize_polygons !
 
         requires that the output array has already been initialized
 
         Parameters
         ----------
-        P : Polygon
-            Polygon object
+        i : int, Polygon
+            if an integer is provided it is assumed that it points to
+            a global list THE_POLYGONS
+
+            if a Polygon is provided, THE_POLYGONS are set
+
         id : int
             identifier
+
         method : str
             full: itterate over entire spatial domain (most precise)
             fast: calculate first bbox and then itterate (faster)
             faster: same as full, but fully implemented in cython. However
             this is not necessarily faster than 'full'
         """
-        #~ if not hasattr(self, 'mask'):
-            #~ raise ValueError('Output array not existing yet!')
-        _rasterize_polygon(self.lon, self.lat, i, method)
+
+        if isinstance(i, Polygon):
+            # a single polygon is provided
+            global THE_POLYGONS
+            global THE_MASK
+
+            THE_POLYGONS = [i]
+            THE_MASK = np.zeros(self.lon.shape) * np.nan
+            _rasterize_polygon(self.lon, self.lat, 0, method)
+            self.mask = np.ma.array(THE_MASK, mask=np.isnan(THE_MASK))
+        elif isinstance(i, int):
+            # an index is provided
+            _rasterize_polygon(self.lon, self.lat, i, method)
+        else:
+            raise ValueError('Only integers or Polygon objects are allowed as arguments')
 
 
