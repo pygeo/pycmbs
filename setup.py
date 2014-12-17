@@ -35,7 +35,7 @@ def get_current_version():
 
 
 # requires scipy: http://stackoverflow.com/questions/11128070/cannot-import-minimize-in-scipy
-install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy', 'cython', 'scipy>=0.11']
+install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz", "matplotlib", 'shapely', 'cartopy', 'cython', 'scipy']
 
 ext_polygon_utils = Extension('polygon_utils',
     sources = ['.' + os.sep + 'pycmbs' + os.sep + 'polygon_utils.pyx'],
