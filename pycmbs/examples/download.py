@@ -25,7 +25,7 @@ def get_example_directory():
         f.close()
         os.remove(r + os.sep + testfile)
     except:
-        # if no right access then
+        # if no write access then
         r = tempfile.mkdtemp()
 
     return r
@@ -79,10 +79,12 @@ def _download_file(url, tdir):
         os.makedirs(tdir)
 
     print('Downloading file ... this might take a few minutes')
+    print('URL: ' + url)
     curdir=os.getcwd()
     os.chdir(tdir)
     os.system('wget --ftp-user=anonymous --ftp-password=nix ' + url)
     os.chdir(curdir)
+    print('Downloading finished!')
 
 
 
