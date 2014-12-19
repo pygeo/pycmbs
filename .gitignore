@@ -18,3 +18,7 @@ MANIFEST
 *.ipynb_checkpoints*
 *.old
 *debuglog.txt*
+air.mon.mean.nc
+had4_hybrid.nc
+norm.nao.monthly.b5001.current.ascii
+example_data

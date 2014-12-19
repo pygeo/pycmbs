@@ -12,6 +12,7 @@ TESTDIRS = pycmbs/benchmarking/tests pycmbs/tests
 
 clean :
 	find . -name "*.pyc" -exec rm -rf {} \;
+	find . -name "y.pkl" -exec rm -rf {} \;
 	find . -name "*.so" -exec rm -rf {} \;
 	find . -name "data_warnings.log" -exec rm -rf {} \;
 	rm -rf C:*debuglog.txt
@@ -21,6 +22,7 @@ clean :
 	rm -rf tmp
 	rm -rf doc
 	rm -rf dist
+	rm -rf pycmbs.egg-info
 
 ship : dist
 	# XXX: should not remove non-pycmbs files
