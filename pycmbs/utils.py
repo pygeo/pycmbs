@@ -38,6 +38,7 @@ def get_month_string(m, numeric=False):
 
 
 class Dict2TXT(object):
+
     """
     class to convert a python dictionary to a TXT file
     """
@@ -54,7 +55,8 @@ class Dict2TXT(object):
             separator for column labels
         """
         if not isinstance(x, dict):
-            raise ValueError('The input needs to eb a valid python dictionary!')
+            raise ValueError(
+                'The input needs to eb a valid python dictionary!')
         self.x = x
         self.fieldsep = fieldsep
         self.tagsep = tagsep

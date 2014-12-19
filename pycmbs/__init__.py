@@ -32,7 +32,9 @@ __url__ = "https://github.com/pygeo/pycmbs"
 __date__ = "2014-06-05"
 """The release date of this version of pyCMBS."""
 
-__version__ = json.load(open(ppath + os.sep + 'version.json'))  # note that a proper version number is required as PIP otherwise can not detect the file
+# note that a proper version number is required as PIP otherwise can not
+# detect the file
+__version__ = json.load(open(ppath + os.sep + 'version.json'))
 """Version number of pyCMBS."""
 
 __email__ = "alexander.loew@mpimet.mpg.de"

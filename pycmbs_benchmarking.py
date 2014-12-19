@@ -24,7 +24,7 @@ from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
 from pycmbs.benchmarking import analysis
 from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, CMIP5RAW_SINGLE
-from pycmbs.benchmarking.models import JSBACH_BOT  #, JSBACH_RAW
+from pycmbs.benchmarking.models import JSBACH_BOT  # , JSBACH_RAW
 from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data, JSBACH_SPECIAL
 from pycmbs.benchmarking.models import MeanModel
 from pycmbs.benchmarking.utils import get_temporary_directory
@@ -65,7 +65,8 @@ def create_dummy_configuration():
     # copy samples of INI files from repository
     if os.path.exists(odir):
         os.system('rm -rf ' + odir)
-    shutil.copytree(d + os.sep + 'benchmarking' + os.sep + 'configuration', odir)
+    shutil.copytree(d + os.sep + 'benchmarking' +
+                    os.sep + 'configuration', odir)
 
     # create dummy configuration file
     CFGW = config.CFGWriter(cwd + os.sep + 'template.cfg',
@@ -81,6 +82,7 @@ def create_dummy_configuration():
                       ])
 
     os.system('rm -rf ' + odir + os.sep + '.svn')
+
 
 def main():
     plt.close('all')
@@ -385,7 +387,8 @@ def main():
     # names of analysis scripts for all variables ---
     scripts = CF.get_analysis_scripts()
 
-    # get dictionary with methods how to read data for model variables to be analyzed
+    # get dictionary with methods how to read data for model variables to be
+    # analyzed
     variables = CF.variables
     varmethods = CF.get_methods4variables(variables)
 
@@ -451,14 +454,14 @@ def main():
                                    start_time=start_time,
                                    stop_time=stop_time,
                                    name=model, shift_lon=shift_lon)  # ,
-                                   #model_dict=model_dict)
+                                   # model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'JSBACH_SPECIAL':
             themodel = JSBACH_SPECIAL(data_dir, varmethods, experiment,
                                       intervals=CF.intervals,
                                       start_time=start_time,
                                       stop_time=stop_time,
                                       name=model, shift_lon=shift_lon)  # ,
-                                   #model_dict=model_dict)
+                                   # model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'CMIP3':
             themodel = CMIP3Data(data_dir, model, experiment, varmethods,
                                  intervals=CF.intervals, lat_name='lat',
@@ -507,7 +510,9 @@ def main():
         MEANMODEL.ensmean()
 
         # save mean model to file
-        MEANMODEL.save(get_temporary_directory(), prefix='MEANMODEL_' + file[:-4])  # include filename of configuration file
+        # include filename of configuration file
+        MEANMODEL.save(get_temporary_directory(),
+                       prefix='MEANMODEL_' + file[:-4])
 
         # add mean model to general list of models to process in analysis
         proc_models.append('MEANMODEL')
@@ -528,7 +533,8 @@ def main():
                  CF.options['author'],
                  outdir=outdir,
                  dpi=300, format=CF.options['report_format'])
-    cmd = 'cp ' + os.environ['PYCMBSPATH'] + os.sep + 'logo' + os.sep + 'Phytonlogo5.pdf ' + rep.outdir
+    cmd = 'cp ' + os.environ['PYCMBSPATH'] + os.sep + \
+        'logo' + os.sep + 'Phytonlogo5.pdf ' + rep.outdir
     os.system(cmd)
 
     ########################################################################
@@ -562,7 +568,8 @@ def main():
     # GLECKLER PLOT finalization ...
     ########################################################################
     # generate Gleckler analysis plot for all variables and models analyzed ///
-    global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16, show_value=False, ticks=[-0.1, -0.05, 0., 0.05, 0.1])
+    global_gleckler.plot(vmin=-0.1, vmax=0.1, nclasses=16,
+                         show_value=False, ticks=[-0.1, -0.05, 0., 0.05, 0.1])
     oname = outdir + 'gleckler.pkl'
     if os.path.exists(oname):
         os.remove(oname)
@@ -580,8 +587,10 @@ def main():
     rep.figure(global_gleckler.fig,
                caption='Gleckler et al. (2008) model performance index',
                width='10cm')
-    global_gleckler.fig.savefig(outdir + 'portraet_diagram.png', dpi=200, bbox_inches='tight')
-    global_gleckler.fig.savefig(outdir + 'portraet_diagram.pdf', dpi=200, bbox_inches='tight')
+    global_gleckler.fig.savefig(
+        outdir + 'portraet_diagram.png', dpi=200, bbox_inches='tight')
+    global_gleckler.fig.savefig(
+        outdir + 'portraet_diagram.pdf', dpi=200, bbox_inches='tight')
 
     plt.close(global_gleckler.fig.number)
 
@@ -600,7 +609,8 @@ def main():
                 # if option in INI file is set
                 if varoptions[k]['add_to_report']:
                     # generate dictionary for GlecklerPLot legend
-                    thelabels.update({int(varoptions[k]['gleckler_position']): k})
+                    thelabels.update(
+                        {int(varoptions[k]['gleckler_position']): k})
         labels_dict.update({variable: thelabels})
         del thelabels
 
@@ -614,7 +624,8 @@ def main():
         fl = global_gleckler._draw_legend(thelabels, title=variable.upper())
         if fl is not None:
             rep.figure(fl, width='8cm', bbox_inches=None)
-            fl.savefig(outdir + 'legend_portraet_' + str(lcnt).zfill(5) + '.png', bbox_inches='tight', dpi=200)
+            fl.savefig(outdir + 'legend_portraet_' + str(lcnt)
+                       .zfill(5) + '.png', bbox_inches='tight', dpi=200)
             plt.close(fl.number)
         del fl
         lcnt += 1
@@ -623,7 +634,8 @@ def main():
     rep.subsection('Model ranking consistency')
     for v in global_gleckler.variables:
         rep.subsubsection(v.upper())
-        tmpfig = global_gleckler.plot_model_ranking(v, show_text=True, obslabels=labels_dict[v])
+        tmpfig = global_gleckler.plot_model_ranking(
+            v, show_text=True, obslabels=labels_dict[v])
         if tmpfig is not None:
             rep.figure(tmpfig, width='8cm', bbox_inches=None,
                        caption='Model RANKING for different observational \
@@ -634,7 +646,8 @@ def main():
         # write a table with model ranking
         tmp_filename = outdir + 'ranking_table_' + v + '.tex'
         rep.open_table()
-        global_gleckler.write_ranking_table(v, tmp_filename, fmt='latex', obslabels=labels_dict[v])
+        global_gleckler.write_ranking_table(
+            v, tmp_filename, fmt='latex', obslabels=labels_dict[v])
         rep.input(tmp_filename)
         rep.close_table(caption='Model rankings for variable ' + v.upper())
 

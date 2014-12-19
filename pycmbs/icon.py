@@ -12,6 +12,7 @@ import numpy as np
 
 
 class Icon(Data):
+
     """
     Main class for ICON data handling
     """

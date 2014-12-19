@@ -18,6 +18,7 @@ import numpy as np
 
 
 class Taylor(object):
+
     def __init__(self, stdmax=2., plot_r_mesh=True, plot_std_mesh=True,
                  ref_std=1., plot_reference=True, r_meshstep=0.1,
                  std_meshstep=0.25,
@@ -89,13 +90,13 @@ class Taylor(object):
         self.rms_meshstep = rms_meshstep
         self.maxrms = maxrms
 
-        #set ticks only for bottom and left
+        # set ticks only for bottom and left
         self.ax.xaxis.set_ticks_position('none')
         self.ax.xaxis.set_ticks_position('bottom')
         self.ax.yaxis.set_ticks_position('none')
         self.ax.yaxis.set_ticks_position('left')
 
-        #plot list for legend
+        # plot list for legend
         self.plots = []
         self.labelnames = []
 
@@ -138,21 +139,26 @@ class Taylor(object):
             c_theta = np.deg2rad((1. - corr1) * 90.)
             c_r = nstdmax
             if self.r_equidistant:
-                self.ax.plot([0, c_r * np.cos(c_theta)], [0, c_r * np.sin(c_theta)], ':', color=color)
+                self.ax.plot([0, c_r * np.cos(c_theta)],
+                             [0, c_r * np.sin(c_theta)], ':', color=color)
                 xa, ya = self.map2xy(corr1, 1.0 * nstdmax)
                 #self.ax.annotate(str(corr1), [c_theta, nstdmax*1.11], xycoords='polar',color=color)
-                self.ax.annotate(str(corr1), [xa, ya], color=color, horizontalalignment='center')
+                self.ax.annotate(
+                    str(corr1), [xa, ya], color=color, horizontalalignment='center')
 
             else:
-                self.ax.plot([0, c_r * corr1], [0, c_r * np.sin(np.arccos(corr1))], ':', color=color)
+                self.ax.plot([0, c_r * corr1],
+                             [0, c_r * np.sin(np.arccos(corr1))], ':', color=color)
                 xa, ya = self.map2xy(corr1, 1.0 * nstdmax)
                 #self.ax.annotate(str(corr1), [np.arccos(corr1), nstdmax*1.11], xycoords='polar',color=color)
-                self.ax.annotate(str(corr1), [xa, ya], color=color, horizontalalignment='center')
+                self.ax.annotate(
+                    str(corr1), [xa, ya], color=color, horizontalalignment='center')
 
         if self.r_equidistant:
             pass
         else:
-            self.ax.annotate('Correlation coefficient $R$', [np.deg2rad(50.), nstdmax * 1.1], xycoords='polar', rotation=-45., color=color)
+            self.ax.annotate('Correlation coefficient $R$', [np.deg2rad(
+                50.), nstdmax * 1.1], xycoords='polar', rotation=-45., color=color)
 
     def plot_circle(self, x, y, r, color='grey', label=None, size=8):
         """
@@ -170,7 +176,7 @@ class Taylor(object):
         XN[m] = np.nan
         YN[m] = np.nan
 
-        #calculate label position
+        # calculate label position
         alpha = np.arctan(self.stdmax / x)
         xlab = x - r * np.cos(alpha)
         ylab = y + r * np.sin(alpha)
@@ -178,7 +184,9 @@ class Taylor(object):
         self.ax.plot(XN, YN, '--', color=color)
         if label is not None:
             if ylab < 0.9 * self.stdmax:  # avoid labels at boundaries
-                self.ax.annotate(label, [xlab, ylab], xycoords='data', rotation=30., color=color, backgroundcolor='white', verticalalignment='center', horizontalalignment='center', size=size)
+                self.ax.annotate(
+                    label, [xlab, ylab], xycoords='data', rotation=30., color=color,
+                    backgroundcolor='white', verticalalignment='center', horizontalalignment='center', size=size)
 
     def plot_rms_meshlines(self):
         """
@@ -189,7 +197,8 @@ class Taylor(object):
 
         color = self.rms_color
 
-        rms = np.arange(0., self.maxrms, self.rms_meshstep)  # rms values to plot
+        # rms values to plot
+        rms = np.arange(0., self.maxrms, self.rms_meshstep)
 
         n = len(rms)
         for i in range(n):
@@ -232,7 +241,8 @@ class Taylor(object):
         """
         R = np.linspace(-1., 1., 1000)
         S = np.ones(len(R)) * self.ref_std
-        self.plot(R, S, linestyle=linestyle, linewidth=linewidth, color=color, marker=marker)
+        self.plot(R, S, linestyle=linestyle, linewidth=linewidth,
+                  color=color, marker=marker)
 
     def plot_reference_point(self, color='orange', marker='o'):
         """
@@ -256,13 +266,17 @@ class Taylor(object):
         P1 = [0., 0.]
         P2 = [1., 1.]
         P3 = [0.7, 0.]
-        ax.plot([P1[0], P2[0]], [P1[1], P2[1]], '-', color=self.r_color, linewidth=lw)
-        ax.plot([P1[0], P3[0]], [P1[1], P3[1]], '-', color=self.std_color, linewidth=lw)
-        ax.plot([P3[0], P2[0]], [P3[1], P2[1]], '-', color=self.rms_color, linewidth=lw)
+        ax.plot([P1[0], P2[0]], [P1[1], P2[1]], '-',
+                color=self.r_color, linewidth=lw)
+        ax.plot([P1[0], P3[0]], [P1[1], P3[1]], '-',
+                color=self.std_color, linewidth=lw)
+        ax.plot([P3[0], P2[0]], [P3[1], P2[1]], '-',
+                color=self.rms_color, linewidth=lw)
 
-    def plot(self, R, S, marker='o', linestyle='None', markerfacecolor='black', markeredgecolor=None,
-             color='black', linewidth=0, label=None, markersize=8, markeredgewidth=1, R1=None, S1=None,
-             labels=None, shiftcolor='grey', plot_mean=False, normvalue=np.nan):
+    def plot(
+            self, R, S, marker='o', linestyle='None', markerfacecolor='black', markeredgecolor=None,
+            color='black', linewidth=0, label=None, markersize=8, markeredgewidth=1, R1=None, S1=None,
+            labels=None, shiftcolor='grey', plot_mean=False, normvalue=np.nan):
         """
         R: correlation coefficient
         S: standard deviation
@@ -285,7 +299,8 @@ class Taylor(object):
                 show_shift = True
             else:
                 print len(R1), len(S1), len(R)
-                sys.exit('Not possible to show shift in taylor as different sizes!')
+                sys.exit(
+                    'Not possible to show shift in taylor as different sizes!')
 
         if markeredgecolor is None:
             markeredgecolor = markerfacecolor
@@ -313,34 +328,41 @@ class Taylor(object):
 
         #/// generate plots
         if labels is None:
-            self.ax.plot(x, y, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor, linewidth=linewidth,
-                         label=label, markeredgecolor=markeredgecolor, markersize=markersize, markeredgewidth=markeredgewidth)
+            self.ax.plot(
+                x, y, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor, linewidth=linewidth,
+                label=label, markeredgecolor=markeredgecolor, markersize=markersize, markeredgewidth=markeredgewidth)
         else:
             for i in range(len(x)):
-                self.ax.text(x[i], y[i], labels[i], color=color, fontsize=markersize, horizontalalignment='center')
+                self.ax.text(x[i], y[i], labels[i], color=color,
+                             fontsize=markersize, horizontalalignment='center')
 
         if plot_mean:
-            #mean of R/S data
+            # mean of R/S data
             xmean, ymean = self.map2xy(self.R_mean, self.S_mean)
-            self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor='blue', markersize=markersize * 2, markeredgewidth=markeredgewidth * 2.)
+            self.ax.plot(
+                xmean, ymean, marker=marker, linestyle=linestyle, color=color, markerfacecolor=markerfacecolor,
+                linewidth=linewidth, label=label, markeredgecolor='blue', markersize=markersize * 2, markeredgewidth=markeredgewidth * 2.)
 
             if (self.R1_mean is not None) & (self.S1_mean is not None):
                 xmean, ymean = self.map2xy(self.R1_mean, self.S1_mean)
-                self.ax.plot(xmean, ymean, marker=marker, linestyle=linestyle, color=shiftcolor, markerfacecolor=markerfacecolor, linewidth=linewidth, label=label, markeredgecolor=shiftcolor, markersize=markersize * 2, markeredgewidth=markeredgewidth * 2)
+                self.ax.plot(
+                    xmean, ymean, marker=marker, linestyle=linestyle, color=shiftcolor, markerfacecolor=markerfacecolor,
+                    linewidth=linewidth, label=label, markeredgecolor=shiftcolor, markersize=markersize * 2, markeredgewidth=markeredgewidth * 2)
 
         #/// shift plot
         if show_shift:
             x1, y1 = self.map2xy(R1, S1)
-            #self.ax.plot(x1,y1,'ro')
+            # self.ax.plot(x1,y1,'ro')
             for i in np.arange(len(x1)):
                 dx = x1[i] - x[i]
                 dy = y1[i] - y[i]
-                self.ax.arrow(x[i], y[i], dx, dy, edgecolor=shiftcolor, alpha=0.5, linewidth=2.)
+                self.ax.arrow(x[i], y[i], dx, dy,
+                              edgecolor=shiftcolor, alpha=0.5, linewidth=2.)
 
-                #this is a nice looking more flexible arrow
-                #self.ax.annotate('', xy=(x[i]+dx, y[i]+dy),  xycoords='data',xytext=(x[i], y[i]), textcoords='data', \
+                # this is a nice looking more flexible arrow
+                # self.ax.annotate('', xy=(x[i]+dx, y[i]+dy),  xycoords='data',xytext=(x[i], y[i]), textcoords='data', \
                 #arrowprops=dict(facecolor='grey', shrink=0.0,edgecolor='None',width=2), \
-                #horizontalalignment='right', verticalalignment='top')
+                # horizontalalignment='right', verticalalignment='top')
 
         #/// rescale axes
         if self.negative:
@@ -370,7 +392,9 @@ class Taylor(object):
         set a plot to be registered for the legend
         """
         self.labelnames.append(label)
-        self.plots.append(self.ax.scatter([-1], [-1], color=color, marker=marker, s=8))  # fake plot for legend
+        # fake plot for legend
+        self.plots.append(
+            self.ax.scatter([-1], [-1], color=color, marker=marker, s=8))
         self.ax.set_xlim(0., self.stdmax)
         self.ax.set_ylim(0., self.stdmax)
 
@@ -382,7 +406,7 @@ def test():
     '''
     #/// testing ///
     plt.close('all')
-    #generate some sample data
+    # generate some sample data
     corr1 = np.asarray([1., .5, 0.9, 1., -0.8])
     corr2 = np.asarray([0.1, 0.25, 0.5, 0.6])
     s1 = np.asarray([1., 1., 1.5, 0.5])
@@ -398,20 +422,24 @@ def test():
     S1 = np.asarray(S1)
     R1 = np.asarray(R1)
 
-    #Taylor plot with equidistant correlations
+    # Taylor plot with equidistant correlations
     tay1 = taylor(r_equidistant=True)  # initialize the Taylor diagram
-    tay1.plot(corr1, s1, markerfacecolor='green', marker='^', label='test1')  # plot some data
-    tay1.ax.legend(loc='lower center', ncol=2, fancybox=True, shadow=True)  # if you like, access the axis object and specify legend properties
+    # plot some data
+    tay1.plot(corr1, s1, markerfacecolor='green', marker='^', label='test1')
+    # if you like, access the axis object and specify legend properties
+    tay1.ax.legend(loc='lower center', ncol=2, fancybox=True, shadow=True)
     tay1.ax.set_title('equidistant')
 
     plt.close('all')
 
     print 'corr1: ', corr1
-    #Taylor plot with no equidistant correlations (as original in Taylor 2001)
+    # Taylor plot with no equidistant correlations (as original in Taylor 2001)
     tay2 = taylor()  # initialize the Taylor diagram
-    tay2.plot(corr1, s1, markerfacecolor='green', marker='^', label='test1', R1=R1, S1=S1)  # plot some data
-    #tay2.plot_rms_meshlines()
-    tay2.ax.legend(loc='lower center', ncol=2, fancybox=True, shadow=True)  # if you like, access the axis object and specify legend properties
+    tay2.plot(corr1, s1, markerfacecolor='green', marker='^',
+              label='test1', R1=R1, S1=S1)  # plot some data
+    # tay2.plot_rms_meshlines()
+    # if you like, access the axis object and specify legend properties
+    tay2.ax.legend(loc='lower center', ncol=2, fancybox=True, shadow=True)
     tay2.ax.set_title('original taylor')
 
     tay2.plot_taylor_legend()
@@ -422,5 +450,5 @@ def test():
 
 
 
-#test()
-#show()
+# test()
+# show()

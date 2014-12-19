@@ -12,13 +12,14 @@ from pycmbs.polygon_utils import get_point_in_poly_mask
 import multiprocessing
 import itertools
 
-THE_POLYGONS=None
+THE_POLYGONS = None
 THE_MASK = None
 
 
 def argument_mapper_rasterize(x):
 
     _rasterize_polygon(x[0], x[1], x[2], x[3])
+
 
 def _rasterize_polygon(lon, lat, i, method):
     """
@@ -55,7 +56,8 @@ def _rasterize_polygon(lon, lat, i, method):
 
         #~ uvals = np.unique(THE_MASK[~np.isnan(THE_MASK)])
         #~ print 'THE_MASK before: ', i, P.id, len(uvals)
-        get_point_in_poly_mask(THE_MASK, lon, lat, P)  # use fast cython based method
+        # use fast cython based method
+        get_point_in_poly_mask(THE_MASK, lon, lat, P)
         #~ print 'THE_MASK after: ', hlp
 
         #~ mm = ~np.isnan(hlp)
@@ -70,27 +72,33 @@ def _rasterize_polygon(lon, lat, i, method):
         ny, nx = lon.shape
         for i in xrange(ny):
             #~ if i % 1 == 0:
-            print 'Rasterization complete by ', np.round(100. * float(i) / float(ny),0), '%               \r',
+            print 'Rasterization complete by ', np.round(100. * float(i) / float(ny), 0), '%               \r',
             for j in xrange(nx):
                 if P.point_in_poly(lon[i, j], lat[i, j]):
                     if np.isnan(mask[i, j]):
                         mask[i, j] = id
                     else:
                         print i, j, lon[i, j], lat[i, j]
-                        raise ValueError('Overlapping polygons not supported yet!')
+                        raise ValueError(
+                            'Overlapping polygons not supported yet!')
                 else:
                     pass
 
-    elif method == 'faster':  # an alternative implementation. This is however not necessarily faster than 'full'
+    # an alternative implementation. This is however not necessarily faster
+    # than 'full'
+    elif method == 'faster':
         assert False, 'Option currently not supported!'
         print 'Using CYTHON method for rasterization!'
         mask = fast_point_in_poly(lon, lat, P)
     elif method == 'fast':
         assert False
         xmin, xmax, ymin, ymax = P.bbox()
-        # determine bounding box very roughly NOT THAT THIS MIGHT BE NOT CORRECT
-        valid_points = (lon >= xmin) & (lon <= xmax) & (lat >= ymin) & (lat <= ymax)
-        plon = lon[valid_points]  # preselect points that are likely to fall within polygon
+        # determine bounding box very roughly NOT THAT THIS MIGHT BE NOT
+        # CORRECT
+        valid_points = (lon >= xmin) & (
+            lon <= xmax) & (lat >= ymin) & (lat <= ymax)
+        # preselect points that are likely to fall within polygon
+        plon = lon[valid_points]
         plat = lat[valid_points]
 
         resmsk = np.zeros_like(plon) * np.nan
@@ -114,8 +122,6 @@ def _rasterize_polygon(lon, lat, i, method):
 
     else:
         raise ValueError('ERROR: Invalid method')
-
-
 
 
 class Raster(object):
@@ -168,7 +174,7 @@ class Raster(object):
 
         THE_POLYGONS = polygons
 
-        nproc = 1  #no parallization as otherwise error occurs
+        nproc = 1  # no parallization as otherwise error occurs
 
         #~ self.mask = np.zeros(self.lon.shape) * np.nan
         THE_MASK = np.zeros(self.lon.shape) * np.nan
@@ -185,10 +191,10 @@ class Raster(object):
 
             N = len(polygons)
             pool = multiprocessing.Pool(processes=nproc)
-            the_args = itertools.izip(itertools.repeat(self.lon,N), itertools.repeat(self.lat,N), xrange(len(polygons)), itertools.repeat(method,N))
+            the_args = itertools.izip(itertools.repeat(self.lon, N), itertools.repeat(
+                self.lat, N), xrange(len(polygons)), itertools.repeat(method, N))
             r = pool.map(argument_mapper_rasterize, the_args)
             pool.close()
-
 
         self.mask = np.ma.array(THE_MASK, mask=np.isnan(THE_MASK))
 
@@ -198,7 +204,6 @@ class Raster(object):
         #~ print  THE_MASK[~np.isnan(THE_MASK)]
 
         #~ stop
-
 
     def _rasterize_single_polygon(self, i, method='full'):
         """
@@ -238,6 +243,5 @@ class Raster(object):
             # an index is provided
             _rasterize_polygon(self.lon, self.lat, i, method)
         else:
-            raise ValueError('Only integers or Polygon objects are allowed as arguments')
-
-
+            raise ValueError(
+                'Only integers or Polygon objects are allowed as arguments')

@@ -43,7 +43,8 @@ class Data4D(Data):
 
         if self.levellist == {}:
             level = 0
-            L = cdo.showlevel(input='-selname,' + self.varname + ' ' + self.filename)
+            L = cdo.showlevel(input='-selname,' +
+                              self.varname + ' ' + self.filename)
             levell = L[0].split(' ')
             for k in levell:
                 self.levellist[int(k)] = level
@@ -51,7 +52,8 @@ class Data4D(Data):
 
         self.level = int(self.levellist.get(self.levellist.keys()[0]))
 
-        Data.read(self, shift_lon, start_time=start_time, stop_time=stop_time, time_var=time_var, checklat=checklat)
+        Data.read(self, shift_lon, start_time=start_time,
+                  stop_time=stop_time, time_var=time_var, checklat=checklat)
 
         del self.data
         for k in sorted(self.levellist.keys()):
@@ -88,7 +90,7 @@ class Data4D(Data):
         @return C{Data4D} object
         """
         d = Data4D(None, None)
-#ws        print "copy of data4D.py"
+# ws        print "copy of data4D.py"
 
         for attr, value in self.__dict__.iteritems():
 #     print attr
@@ -105,7 +107,7 @@ class Data4D(Data):
                     exec cmd
 #                print "B: "+cmd
             else:
-                #print 'else '+ str(self.levellist.keys())
+                # print 'else '+ str(self.levellist.keys())
                 #cmd = "d." + attr + " = self." + attr
                 exec cmd
                 for k in self.levellist.keys():
@@ -128,9 +130,9 @@ class Data4D(Data):
         if int(l) in self.levellist.keys():
             ret = self._copy_Data4D_Info_to_Data()
             d = self
-            #print int(l)
-            #print self.levellist[int(l)]
-            #print self.levellist
+            # print int(l)
+            # print self.levellist[int(l)]
+            # print self.levellist
             ret.data = d.data4D[self.levellist[int(l)]]
             return ret
         else:
@@ -235,20 +237,22 @@ class Data4D(Data):
         else:
             d = self
 
-        #print "01 copy self "+str(self.data4D[0][4,0,0])+" d "+str(d.data4D[0][4,0,0])
-        #print "a1 copy self "+self.label+" d "+str(d.label)
-        #print "a1 copy self "+self.label+" d "+str(d.label)
+        # print "01 copy self "+str(self.data4D[0][4,0,0])+" d "+str(d.data4D[0][4,0,0])
+        # print "a1 copy self "+self.label+" d "+str(d.label)
+        # print "a1 copy self "+self.label+" d "+str(d.label)
 #        d.data4D[0][4,0,0] = d.data4D[0][4,0,0] + 100.
         d.label = "myLabel"
 #        print "a2 copy self "+self.label+" d "+str(d.label)
         for k in self.levellist.keys():
-#          print "02 copy self "+str(self.data4D[0][4,0,0])+" d "+str(d.data4D[0][4,0,0])
+# print "02 copy self "+str(self.data4D[0][4,0,0])+" d
+# "+str(d.data4D[0][4,0,0])
             if hasattr(x, 'data4D'):
                 d.data4D[self.levellist[k]] += x.data4D[self.levellist[k]]
             else:
                 d.data4D[self.levellist[k]] += x.data
 
-#        print "03 copy self "+str(self.data4D[0][4,0,0])+" d "+str(d.data4D[0][4,0,0])
+# print "03 copy self "+str(self.data4D[0][4,0,0])+" d
+# "+str(d.data4D[0][4,0,0])
         return d
 
 #-----------------------------------------------------------------------
@@ -296,7 +300,7 @@ class Data4D(Data):
             sum.data += self.data4D[self.levellist[k]]
 
         return sum
-#-----------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
     def __init__(self, filename, varname, levellist=None, **kwargs):
         """

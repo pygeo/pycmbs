@@ -32,10 +32,10 @@ ship : dist
 	cp ./dist/pycmbs-$(VERSION).tar.gz $(TDIR)
 	tar -C $(TDIR) -xvf $(TDIR)/pycmbs-$(VERSION).tar.gz
 
-coverage:
+coverage: dependencies
 	nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs $(TESTDIRS) --cover-html
 
-tests:
+tests: dependencies
 	nosetests $(TESTDIRS)
 
 dist : clean
@@ -55,6 +55,9 @@ upload_pip: update_version
 	git push origin master
 	# note that this requres .pypirc file beeing in home directory
 	python setup.py sdist upload
+
+dependencies : clean
+	sh compile_extensions.sh
 
 pep8 :
 	$(PEP) *.py

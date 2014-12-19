@@ -12,24 +12,30 @@ This module implements generic map plotting capabilities
 installed_backends = []
 
 import os
-try:  # note that this import statement needs to come BEFOREbasemap, as otherwise some cartopy libraries are not found for some strange reasons (at least on some machines)
+# note that this import statement needs to come BEFOREbasemap, as
+# otherwise some cartopy libraries are not found for some strange reasons
+# (at least on some machines)
+try:
     import cartopy.crs as ccrs
     installed_backends.append('cartopy')
 except:
-    print('WARNING: CARTOPY seems not to be installed and can therefore not be used as plotting backend')
+    print(
+        'WARNING: CARTOPY seems not to be installed and can therefore not be used as plotting backend')
 
 try:
     from mpl_toolkits.basemap import Basemap
     installed_backends.append('basemap')
 except:
-    print('WARNING: BASEMAP seems not to be installed and can therefore not be used as plotting backend')
+    print(
+        'WARNING: BASEMAP seems not to be installed and can therefore not be used as plotting backend')
 
 
 try:
     from matplotlib import pyplot as plt
     installed_backends.append('imshow')
 except:
-    raise ValueError('Fatal error: You need to have a valid matplotlib installation to be able to work with pycmbs')
+    raise ValueError(
+        'Fatal error: You need to have a valid matplotlib installation to be able to work with pycmbs')
 
 import matplotlib as mpl
 import numpy as np
@@ -45,6 +51,7 @@ from pycmbs.polygon_utils import Polygon
 
 
 class MapPlotGeneric(object):
+
     """
     Generic class to produce map plots
     """
@@ -83,7 +90,8 @@ class MapPlotGeneric(object):
         self._set_axis_invisible(self.ax_main, frame=False)
 
         # set default layout parameters for map
-        self._set_layout_parameters()  # TODO make this dependent on the ax_main size!
+        # TODO make this dependent on the ax_main size!
+        self._set_layout_parameters()
 
         # consistency checks
         self._check()
@@ -209,16 +217,19 @@ class MapPlotGeneric(object):
         if self.backend == 'basemap':
             if 'cartopy' in installed_backends:
                 # use cartopy instead of Basemap, when possible
-                print('INFO: The backend has been automatically switched to CARTOPY as this provides higher quality and faster plotting on your machine')
+                print(
+                    'INFO: The backend has been automatically switched to CARTOPY as this provides higher quality and faster plotting on your machine')
                 self.backend = 'cartopy'
             else:
-                print('INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
+                print(
+                    'INFO: You have chosen BASEMAP as plotting backend. It is recommended to use CARTOPY instead as it is faster and also provides higher quality plotting capabilities.')
 
     def _draw_basemap(self, proj_prop=None, drawparallels=True, vmin_polygons=None, vmax_polygons=None, **kwargs):
         """
         """
         if proj_prop is None:
-            raise ValueError('No projection properties are given! Please modify or choose a different backend!')
+            raise ValueError(
+                'No projection properties are given! Please modify or choose a different backend!')
 
         the_map = Basemap(ax=self.pax, **proj_prop)
         xm = self.x.timmean()
@@ -238,10 +249,12 @@ class MapPlotGeneric(object):
                 for p in self.polygons:
                     self._add_single_polygon_basemap(the_map, p)
             else:  # plot all polygons at once
-                self._add_polygons_as_collection_basemap(the_map, vmin=vmin_polygons, vmax=vmax_polygons)
+                self._add_polygons_as_collection_basemap(
+                    the_map, vmin=vmin_polygons, vmax=vmax_polygons)
 
     def _add_polygons_as_collection_basemap(self, plot_handler, **kwargs):
-        collection = self._polygons2collection(plot_handler=plot_handler, **kwargs)
+        collection = self._polygons2collection(
+            plot_handler=plot_handler, **kwargs)
         self._add_collection(collection)
 
     def _add_single_polygon_basemap(self, m, p, color='red', linewidth=1):
@@ -267,7 +280,8 @@ class MapPlotGeneric(object):
 
         x, y = m(lons, lats)
         xy = list(zip(x, y))
-        mapboundary = mplPolygon(xy, edgecolor=color, linewidth=linewidth, fill=False)
+        mapboundary = mplPolygon(
+            xy, edgecolor=color, linewidth=linewidth, fill=False)
         self.pax.add_patch(mapboundary)
 
     # convert normal axis to GeoAxis
@@ -294,7 +308,8 @@ class MapPlotGeneric(object):
 
     def _draw_cartopy(self, proj_prop=None, vmin_polygons=None, vmax_polygons=None, **kwargs):
         if proj_prop is None:
-            raise ValueError('No projection properties are given! Please modify or choose a different backend!')
+            raise ValueError(
+                'No projection properties are given! Please modify or choose a different backend!')
 
         if proj_prop['projection'] in ['robin', 'TransverseMercator', 'mercator', 'stereo']:
             pass
@@ -305,7 +320,6 @@ class MapPlotGeneric(object):
             plot_data_field = True
         else:
             plot_data_field = False
-
 
         if plot_data_field:
             xm = self.x.timmean()
@@ -320,16 +334,19 @@ class MapPlotGeneric(object):
         if proj_prop['projection'] == 'robin':
             act_ccrs = ccrs.Robinson()
         elif proj_prop['projection'] == 'stereo':
-            act_ccrs = ccrs.Stereographic(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
+            act_ccrs = ccrs.Stereographic(central_longitude=proj_prop.pop(
+                'central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
         elif proj_prop['projection'] == 'TransverseMercator':
-            act_ccrs = ccrs.TransverseMercator(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
+            act_ccrs = ccrs.TransverseMercator(central_longitude=proj_prop.pop(
+                'central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
         elif proj_prop['projection'] == 'mercator':
             if 'extent' in proj_prop.keys():
                 ymin = proj_prop['extent']['ymin']
                 ymax = proj_prop['extent']['ymax']
             else:
                 raise ValueError('Need to specify extent!')
-            act_ccrs = ccrs.Mercator(central_longitude=proj_prop.pop('central_longitude', 0.), min_latitude=ymin, max_latitude=ymax)
+            act_ccrs = ccrs.Mercator(central_longitude=proj_prop.pop(
+                'central_longitude', 0.), min_latitude=ymin, max_latitude=ymax)
         else:
             raise ValueError('Unsupported projection')
 
@@ -339,7 +356,8 @@ class MapPlotGeneric(object):
         if plot_data_field:
             if self.x._equal_lon():
                 try:
-                    lon1, lat1, Z1 = self._add_cyclic_to_field(self.x._get_unique_lon(), lat, Z)
+                    lon1, lat1, Z1 = self._add_cyclic_to_field(
+                        self.x._get_unique_lon(), lat, Z)
                 except:
                     lon1 = None
                 if lon1 is not None:
@@ -357,14 +375,20 @@ class MapPlotGeneric(object):
                 ymin = proj_prop['extent']['ymin']
                 ymax = proj_prop['extent']['ymax']
                 try:
-                    self.pax.set_extent([xmin, xmax, ymin, ymax]) #, crs=act_ccrs)  # problem was fixed by explicitely setting CRS
-                    # NO! the problem can not be fixed by providing the CRS explicitely! this results in strange results for the final maps!
+                    # , crs=act_ccrs)  # problem was fixed by explicitely setting CRS
+                    self.pax.set_extent([xmin, xmax, ymin, ymax])
+                    # NO! the problem can not be fixed by providing the CRS
+                    # explicitely! this results in strange results for the
+                    # final maps!
                 except:
                     print 'ERROR in set_extent. This is a known problem for cartopy geoaxes (see documentation in set_extent routine). Can not be fixed here.'
                     # try workaround
                     try:
-                        self.pax.set_extent([xmin, xmax, ymin, ymax], crs=act_ccrs)  # problem might be fixed by explicitely setting CRS
-                        #CAUTION This can result however in weird plots!!! Caused problems in the past!
+                        # problem might be fixed by explicitely setting CRS
+                        self.pax.set_extent(
+                            [xmin, xmax, ymin, ymax], crs=act_ccrs)
+                        # CAUTION This can result however in weird plots!!!
+                        # Caused problems in the past!
                     except:
                         print 'Workaround did also not work, try to continue without setting extent!'
         else:
@@ -373,7 +397,8 @@ class MapPlotGeneric(object):
 
         if plot_data_field:
             try:
-                self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
+                self.im = self.pax.pcolormesh(
+                    lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
             except:
                 print '*** WARNING: something did not work with pcolormesh plotting in mapping.py'
                 self.im = None
@@ -389,7 +414,8 @@ class MapPlotGeneric(object):
                     for p in self.polygons:
                         self._add_single_polygon_cartopy(p)
                 else:  # all polygons as collection
-                    self._add_polygons_as_collection_cartopy(act_ccrs, vmin=vmin_polygons, vmax=vmax_polygons)
+                    self._add_polygons_as_collection_cartopy(
+                        act_ccrs, vmin=vmin_polygons, vmax=vmax_polygons)
 
     def _add_collection(self, collection):
         if self.backend == 'imshow':
@@ -405,7 +431,8 @@ class MapPlotGeneric(object):
         """
         add polygons as collection
         """
-        collection = self._polygons2collection(plot_handler=plot_handler, **kwargs)
+        collection = self._polygons2collection(
+            plot_handler=plot_handler, **kwargs)
         self._add_collection(collection)
 
     def _polygons2collection(self, vmin=None, vmax=None, color='red', cmap='jet', plot_handler=None):
@@ -453,7 +480,8 @@ class MapPlotGeneric(object):
                 continue
 
             # convert lat/lon to map coordinates
-            x, y = self._get_map_coordinates(p._xcoords(), p._ycoords(), plot_handler=plot_handler)
+            x, y = self._get_map_coordinates(
+                p._xcoords(), p._ycoords(), plot_handler=plot_handler)
             x.append(x[0])
             y.append(y[0])
             verts = np.asarray([x, y]).T
@@ -480,7 +508,8 @@ class MapPlotGeneric(object):
             vmax = pdata.max()
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-        collection = PatchCollection(patches, cmap=cmap, norm=norm, alpha=1., match_original=False, edgecolors=color)
+        collection = PatchCollection(
+            patches, cmap=cmap, norm=norm, alpha=1., match_original=False, edgecolors=color)
         collection.set_array(pdata)
 
         return collection
@@ -494,7 +523,8 @@ class MapPlotGeneric(object):
             x, y = plot_handler(lons, lats)
             return list(x), list(y)
         elif self.backend == 'cartopy':
-            X = plot_handler.transform_points(ccrs.PlateCarree(), lons, lats)  # gives an array (N, 3) with x,y,z as columns
+            # gives an array (N, 3) with x,y,z as columns
+            X = plot_handler.transform_points(ccrs.PlateCarree(), lons, lats)
             x = X[:, 0]
             y = X[:, 1]
             return list(x), list(y)
@@ -528,7 +558,9 @@ class MapPlotGeneric(object):
         lats.append(lats[0])
         lons = np.asarray(lons)
         lats = np.asarray(lats)
-        self.pax.plot(lons, lats, transform=ccrs.PlateCarree(), color=color, linewidth=linewidth)  # TODO create a polygon that might be also filled
+        # TODO create a polygon that might be also filled
+        self.pax.plot(lons, lats, transform=ccrs.PlateCarree(),
+                      color=color, linewidth=linewidth)
 
     def _add_cyclic_to_field(self, lon, lat, z):
         """
@@ -562,7 +594,8 @@ class MapPlotGeneric(object):
         try:
             from cartopy import util as ut
         except:
-            print('Longitude shift can not be performed as most recent CARTOPY version seems not to be installed')
+            print(
+                'Longitude shift can not be performed as most recent CARTOPY version seems not to be installed')
             return None, None, None
         assert lon.ndim == 1
         assert lat.shape == z.shape
@@ -636,7 +669,8 @@ class MapPlotGeneric(object):
                 return None
             else:
                 if len(l) != len(self._get_cticks()):
-                    raise ValueError('CTICKS and CTICKLABELS need to have the same length!')
+                    raise ValueError(
+                        'CTICKS and CTICKLABELS need to have the same length!')
                 return l
         else:
             return None
@@ -651,7 +685,8 @@ class MapPlotGeneric(object):
             results from e.g. an imshow command
         """
         if not self.show_colorbar:
-            raise ValueError('Colorbar can not be generated when not requested')
+            raise ValueError(
+                'Colorbar can not be generated when not requested')
 
         vmin = im.get_clim()[0]
         vmax = im.get_clim()[1]
@@ -678,9 +713,11 @@ class MapPlotGeneric(object):
 
 
 class SingleMap(MapPlotGeneric):
+
     """
     A class to generate a plot with a single figure
     """
+
     def __init__(self, x, **kwargs):
         """
         Parameters
@@ -705,7 +742,8 @@ class SingleMap(MapPlotGeneric):
             if self.x._latitudecheckok:
                 self._draw_zonal_plot(self)
             else:
-                print('WARNING: zonal plot not possible due to invalid latitude configurations')
+                print(
+                    'WARNING: zonal plot not possible due to invalid latitude configurations')
 
     def _set_cmap(self, nclasses):
         """
@@ -758,7 +796,8 @@ class SingleMap(MapPlotGeneric):
                 assert(len(st) == 1)
                 me = me[0]
                 st = st[0]
-                s = 'mean: $' + str(round(me, 2)) + ' \pm ' + str(round(st, 2)) + '$'
+                s = 'mean: $' + str(round(me, 2)) + \
+                    ' \pm ' + str(round(st, 2)) + '$'
             elif self.stat_type == 'sum':  # area sum
                 me = tmp_xm.areasum()
                 assert(len(me) == 1)
@@ -872,9 +911,13 @@ s
 
         # do plot using current backend
         if self.backend == 'basemap':
-            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, drawparallels=drawparallels, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
+            self._draw(
+                vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop,
+                drawparallels=drawparallels, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         elif self.backend == 'cartopy':
-            self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop, vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
+            self._draw(
+                vmin=self.vmin, vmax=self.vmax, cmap=self.cmap, proj_prop=proj_prop,
+                vmin_polygons=vmin_polygons, vmax_polygons=vmax_polygons)
         else:
             self._draw(vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
 
@@ -911,7 +954,8 @@ s
             show center coordinates by a marker
         """
 
-        xmin = clon - radius  # todo how to handle across dateline or near the poles
+        # todo how to handle across dateline or near the poles
+        xmin = clon - radius
         xmax = clon + radius
         ymin = clat - radius
         ymax = clat + radius
@@ -923,7 +967,8 @@ s
             proj_prop.update({'projection': 'TransverseMercator'})
             proj_prop.update({'central_longitude': clon})
             proj_prop.update({'central_latitude': clat})
-            proj_prop.update({'extent': {'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax}})
+            proj_prop.update(
+                {'extent': {'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax}})
 
         # generate Polygon to plot center location that gives a circle
         if show_center:
@@ -954,7 +999,7 @@ s
         self.pax.set_aspect('auto', adjustable='datalim')
 
         #~ if self.colorbar_orientation == 'vertical':
-            #~ # pos = [left, bottom, width, height]
+            # ~ # pos = [left, bottom, width, height]
 #~
             #~ cleft, cbottom, cright, ctop
             #~ res = self.cax.get_position().get_points()
@@ -983,7 +1028,8 @@ s
         """
         # check if option combinations are possible
         if self.show_timeseries and self.show_histogram:
-            raise ValueError('Combination of histogram and timeseries not supported')
+            raise ValueError(
+                'Combination of histogram and timeseries not supported')
 
         # case 1: only the standard plot is desired
         if (not self.show_timeseries) and (not self.show_histogram) and (not self.show_colorbar):
@@ -993,7 +1039,8 @@ s
         if self.show_colorbar:
             # timeseries or histogram require an additional lower axis
             if (self.show_timeseries or self.show_histogram):
-                raise ValueError('Combination with timeseries not supported yet!')
+                raise ValueError(
+                    'Combination with timeseries not supported yet!')
             else:
                 if self.show_zonal:
                     self._set_layout2()  # layout with colorbar and zonal plot
@@ -1016,7 +1063,8 @@ s
         right = self._layout_parameters['right']
         width = right - left
         height = self._layout_parameters['top'] - bottom
-        self.pax = self.figure.add_axes([left, bottom, width, height], label="pax")
+        self.pax = self.figure.add_axes(
+            [left, bottom, width, height], label="pax")
 
     def _set_layout1(self):
         """
@@ -1044,16 +1092,19 @@ s
         if self.colorbar_orientation == 'horizontal':
             # main plot axis
             left = self._layout_parameters['left']
-            bottom = self._layout_parameters['bottom'] + self._layout_parameters['hspace']
+            bottom = self._layout_parameters['bottom'] + \
+                self._layout_parameters['hspace']
             right = self._layout_parameters['right']
             width = right - left
             height = self._layout_parameters['top'] - bottom
-            self.pax = self.figure.add_axes([left, bottom, width, height], label="pax")
+            self.pax = self.figure.add_axes(
+                [left, bottom, width, height], label="pax")
 
             # colorbar axis
             bottom = self._layout_parameters['bottom']
             height = self._layout_parameters['hcolorbar']
-            self.cax = self.figure.add_axes([left, bottom, width, height], label="cax")
+            self.cax = self.figure.add_axes(
+                [left, bottom, width, height], label="cax")
 
         elif self.colorbar_orientation == 'vertical':
             # main plot axis
@@ -1065,7 +1116,8 @@ s
             wspace = self._layout_parameters['wspace']
             width = right - left - wspace - wcolorbar
             height = top - bottom
-            self.pax = self.figure.add_axes([left, bottom, width, height], label="pax")
+            self.pax = self.figure.add_axes(
+                [left, bottom, width, height], label="pax")
 
             # colorbar axis
             left = right - wcolorbar
@@ -1106,27 +1158,32 @@ s
             right = left + self._layout_parameters['wzonal']
             zwidth = right - left
 
-            height = self._layout_parameters['top'] - self._layout_parameters['bottom']
+            height = self._layout_parameters['top'] - \
+                self._layout_parameters['bottom']
             bottom = self._layout_parameters['bottom']
 
             rect = [left, bottom, zwidth, height]
             self.zax = self.figure.add_axes(rect, label="zax")
 
             # main plotting axis
-            left = self._layout_parameters['left'] + zwidth + self._layout_parameters['wspace']
-            right = self._layout_parameters['right'] - self._layout_parameters['wspace'] - self._layout_parameters['wcolorbar']
+            left = self._layout_parameters['left'] + \
+                zwidth + self._layout_parameters['wspace']
+            right = self._layout_parameters[
+                'right'] - self._layout_parameters['wspace'] - self._layout_parameters['wcolorbar']
             rect = [left, bottom, right - left, height]
             self.pax = self.figure.add_axes(rect, label="pax")
 
             # colorbar axis
-            left = self._layout_parameters['right'] - self._layout_parameters['wcolorbar']
+            left = self._layout_parameters['right'] - \
+                self._layout_parameters['wcolorbar']
             right = self._layout_parameters['right']
             rect = [left, bottom, right - left, height]
             self.cax = self.figure.add_axes(rect, label="cax")
 
         elif self.colorbar_orientation == 'horizontal':
             # colorbar axis
-            left = self._layout_parameters['left'] + self._layout_parameters['wzonal'] + self._layout_parameters['wspace']
+            left = self._layout_parameters[
+                'left'] + self._layout_parameters['wzonal'] + self._layout_parameters['wspace']
             right = self._layout_parameters['right']
             bottom = self._layout_parameters['bottom']
             height = self._layout_parameters['hcolorbar']
@@ -1134,16 +1191,19 @@ s
             self.cax = self.figure.add_axes(rect, label="cax")
 
             # main plotting axis
-            left = self._layout_parameters['left'] + self._layout_parameters['wzonal'] + self._layout_parameters['wspace']
+            left = self._layout_parameters[
+                'left'] + self._layout_parameters['wzonal'] + self._layout_parameters['wspace']
             right = self._layout_parameters['right']
-            bottom = self._layout_parameters['bottom'] + self._layout_parameters['hspace'] + self._layout_parameters['hcolorbar']
+            bottom = self._layout_parameters[
+                'bottom'] + self._layout_parameters['hspace'] + self._layout_parameters['hcolorbar']
             top = self._layout_parameters['top']
             rect = [left, bottom, right - left, top - bottom]
             self.pax = self.figure.add_axes(rect, label="pax")
 
             # zonal axis
             left = self._layout_parameters['left']
-            right = self._layout_parameters['left'] + self._layout_parameters['wzonal']
+            right = self._layout_parameters['left'] + \
+                self._layout_parameters['wzonal']
             rect = [left, bottom, right - left, top - bottom]
             self.zax = self.figure.add_axes(rect, label="zax")
 
@@ -1152,6 +1212,7 @@ s
 
 
 class MultipleMap(MapPlotGeneric):
+
     def __init__(self, geometry=None, **kwargs):
         """
         Parameters
@@ -1238,7 +1299,7 @@ def map_plot(x, use_basemap=False, show_zonal=False,
 
 
     # TODO
-    #arguments from original map plot which are not covered yet
+    # arguments from original map plot which are not covered yet
     #           ~  ax=None, , ,
      #~ ,
      #~ , regions_to_plot=None, logplot=False,

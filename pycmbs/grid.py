@@ -20,13 +20,13 @@ from matplotlib.collections import PatchCollection
 
 
 class Grid(object):
+
     """
     general class for spatial grids
     """
 
     def __init__(self, lat_rad, lon_rad, sphere_radius=None,
                  gridtype='regular'):
-
         """
         Parameters
         ----------
@@ -72,7 +72,8 @@ class Grid(object):
         raise ValueError('Calculation of cell area not implemented so far')
 
     def _delaunay_triangulation(self):
-        self.cens, self.edg, self.tri, self.neig = triang.delaunay(self.lon, self.lat)
+        self.cens, self.edg, self.tri, self.neig = triang.delaunay(
+            self.lon, self.lat)
         self._interpolated = True
 
     def plot(self, ax=None):
@@ -105,25 +106,25 @@ class Grid(object):
         lats = []
         for i in range(1, ny - 1):   # todo revise this calculation method!!!
             for j in range(1, nx - 1):
-                #half way to corner neighbors?
+                # half way to corner neighbors?
 
-                #upper left
+                # upper left
                 lons.append(self._lon0[i - 1, j - 1] + 0.5
                             * (self._lon0[i, j] - self._lon0[i - 1, j - 1]))
                 lats.append(self._lat0[i - 1, j - 1] + 0.5
                             * (self._lat0[i, j] - self._lat0[i - 1, j - 1]))
 
-                #lower right
+                # lower right
                 lons.append(self._lon0[i, j] + 0.5
                             * (self._lon0[i + 1, j + 1] - self._lon0[i, j]))
                 lats.append(self._lat0[i, j] + 0.5
                             * (self._lat0[i + 1, j + 1] - self._lat0[i, j]))
 
-                #lower left
-                #lons.append(self._lon0[i-1,j]+0.5
+                # lower left
+                # lons.append(self._lon0[i-1,j]+0.5
                 #*(self._lon0[i+1,j+1]-self._lon0[i,j]))
-                #add also current center coordinate for
-                #plotting vizualization
+                # add also current center coordinate for
+                # plotting vizualization
                 lons.append(self._lon0[i, j])
                 lats.append(self._lat0[i, j])
         lons = np.asarray(lons)
@@ -136,16 +137,16 @@ class Grid(object):
             fig = pl.figure()
             ax = fig.add_subplot(111)
 
-        #calculate half size position of each edge and
-        #do delaunay interpolation again. This
-        #gives then the Voronoi diagram
+        # calculate half size position of each edge and
+        # do delaunay interpolation again. This
+        # gives then the Voronoi diagram
         if not self._interpolated:
             self._delaunay_triangulation()
 
         lons = []
         lats = []
         for e in self.edg:
-            #half way position
+            # half way position
             plon = self.lon[e[0]] + 0.5 * (self.lon[e[1]] - self.lon[e[0]])
             plat = self.lat[e[0]] + 0.5 * (self.lat[e[1]] - self.lat[e[0]])
             lons.append(plon)

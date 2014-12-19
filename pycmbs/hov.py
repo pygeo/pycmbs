@@ -41,10 +41,13 @@ def agg_hourly(d, v, timestamp='mid', mode='mean'):
 
     import pandas as pa
     s = pa.Series(v, index=d)
-    #mean hourly values using pandas group function
+    # mean hourly values using pandas group function
     if mode == 'mean':
-        #r = s.groupby(lambda date: date.replace(second=0,microsecond=0,minute=0)).mean() #works only for most recent version of pandas
-        r = s.groupby(lambda date: date.replace(second=0, microsecond=0, minute=0)).agg(mean)
+        # r = s.groupby(lambda date:
+        # date.replace(second=0,microsecond=0,minute=0)).mean() #works only for
+        # most recent version of pandas
+        r = s.groupby(lambda date:
+                      date.replace(second=0, microsecond=0, minute=0)).agg(mean)
     else:
         sys.exit('agg_hourly - invalid mode: ' + mode)
 
@@ -67,7 +70,8 @@ def align(x, y):
     this is a hack as I dont know how to do it better at the moment
     """
 
-    t = x + y  # just add the two series and then substract the individuals again
+    # just add the two series and then substract the individuals again
+    t = x + y
 
     return t - y, t - x  # corresponds to x,y
 
@@ -92,6 +96,7 @@ def generate_monthly_timeseries(t, sday='01'):
 
 
 class hovmoeller:
+
     def __init__(self, time, value, var_unc=None, rescalex=1,
                  rescaley=1, lat=None, lon=None, transpose=False,
                  use_cdo=True):
@@ -179,7 +184,8 @@ class hovmoeller:
         if value is not None:
             self.value = value.copy()
             self.value = ma.array(self.value, mask=isnan(self.value))
-            self.value.shape = (ntim, -1)  # now reshape everything to [time,ngridcells]
+            # now reshape everything to [time,ngridcells]
+            self.value.shape = (ntim, -1)
 
         if var_unc is None:
             self.var_unc = None
@@ -256,7 +262,8 @@ class hovmoeller:
 
         if input is not None:
             if self.hov is not None:
-                raise ValueError('If precalculated dat is provided as input, the data MUST not be calculated already by the class!')
+                raise ValueError(
+                    'If precalculated dat is provided as input, the data MUST not be calculated already by the class!')
             else:
                 #////////////////////////////////////////////////
                 # HOVMOELLER PLOT FROM DATA OBJECT
@@ -281,14 +288,19 @@ class hovmoeller:
 
                 else:
                     f_invert = True
-                    #change sequence of data!
+                    # change sequence of data!
                     lats = lats[::-1]
 
                     if not np.all(np.diff(lats) >= 0):
-                        raise ValueError('Latitudes can not be put into ascending order!')
+                        raise ValueError(
+                            'Latitudes can not be put into ascending order!')
 
                 #/// monthly ticks ///
-                data_days = generate_monthly_timeseries(pl.date2num(input1.date))  # convert times to monthly; apply date conversions to ensure that generate_monthly_timeseries() can work following the python convention
+                # convert times to monthly; apply date conversions to ensure
+                # that generate_monthly_timeseries() can work following the
+                # python convention
+                data_days = generate_monthly_timeseries(
+                    pl.date2num(input1.date))
                 all_days = np.unique(data_days)
                 if showxticks:
                     self.generate_xticks(all_days, monthsamp=monthsamp)
@@ -297,8 +309,9 @@ class hovmoeller:
                 mlat = (lat_tick >= lats.min()) & (lat_tick <= lats.max())
                 lat_tick1 = lat_tick[mlat]
 
-                #interpolate the tick grid to the data grid
-                lat_pos = np.interp(lat_tick1, lats, np.arange(len(lats)))  # index positions
+                # interpolate the tick grid to the data grid
+                # index positions
+                lat_pos = np.interp(lat_tick1, lats, np.arange(len(lats)))
 
                 if f_invert:  # invert position back
                     #lat_tick = lat_tick[::-1]
@@ -347,18 +360,23 @@ class hovmoeller:
             self.fig = self.ax.figure
 
         if self.transpose:
-            arr = self.hov.repeat(self.rescalex, axis=0).repeat(self.rescaley, axis=1)
-            self.im = self.ax.imshow(arr.T, interpolation='Nearest', origin=origin, vmin=climits[0], vmax=climits[1], cmap=pyplot.get_cmap(cmap, nclasses))
+            arr = self.hov.repeat(self.rescalex, axis=0).repeat(
+                self.rescaley, axis=1)
+            self.im = self.ax.imshow(arr.T, interpolation='Nearest', origin=origin, vmin=climits[
+                                     0], vmax=climits[1], cmap=pyplot.get_cmap(cmap, nclasses))
         else:
-            #rescale array for visualization
-            arr = self.hov.repeat(self.rescaley, axis=0).repeat(self.rescalex, axis=1)
-            self.im = self.ax.imshow(arr, interpolation='Nearest', origin=origin, cmap=pyplot.get_cmap(cmap, nclasses), vmin=climits[0], vmax=climits[1])
+            # rescale array for visualization
+            arr = self.hov.repeat(self.rescaley, axis=0).repeat(
+                self.rescalex, axis=1)
+            self.im = self.ax.imshow(arr, interpolation='Nearest', origin=origin, cmap=pyplot.get_cmap(
+                cmap, nclasses), vmin=climits[0], vmax=climits[1])
 
             if (show_uncertainties) & (self.hov_var is not None):
-                arr1 = self.hov_var.repeat(self.rescaley, axis=0).repeat(self.rescalex, axis=1)
+                arr1 = self.hov_var.repeat(
+                    self.rescaley, axis=0).repeat(self.rescalex, axis=1)
 
                 if norm_uncertainties:
-                    #normalized by variance
+                    # normalized by variance
                     arr1 = arr / arr1
                 self.ax.contour(arr1, linestyles='-', colors='black')
 
@@ -384,7 +402,7 @@ class hovmoeller:
                 self.ax.xaxis.set_major_formatter(self.x_major_formatter)
 
         if showxticks:
-            #pl.xticks(rotation=xtickrotation)
+            # pl.xticks(rotation=xtickrotation)
             for t in self.ax.get_xticklabels():
                 t.set_rotation(xtickrotation)
         else:
@@ -402,9 +420,11 @@ class hovmoeller:
             if self.transpose:
                 self.fig.colorbar(self.im, orientation='vertical', shrink=0.5)
             else:
-                from plots import add_nice_legend  # only do import here, as it does not work otherwise (todo)
-                add_nice_legend(self.ax, self.im, pyplot.get_cmap(cmap, nclasses))
-                #self.fig.colorbar(self.im,orientation='horizontal',shrink=0.5,aspect=30)
+                # only do import here, as it does not work otherwise (todo)
+                from plots import add_nice_legend
+                add_nice_legend(self.ax, self.im,
+                                pyplot.get_cmap(cmap, nclasses))
+                # self.fig.colorbar(self.im,orientation='horizontal',shrink=0.5,aspect=30)
 
         #        cax = fig.add_axes([0.2, 0.05, 0.5, 0.03])
         #fig.colorbar(im[0], cax, orientation='horizontal')
@@ -447,7 +467,7 @@ class hovmoeller:
         value = self.value.copy()
         lat = self.lat.copy()
 
-        #remove all lats where all data is invalid
+        # remove all lats where all data is invalid
         npix = len(lat)
         if shape(value)[1] != npix:
             print 'Invalid geometry time_to_lat', npix, shape(value)
@@ -458,13 +478,13 @@ class hovmoeller:
             if all(value[:, i].mask):  # check if whole timeseries is masked
                 pixmsk[i] = 0.
 
-        #print pixmsk
+        # print pixmsk
         #/// generate latitudes by rounding
         lats = ((lat - 0.5 * dlat) / dlat).round() * dlat
         ulats = unique(lats[pixmsk == 1.])
         nlat = len(ulats)
         #~ print 'Number of lats: ', nlat
-        #print ulats
+        # print ulats
 
         d = self.time
         tnum = date2num(d)
@@ -476,7 +496,8 @@ class hovmoeller:
 
         if monthly:
             #/// monthly ///
-            data_days = generate_monthly_timeseries(tnum)  # convert times to monthly
+            # convert times to monthly
+            data_days = generate_monthly_timeseries(tnum)
             all_days = unique(data_days)
         else:
             #/// per days ///
@@ -489,24 +510,29 @@ class hovmoeller:
         #/// loop over all days
         tidx = arange(len(data_days))
         for i in range(len(all_days)):
-            m = data_days == all_days[i]  # multiple days possible if sub-day sampling!
+            # multiple days possible if sub-day sampling!
+            m = data_days == all_days[i]
             actidx = list(tidx[m])  # [0]
-            v = mean(value[actidx, :].copy(), axis=0)  # average all timestamps of same day
+            # average all timestamps of same day
+            v = mean(value[actidx, :].copy(), axis=0)
             thelats = lats.copy()
 
             #/// loop over all latitudes
             for j in range(len(ulats)):
-                ml = thelats == ulats[j]  # determine all pixels for a given lat ...
-                #print 'shape ml: ', shape(ml), shape(v)
+                # determine all pixels for a given lat ...
+                ml = thelats == ulats[j]
+                # print 'shape ml: ', shape(ml), shape(v)
                 if sum(ml) > 0:
                     v1 = v[ml]
                     v1 = v1[~isnan(v1)]  # only valid data
 
                     if hasattr(v1, 'mask'):
                         #~ print 'has mask v1'
-                        v1 = v1.data[~v1.mask]  # subset data only for valid data; important  to calculate approp. the mean value!
+                        # subset data only for valid data; important  to
+                        # calculate approp. the mean value!
+                        v1 = v1.data[~v1.mask]
 
-                    #print unique(v1), ulats[j]
+                    # print unique(v1), ulats[j]
                     if len(v1) > 0.:
                         outsum[j, i] += sum(v1)  # ... and average them
                         outn[j, i] += len(v1)
@@ -563,25 +589,33 @@ class hovmoeller:
 
         self.yearonly = yearonly
 
-        #1) generate hourly timeseries from original data and store it in a dataframe
+        # 1) generate hourly timeseries from original data and store it in a
+        # dataframe
         r = agg_hourly(self.time, self.value)
         df_data = pa1.DataFrame(r.values, index=r.index, columns=['data'])
 
         dmin = df_data.index.min()
         dmax = df_data.index.max()
-        t1 = str(dmin.month).zfill(2) + '/' + str(dmin.day).zfill(2) + '/' + str(dmin.year).zfill(4)
-        t2 = str(dmax.month).zfill(2) + '/' + str(dmax.day).zfill(2) + '/' + str(dmax.year).zfill(4)
+        t1 = str(dmin.month).zfill(2) + '/' + \
+            str(dmin.day).zfill(2) + '/' + str(dmin.year).zfill(4)
+        t2 = str(dmax.month).zfill(2) + '/' + \
+            str(dmax.day).zfill(2) + '/' + str(dmax.year).zfill(4)
 
         for i in range(24):
-            #2) generate a vector of days for a particular hour and store it in a dataframe
+            # 2) generate a vector of days for a particular hour and store it
+            # in a dataframe
             hr = str(i).zfill(2)
-            d_hours = pa1.DateRange(t1 + ' ' + hr + ':30:00+00:00', t2 + ' ' + hr + ':30:00+00:00', offset=pa1.datetools.Hour(n=24))
-            df_hours = pa1.DataFrame(rand(len(d_hours)) * nan, index=d_hours, columns=['nix'])  # reference data frame
+            d_hours = pa1.DateRange(t1 + ' ' + hr + ':30:00+00:00', t2 +
+                                    ' ' + hr + ':30:00+00:00', offset=pa1.datetools.Hour(n=24))
+            # reference data frame
+            df_hours = pa1.DataFrame(
+                rand(len(d_hours)) * nan, index=d_hours, columns=['nix'])
 
-            #3) merge the two dataframes: result is a tiemseries of the same length as the data, but only for the single hour
+            # 3) merge the two dataframes: result is a tiemseries of the same
+            # length as the data, but only for the single hour
             df_j = df_hours.join(df_data)
 
-            #4) store results for actual hour in output array
+            # 4) store results for actual hour in output array
             if arr is None:
                 ndays = len(df_j.values)
                 nhours = 24
@@ -666,7 +700,9 @@ class hovmoeller:
                 else:
                     out[t.hour, i] = out[t.hour, i] + v[j]
                     if f_var:
-                        outvar[t.hour, i] = outvar[t.hour, i] + vars[j]  # variance of the sum is sum of variances (assumed uncorrelated data)
+                        # variance of the sum is sum of variances (assumed
+                        # uncorrelated data)
+                        outvar[t.hour, i] = outvar[t.hour, i] + vars[j]
 
                     outsum[t.hour, i] += 1.
 
@@ -741,7 +777,8 @@ class hovmoeller:
 
         # /// remap to image coordinates
         ny, nx = np.shape(self.hov)
-        w = (xticks - pl.date2num(self.t_min)) / (pl.date2num(self.t_max) - pl.date2num(self.t_min))  # weights for positions on x-axis
+        w = (xticks - pl.date2num(self.t_min)) / (pl.date2num(self.t_max)
+                                                  - pl.date2num(self.t_min))  # weights for positions on x-axis
 
         xticks = w * nx * scal
         xticks = list(xticks)
@@ -758,13 +795,13 @@ class hovmoeller:
 
 
 
-## '''
-## This is a sample program hov to use the hovmoeller class
-## '''
+# '''
+# This is a sample program hov to use the hovmoeller class
+# '''
 #~
 #~ close('all')
 #~
-#~ #generate some time series with gaps
+# ~ #generate some time series with gaps
 #~ t=linspace(0,365*2.,365*2*24)
 #~ t[2000:5000]=nan
 #~ m=t-floor(t)>0.75
@@ -779,16 +816,16 @@ class hovmoeller:
 #~ v=y*0.1 * rand(len(y))
 #~
 #~
-#~ #/// adn plot is as a hovmoeller diagram ///
+# ~ #/// adn plot is as a hovmoeller diagram ///
 #~ hov = hovmoeller(d,y,rescaley=10,transpose=False,var=v)
-#~ #hov = hovmoeller(d,y,rescalex=10,transpose=True)
+# ~ #hov = hovmoeller(d,y,rescalex=10,transpose=True)
 #~
 #~
 #~
 #~
 #~
-#~ #hov.time_to_day_hour_fast()
-#~ #hov.plot(title='HI alex',ylabel='hour',xlabel='days',climits=(-1.,1.))
+# ~ #hov.time_to_day_hour_fast()
+# ~ #hov.plot(title='HI alex',ylabel='hour',xlabel='days',climits=(-1.,1.))
 #~
 #~ figure()
 #~
@@ -813,75 +850,75 @@ class hovmoeller:
 #~
 
 
-## #/// test for latitude hovmoeller diagram
-## #result should be a latitude plot
-## lat=rand(len(y))*90.-30.
+# /// test for latitude hovmoeller diagram
+# result should be a latitude plot
+# lat=rand(len(y))*90.-30.
 ## y1 = lat.copy()
 
 
 ## hov1 = hovmoeller(d,y1,rescaley=10,lat=lat)
-## hov1.time_to_lat(dlat=5.)
+# hov1.time_to_lat(dlat=5.)
 ## hov1.plot(title='HI alex',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,cmap='RdBu_r')
 
 ## hov2 = hovmoeller(d,y1,lat=lat,rescalex=20,transpose=True)
-## hov2.time_to_lat(dlat=5.,yticksampling=5)
+# hov2.time_to_lat(dlat=5.,yticksampling=5)
 ## hov2.plot(title='HI alex',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,cmap='RdBu_r')
 
 
 
 
-## hov.show()
-## hov1.show()
-## hov2.show()
+# hov.show()
+# hov1.show()
+# hov2.show()
 
 
-#test for 2D resampling
+# test for 2D resampling
 
-## close('all')
+# close('all')
 
-## filename='/media/Data/Data/ISCCP/sub.nc'
+# filename='/media/Data/Data/ISCCP/sub.nc'
 
 
-## dat = F.variables['ci'][:,:,:].copy() #read a 3D data set
+# dat = F.variables['ci'][:,:,:].copy() #read a 3D data set
 ## dummy = F.variables['ci']._FillValue
-## dat[dat==dummy]=nan
-## t=F.variables['time'][:]
-## #dat[dat==dummy]=nan
+# dat[dat==dummy]=nan
+# t=F.variables['time'][:]
+# dat[dat==dummy]=nan
 
-## nt,ny,nx=shape(dat)
-## #nt = 100
+# nt,ny,nx=shape(dat)
+# nt = 100
 
-## #dummy lat/lon
-## lats=arange(ny)*10.
-## lons=arange(nx)*100.
-## LONS,LATS=meshgrid(lons,lats)
+# dummy lat/lon
+# lats=arange(ny)*10.
+# lons=arange(nx)*100.
+# LONS,LATS=meshgrid(lons,lats)
 
-## #dummy data for testing
-## #dat=[]; thetime=zeros(nt)  #thetime=zeros((nt,ny,nx))
-## #for i in range(nt):
-## #    dat.append(LATS)
-## #    thetime[i]=t[i]
+# dummy data for testing
+# dat=[]; thetime=zeros(nt)  #thetime=zeros((nt,ny,nx))
+# for i in range(nt):
+# dat.append(LATS)
+# thetime[i]=t[i]
 
-## dat=dat[0:nt]
-## thetime=t[0:nt]
+# dat=dat[0:nt]
+# thetime=t[0:nt]
 
-## dat=asarray(dat) #data for different time steps
-## thetime=asarray(thetime)
+# dat=asarray(dat) #data for different time steps
+# thetime=asarray(thetime)
 
-## #thelons=LONS.flatten(); thelats=LATS.flatten()
-## #thetime=thetime.flatten()
+# thelons=LONS.flatten(); thelats=LATS.flatten()
+# thetime=thetime.flatten()
 
-## #thelons=thelons.repeat(nt)
-## #thelats=thelats.repeat(nt)
+# thelons=thelons.repeat(nt)
+# thelats=thelats.repeat(nt)
 
-## #dat=dat.flatten()
-## d=num2date(thetime)
+# dat=dat.flatten()
+# d=num2date(thetime)
 ## LONS,LATS = meshgrid(lons,lats)
 
 
 ## hov2 = hovmoeller(d,dat,lat=LATS,rescaley=10,rescalex=10)
-## hov2.time_to_lat(dlat=200.,yticksampling=1)
+# hov2.time_to_lat(dlat=200.,yticksampling=1)
 ## hov2.plot(title='HI alex',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30)
-## show()
+# show()
 
-## #map 2D field to vector for each time step
+# map 2D field to vector for each time step

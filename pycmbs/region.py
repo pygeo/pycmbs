@@ -10,11 +10,13 @@ import numpy as np
 
 
 class Region(object):
+
     """
     class to specify a Region in pyCMBS. A region defines either
     a rectangle in the data matrix or it can be defined by
     lat/lon coordinates
     """
+
     def __init__(self, x1, x2, y1, y2, label, type='index', mask=None):
         """
         constructor of class
@@ -37,7 +39,8 @@ class Region(object):
             mask that will be applied in addition to
             the coordinates/indices
         """
-        raise ValueError('This class is depreciated! Use classes RegionPolygon, RegionIndex, RegionLatLon instead!')
+        raise ValueError(
+            'This class is depreciated! Use classes RegionPolygon, RegionIndex, RegionLatLon instead!')
 
     def get_subset(self, x):
         """
@@ -58,6 +61,7 @@ class Region(object):
 
 
 class RegionGeneric(object):
+
     """
     Generic class to define regions
     """
@@ -102,7 +106,8 @@ class RegionGeneric(object):
         if self.lat is None:
             raise ValueError('ERROR: can not retrieve Bbox without latitudes!')
         if self.lon is None:
-            raise ValueError('ERROR: can not retrieve Bbox without longitudes!')
+            raise ValueError(
+                'ERROR: can not retrieve Bbox without longitudes!')
 
         l = [(min(self.lon), min(self.lat)), (min(self.lon), max(self.lat)),
              (max(self.lon), max(self.lat)), (max(self.lon), min(self.lat))]
@@ -110,6 +115,7 @@ class RegionGeneric(object):
 
 
 class RegionPolygon(RegionGeneric):
+
     def __init__(self, id, lon, lat, label=None):
         """
         define a region by a polygon
@@ -145,6 +151,7 @@ class RegionPolygon(RegionGeneric):
 
 
 class RegionShape(object):
+
     """
     This is a container that reads a shapefile and stores
     all shapes in that shapefile as individual regions
@@ -156,6 +163,7 @@ class RegionShape(object):
 
     https://code.google.com/p/pyshp/
     """
+
     def __init__(self, shp_file):
         """
         Parameters
@@ -186,6 +194,7 @@ class RegionShape(object):
 
 
 class RegionIndex(RegionGeneric):
+
     def __init__(self, id, x1, x2, y1, y2, label=None):
         self._check_bbox_validity(x1, x2, y1, y2)
         self.x1 = x1
@@ -197,10 +206,12 @@ class RegionIndex(RegionGeneric):
 
 
 class RegionBboxLatLon(RegionPolygon):
+
     """
     specify region through a Bounding box using
     lat/lon coordinates
     """
+
     def __init__(self, id, x1, x2, y1, y2, label=None):
         self._check_bbox_validity(x1, x2, y1, y2)
         self.latmin = y1
@@ -218,6 +229,7 @@ class RegionBboxLatLon(RegionPolygon):
 
 
 class RegionParser(object):
+
     """
     class to parse region definitions in differnt formats
     reads regions from files and provides them in a list of  Region
@@ -301,5 +313,6 @@ class RegionParser(object):
                 if tmp_id is None:
                     raise ValueError('ERROR: no ID specified!')
 
-                self.regions.update({section: RegionPolygon(tmp_id, tmp_lon, tmp_lat, label=section)})
+                self.regions.update(
+                    {section: RegionPolygon(tmp_id, tmp_lon, tmp_lat, label=section)})
                 del tmp_lon, tmp_lat, tmp_id

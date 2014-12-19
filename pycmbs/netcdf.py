@@ -14,6 +14,7 @@ valid_backends = ['netCDF4']
 
 
 class NetCDFHandler(object):
+
     def __init__(self, netcdf_backend='netCDF4'):
         """
         general NetCDF handler
@@ -72,7 +73,8 @@ class NetCDFHandler(object):
             if mode == 'r':
                 self.F = self.handler.Dataset(filename, mode=mode)
             elif mode == 'w':
-                self.F = self.handler.Dataset(filename, mode=mode, format=format)  # TODO check format
+                self.F = self.handler.Dataset(filename, mode=mode,
+                                              format=format)  # TODO check format
             self.create_dimension = self.F.createDimension
             self.create_variables = self.F.createVariable
         else:
@@ -256,9 +258,11 @@ class NetCDFHandler(object):
 
         if self.type.lower() == 'netcdf4':
             if fill_value is not None:
-                self.F.createVariable(varname, dtype, dimensions=dim, fill_value=fill_value, zlib=zlib, complevel=complevel)
+                self.F.createVariable(varname, dtype, dimensions=dim,
+                                      fill_value=fill_value, zlib=zlib, complevel=complevel)
             else:
-                self.F.createVariable(varname, dtype, dimensions=dim, zlib=zlib, complevel=complevel)
+                self.F.createVariable(
+                    varname, dtype, dimensions=dim, zlib=zlib, complevel=complevel)
         else:
             raise ValueError('Something went wrong!')
 

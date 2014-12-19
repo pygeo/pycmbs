@@ -21,9 +21,11 @@ import numpy as np
 
 
 class Anova1():
+
     """
     Analysis of variance class for one-way anova analyis
     """
+
     def __init__(self, x):
         """
 
@@ -100,6 +102,7 @@ class Anova1():
 
 
 class Anova2():
+
     def __init__(self, x):
         '''
         x [blocks,treatmens,nrens]
@@ -168,20 +171,24 @@ class Anova2():
         if not hasattr(self, 'ssi'):
             self._calc_ssi()
 
-        self.sst = self.ssa + self.sse + self.ssb + self.ssi  # eq. 9.19 in von Storch
+        self.sst = self.ssa + self.sse + self.ssb + \
+            self.ssi  # eq. 9.19 in von Storch
 
     def _calc_ssa(self):
-        self.ssa = self.n * self.J * sum((self.tmean - self.mean) ** 2)  # eq. 9.21 in von Storch
+        # eq. 9.21 in von Storch
+        self.ssa = self.n * self.J * sum((self.tmean - self.mean) ** 2)
 
     def _calc_ssb(self):
-        self.ssb = self.n * self.I * sum((self.bmean - self.mean) ** 2)  # eq. 9.22 in von Storch
+        # eq. 9.22 in von Storch
+        self.ssb = self.n * self.I * sum((self.bmean - self.mean) ** 2)
 
     def _calc_ssi(self):
         ensmean = self.x.mean(axis=2)  # mean over all replications [J,I]
         s = 0.
         for i in np.arange(self.I):  # eq.9.23
             for j in np.arange(self.J):
-                s += (ensmean[j, i] - self.tmean[i] - self.bmean[j] + self.mean) ** 2
+                s += (ensmean[j, i] - self.tmean[i]
+                      - self.bmean[j] + self.mean) ** 2
         self.ssi = self.n * s
 
     def _calc_sse(self):
@@ -217,9 +224,12 @@ class Anova2():
         self.f_ssb = mssb / msse
         self.f_ssi = mssi / msse
 
-        self.p_ssa = self.get_significance(self.f_ssa, self.df_ssa, self.df_sse)
-        self.p_ssb = self.get_significance(self.f_ssb, self.df_ssb, self.df_sse)
-        self.p_ssi = self.get_significance(self.f_ssi, self.df_ssi, self.df_sse)
+        self.p_ssa = self.get_significance(
+            self.f_ssa, self.df_ssa, self.df_sse)
+        self.p_ssb = self.get_significance(
+            self.f_ssb, self.df_ssb, self.df_sse)
+        self.p_ssi = self.get_significance(
+            self.f_ssi, self.df_ssi, self.df_sse)
 
     def print_results(self):
         print 'Source of variation', 'SS', 'df', 'F', 'p'
@@ -240,7 +250,8 @@ def __example_one_way():
     groups = [[48, 49, 50, 49],
               [47, 49, 48, 48],
               [49, 51, 50, 50]]
-    groups = np.asarray(groups).T  # transpose necessary, as reference routine works different
+    # transpose necessary, as reference routine works different
+    groups = np.asarray(groups).T
 
     A = Anova1(groups)
     A.one_way_anova()
@@ -253,7 +264,7 @@ def __example_one_way():
     print self.sst
 
 
-#http://adorio-research.org/wordpress/?p=11857
+# http://adorio-research.org/wordpress/?p=11857
 #~ groups = [
            #~ [[64, 72, 74],
             #~ [66, 81, 51],
@@ -306,7 +317,7 @@ def __example_one_way():
           #~ ]
 #~
 #~
-#~ #http://people.richland.edu/james/lecture/m170/ch13-2wy.html
+# ~ #http://people.richland.edu/james/lecture/m170/ch13-2wy.html
 #~ groups = [
           #~ [[106,95,94,103,100],
           #~ [110,98,100,108,105],
@@ -323,7 +334,7 @@ def __example_one_way():
 #~ ny,nx = np.shape(groups[0])
 #~ nr = len(groups)
 #~
-#~ trans = False #do transpose
+# ~ trans = False #do transpose
 #~
 #~ if trans:
     #~ g1=np.zeros((nx,ny,nr))*np.nan
