@@ -139,28 +139,10 @@ Assuming that you want to contribute to the development of the pyCMBS,
 follow the `instructions to create your fork <https://help.github.com/articles/fork-a-repo/>`_.
 All dependencies must have been installed and configured properly (check section Installation of dependencies above).
 To retrieve the code into your development environment execute the following command (replace your_user_name
-with the user name you registered with github):
+with the user name you registered with github)::
 
-<<<<<<< HEAD
-   # clone your fork
    git clone https://github.com/your_user_name/pycmbs.git
-=======
-It is recommended that you first fork the entire project on github to make your own sub-project.
-This will allow you also to make changes in the code and to contribute to the further development.
-The description below applies to both, forked projects as well as the main project branch.
 
-To retrieve the code do the following::
->>>>>>> upstream/master
-
-If everything went fine, you should have pycmbs directory.
-
-    # change to your wprking directory and compile cython extensions 
-    cd pycmbs 
-    sh compile_extensions.sh 
-
-<<<<<<< HEAD
-Now you need to set your PYTHONPATH and PATH environment variable. 
-Set the PYTHONPATH environment variable to the pycmbs root directory and also adapt you systempath (PATH) so that includes the pycmbs rootdirectory.
 =======
 *Compilation*
 
