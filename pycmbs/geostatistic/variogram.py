@@ -11,8 +11,10 @@ Variogram modelling
 """
 
 import numpy as np
+scipy_011 = False
 try:
-    from scipy.optimize import minimize
+    from scipy.optimize import minimize  # only avauilable for scipy > 0.11
+    scipy_011 = True
 except:
     print 'WARNING: could not import mimimize (requires scipy > 0.11), try alternative'
     from scipy import fmin as minimize  #http://stackoverflow.com/questions/11128070/cannot-import-minimize-in-scipy
@@ -60,8 +62,11 @@ class SphericalVariogram(Variogram):
 
         x0 = self._get_initial_parameters(sill=self._gamma.max(), range=self._h[np.argmax(self._gamma)])
 
-        res = minimize(self.cost, x0, method='nelder-mead',
+        if scipy_011:
+            res = minimize(self.cost, x0, method='nelder-mead',
                        options={'xtol': 1e-8, 'disp': True})
+        else:
+            res = minimize(self.cost, x0, xtol=1e-8)  # for scipy < 0.11
 
         self.model_parameters = {'sill': res.x[1], 'range': res.x[2], 'nugget': res.x[0], 'fit_success': res['success']}
 
