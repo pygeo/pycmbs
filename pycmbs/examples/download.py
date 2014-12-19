@@ -35,7 +35,7 @@ def get_example_directory():
 
 def get_example_data_directory():
     """ returns directory where the example data should be """
-    return get_example_directory() + os.sep + 'example_data'
+    return get_example_directory() + 'example_data' + os.sep
 
 def get_sample_file(name='air', return_object=True):
     """
@@ -68,6 +68,7 @@ def get_sample_file(name='air', return_object=True):
         url = files[name]['url']
         _download_file(url, tdir)
         if not os.path.exists(fname):
+            print fname
             raise ValueError('Download failed!')
 
     # ... here everything should be fine
