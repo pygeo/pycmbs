@@ -17,25 +17,28 @@ from nose.tools import assert_raises
 class TestData(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.ogr_test = False  #specify if test shall be performed at all
+
 
     def test_gdal(self):
-        try:
-            from osgeo import gdal
-            sucess = True
-        except:
-            sucess = False
+        if self.ogr_test:
+            try:
+                from osgeo import gdal
+                sucess = True
+            except:
+                sucess = False
 
-        self.assertTrue(sucess)
+            self.assertTrue(sucess)
 
     def test_ogr(self):
-        try:
-            from osgeo import ogr
-            sucess = True
-        except:
-            sucess = False
+        if self.ogr_test:
+            try:
+                from osgeo import ogr
+                sucess = True
+            except:
+                sucess = False
 
-        self.assertTrue(sucess)
+            self.assertTrue(sucess)
 
 if __name__ == '__main__':
     unittest.main()
