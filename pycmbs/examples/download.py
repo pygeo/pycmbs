@@ -28,6 +28,9 @@ def get_example_directory():
         # if no write access then
         r = tempfile.mkdtemp()
 
+    if r[-1] != os.sep:
+        r += os.sep
+
     return r
 
 def get_example_data_directory():
@@ -57,7 +60,7 @@ def get_sample_file(name='air', return_object=True):
     if name not in files.keys():
         raise ValueError('Invalid sample file')
 
-    fname = get_example_data_directory() + os.sep + files[name]['name']
+    fname = get_example_data_directory() + files[name]['name']
 
     # download data if not existing yet
     if not os.path.exists(fname):
