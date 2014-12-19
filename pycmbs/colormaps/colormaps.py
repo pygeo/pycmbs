@@ -7,6 +7,7 @@ COPYRIGHT.md
 
 import numpy as np
 
+
 def get_albedo_colortable():
     '''
     colors(*,i)=[0,     0, 050] & boundary[i]=0.000 & i=i+1
@@ -39,66 +40,67 @@ def get_albedo_colortable():
 
     which means for instance that the interval 0.18 - 0.20 is coded with the RGB value [139,123,0]. Missing values (255) are coded in white. If you multiply these intervals by 254 you have the equivalent intervals directly in the way the albedo product is coded.
     '''
-    ct=[[0,     0, 050],
-    [0,     0, 200],
-    [0,     0, 255],
-    [255,  24,   0],
-    [220,  40,   4],
-    [30,  70,   0],
-    [50,  100,  0],
-    [ 74, 134,   0],
-    [152, 186,   0],
-    [153, 147,   0],
-    [139, 123,   0],
-    [125,  99,   0],
-    [111,  75,   0],
-    [126,  91,  14],
-    [141, 108,  28],
-    [156, 125,  42],
-    [171, 142,  56],
-    [186, 159,  71],
-    [201, 176,  85],
-    [216, 193,  99],
-    [231, 210, 113],
-    [240, 220, 120],
-    [246, 225, 135],
-    [246, 235, 155],
-    [240, 240, 180],
-    [250, 250, 210],
-    [230, 253, 200]]
+    ct = [[0, 0, 050],
+          [0, 0, 200],
+          [0, 0, 255],
+          [255, 24, 0],
+          [220, 40, 4],
+          [30, 70, 0],
+          [50, 100, 0],
+          [74, 134, 0],
+          [152, 186, 0],
+          [153, 147, 0],
+          [139, 123, 0],
+          [125, 99, 0],
+          [111, 75, 0],
+          [126, 91, 14],
+          [141, 108, 28],
+          [156, 125, 42],
+          [171, 142, 56],
+          [186, 159, 71],
+          [201, 176, 85],
+          [216, 193, 99],
+          [231, 210, 113],
+          [240, 220, 120],
+          [246, 225, 135],
+          [246, 235, 155],
+          [240, 240, 180],
+          [250, 250, 210],
+          [230, 253, 200]]
 
-    ct=np.asarray(ct)
-    ct=ct/255.
+    ct = np.asarray(ct)
+    ct = ct / 255.
 
     # define  boundaries
-    lbounds=[0.000,
-    0.020,
-    0.040,
-    0.060,
-    0.080,
-    0.100,
-    0.120,
-    0.140,
-    0.160,
-    0.180,
-    0.200,
-    0.220,
-    0.240,
-    0.260,
-    0.280,
-    0.300,
-    0.325,
-    0.350,
-    0.375,
-    0.400,
-    0.450,
-    0.500,
-    0.550,
-    0.600,
-    0.650,
-    0.700,
-    0.750]
-    return lbounds,ct
+    lbounds = [0.000,
+               0.020,
+               0.040,
+               0.060,
+               0.080,
+               0.100,
+               0.120,
+               0.140,
+               0.160,
+               0.180,
+               0.200,
+               0.220,
+               0.240,
+               0.260,
+               0.280,
+               0.300,
+               0.325,
+               0.350,
+               0.375,
+               0.400,
+               0.450,
+               0.500,
+               0.550,
+               0.600,
+               0.650,
+               0.700,
+               0.750]
+    return lbounds, ct
+
 
 def get_albedo_colortable1():
     '''
@@ -132,67 +134,66 @@ def get_albedo_colortable1():
 
     which means for instance that the interval 0.18 - 0.20 is coded with the RGB value [139,123,0]. Missing values (255) are coded in white. If you multiply these intervals by 254 you have the equivalent intervals directly in the way the albedo product is coded.
     '''
-    ct=[[0,     0, 050],
-    [0,     0, 200],
-    [0,     0, 255],
-    [255,  24,   0],
-    [220,  40,   4],
-    [192,  65,   7],
-    [129,  25,  14],
-    [ 74, 134,   0],
-    [152, 186,   0],
-    [153, 147,   0],
-    [139, 123,   0],
-    [125,  99,   0],
-    [111,  75,   0],
-    [126,  91,  14],
-    [141, 108,  28],
-    [156, 125,  42],
-    [171, 142,  56],
-    [186, 159,  71],
-    [201, 176,  85],
-    [216, 193,  99],
-    [231, 210, 113],
-    [240, 220, 120],
-    [246, 225, 135],
-    [246, 235, 155],
-    [240, 240, 180],
-    [250, 250, 210],
-    [230, 253, 200]]
+    ct = [[0, 0, 050],
+          [0, 0, 200],
+          [0, 0, 255],
+          [255, 24, 0],
+          [220, 40, 4],
+          [192, 65, 7],
+          [129, 25, 14],
+          [74, 134, 0],
+          [152, 186, 0],
+          [153, 147, 0],
+          [139, 123, 0],
+          [125, 99, 0],
+          [111, 75, 0],
+          [126, 91, 14],
+          [141, 108, 28],
+          [156, 125, 42],
+          [171, 142, 56],
+          [186, 159, 71],
+          [201, 176, 85],
+          [216, 193, 99],
+          [231, 210, 113],
+          [240, 220, 120],
+          [246, 225, 135],
+          [246, 235, 155],
+          [240, 240, 180],
+          [250, 250, 210],
+          [230, 253, 200]]
 
-    ct=np.asarray(ct)
-    ct=ct/255.
+    ct = np.asarray(ct)
+    ct = ct / 255.
 
     # define  boundaries
-    lbounds=[0.000,
-    0.020,
-    0.040,
-    0.060,
-    0.080,
-    0.100,
-    0.120,
-    0.140,
-    0.160,
-    0.180,
-    0.200,
-    0.220,
-    0.240,
-    0.260,
-    0.280,
-    0.300,
-    0.325,
-    0.350,
-    0.375,
-    0.400,
-    0.450,
-    0.500,
-    0.550,
-    0.600,
-    0.650,
-    0.700,
-    0.750]
-    return lbounds,ct
-
+    lbounds = [0.000,
+               0.020,
+               0.040,
+               0.060,
+               0.080,
+               0.100,
+               0.120,
+               0.140,
+               0.160,
+               0.180,
+               0.200,
+               0.220,
+               0.240,
+               0.260,
+               0.280,
+               0.300,
+               0.325,
+               0.350,
+               0.375,
+               0.400,
+               0.450,
+               0.500,
+               0.550,
+               0.600,
+               0.650,
+               0.700,
+               0.750]
+    return lbounds, ct
 
 
 class ColorMapGenerator(object):
@@ -202,7 +203,6 @@ class ColorMapGenerator(object):
 
     def __init__(self):
         pass
-
 
     def albedo(self):
         lb, ct = get_albedo_colortable()
@@ -257,18 +257,13 @@ class ColorMapGenerator(object):
             R.append(rgb[i, 0])
             G.append(rgb[i, 1])
             B.append(rgb[i, 2])
-            x.append((lbound[i]-bmin) / (bmax-bmin))
+            x.append((lbound[i] - bmin) / (bmax - bmin))
         x = np.asarray(x)
 
         cmap_dict = {}
-        cmap_dict['red'] = [(x[i],R[i],R[i]) for i in range(len(R))]
-        cmap_dict['green'] = [(x[i],G[i],G[i]) for i in range(len(G))]
-        cmap_dict['blue'] = [(x[i],B[i],B[i]) for i in range(len(B))]
+        cmap_dict['red'] = [(x[i], R[i], R[i]) for i in range(len(R))]
+        cmap_dict['green'] = [(x[i], G[i], G[i]) for i in range(len(G))]
+        cmap_dict['blue'] = [(x[i], B[i], B[i]) for i in range(len(B))]
 
         cmap = LinearSegmentedColormap(name, cmap_dict)
         return cmap
-
-
-
-
-

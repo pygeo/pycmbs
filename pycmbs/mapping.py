@@ -296,22 +296,31 @@ class MapPlotGeneric(object):
         if proj_prop is None:
             raise ValueError('No projection properties are given! Please modify or choose a different backend!')
 
-        if proj_prop['projection'] in ['robin', 'TransverseMercator', 'mercator']:
+        if proj_prop['projection'] in ['robin', 'TransverseMercator', 'mercator', 'stereo']:
             pass
         else:
             raise ValueError('Unsupported projection type')
 
-        xm = self.x.timmean()
-        Z = xm
-        lon = self.x.lon
-        lat = self.x.lat
+        if hasattr(self.x, 'data'):
+            plot_data_field = True
+        else:
+            plot_data_field = False
 
-        if np.prod(lon.shape) == 0:  # no geometry
-            print 'ERROR: invalid shape for plotting!'
-            return
+
+        if plot_data_field:
+            xm = self.x.timmean()
+            Z = xm
+            lon = self.x.lon
+            lat = self.x.lat
+
+            if np.prod(lon.shape) == 0:  # no geometry
+                print 'ERROR: invalid shape for plotting!'
+                return
 
         if proj_prop['projection'] == 'robin':
             act_ccrs = ccrs.Robinson()
+        elif proj_prop['projection'] == 'stereo':
+            act_ccrs = ccrs.Stereographic(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
         elif proj_prop['projection'] == 'TransverseMercator':
             act_ccrs = ccrs.TransverseMercator(central_longitude=proj_prop.pop('central_longitude', 0.), central_latitude=proj_prop.pop('central_latitude', 0.))
         elif proj_prop['projection'] == 'mercator':
@@ -327,15 +336,16 @@ class MapPlotGeneric(object):
         self.pax = self._ax2geoax(self.pax, act_ccrs)
 
         # add cyclic coordinates if possible
-        if self.x._equal_lon():
-            try:
-                lon1, lat1, Z1 = self._add_cyclic_to_field(self.x._get_unique_lon(), lat, Z)
-            except:
-                lon1 = None
-            if lon1 is not None:
-                lon = lon1
-                lat = lat1
-                Z = Z1
+        if plot_data_field:
+            if self.x._equal_lon():
+                try:
+                    lon1, lat1, Z1 = self._add_cyclic_to_field(self.x._get_unique_lon(), lat, Z)
+                except:
+                    lon1 = None
+                if lon1 is not None:
+                    lon = lon1
+                    lat = lat1
+                    Z = Z1
 
         # plot and ancillary plots
         if 'extent' in proj_prop.keys():
@@ -346,20 +356,31 @@ class MapPlotGeneric(object):
                 xmax = proj_prop['extent']['xmax']
                 ymin = proj_prop['extent']['ymin']
                 ymax = proj_prop['extent']['ymax']
-
-                self.pax.set_extent([xmin, xmax, ymin, ymax])
+                try:
+                    self.pax.set_extent([xmin, xmax, ymin, ymax]) #, crs=act_ccrs)  # problem was fixed by explicitely setting CRS
+                    # NO! the problem can not be fixed by providing the CRS explicitely! this results in strange results for the final maps!
+                except:
+                    print 'ERROR in set_extent. This is a known problem for cartopy geoaxes (see documentation in set_extent routine). Can not be fixed here.'
+                    # try workaround
+                    try:
+                        self.pax.set_extent([xmin, xmax, ymin, ymax], crs=act_ccrs)  # problem might be fixed by explicitely setting CRS
+                        #CAUTION This can result however in weird plots!!! Caused problems in the past!
+                    except:
+                        print 'Workaround did also not work, try to continue without setting extent!'
         else:
             self.pax.set_global()  # ensure global plot
         self.pax.coastlines()
 
-        #~ print 'In mapping: Z.shape', Z.shape
-
-        try:
-            self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
-        except:
-            print '*** WARNING: something did not work with pcolormesh plotting in mapping.py'
+        if plot_data_field:
+            try:
+                self.im = self.pax.pcolormesh(lon, lat, Z, transform=ccrs.PlateCarree(), **kwargs)
+            except:
+                print '*** WARNING: something did not work with pcolormesh plotting in mapping.py'
+                self.im = None
+        else:
             self.im = None
-        self.pax.gridlines()  # draw_labels=kwargs.pop('draw_labels', True))
+
+        self.pax.gridlines()
 
         # plot polygons
         if self.polygons is not None:
@@ -427,6 +448,9 @@ class MapPlotGeneric(object):
                 p = p0['polygon']
             else:
                 p = p0
+
+            if p is None:
+                continue
 
             # convert lat/lon to map coordinates
             x, y = self._get_map_coordinates(p._xcoords(), p._ycoords(), plot_handler=plot_handler)
@@ -593,7 +617,6 @@ class MapPlotGeneric(object):
         if self.zax is not None:
             self._set_axis_invisible(self.zax, frame=True)
 
-        # do plotting
         self.im = self.pax.imshow(self.x.timmean(),
                                   interpolation='nearest', **kwargs)
 
@@ -882,23 +905,25 @@ s
             center longitude coordinate [deg]
         clat : float
             center latitude coordinate [deg]
+        radius : float
+            radius of circle [km]
         show_center : bool
             show center coordinates by a marker
         """
-
-        # update projection parameters
-        proj_prop = kwargs.pop('proj_prop', None)
-        proj_prop = {}
 
         xmin = clon - radius  # todo how to handle across dateline or near the poles
         xmax = clon + radius
         ymin = clat - radius
         ymax = clat + radius
 
-        proj_prop.update({'projection': 'TransverseMercator'})
-        proj_prop.update({'central_longitude': clon})
-        proj_prop.update({'central_latitude': clat})
-        proj_prop.update({'extent': {'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax}})
+        if 'proj_prop' in kwargs.keys():
+            proj_prop = kwargs.pop('proj_prop')
+        else:
+            proj_prop = {}
+            proj_prop.update({'projection': 'TransverseMercator'})
+            proj_prop.update({'central_longitude': clon})
+            proj_prop.update({'central_latitude': clat})
+            proj_prop.update({'extent': {'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax}})
 
         # generate Polygon to plot center location that gives a circle
         if show_center:
@@ -907,6 +932,8 @@ s
             x = clon + r * np.cos(theta)
             y = clat + r * np.sin(theta)
             P = Polygon(1, zip(x, y))
+        else:
+            P = None
 
         if 'polygons' in kwargs.keys():
             polygons = kwargs.pop('polygons')

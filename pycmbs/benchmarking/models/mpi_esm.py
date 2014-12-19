@@ -271,17 +271,16 @@ class JSBACH_RAW2(Model):
             #~ print 'Files: ', self._get_filenames_jsbach_stream()
             #~ stop
             if len(glob.glob(self._get_filenames_jsbach_stream())) > 0:  # check if input files existing at all
-                print 'Mering the following files:' , self._get_filenames_jsbach_stream()
+                print 'Mering the following files:', self._get_filenames_jsbach_stream()
                 cdo.mergetime(options='-f nc', output=tmp, input=self._get_filenames_jsbach_stream())
                 if os.path.exists(codetable):
                     cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
                 else:
-                    cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
+                    cdo.monmean(options='-f nc', output=outfile, input=tmp)  # monmean needed here, as otherwise interface does not work
                 print 'Outfile: ', outfile
                 #~ os.remove(tmp)
 
                 print 'Temporary name: ', tmp
-
 
         self.files.update({'jsbach': outfile})
 
@@ -298,7 +297,7 @@ class JSBACH_RAW2(Model):
                 if os.path.exists(codetable):
                     cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
                 else:
-                    cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
+                    cdo.monmean(options='-f nc', output=outfile, input=tmp)  # monmean needed here, as otherwise interface does not work
                 os.remove(tmp)
         self.files.update({'veg': outfile})
 
@@ -315,7 +314,7 @@ class JSBACH_RAW2(Model):
                 if os.path.exists(codetable):
                     cdo.monmean(options='-f nc', output=outfile, input='-setpartab,' + codetable + ' ' + tmp)  # monmean needed here, as otherwise interface does not work
                 else:
-                    cdo.monmean(options='-f nc', output=outfile, input = tmp)  # monmean needed here, as otherwise interface does not work
+                    cdo.monmean(options='-f nc', output=outfile, input=tmp)  # monmean needed here, as otherwise interface does not work
                 os.remove(tmp)
         self.files.update({'land': outfile})
 
@@ -488,7 +487,6 @@ class JSBACH_RAW2(Model):
         varname = locdict.pop('variable')
         units = locdict.pop('unit', 'Unit not specified')
 
-
         lat_name = locdict.pop('lat_name', 'lat')
         lon_name = locdict.pop('lon_name', 'lon')
         #model_suffix = locdict.pop('model_suffix')
@@ -632,7 +630,8 @@ class JSBACH_SPECIAL(JSBACH_RAW2):
     def __init__(self, filename, dic_variables, experiment, name='', shift_lon=False, model_dict=None, input_format='nc', raw_outdata='', **kwargs):
         super(JSBACH_SPECIAL, self).__init__(filename, dic_variables, experiment, name=name, shift_lon=shift_lon, model_dict=model_dict, input_format=input_format, raw_outdata=raw_outdata, **kwargs)
 
-class JSBACH_RAW(Model):
+
+class xxxxxxxxJSBACH_RAW(Model):
     """
     Class for RAW JSBACH model output
     works on manually preprocessed already concatenated data

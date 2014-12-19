@@ -12,6 +12,7 @@ import os
 This module contains generic utility functions
 """
 
+
 def get_month_string(m, numeric=False):
     """
     get month as string
@@ -20,18 +21,18 @@ def get_month_string(m, numeric=False):
         return str(m).zfill(2)
 
     d = {}
-    d.update({1 : 'JAN'})
-    d.update({2 : 'FEB'})
-    d.update({3 : 'MAR'})
-    d.update({4 : 'APR'})
-    d.update({5 : 'MAY'})
-    d.update({6 : 'JUN'})
-    d.update({7 : 'JUL'})
-    d.update({8 : 'AUG'})
-    d.update({9 : 'SEP'})
-    d.update({10 : 'OCT'})
-    d.update({11 : 'NOV'})
-    d.update({12 : 'DEC'})
+    d.update({1: 'JAN'})
+    d.update({2: 'FEB'})
+    d.update({3: 'MAR'})
+    d.update({4: 'APR'})
+    d.update({5: 'MAY'})
+    d.update({6: 'JUN'})
+    d.update({7: 'JUL'})
+    d.update({8: 'AUG'})
+    d.update({9: 'SEP'})
+    d.update({10: 'OCT'})
+    d.update({11: 'NOV'})
+    d.update({12: 'DEC'})
 
     return d[m]
 

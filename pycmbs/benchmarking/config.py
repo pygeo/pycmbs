@@ -91,7 +91,6 @@ class ConfigFile(object):
         else:
             raise ValueError('report format missing in configuration file!')
 
-
         l = self.f.readline().replace('\n', '')
         if 'AUTHOR=' in l.upper():
             s = l[7:]
@@ -249,11 +248,11 @@ class ConfigFile(object):
         if 'albedo' in self.variables:
             if 'sis' not in self.variables:
                 self.variables.append('sis')
-            self.intervals.update({'sis' : self.intervals['albedo']})
+            self.intervals.update({'sis': self.intervals['albedo']})
 
             if 'surface_upward_flux' not in self.variables:
                 self.variables.append('surface_upward_flux')
-            self.intervals.update({'surface_upward_flux' : self.intervals['albedo']})
+            self.intervals.update({'surface_upward_flux': self.intervals['albedo']})
 
         sys.stdout.write(" *** Done reading config file. \n")
 
@@ -800,7 +799,8 @@ class CFGWriter(object):
                           'albedo_nir', 'surface_upward_flux', 'tree',
                           'temperature', 'rain', 'evap', 'hair', 'wind',
                           'twpa', 'wvpa', 'late', 'budg',
-                          'phenology_faPAR', 'gpp']
+                          'gpp']
+        # 'phenology_faPAR'
 
         if format.lower() not in ['pdf', 'png']:
             raise ValueError('Invalid output format for report: %s' % format)

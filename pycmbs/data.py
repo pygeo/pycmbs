@@ -1194,6 +1194,9 @@ class Data(object):
         else:
             self.lon = None
 
+        if self.lat is None:
+            print('*** WARNING!!! No coordinates available!')
+
         # read time
         if self.time_var is not None:
             # returns either None or a masked array
@@ -1238,14 +1241,19 @@ class Data(object):
 
         # calculate climatology from ORIGINAL (full dataset)
         if hasattr(self, 'time_cycle'):
-            self._climatology_raw = self.get_climatology()
+            if self.time is not None:
+                self._climatology_raw = self.get_climatology()
 
         # perform temporal subsetting
         if self.time is not None:
-            #- now perform temporal subsetting
-            # BEFORE the conversion to the right time is required!
-            m1, m2 = self._get_time_indices(start_time, stop_time)
-            self._temporal_subsetting(m1, m2)
+
+            # no temporal subsetting for 2D data! --> results in invalid results!
+            if self.ndim == 3:
+                #- now perform temporal subsetting
+                # BEFORE the conversion to the right time is required!
+                m1, m2 = self._get_time_indices(start_time, stop_time)
+                self._temporal_subsetting(m1, m2)
+
 
         # calculate time_cycle automatically if not set already.
         if self.time is not None:
@@ -2000,7 +2008,7 @@ class Data(object):
         > Let us assume you have a data object D and we assign some sample data to it and generate a mask with a few pixels
         > D.data = pl.randn(100,3,1) #some sample data
         > msk = np.asarray([[1,1,3],]).T #(3,1) mask
-        > res = D.condstat(msk) #calculate conditional statistics
+        > res = D.condstat(msk)  # calculate conditional statistics
         > This returns a dictionary with the following keys ['max', 'sum', 'min', 'id', 'mean']
 
         """
@@ -2010,7 +2018,6 @@ class Data(object):
         else:
             m = M
 
-        #--- checks ---
         if self.data.ndim == 2:
             if self.data.shape != m.shape:
                 print self.shape
@@ -2024,7 +2031,7 @@ class Data(object):
         else:
             raise ValueError('Unsupported Data geometry!')
 
-        # calculate conditional statistics ---
+        # calculate conditional statistics
         vals = np.unique(m).astype(int)
         if isinstance(vals, np.ma.core.MaskedArray):
             # for masked arrays the unique() returns also a placeholder
@@ -3018,8 +3025,6 @@ class Data(object):
         else:
             return y
 
-#-----------------------------------------------------------------------
-
     def _get_weighting_matrix(self):
         """
         get matrix for area weighting of grid cells. For each timestep
@@ -3703,11 +3708,13 @@ class Data(object):
             else:
                 return msk
         elif self.data.ndim == 2:
+            res = np.ones(self.data.shape).astype('bool')  # keeps original data mask
+            res[self.data.mask] = False
             if return_frac:
                 thefrac = np.ones(self.data.shape)
-                return np.ones(self.data.shape).astype('bool'), thefrac
+                return res, thefrac
             else:
-                return np.ones(self.data.shape).astype('bool')
+                return res
         elif self.data.ndim == 3:
             n = len(self.data)  # number of timesteps
             hlp = self.data.copy()
@@ -5216,3 +5223,29 @@ class Data(object):
                 return A, B, R, PV
             else:
                 return A, B
+
+
+
+    def get_area(self, valid=True, frac=1.):
+        """
+        calculate area
+
+        Parameters
+        ----------
+        valid : bool
+            return area for valid pixels only; if false, the area from
+            all grid cells is returned
+        frac : float
+            in case that temporal varying data is used, this parameter
+            can define the fraction of timesteps that need to be
+            valid to define a cell as valid
+        """
+        assert hasattr(self, 'cell_area')
+
+        if valid:
+            return self.cell_area[self.get_valid_mask(frac=frac)].sum()
+        else:
+            assert type(self.cell_area) == np.ndarray, 'Only numpy arrays for cell_area supported at the moment for this function'
+            return self.cell_area.sum()
+
+

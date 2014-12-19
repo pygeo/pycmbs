@@ -8,6 +8,7 @@ COPYRIGHT.md
 
 import numpy as np
 
+
 def lomb_scargle_periodogram(t, p, y, corr=True):
     """
     calculate the Lomb-Scargle periodogram
@@ -52,7 +53,7 @@ def lomb_scargle_periodogram(t, p, y, corr=True):
     from scipy import stats
 
     def func(x, A, B):
-        return A*np.cos(x + B)
+        return A * np.cos(x + B)
 
     resA = np.ones(len(p))
     resB = np.ones(len(p))
@@ -60,15 +61,15 @@ def lomb_scargle_periodogram(t, p, y, corr=True):
     resP = np.ones(len(p))
 
     cnt = 0
-    hlp = 2.*np.pi*t
+    hlp = 2. * np.pi * t
 
     for period in p:
-        popt, pcov = optimize.curve_fit(func, hlp/period, y, p0=[1., 0.])   # f=2*pi*t/period
+        popt, pcov = optimize.curve_fit(func, hlp / period, y, p0=[1., 0.])   # f=2*pi*t/period
         resA[cnt] = popt[0]
         resB[cnt] = popt[1]
         if corr:
-            ymod = func(hlp/period, resA[cnt], resB[cnt])
-            ymod = np.ma.array(ymod, mask=ymod!=ymod)
+            ymod = func(hlp / period, resA[cnt], resB[cnt])
+            ymod = np.ma.array(ymod, mask=ymod != ymod)
 
             import pickle
             pickle.dump({'y': y, 'ymod': ymod}, open('y.pkl', 'w'))

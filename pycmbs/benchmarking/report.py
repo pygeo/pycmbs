@@ -185,7 +185,7 @@ class Report(object):
         self.write('   \includegraphics[width=' + width + ', height=' + height + ']{'
                    + figname + '} ')
         if len(caption) > 0:
-            self.write('   \caption{' + caption.replace('_', '-').replace('#','-') + '}')
+            self.write('   \caption{' + caption.replace('_', '-').replace('#', '-') + '}')
             self.write('   \label{fig:' + str(self.figure_counter) + '}')
         self.write('\\end{figure}')
         self._write_separator()
@@ -284,7 +284,7 @@ class Report(object):
 
     def close_table(self, caption='Put a figure caption here'):
         """ closes a table """
-        self.write('    \caption{' + caption.replace('_', '-').replace('#','-') + '}')
+        self.write('    \caption{' + caption.replace('_', '-').replace('#', '-') + '}')
         self.write('\end{table}')
 
     def input(self, filename):

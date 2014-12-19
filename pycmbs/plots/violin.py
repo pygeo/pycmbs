@@ -67,14 +67,15 @@ class ViolinPlot(object):
         routine to check internal consistency
         """
         if self.data is not None:
-            if len(self.labels) != len(self.data):
-                print len(self.labels)
-                print self.labels
-                print len(self.data)
-                raise ValueError('Invalid geometry of labels and data!')
-        if self.data2 is not None:
-            if len(self.data) != len(self.data2):
-                raise ValueError('Data arrays need to have same geometry')
+            if self.data2 is None:
+                if len(self.labels) != len(self.data):
+                    print len(self.labels)
+                    print self.labels
+                    print len(self.data)
+                    raise ValueError('Invalid geometry of labels and data!')
+        #~ if self.data2 is not None:
+            #~ if len(self.data) != len(self.data2):
+                #~ raise ValueError('Data arrays need to have same geometry')
 
     def plot(self, alpha=0.3, classic=False):
         """
@@ -111,15 +112,16 @@ class ViolinPlot(object):
         """
         from scipy.stats import gaussian_kde
 
-        if len(data) == 0:
+        if len(data) < 2:
             return None
         amplitude = kwargs.pop('amplitude', 0.33)
         x = np.linspace(min(data), max(data), 101)
+
         v = gaussian_kde(data).evaluate(x)
-        v = v/v.max()*amplitude * (1 if left else -1)
+        v = v / v.max() * amplitude * (1 if left else -1)
         kwargs.setdefault('facecolor', 'r')
         kwargs.setdefault('alpha', 0.33)
-        return self.ax.fill_betweenx(x, pos, pos+v, **kwargs)
+        return self.ax.fill_betweenx(x, pos, pos + v, **kwargs)
 
     def _plot_two_sided(self, color1='b', color2='b'):
         """
@@ -133,32 +135,58 @@ class ViolinPlot(object):
         color2 : str
             color for right plot
         """
-        positions = self._get_positions()
+
         data2 = self.data2 if self.data2 is not None else self.data
-        labels = self.labels if self.labels is not None else positions
+
+        if self.labels is not None:
+            labels = self.labels
+            positions = range(len(labels))
+        else:
+            positions = self._get_positions()
+            labels = positions
+        self.labels = labels
+
         for pos, key in zip(positions, labels):
-            try:
+            #~ print type(self.data)
+            #~ print type(data2)
+            #~ print data2.keys()
+
+            if isinstance(self.data, dict):
+                if key in self.data.keys():
+                    d1 = self.data[key]
+                else:
+                    d1 = None
+            else:
+                d1 = self.data[pos]
+            if isinstance(data2, dict):
                 # in case that data is a dict
-                d1, d2 = self.data[key], data2[key]
-            except TypeError:
-                d1, d2 = self.data[pos], data2[pos]
+                if key in data2.keys():
+                    d2 = data2[key]
+                else:
+                    d2 = None
+            else:
+                d2 = data2[pos]
+
             if self.data is not data2:
                 color2 = 'r'
 
             # generate plot
-            self._plot_half_violin(d1, pos, left=False, facecolor=color1)
-            self._plot_half_violin(d2, pos, left=True, facecolor=color2)
+            if d1 is not None:
+                self._plot_half_violin(d1, pos, left=False, facecolor=color1)
+            if d2 is not None:
+                self._plot_half_violin(d2, pos, left=True, facecolor=color2)
 
             # division line between the two half
-            if len(d1)>0 & len(d2)>0:
-                self.ax.plot([pos]*2, [min(min(d1), min(d2)),
-                            max(max(d1), max(d2))], '-', color='grey')
+            if (d1 is not None) and (d2 is not None):
+                if len(d1) > 0 & len(d2) > 0:
+                    self.ax.plot([pos] * 2, [min(min(d1), min(d2)),
+                                             max(max(d1), max(d2))], '-', color='grey')
 
     def _set_xticks(self, rotation=30.):
         """
         set ticklabels
         """
-        self.ax.set_xticks(self._get_positions())
+        self.ax.set_xticks(range(len(self.labels)))
         self.ax.set_xticklabels(self.labels, rotation=rotation)
 
     def _get_positions(self):
@@ -179,18 +207,18 @@ class ViolinPlot(object):
         """
         from scipy.stats import gaussian_kde
         pos = self._get_positions()
-        dist = max(pos)-min(pos)
-        w = min(0.15*max(dist, 1.0), 0.5)
+        dist = max(pos) - min(pos)
+        w = min(0.15 * max(dist, 1.0), 0.5)
         for d, p in zip(self.data, pos):
-            if not np.all(d==0.):  # avoid singular matrices
+            if not np.all(d == 0.):  # avoid singular matrices
                 k = gaussian_kde(d)  # calculates the kernel density
                 m = k.dataset.min()  # lower bound of violin
                 M = k.dataset.max()  # upper bound of violin
-                x = np.arange(m, M, (M-m)/100.)  # support for violin
+                x = np.arange(m, M, (M - m) / 100.)  # support for violin
                 v = k.evaluate(x)  # violin profile (density curve)
-                v = v/v.max()*w  # scaling the violin to the available space
-                self.ax.fill_betweenx(x, p, v+p, facecolor='y', alpha=alpha)
-                self.ax.fill_betweenx(x, p, -v+p, facecolor='y', alpha=alpha)
+                v = v / v.max() * w  # scaling the violin to the available space
+                self.ax.fill_betweenx(x, p, v + p, facecolor='y', alpha=alpha)
+                self.ax.fill_betweenx(x, p, -v + p, facecolor='y', alpha=alpha)
         if self.boxplot:
             self.ax.boxplot(self.data, notch=1, positions=pos,
                             vert=True, sym='')
@@ -225,8 +253,8 @@ class ViolinPlotBins(ViolinPlot):
         if 'labels' in kwargs.keys():
             raise ValueError('ERROR: labels can not be provided for this class!')
         super(ViolinPlotBins, self).__init__(self._remap_data(data),
-              self._remap_data(data2), labels=self._remap_labels(),
-              **kwargs)
+                                             self._remap_data(data2), labels=self._remap_labels(),
+                                             **kwargs)
 
     def _remap_labels(self):
         """
@@ -256,11 +284,11 @@ class ViolinPlotBins(ViolinPlot):
         x = x.flatten()
         print x.min(), x.max()
         data = []  # TODO this is slow how to do better?
-        for i in xrange(len(self.bins)-1):
+        for i in xrange(len(self.bins) - 1):
             lb = self.bins[i]
-            ub = self.bins[i+1]
-            data.append(x[(x>=lb) & (x<ub)])
-        data.append(x[(x>=ub)])
+            ub = self.bins[i + 1]
+            data.append(x[(x >= lb) & (x < ub)])
+        data.append(x[(x >= ub)])
         return data
 
     def _check_bins(self):
@@ -268,10 +296,6 @@ class ViolinPlotBins(ViolinPlot):
             raise ValueError('ERROR: bins need to be provided!')
         if np.any(np.diff(self.bins) <= 0.):
             raise ValueError('ERROR: bins are not in ascending order!')
-
-
-
-
 
 
 def _classic_example():
@@ -295,9 +319,9 @@ def _classic_example():
     V2.plot()
 
     # example with binned data
-    data = np.random.random((10,20,30))*6.-3.
-    data2 = np.random.random((40,50,60))*6.-3.
-    VB = ViolinPlotBins(data, data2=data2, bins=np.linspace(-3.,3.,11))
+    data = np.random.random((10, 20, 30)) * 6. - 3.
+    data2 = np.random.random((40, 50, 60)) * 6. - 3.
+    VB = ViolinPlotBins(data, data2=data2, bins=np.linspace(-3., 3., 11))
     VB.plot()
 
     plt.show()

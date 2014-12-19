@@ -6,10 +6,13 @@ COPYRIGHT.md
 """
 
 from pycmbs.icon import Icon
-from pycmbs.plots import map_plot
+from pycmbs.mapping import map_plot
 import matplotlib.pyplot as plt
 
 plt.close('all')
+
+##### PLEASE NOTE THAT THIS EXAMPLE IS CURRENTLY LIMITED USERS WITH ACCESS TO SPECIFIC DATA
+
 
 #//// read data ////
 gridfile ='../..//example_data/icon/r2b4_amip.nc'

@@ -4,7 +4,7 @@ Installation
 Below we describe how you properly install pyCMBS in your environment.
 Currently, there are three different ways to install pyCMBS
 
- 1. Easy installation using *pip* (note: not checked for a while be careful!)
+ 1. NOT RECOMMENDED AT THE MOMENT Easy installation using *pip* (note: not checked for a while be careful!)
  2. Source code installation from code repository (currently recommended)
  3. Source code installation from tarball
 
@@ -29,11 +29,13 @@ required for using pyCMBS sucessfully.
 *Core python packages [obligatory]*
 
 - python 2.7.x
-- `matplotlib v1.3.x <http://matplotlib.org/>`_
+- `matplotlib >v1.3.x <http://matplotlib.org/>`_
 - `numpy <http://www.numpy.org/>`_
-- `scipy <http://www.scipy.org/>`_
+- `scipy >0.11 <http://www.scipy.org/>`_
 
 Note that you should really ensure that your matplotlib installation is greater than version 1.3, as otherwise some features will not work. Standard packages like e.g. shipped as standard with Ubuntu have smaller version numbers (e.g. v1.1.1).
+
+Compatability with python 3.x is not supported yet
 
 *Obligatory additional dependencies*
 
@@ -84,6 +86,9 @@ In the following, we will summarize the different approaches to install pyCMBS.
 
 Installation using *pip* (the easiest way ... theoretically)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NOT RECOMMENDED AT THE MOMENT AS NOT TESTED!!!
+USE INSTALLATION FROM GITHIB REPOSITORY INSTEAD!!!
 
 Using `pip <https://pypi.python.org/pypi/pip>`_ is in general the easiest way to install pyCMBS if you dont want to develop by your own.
 
@@ -136,8 +141,16 @@ All dependencies must have been installed and configured properly (check section
 To retrieve the code into your development environment execute the following command (replace your_user_name
 with the user name you registered with github):
 
+<<<<<<< HEAD
    # clone your fork
    git clone https://github.com/your_user_name/pycmbs.git
+=======
+It is recommended that you first fork the entire project on github to make your own sub-project.
+This will allow you also to make changes in the code and to contribute to the further development.
+The description below applies to both, forked projects as well as the main project branch.
+
+To retrieve the code do the following::
+>>>>>>> upstream/master
 
 If everything went fine, you should have pycmbs directory.
 
@@ -145,8 +158,30 @@ If everything went fine, you should have pycmbs directory.
     cd pycmbs 
     sh compile_extensions.sh 
 
+<<<<<<< HEAD
 Now you need to set your PYTHONPATH and PATH environment variable. 
 Set the PYTHONPATH environment variable to the pycmbs root directory and also adapt you systempath (PATH) so that includes the pycmbs rootdirectory.
+=======
+*Compilation*
+
+Some sub-modules are written in cython to speed up processing. These modules need to be compiled prior to the final installation. This is done by just executing the following command::
+
+    # compile cython code
+    sh compile_extensions.py
+
+*Final installation*
+
+Now you have in principle two options. You either decide that the code should be installed in the python dist-packages directory, then you do::
+
+    # do installation
+    python setup.py install
+
+or if you want to hack the code, it is highly recommended to simply set the right PYTHONPATH environment variable::
+
+    # or as an alternative for developers, just set the PYTHONPATH
+    # environment variable to the pycmbs root directory and also adapt
+    # you systempath (PATH) such that includes the pycmbs rootdirectory
+>>>>>>> upstream/master
 
 Check successful installation, like described below_.
 

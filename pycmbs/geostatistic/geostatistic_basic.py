@@ -12,6 +12,7 @@ from variogram import SphericalVariogram
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 class Geostatistic(object):
     def __init__(self, x, lags=None, maxdist=None):
         """
@@ -21,7 +22,7 @@ class Geostatistic(object):
         ----------
         x : Data
             data to be analyzed
-        range_bins : list
+        lags : list
             list of bins to perform analysis
         maxdist : float
             maximum distance for analyis [km]
@@ -34,10 +35,8 @@ class Geostatistic(object):
         self._check()
         self.statistic = {}
 
-
         self.maxdist = maxdist
-        self._distfiltered=False
-
+        self._distfiltered = False
 
     def _filter_data_maxdist(self):
         """
@@ -65,13 +64,12 @@ class Geostatistic(object):
 
         # ensure qual binning  of lags
         di = np.diff(self.lags)
-        if np.any(np.abs(di-di[0])>1.E-10):
+        if np.any(np.abs(di - di[0]) > 1.E-10):
             print di
             print di[0]
             raise ValueError('Only equal bins currently supported"')
         if np.any(np.diff(self.lags) < 0.):
             raise ValueError('Bins are not in ascending order!')
-
 
         if self.x.data.ndim != 2:
             raise ValueError('Currently only support for 2D data')
@@ -132,6 +130,11 @@ class Geostatistic(object):
         # plot fitted semivariogram if desired
         if fit_variogram:
             param = V.fit(r, sigma)
+            if False:
+                print r
+                print sigma
+                print 'Parameters: ', param
+                print param['fit_success']
             V.plot(V._h, V._gamma, ax=ax)  # plots experimental variogram and fitted model
         else:
             if logy:
@@ -146,7 +149,7 @@ class Geostatistic(object):
 
         if ref_lags is not None:
             for d in ref_lags:
-                ax.plot([d,d],ax.get_ylim(), color='grey')
+                ax.plot([d, d], ax.get_ylim(), color='grey')
 
         return ax
 
@@ -177,7 +180,7 @@ class Geostatistic(object):
         ax.legend(loc='upper left', prop={'size': 10}, ncol=3)
         if ref_lags is not None:
             for d in ref_lags:
-                ax.plot([d,d],ax.get_ylim(), color='grey')
+                ax.plot([d, d], ax.get_ylim(), color='grey')
 
         return ax
 
@@ -251,8 +254,9 @@ class Geostatistic(object):
             V = SphericalVariogram()
         else:
             raise ValueError('Invalid variogram type')
-        dlag = self.lags[1]-self.lags[0]  # assume equal lag binning
-        r, v = V.semivariogram(data, lon, lat, self.lags, dlag)
+        dlag = self.lags[1] - self.lags[0]  # assume equal lag binning
+
+        r, v = V.semivariogram(data.astype('float'), lon.astype('float'), lat.astype('float'), self.lags.astype('float'), dlag)
 
         # store results
         o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
@@ -324,8 +328,15 @@ class Geostatistic(object):
             if oversampling_factor < 1.:
                 raise ValueError('Oversampling factor needs to be > 1!')
             refobj = self.x.copy()
-            ny = int(refobj.ny*oversampling_factor)
-            nx = int(refobj.nx*oversampling_factor)
+
+            assert isinstance(refobj.lon, np.ma.core.MaskedArray), 'ERROR: longitudes are expected to be masked arrays!'
+            ny = int(refobj.ny * oversampling_factor)
+            nx = int(refobj.nx * oversampling_factor)
+
+            # in case that no valid coordinates available, no analysis will be made
+            if np.sum(~refobj.lon.mask) < 1:
+                print 'No proper coordinates found! (get_coordinates_at_distance) A'
+                return None, None
 
             lonn = np.linspace(refobj.lon.min(), refobj.lon.max(), nx)
             latn = np.linspace(refobj.lat.min(), refobj.lat.max(), ny)
@@ -333,33 +344,28 @@ class Geostatistic(object):
 
             self._calculate_distance(data=refobj)
 
-
         # get closest points as preselection
-        di = np.abs(self._distance-d)
+        di = np.abs(self._distance - d)
         msk = di < dist_threshold
         lons = refobj.lon[msk].flatten()
         lats = refobj.lat[msk].flatten()
         dist = self._distance[msk].flatten()
 
         if len(lons) == 0:
+            print 'No proper coordinates found! (get_coordinates_at_distance) B'
             return None, None
 
-        theta = np.linspace(0., 2.*np.pi, N)  # angle
+        theta = np.linspace(0., 2. * np.pi, N)  # angle
         LON = []
         LAT = []
         for t in theta:
-            x = self.lon_center + d*np.cos(t)
-            y = self.lat_center + d*np.sin(t)
+            x = self.lon_center + d * np.cos(t)
+            y = self.lat_center + d * np.sin(t)
 
             # search for closest point
-            dd = np.sqrt((lons-x)**2. + (lats-y)**2.)
+            dd = np.sqrt((lons - x) ** 2. + (lats - y) ** 2.)
 
             LON.append(lons[dd.argmin()])
             LAT.append(lats[dd.argmin()])
 
         return LON, LAT
-
-
-
-
-

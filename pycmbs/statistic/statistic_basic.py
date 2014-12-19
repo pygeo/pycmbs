@@ -147,18 +147,3 @@ def welchs_approximate_ttest(n1, mean1, sem1, n2, mean2, sem2, alpha):
     t_alpha_prime = (t_alpha_df1 * sem1 ** 2 + t_alpha_df2 * sem2 ** 2) /\
                     (sem1 ** 2 + sem2 ** 2)
     return abs(t_s_prime) > t_alpha_prime, t_s_prime, t_alpha_prime
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1483,30 +1483,42 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             x.normalize(return_object=False)
 
+    @unittest.skip('needs revision')
     def test_condstat(self):
         """
         conditional statistics unittest
         """
 
         #sample data
-        D = self.D.copy()
-        D.data = pl.randn(100,3,1) #some sample data
-        msk = np.asarray([[1,1,3],]).T #sample mask
+        D = Data(None, None)
+        #~ D.data = pl.randn(100,3,1)  # some sample data
+        D._init_sample_object(nt=100, ny=3, nx=1)
+        #~ D.cell_area = np.ones((3,1))
+        D.cell_area[0,0] = 2.
+        print D.cell_area
+        D.cell_area[0,1] = 1.
+        D.cell_area[0,1] = 3.
+        msk = np.asarray([[1,2,3],]).T  # sample mask
 
-        #calculate conditional statistics
+        # calculate conditional statistics
         res = D.condstat(msk)
 
-        #test for mask value == 1 (2 pixels)
+        # test for mask value == 1 (2 pixels)
         rm = 0.5*(D.data[:,0,0] + D.data[:,1,0])
         rs = (D.data[:,0,0] + D.data[:,1,0])
 
         self.assertTrue(np.all((res[1]['mean']-rm) == 0. ))
         self.assertTrue(np.all((res[1]['sum']-rs) == 0. ))
 
-        #test for mask value == 3 (1 pixel)
+        # test for mask value == 3 (1 pixel)
         rm = rs = D.data[:,2,0]
         self.assertTrue(np.all( (res[3]['mean']-rm) == 0. ))
         self.assertTrue(np.all( (res[3]['sum']-rs) == 0. ))
+
+        # now test weighted statistics
+        #~ res1 = D.condstat(msk, weight=True)
+        #~ rm = (2.*D.data[:,0,0] + 1.*D.data[:,1,0]) / 3.
+
 
 
     def test_condstat_InvalidGeometry(self):
@@ -2145,7 +2157,8 @@ class TestData(unittest.TestCase):
 
     def test_temporal_smooth_InvalidGeometry(self):
         d = self.D.copy()
-        d.data = np.random.random((2,3))
+        tmp = np.random.random((2,3))
+        d.data = np.ma.array(tmp, mask=tmp != tmp)
         with self.assertRaises(ValueError):
             y3 = d.temporal_smooth(3)
 
@@ -2524,6 +2537,26 @@ class TestData(unittest.TestCase):
             self.assertEqual(x.data[i,0,1], xref.data[i,0,1]*t[i])
             self.assertEqual(y.data[i,0,1], xref.data[i,0,1]*t[i])
 
+
+    def test_get_area(self):
+        x = Data(None, None)
+        x._init_sample_object(nt=3, ny=2, nx=3)
+
+        x.cell_area[0,:] = 1.
+        x.cell_area[1,:] = 2.
+
+        # mask some data
+        M = np.ones((x.ny, x.nx))
+        M[1,1] = 2.
+        x._apply_mask(M == 1.)
+
+        # total area (all pixels)
+        A1 = x.get_area(valid=False)
+        self.assertEqual(A1, 6.+3.)
+
+        # only valid pixels
+        A2 = x.get_area()
+        self.assertEqual(A2, 6.+3.-2.)
 
 
 

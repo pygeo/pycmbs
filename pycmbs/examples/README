@@ -1,0 +1,5 @@
+It is recommended to run the various example scripts directly in an ipython shell, e.g. by using
+
+>> ipython --pylab
+
+The first examples also use a module called "download" that automatically tries to fetch the sample data from the web.

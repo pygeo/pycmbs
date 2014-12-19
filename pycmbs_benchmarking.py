@@ -24,7 +24,7 @@ from pycmbs.benchmarking import models
 from pycmbs.benchmarking import config
 from pycmbs.benchmarking import analysis
 from pycmbs.benchmarking.models import CMIP5Data, CMIP5RAWData, CMIP5RAW_SINGLE
-from pycmbs.benchmarking.models import JSBACH_BOT, JSBACH_RAW
+from pycmbs.benchmarking.models import JSBACH_BOT  #, JSBACH_RAW
 from pycmbs.benchmarking.models import JSBACH_RAW2, CMIP3Data, JSBACH_SPECIAL
 from pycmbs.benchmarking.models import MeanModel
 from pycmbs.benchmarking.utils import get_temporary_directory
@@ -101,7 +101,6 @@ def main():
             raise ValueError('Currently not more than one command \
                                line parameter supported!')
     else:  # default
-        print 'da sammer!'
         print('*******************************************')
         print('* WELCOME to pycmbs.py                    *')
         print('* Happy benchmarking ...                  *')
@@ -158,33 +157,7 @@ def main():
     stop_time = pylab.num2date(pylab.datestr2num(s_stop_time))
 
     #~ xxxxxxxxmodel_dict = {'rain': {'CMIP5':
-                           #~ {
-                               #~ 'variable': 'pr',
-                               #~ 'unit': 'mm/day',
-                               #~ 'lat_name': 'lat',
-                               #~ 'lon_name': 'lon',
-                               #~ 'model_suffix': 'ensmean',
-                               #~ 'model_prefix': 'Amon',
-                               #~ 'file_format': 'nc',
-                               #~ 'scale_factor': 86400.,
-                               #~ 'valid_mask': 'ocean'
-                           #~ },
-#~
-#~
-                           #~ 'JSBACH_RAW2':
-                           #~ {
-                               #~ 'variable': 'precip_acc',
-                               #~ 'unit': 'mm/day',
-                               #~ 'lat_name': 'lat',
-                               #~ 'lon_name': 'lon',
-                               #~ 'file_format': 'nc',
-                               #~ 'scale_factor': 86400.,
-                               #~ 'valid_mask': 'global'
-                           #~ }
-#~
-#~
-                           #~ },
-#~
+
 #~
                   #~ 'evap': {'CMIP5':
                            #~ {
@@ -365,19 +338,7 @@ def main():
                               #~ 'valid_mask': 'land'
                           #~ }
 #~
-                          #~ },
-#~
-                  #~ 'surface_upward_flux': {'JSBACH_RAW2':
-                                          #~ {
-                                              #~ 'variable': 'swdown_reflect_acc',
-                                              #~ 'unit': '$W/m^2$',
-                                              #~ 'lat_name': 'lat',
-                                              #~ 'lon_name': 'lon',
-                                              #~ 'file_format': 'nc',
-                                              #~ 'scale_factor': 1.,
-                                              #~ 'valid_mask': 'land'
-                                          #~ }
-                                          #~ },
+
 #~
                   #~ 'albedo_vis': {'JSBACH_RAW2':
                                  #~ {
@@ -464,11 +425,11 @@ def main():
                                     shift_lon=shift_lon)
         elif 'CMIP5RAWSINGLE' in CF.dtypes[i].upper():
             themodel = CMIP5RAW_SINGLE(data_dir, model, experiment, varmethods,
-                                    intervals=CF.intervals, lat_name='lat',
-                                    lon_name='lon', label=model,
-                                    start_time=start_time,
-                                    stop_time=stop_time,
-                                    shift_lon=shift_lon)
+                                       intervals=CF.intervals, lat_name='lat',
+                                       lon_name='lon', label=model,
+                                       start_time=start_time,
+                                       stop_time=stop_time,
+                                       shift_lon=shift_lon)
 
         elif CF.dtypes[i].upper() == 'JSBACH_BOT':
             themodel = JSBACH_BOT(data_dir, varmethods, experiment,
@@ -489,14 +450,14 @@ def main():
                                    intervals=CF.intervals,
                                    start_time=start_time,
                                    stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon) #,
+                                   name=model, shift_lon=shift_lon)  # ,
                                    #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'JSBACH_SPECIAL':
             themodel = JSBACH_SPECIAL(data_dir, varmethods, experiment,
-                                   intervals=CF.intervals,
-                                   start_time=start_time,
-                                   stop_time=stop_time,
-                                   name=model, shift_lon=shift_lon) #,
+                                      intervals=CF.intervals,
+                                      start_time=start_time,
+                                      stop_time=stop_time,
+                                      name=model, shift_lon=shift_lon)  # ,
                                    #model_dict=model_dict)
         elif CF.dtypes[i].upper() == 'CMIP3':
             themodel = CMIP3Data(data_dir, model, experiment, varmethods,
@@ -623,8 +584,6 @@ def main():
     global_gleckler.fig.savefig(outdir + 'portraet_diagram.pdf', dpi=200, bbox_inches='tight')
 
     plt.close(global_gleckler.fig.number)
-
-
 
     # generate dictionary with observation labels for each variable
     labels_dict = {}

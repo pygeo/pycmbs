@@ -1,1 +1,5 @@
 *.pyc
+*variogram_base.c
+*polygon_utils.c
+*nix*
+*.ipynb_checkpoints*

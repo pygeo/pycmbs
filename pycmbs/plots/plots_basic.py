@@ -154,7 +154,7 @@ class HstackTimeseries(object):
                 return None
 
         self.x.update({id: x})  # store data for later plotting
-        self.annotations.update({id : annotation})
+        self.annotations.update({id: annotation})
 
     def plot(self, figure=None, fontsize=8, vmin=None, vmax=None,
              cmap='jet', nclasses=10, title=None, maxheight=1.,
@@ -514,16 +514,12 @@ class ReichlerPlot(object):
 
         return self.ax.figure
 
-#-----------------------------------------------------------------------
-
     def simple_plot(self):
         """
         do a very simple plot of diagnostics
         """
         for i in np.arange(len(self.e2)):
             self.ax.plot(self.e2[i], 'o', label=self.labels[i])
-
-#-----------------------------------------------------------------------
 
     def circle_plot(self):
         """
@@ -559,8 +555,6 @@ class ReichlerPlot(object):
         self.ax.set_xlabel('$\\epsilon / \\bar{\\epsilon}$ [%]')
         self.ax.legend()
 
-#-----------------------------------------------------------------------
-
     def _normalize(self):
         """
         normalize results from different models
@@ -578,8 +572,6 @@ class ReichlerPlot(object):
         E = np.asarray(E)
         EM = E.mean()  # take square root, as e2 is still the squared error!
         self.e_norm = (E - EM) / EM  # see Glecker et al, eq.2
-
-#-----------------------------------------------------------------------
 
 
 class ScatterPlot(object):
@@ -720,8 +712,6 @@ class ScatterPlot(object):
         else:
             return None
 
-#-----------------------------------------------------------------------
-
     def _change_ticklabels(self):
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(self.ticksize)
@@ -842,11 +832,10 @@ class LinePlot(object):
             yref = x.data[i]
             dnum = pl.date2num(x.date[i])  # the conversion using pylab is required as otherwise there is a 1-day shift! Reason seems to be that matplotlib converts the numerical value automatically using num2date()
             xx = [dnum, dnum]
-            yy = [yref-s.data[i], yref+s.data[i]]
+            yy = [yref - s.data[i], yref + s.data[i]]
             segments.append(list(zip(xx, yy)))
         collection = LineCollection(segments, colors=color)
         ax.add_collection(collection)
-
 
     def plot(self, x, ax=None, vmin=None, vmax=None, label=None, norm_std=False, set_ytickcolor=True, std=None, **kwargs):
         """
@@ -942,6 +931,7 @@ class LinePlot(object):
                 for tl in ax.get_yticklabels():
                     tl.set_color(p.get_color())
 
+
 class GlobalMeanPlot(object):
     """
     plots timeseries of global mean field
@@ -987,8 +977,6 @@ class GlobalMeanPlot(object):
         self.plots = []
         self.pdata = {}
         self.pdata_clim = {}
-
-#-----------------------------------------------------------------------------------------------------------------------
 
     def plot_mean_result(self, dt=0., colors=None, plot_clim=False):
         """
@@ -1093,11 +1081,9 @@ class GlobalMeanPlot(object):
 
         return f
 
-#-----------------------------------------------------------------------------------------------------------------------
-
     def plot(self, D1, color=None, linewidth=1, show_std=False,
              label=None, linestyle='-', mask=None, group='A',
-             stat_type='mean'):
+             stat_type='mean', show_legend=True):
         """
         generate global mean plot. The plot includes the temporal evolution
         of the global mean field and also (as an option) its stdv
@@ -1125,6 +1111,8 @@ class GlobalMeanPlot(object):
             specifies a group that will be used to combine plots of the same type. The group is used as a key for a dictionary that stores the results
         stat_type : str
             specifies which statistic shall be plotted ['mean','sum'], either area weighted mean or sum
+        show_legend : bool
+            show legend for results
         """
 
         if stat_type not in ['mean', 'sum']:
@@ -1219,7 +1207,18 @@ class GlobalMeanPlot(object):
         # labels
         self.ax.set_ylabel(D._get_unit())
 
-       # LEGEND always below the figure
+        # LEGEND always below the figure
+        if show_legend:
+            self.legend()
+
+        # grid
+        self.ax.grid()
+
+    def legend(self):
+        """
+        show legend for global mean plot
+        ensures that it is always below the figure
+        """
         if self.nplots == 1:
             lax = self.ax
             loff = 0.2
@@ -1231,16 +1230,12 @@ class GlobalMeanPlot(object):
         lax.figure.subplots_adjust(bottom=loff)  # make space on bottom for legend
         lax.legend(self.plots, self.labels, loc='upper center', bbox_to_anchor=(0.5, -loff), fancybox=True, shadow=True, ncol=3, prop={'size': 8})
 
-        self.ax.grid()
-
-#-----------------------------------------------------------------------
-
 
 class HistogrammPlot(object):
     """
     class to plot histograms based on C{Data} objects
     """
-    def __init__(self, ax=None, bins=10, normalize=False, percent=True):
+    def __init__(self, ax=None, bins=10, normalize=False, percent=True, showN=False):
         """
         ax : axis
             axis to plot data to. If not specified, then a new figure is created
@@ -1250,6 +1245,8 @@ class HistogrammPlot(object):
             specifies if data should be normalized relative to the sample size
         percent : bool
             resulting frequencies in percent (applies only if normalize=True)
+        showN : bool
+            show number of samples in legend
         """
 
         # Figure init
@@ -1263,6 +1260,7 @@ class HistogrammPlot(object):
         self.bins = bins
         self.normalize = normalize
         self.percent = percent
+        self.showN = showN
 
     def plot(self, X, color='black', linestyle='-', linewidth=1., label='', shown=False, show_legend=False, **kwargs):
         """
@@ -1299,7 +1297,7 @@ class HistogrammPlot(object):
         if 'bins' in kwargs.keys():
             bb = kwargs.pop('bins')
 
-        if shown:
+        if shown or self.showN:
             show_legend = True
             if label == '':
                 label = 'n=' + str(sum(~np.isnan(x)))
@@ -1317,6 +1315,7 @@ class HistogrammPlot(object):
 
         if show_legend:
             self.ax.legend()
+
 
 class ZonalPlot(object):
     def __init__(self, ax=None, dir='y'):
