@@ -170,7 +170,7 @@ def get_T63_landseamask(shift_lon, mask_antarctica=True, area='land'):
         if True, then the mask is FALSE over Antarctica (<60S)
     """
     ls_file = get_data_pool_directory() \
-        + 'variables/land/land_sea_mask/jsbach_T63_GR15_4tiles_1992.nc'
+        + 'data_sources/LSMASK/jsbach_T63_GR15_4tiles_1992.nc'
     ls_mask = Data(ls_file, 'slm', read=True, label='T63 land-sea mask',
                    lat_name='lat', lon_name='lon', shift_lon=shift_lon)
     if area == 'land':
