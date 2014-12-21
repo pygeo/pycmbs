@@ -135,23 +135,15 @@ Check successful installation, like described below_.
 github repository (for developers)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Another alternative to work with pyCMBS is to used the master branch of
-the `code repository <https://github.com/pygeo/pycmbs>`_. The code is hosted on a github repository. All
-dependencies  must have been installed before.
+Assuming that you want to contribute to the development of the pyCMBS,
+follow the `instructions to create your fork <https://help.github.com/articles/fork-a-repo/>`_.
+All dependencies must have been installed and configured properly (check section Installation of dependencies above).
+To retrieve the code into your development environment execute the following command (replace your_user_name
+with the user name you registered with github)::
 
-It is recommended that you first fork the entire project on github to make your own sub-project.
-This will allow you also to make changes in the code and to contribute to the further development.
-The description below applies to both, forked projects as well as the main project branch.
+   git clone https://github.com/your_user_name/pycmbs.git
 
-To retrieve the code do the following::
-
-    # generate some directory
-    mkdir pycmbs
-    cd pycmbs
-
-    # retrieve the code
-    git clone
-
+=======
 *Compilation*
 
 Some sub-modules are written in cython to speed up processing. These modules need to be compiled prior to the final installation. This is done by just executing the following command::
@@ -171,6 +163,7 @@ or if you want to hack the code, it is highly recommended to simply set the righ
     # or as an alternative for developers, just set the PYTHONPATH
     # environment variable to the pycmbs root directory and also adapt
     # you systempath (PATH) such that includes the pycmbs rootdirectory
+    export PYTHONPATH=/my/path/to/pycmbs:$PYTHONPATH
 
 Check successful installation, like described below_.
 
