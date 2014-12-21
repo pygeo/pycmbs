@@ -10,6 +10,8 @@ COPYRIGHT.md
 Variogram modelling
 """
 
+STUFF = "Hello world"  # this is done to avoid this problem: http://stackoverflow.com/questions/8024805/cython-compiled-c-extension-importerror-dynamic-module-does-not-define-init-fu
+
 import numpy as np
 cimport numpy as np
 

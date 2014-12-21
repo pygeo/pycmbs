@@ -5,6 +5,9 @@ For COPYING and LICENSE details, please refer to the file
 COPYRIGHT.md
 """
 
+STUFF = "Hello world"  # this is done to avoid this problem: http://stackoverflow.com/questions/8024805/cython-compiled-c-extension-importerror-dynamic-module-does-not-define-init-fu
+
+
 from __future__ import division
 #http://docs.cython.org/src/tutorial/numpy.html#efficient-indexing
 import numpy as np
