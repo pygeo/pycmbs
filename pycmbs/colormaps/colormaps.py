@@ -253,7 +253,7 @@ class ColorMapGenerator(object):
         G = []
         B = []
         x = []
-        for i in range(n):
+        for i in xrange(n):
             R.append(rgb[i, 0])
             G.append(rgb[i, 1])
             B.append(rgb[i, 2])
@@ -261,9 +261,23 @@ class ColorMapGenerator(object):
         x = np.asarray(x)
 
         cmap_dict = {}
-        cmap_dict['red'] = [(x[i], R[i], R[i]) for i in range(len(R))]
-        cmap_dict['green'] = [(x[i], G[i], G[i]) for i in range(len(G))]
-        cmap_dict['blue'] = [(x[i], B[i], B[i]) for i in range(len(B))]
+        red_list = []
+        green_list = []
+        blue_list = []
+        if bmax == bmin:  # in case of homogeneous colors, generate a tuple with 0 and 1 (see: http://stackoverflow.com/questions/16267143/matplotlib-single-colored-colormap-with-saturation)
+            for xx in [0.,1.]:
+                red_list.append((xx, R[i], R[i]))
+                green_list.append((xx, G[i], G[i]))
+                blue_list.append((xx, B[i], B[i]))
+        else:
+            for i in xrange(n):
+                red_list.append((x[i], R[i], R[i]))
+                green_list.append((x[i], G[i], G[i]))
+                blue_list.append((x[i], B[i], B[i]))
+
+        cmap_dict['red'] = red_list
+        cmap_dict['green'] = green_list
+        cmap_dict['blue'] = blue_list
 
         cmap = LinearSegmentedColormap(name, cmap_dict)
         return cmap
