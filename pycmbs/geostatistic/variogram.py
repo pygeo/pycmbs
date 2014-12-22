@@ -13,7 +13,7 @@ Variogram modelling
 import numpy as np
 scipy_011 = False
 try:
-    from scipy.optimize import minimize  # only avauilable for scipy > 0.11
+    from scipy.optimize import minimize  # only available for scipy > 0.11
     scipy_011 = True
 except:
     print 'WARNING: could not import mimimize (requires scipy > 0.11), try alternative'
