@@ -175,7 +175,7 @@ class TestData(unittest.TestCase):
         self.assertTrue(abs(r2-8918000.)<1000.)
 
 
-    unittest.skip('currently skipped as it is causing trouble with scipy version on TRAVIS')  # TODO
+    @unittest.skip('currently skipped as it is causing trouble with scipy version on TRAVIS')  # TODO
     def test_spherical_variogram_fitting(self):
         bins = np.arange(10)
 
