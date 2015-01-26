@@ -46,7 +46,9 @@ ext_polygon_utils = Extension('polygon_utils',
                               include_dirs=[np.get_include()]
                               )
 
-ext_variogramm = Extension('variogram',
+# in case of a compilation error, one should look that the name is the same as the extension sources
+# see here: http://stackoverflow.com/questions/8024805/cython-compiled-c-extension-importerror-dynamic-module-does-not-define-init-fu
+ext_variogramm = Extension('variogram_base',
                            sources=['.' + os.sep + 'pycmbs' + os.sep +
                                     'geostatistic' + os.sep + 'variogram_base.pyx'],
                            # this is needed to get proper information on numpy

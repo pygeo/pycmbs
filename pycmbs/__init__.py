@@ -20,7 +20,7 @@ __author__ = "Alexander Loew"
 
 __institute__ = "Max-Planck-Institute for Meteorology (MPI-M)"
 
-__copyright__ = "Copyright (c) 2011-2014 Alexander Loew"
+__copyright__ = "Copyright (c) 2011-2015 Alexander Loew"
 """The copyright holder of pyCMBS."""
 
 __license__ = "MIT License, see LICENSE.md for details"
@@ -37,7 +37,7 @@ __date__ = "2014-06-05"
 __version__ = json.load(open(ppath + os.sep + 'version.json'))
 """Version number of pyCMBS."""
 
-__email__ = "alexander.loew@mpimet.mpg.de"
+__email__ = "alexander.loew@lmu.de"
 
 # set globally plotting backend
 try:
