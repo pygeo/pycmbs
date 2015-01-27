@@ -1,3 +1,11 @@
+version 1.0.9
+=============
+Major further developments and improvements have been made. No full tracking of changes was done. Additional features include e.g.
+
+o geostatistical analysis
+o several bugfixes
+o increased performance
+
 version 1.0.0
 =============
 A huge amount of changes have been applied to the code for the release of v1.0.0.
