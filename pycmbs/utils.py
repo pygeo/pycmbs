@@ -13,6 +13,10 @@ This module contains generic utility functions
 """
 
 
+def get_pycmbs_root_directory():
+    return os.path.dirname(os.path.realpath(__file__))
+
+
 def get_month_string(m, numeric=False):
     """
     get month as string

@@ -29,7 +29,6 @@ except:
     print(
         'WARNING: BASEMAP seems not to be installed and can therefore not be used as plotting backend')
 
-
 try:
     from matplotlib import pyplot as plt
     installed_backends.append('imshow')

@@ -55,7 +55,7 @@ class ExternalAnalysis():
         for k in self.tags.keys():
             if not isinstance(self.tags[k], str):
                 print self.tags[k]
-                raise ValueError('ERROR: all tags are required to be strings!')
+                print('WARNING: all tags should be strings!')
 
     def _create_script(self):
         """
@@ -80,7 +80,7 @@ class ExternalAnalysis():
         for l in f.readlines():
             d = l
             for k in self.tags.keys():  # replace all tags
-                d = d.replace('<' + k + '>', self.tags[k])
+                d = d.replace('<' + k + '>', str(self.tags[k]))
             s.append(d)
         f.close()
 

@@ -76,7 +76,7 @@ class TestRegion(unittest.TestCase):
         return tfile
 
     def setUp(self):
-        self.file = 'test.reg'
+        self.file = tempfile.mkdtemp() + os.sep + 'test.reg'
         o=open(self.file, 'w')
         o.write('[COMMENT]\n')
         o.write('description=IPCC regions as defined in SREX Appendix-3A, Table 3.A.1\n')

@@ -92,8 +92,8 @@ class CMIP5Data(Model):
 
         lat_name = locdict.pop('lat_name', 'lat')
         lon_name = locdict.pop('lon_name', 'lon')
-        model_suffix = locdict.pop('model_suffix')
-        model_prefix = locdict.pop('model_prefix')
+        model_suffix = locdict.pop('model_suffix', None)
+        model_prefix = locdict.pop('model_prefix', None)
         file_format = locdict.pop('file_format')
         scf = locdict.pop('scale_factor')
         valid_mask = locdict.pop('valid_mask')
@@ -230,7 +230,6 @@ class CMIP5Data(Model):
         del mdata_all
         return mdata, retval
 
-#-----------------------------------------------------------------------
 
     def get_snow_fraction(self):
         """
@@ -238,7 +237,7 @@ class CMIP5Data(Model):
 
         @return: C{Data} object for snow
         """
-        assert False
+        assert False, 'Routine not tested for a long time!'
         data_file = '/net/nas2/export/eo/workspace/m300028/GPA/input/historical_r1i1p1-LR_snow_fract.nc'  # todo change this !!!
 
         #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
@@ -250,7 +249,7 @@ class CMIP5Data(Model):
         Specifies how to read faPAR information for CMIP5 data
         @return: C{Data} object for faPAR
         """
-
+        assert False, 'Routine not tested for a long time!'
         ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'  # TODO <<< todo: change this output directory !!!
         data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc'  # TODO todo set inputfilename interactiveley !!!! DUMMY so far for testnig
 

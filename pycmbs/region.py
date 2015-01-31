@@ -79,8 +79,10 @@ class RegionGeneric(object):
 
     def _check_bbox_validity(self, x1, x2, y1, y2):
         if x2 < x1:
+            print x1, x2
             raise ValueError('Invalid X boundaries for region')
         if y2 < y1:
+            print y1, y2
             raise ValueError('Invalid Y boundaries for region')
 
     def _get_label(self):

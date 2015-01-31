@@ -151,7 +151,7 @@ class hovmoeller:
 
         Another example, that does NOT calculate the hovmoeller plot by itself, but uses functionality from pyCMBS Data object
 
-        file='/home/m300028/shared/dev/svn/pyCMBS/example/wachmos_sm_1978-2010_int_monthly_t63.nc'
+        file='wachmos_sm_1978-2010_int_monthly_t63.nc'
         D = Data(file,'var100',read=True)
 
         myhov = hovmoeller(num2date(D.time),None,rescaley=20,rescalex=20)

@@ -355,7 +355,7 @@ class Data(object):
         """return the number of days per month in Data timeseries (unittest)"""
         return [float(calendar.monthrange(d.year, d.month)[1]) for d in self.date]
 
-    def _log_warning(self, s):
+    def _log_warning(self, s, write_log=False):
         """
         log warnings for class in a logfile
 
@@ -363,7 +363,12 @@ class Data(object):
         ----------
         s : str
             string with warning message
+        write_log : bool
+            do actual data loging (default = False to avoid unnecessary generation of log file)
         """
+
+        if not write_log:
+            return
 
         if 'DATA_WARNING_FILE' in os.environ.keys():
             file = os.environ['DATA_WARNING_FILE']

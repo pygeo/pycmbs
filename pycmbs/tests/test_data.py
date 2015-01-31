@@ -39,7 +39,7 @@ class TestData(unittest.TestCase):
         os.environ['DATA_WARNING_FILE'] = logfile
         if os.path.exists(logfile):
             os.remove(logfile)
-        x._log_warning('testlog')
+        x._log_warning('testlog', write_log=True)
         print logfile
         self.assertTrue(os.path.exists(logfile))
 
@@ -49,7 +49,7 @@ class TestData(unittest.TestCase):
         os.environ.update({'DATA_WARNING_FILE' : logfile})
         if os.path.exists(logfile):
             os.remove(logfile)
-        x._log_warning('testlog')
+        x._log_warning('testlog', write_log=True)
         self.assertTrue(os.path.exists(logfile))
         os.remove(logfile)
 
