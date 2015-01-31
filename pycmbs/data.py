@@ -1651,8 +1651,6 @@ class Data(object):
         else:
             return years, res
 
-#-----------------------------------------------------------------------
-
     def partial_correlation(self, Y, Z, ZY=None, pthres=1.01, return_object=True):
         """
         perform partial correlation analysis.
@@ -1721,7 +1719,6 @@ class Data(object):
         else:
             return res
 
-#-----------------------------------------------------------------------
 
     def correlate(self, Y, pthres=1.01, spearman=False, detrend=False):
         """
