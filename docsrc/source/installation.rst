@@ -8,9 +8,11 @@ Currently, there are three different ways to install pyCMBS
  2. Source code installation from code repository (currently recommended)
  3. Source code installation from tarball
 
-All approaches are detailed below. Special informations for users working
+All approaches are detailed below.
+
+Special informations for users working
 at the Max-Planck-Institute for Meteorology are provided in a
-:doc:`installation_mpi`
+:doc:`installation_mpi`.
 
 Operating systems
 -----------------
@@ -54,7 +56,8 @@ For plotting projected data (map plots), pyCMBS currently supports two different
 
 - `cartopy <http://scitools.org.uk/cartopy/>`_ [recommended]
 - `matplotlib basemap <http://matplotlib.org/basemap/index.html>`_ [optional]
-
+- `yaml <http://pyyaml.org/wiki/PyYAML>`_ [required if you want to use plugins
+  or do benchmarking]
 
 Installation of dependencies
 ----------------------------

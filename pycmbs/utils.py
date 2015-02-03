@@ -12,10 +12,24 @@ import os
 This module contains generic utility functions
 """
 
+WARNING = 1
+
+
+def print_log(the_type, s):
+
+    d = {}
+    d.update({WARNING : 'WARNING'})
+
+    if the_type not in d.keys():
+        raise ValueError('ERROR: no valid type!')
+
+    txt = d[the_type] + ': ' + s
+    print txt
+
+
 
 def get_pycmbs_root_directory():
     return os.path.dirname(os.path.realpath(__file__))
-
 
 def get_month_string(m, numeric=False):
     """

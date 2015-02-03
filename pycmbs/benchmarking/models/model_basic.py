@@ -92,13 +92,13 @@ class Model(Data):
         central routine to extract data for all variables
         using functions specified in derived class
         """
-
         self.variables = {}
         for k in self.dic_vars.keys():
             self._actplot_options = self.plot_options.options[k]['OPTIONS']  # set variable specific options (needed for interpolation when reading the data)
 
             routine = self.dic_vars[k]  # get name of routine to perform data extraction
             interval = self.intervals[k]
+
             cmd = 'dat = self.' + routine
 
             if hasattr(self, routine[0:routine.index('(')]):  # check if routine name is there
@@ -107,10 +107,10 @@ class Model(Data):
 
                 # if a tuple is returned, then it is the data + a tuple for the original global mean field
                 if 'tuple' in str(type(dat)):
-                    self.variables.update({k: dat[0]})  # update field with data
+                    self.variables.update({k : dat[0]})  # update field with data
                     self.variables.update({k + '_org': dat[1]})  # (time, meanfield, originalfield)
                 else:
-                    self.variables.update({k: dat})  # update field with data
+                    self.variables.update({k : dat})  # update field with data
             else:
                 print k
                 print self.dic_vars

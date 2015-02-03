@@ -2,6 +2,12 @@
 References
 ==========
 
+Project website
+---------------
+
+ * `pyCMBS on github (public development project) <https://github.com/pygeo/pycmbs>`_
+
+
 Publications where pyCMBS has been used
 ---------------------------------------
 

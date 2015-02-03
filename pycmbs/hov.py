@@ -148,7 +148,6 @@ class hovmoeller:
         myhov.plot(title='Test Hovmoeller plot',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=[-1.,1.])
         show()
 
-
         Another example, that does NOT calculate the hovmoeller plot by itself, but uses functionality from pyCMBS Data object
 
         file='wachmos_sm_1978-2010_int_monthly_t63.nc'

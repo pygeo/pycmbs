@@ -19,7 +19,8 @@ Welcome to pyCMBS's documentation!
    benchmarking
    benchmarking_configuration
    benchmarking_customization
-
+   benchmarking_cmip
+   benchmarking_testing
    references
 
 

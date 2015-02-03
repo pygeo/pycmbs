@@ -9,6 +9,9 @@ COPYRIGHT.md
 # good introduction into packing can be found in
 # https://python-packaging-user-guide.readthedocs.org/en/latest/index.html
 
+from setuptools import setup
+from distutils.core import setup as setup_dist  # todo use only one setup
+
 # the setuptools are supposed to be used as a standard. Thats why we ommit
 # usage of distutils here
 
@@ -61,7 +64,6 @@ def old_get_packages():
     return ['pycmbs', 'pycmbs/benchmarking', 'pycmbs/tests',
             'pycmbs/benchmarking/logo', 'pycmbs/examples', 'pycmbs/diagnostic', 'pycmbs/colormaps', 'pycmbs/plots']
 
-
 def get_packages():
     #find_packages(exclude=['contrib', 'docs', 'tests*']),
     return find_packages()
@@ -77,18 +79,15 @@ setup(name='pycmbs',
       # simple. Or you can use find_packages().
       # packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
 
-
-
-
       packages=get_packages(),
       package_dir={'pycmbs': 'pycmbs'},
       package_data={'pycmbs': ['benchmarking/configuration/*',
                                'benchmarking/logo/*', 'version.json']},
 
       author="Alexander Loew",
-      author_email='alex@geo2-consult.de',
+      author_email='alexander.loew@lmu.de',
       maintainer='Alexander Loew',
-      maintainer_email='alex@geo2-consult.de',
+      maintainer_email='alexander.loew@lmu.de',
 
       license='MIT',
 

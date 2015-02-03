@@ -12,11 +12,14 @@ import copy
 import glob
 import os
 import sys
+import ast
 import numpy as np
 
 from pycmbs.benchmarking import preprocessor
 from pycmbs.benchmarking.utils import get_T63_landseamask, get_temporary_directory
 from pycmbs.benchmarking.models.model_basic import *
+
+from pycmbs.utils import print_log, WARNING
 
 
 class CMIP5Data(Model):
@@ -68,6 +71,15 @@ class CMIP5Data(Model):
     def get_rainfall_data(self, interval='season', **kwargs):
         return self.get_model_data_generic(interval=interval, **kwargs)
 
+    def get_wind(self, interval='season', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
+
+    def get_evaporation(self, interval='season', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
+
+    def get_latent_heat_flux(self, interval='season', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
+
     def get_model_data_generic(self, interval='season', **kwargs):
         """
         unique parameters are:
@@ -79,16 +91,22 @@ class CMIP5Data(Model):
         """
 
         if not self.type in kwargs.keys():
+            print ''
             print 'WARNING: it is not possible to get data using generic function, as method missing: ', self.type, kwargs.keys()
-            return None
+            assert False
+
 
         locdict = kwargs[self.type]
 
         # read settings and details from the keyword arguments
         # no defaults; everything should be explicitely specified in either the config file or the dictionaries
-        varname = locdict.pop('variable')
-        units = locdict.pop('unit', 'Crazy Unit')
-        #interval = kwargs.pop('interval') #, 'season') #does not make sense to specifiy a default value as this option is specified by configuration file!
+        varname = locdict.pop('variable', None)
+        #~ print self.type
+        #~ print locdict.keys()
+        assert varname is not None, 'ERROR: provide varname!'
+
+        units = locdict.pop('unit', None)
+        assert units is not None, 'ERROR: provide unit!'
 
         lat_name = locdict.pop('lat_name', 'lat')
         lon_name = locdict.pop('lon_name', 'lon')
@@ -104,24 +122,13 @@ class CMIP5Data(Model):
         interpolation = self._actplot_options['interpolation']
 
         if custom_path is None:
-            filename1 = ("%s%s/merged/%s_%s_%s_%s_%s.%s" %
-                        (self.data_dir, varname, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
+            filename1 = self.get_raw_filename(varname, **kwargs)   # routine needs to be implemented by each subclass
         else:
-            if self.type == 'CMIP5':
-                filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
-                             (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
-            elif self.type == 'CMIP5RAW':
-                filename1 = ("%s/%s_%s_%s_%s_%s.%s" %
-                             (custom_path, varname, model_prefix, self.model, self.experiment, model_suffix, file_format))
-            elif self.type == 'CMIP5RAWSINGLE':
-                print 'todo needs implementation!'
-                assert False
-            elif self.type == 'CMIP3':
-                filename1 = ("%s/%s_%s_%s_%s.%s" %
-                             (custom_path, self.experiment, self.model, varname, model_suffix, file_format))
-            else:
-                print self.type
-                raise ValueError('Can not generate filename: invalid model type! %s' % self.type)
+            filename1 = custom_path + self.get_raw_filename(varname, **kwargs)
+
+        if filename1 is None:
+            print_log(WARNING, 'No valid model input data')
+            return None
 
         force_calc = False
 
@@ -140,6 +147,7 @@ class CMIP5Data(Model):
             gridtok = 'T63'
         else:
             gridtok = 'SPECIAL_GRID'
+
 
         file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_' + gridtok + '_monmean.nc'  # target filename
         file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
@@ -196,7 +204,7 @@ class CMIP5Data(Model):
         mdata.n = mdata_N.data.copy()
         del mdata_N
 
-        #ensure that climatology always starts with January, therefore set date and then sort
+        # ensure that climatology always starts with January, therefore set date and then sort
         mdata.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
         mdata.timsort()
 
@@ -224,6 +232,11 @@ class CMIP5Data(Model):
 
         mdata_mean = mdata_all.fldmean()
 
+        mdata._raw_filename = filename1
+        mdata._monthly_filename = file_monthly
+        mdata._clim_filename = mdata_clim_file
+        mdata._varname = varname
+
         # return data as a tuple list
         retval = (mdata_all.time, mdata_mean, mdata_all)
 
@@ -231,296 +244,50 @@ class CMIP5Data(Model):
         return mdata, retval
 
 
-    def get_snow_fraction(self):
-        """
-        Specifies for CMIP5 class how to read SNOWFRACTION
-
-        @return: C{Data} object for snow
-        """
-        assert False, 'Routine not tested for a long time!'
-        data_file = '/net/nas2/export/eo/workspace/m300028/GPA/input/historical_r1i1p1-LR_snow_fract.nc'  # todo change this !!!
-
-        #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
-
-        return Data(data_file, 'snow_fract')
-
-    def get_faPAR(self):
-        """
-        Specifies how to read faPAR information for CMIP5 data
-        @return: C{Data} object for faPAR
-        """
-        assert False, 'Routine not tested for a long time!'
-        ddir = '/net/nas2/export/eo/workspace/m300028/GPA/'  # TODO <<< todo: change this output directory !!!
-        data_file = ddir + 'input/historical_r1i1p1-LR_fapar.nc'  # TODO todo set inputfilename interactiveley !!!! DUMMY so far for testnig
-
-        #todo: which temporal resolution is needed?? preprocessing with CDO's needed ??? --> monthly
-        return Data(data_file, 'fapar')
-
-    def get_temperature_2m(self, interval=None):
-        """
-        return data object of
-        a) seasonal means for air temperature
-        b) global mean timeseries for TAS at original temporal resolution
-        """
-        print 'Needs revision to support CMIP RAWDATA!!'
-        assert False
-
-        if interval != 'season':
-            raise ValueError('Other data than seasonal not supported at the moment for CMIP5 data and temperature!')
-
-        #original data
-        filename1 = self.data_dir + 'tas/' + self.model + '/' + 'tas_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-
-        force_calc = False
-
-        if self.start_time is None:
-            raise ValueError('Start time needs to be specified')
-        if self.stop_time is None:
-            raise ValueError('Stop time needs to be specified')
-
-        s_start_time = str(self.start_time)[0:10]
-        s_stop_time = str(self.stop_time)[0:10]
-
-        tmp = pyCDO(filename1, s_start_time, s_stop_time, force=force_calc).seldate()
-        tmp1 = pyCDO(tmp, s_start_time, s_stop_time).seasmean()
-        filename = pyCDO(tmp1, s_start_time, s_stop_time).yseasmean()
-
-        if not os.path.exists(filename):
-            print 'WARNING: Temperature file not found: ', filename
-            return None
-
-        tas = Data(filename, 'tas', read=True, label=self._unique_name, unit='K', lat_name='lat', lon_name='lon', shift_lon=False)
-
-        tasall = Data(filename1, 'tas', read=True, label=self._unique_name, unit='K', lat_name='lat', lon_name='lon', shift_lon=False)
-        if tasall.time_cycle != 12:
-            raise ValueError('Timecycle of 12 expected here!')
-
-        tasmean = tasall.fldmean()
-        retval = (tasall.time, tasmean, tasall)
-        del tasall
-
-        tas.data = np.ma.array(tas.data, mask=tas.data < 0.)
-
-        return tas, retval
-
-    def get_surface_shortwave_radiation_down(self, interval='season', **kwargs):
+    def get_temperature_2m(self, interval='monthly', **kwargs):
         return self.get_model_data_generic(interval=interval, **kwargs)
 
-    def xxxxxxxxxxxxxxxxxxxget_surface_shortwave_radiation_down(self, interval='season', force_calc=False, **kwargs):
-        """
-        return data object of
-        a) seasonal means for SIS
-        b) global mean timeseries for SIS at original temporal resolution
-        """
-
-        the_variable = 'rsds'
-
-        locdict = kwargs[self.type]
-        valid_mask = locdict.pop('valid_mask')
-
-        if self.start_time is None:
-            raise ValueError('Start time needs to be specified')
-        if self.stop_time is None:
-            raise ValueError('Stop time needs to be specified')
-
-        s_start_time = str(self.start_time)[0:10]
-        s_stop_time = str(self.stop_time)[0:10]
-
-        if self.type == 'CMIP5':
-            filename1 = self.data_dir + 'rsds' + os.sep + self.experiment + '/ready/' + self.model + '/rsds_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self._get_ensemble_filename(the_variable)
-        elif self.type == 'CMIP5RAWSINGLE':
-            filename1 = self.get_single_ensemble_file(the_variable, mip='Amon', realm='atmos', temporal_resolution='mon')
-        else:
-            raise ValueError('Unknown model type! not supported here!')
-
-        if not os.path.exists(filename1):
-            print ('WARNING file not existing: %s' % filename1)
-            return None
-
-        #/// PREPROCESSING ///
-        cdo = Cdo()
-
-        #1) select timeperiod and generatget_she monthly mean file
-        file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
-        file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
-
-        print file_monthly
-
-        sys.stdout.write('\n *** Model file monthly: %s\n' % file_monthly)
-        cdo.monmean(options='-f nc', output=file_monthly, input='-remapcon,t63grid -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
-
-        sys.stdout.write('\n *** Reading model data... \n')
-        sys.stdout.write('     Interval: ' + interval + '\n')
-
-        #2) calculate monthly or seasonal climatology
-        if interval == 'monthly':
-            sis_clim_file = file_monthly[:-3] + '_ymonmean.nc'
-            sis_sum_file = file_monthly[:-3] + '_ymonsum.nc'
-            sis_N_file = file_monthly[:-3] + '_ymonN.nc'
-            sis_clim_std_file = file_monthly[:-3] + '_ymonstd.nc'
-            cdo.ymonmean(options='-f nc -b 32', output=sis_clim_file, input=file_monthly, force=force_calc)
-            cdo.ymonsum(options='-f nc -b 32', output=sis_sum_file, input=file_monthly, force=force_calc)
-            cdo.ymonstd(options='-f nc -b 32', output=sis_clim_std_file, input=file_monthly, force=force_calc)
-            cdo.div(options='-f nc', output=sis_N_file, input=sis_sum_file + ' ' + sis_clim_file, force=force_calc)  # number of samples
-        elif interval == 'season':
-            sis_clim_file = file_monthly[:-3] + '_yseasmean.nc'
-            sis_sum_file = file_monthly[:-3] + '_yseassum.nc'
-            sis_N_file = file_monthly[:-3] + '_yseasN.nc'
-            sis_clim_std_file = file_monthly[:-3] + '_yseasstd.nc'
-            cdo.yseasmean(options='-f nc -b 32', output=sis_clim_file, input=file_monthly, force=force_calc)
-            cdo.yseassum(options='-f nc -b 32', output=sis_sum_file, input=file_monthly, force=force_calc)
-            cdo.yseasstd(options='-f nc -b 32', output=sis_clim_std_file, input=file_monthly, force=force_calc)
-            cdo.div(options='-f nc -b 32', output=sis_N_file, input=sis_sum_file + ' ' + sis_clim_file, force=force_calc)  # number of samples
-        else:
-            print interval
-            raise ValueError('Unknown temporal interval. Can not perform preprocessing!')
-
-        if not os.path.exists(sis_clim_file):
-            return None
-
-        #3) read data
-        sis = Data(sis_clim_file, 'rsds', read=True, label=self._unique_name, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
-        sis_std = Data(sis_clim_std_file, 'rsds', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
-        sis.std = sis_std.data.copy()
-        del sis_std
-        sis_N = Data(sis_N_file, 'rsds', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
-        sis.n = sis_N.data.copy()
-        del sis_N
-
-        #ensure that climatology always starts with January, therefore set date and then sort
-        sis.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
-        sis.timsort()
-
-        #4) read monthly data
-        sisall = Data(file_monthly, 'rsds', read=True, label=self._unique_name, unit='W m^{-2}', lat_name='lat', lon_name='lon', shift_lon=False)
-        if not sisall._is_monthly():
-            raise ValueError('Timecycle of 12 expected here!')
-        sisall.adjust_time(day=15)
-
-        # land/sea masking ...
-        if valid_mask == 'land':
-            mask_antarctica = True
-        elif valid_mask == 'ocean':
-            mask_antarctica = False
-        else:
-            mask_antarctica = False
-
-        sis._apply_mask(get_T63_landseamask(False, mask_antarctica=mask_antarctica, area=valid_mask))
-        sisall._apply_mask(get_T63_landseamask(False, mask_antarctica=mask_antarctica, area=valid_mask))
-        sismean = sisall.fldmean()
-
-        # return data as a tuple list
-        retval = (sisall.time, sismean, sisall)
-        del sisall
-
-        # mask areas without radiation (set to invalid): all data < 1 W/m**2
-        sis.data = np.ma.array(sis.data, mask=sis.data < 1.)
-
-        return sis, retval
-
-    def get_surface_shortwave_radiation_up(self, interval='season', **kwargs):
+    def get_surface_shortwave_radiation_down(self, interval='monthly', **kwargs):
         return self.get_model_data_generic(interval=interval, **kwargs)
 
-    def xxxxxget_surface_shortwave_radiation_up(self, interval='season', force_calc=False, **kwargs):
+    def get_surface_shortwave_radiation_up(self, interval='monthly', **kwargs):
+        return self.get_model_data_generic(interval=interval, **kwargs)
 
-        the_variable = 'rsus'
-
-        if self.type == 'CMIP5':
-            filename1 = self.data_dir + the_variable + os.sep + self.experiment + os.sep + 'ready' + os.sep + self.model + os.sep + 'rsus_Amon_' + self.model + '_' + self.experiment + '_ensmean.nc'
-        elif self.type == 'CMIP5RAW':  # raw CMIP5 data based on ensembles
-            filename1 = self._get_ensemble_filename(the_variable)
-        elif self.type == 'CMIP5RAWSINGLE':
-            filename1 = self.get_single_ensemble_file(the_variable, mip='Amon', realm='atmos', temporal_resolution='mon')
-        else:
-            raise ValueError('Unknown type! not supported here!')
-
-        if self.start_time is None:
-            raise ValueError('Start time needs to be specified')
-        if self.stop_time is None:
-            raise ValueError('Stop time needs to be specified')
-
-        if not os.path.exists(filename1):
-            print ('WARNING file not existing: %s' % filename1)
-            return None
-
-        # PREPROCESSING
-        cdo = Cdo()
-        s_start_time = str(self.start_time)[0:10]
-        s_stop_time = str(self.stop_time)[0:10]
-
-        #1) select timeperiod and generate monthly mean file
-        file_monthly = filename1[:-3] + '_' + s_start_time + '_' + s_stop_time + '_T63_monmean.nc'
-        file_monthly = get_temporary_directory() + os.path.basename(file_monthly)
-        cdo.monmean(options='-f nc', output=file_monthly, input='-remapcon,t63grid -seldate,' + s_start_time + ',' + s_stop_time + ' ' + filename1, force=force_calc)
-
-        #2) calculate monthly or seasonal climatology
-        if interval == 'monthly':
-            sup_clim_file = file_monthly[:-3] + '_ymonmean.nc'
-            sup_sum_file = file_monthly[:-3] + '_ymonsum.nc'
-            sup_N_file = file_monthly[:-3] + '_ymonN.nc'
-            sup_clim_std_file = file_monthly[:-3] + '_ymonstd.nc'
-            cdo.ymonmean(options='-f nc -b 32', output=sup_clim_file, input=file_monthly, force=force_calc)
-            cdo.ymonsum(options='-f nc -b 32', output=sup_sum_file, input=file_monthly, force=force_calc)
-            cdo.ymonstd(options='-f nc -b 32', output=sup_clim_std_file, input=file_monthly, force=force_calc)
-            cdo.div(options='-f nc', output=sup_N_file, input=sup_sum_file + ' ' + sup_clim_file, force=force_calc)  # number of samples
-        elif interval == 'season':
-            sup_clim_file = file_monthly[:-3] + '_yseasmean.nc'
-            sup_sum_file = file_monthly[:-3] + '_yseassum.nc'
-            sup_N_file = file_monthly[:-3] + '_yseasN.nc'
-            sup_clim_std_file = file_monthly[:-3] + '_yseasstd.nc'
-            cdo.yseasmean(options='-f nc -b 32', output=sup_clim_file, input=file_monthly, force=force_calc)
-            cdo.yseassum(options='-f nc -b 32', output=sup_sum_file, input=file_monthly, force=force_calc)
-            cdo.yseasstd(options='-f nc -b 32', output=sup_clim_std_file, input=file_monthly, force=force_calc)
-            cdo.div(options='-f nc -b 32', output=sup_N_file, input=sup_sum_file + ' ' + sup_clim_file, force=force_calc)  # number of samples
-        else:
-            print interval
-            raise ValueError('Unknown temporal interval. Can not perform preprocessing! ')
-
-        if not os.path.exists(sup_clim_file):
-            print 'File not existing (sup_clim_file): ' + sup_clim_file
-            return None
-
-        #3) read data
-        sup = Data(sup_clim_file, 'rsus', read=True, label=self._unique_name, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
-        sup_std = Data(sup_clim_std_file, 'rsus', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
-        sup.std = sup_std.data.copy()
-        del sup_std
-        sup_N = Data(sup_N_file, 'rsus', read=True, label=self._unique_name + ' std', unit='-', lat_name='lat', lon_name='lon', shift_lon=False)
-        sup.n = sup_N.data.copy()
-        del sup_N
-
-        # ensure that climatology always starts with January, therefore set date and then sort
-        sup.adjust_time(year=1700, day=15)  # set arbitrary time for climatology
-        sup.timsort()
-
-        #4) read monthly data
-        supall = Data(file_monthly, 'rsus', read=True, label=self._unique_name, unit='$W m^{-2}$', lat_name='lat', lon_name='lon', shift_lon=False)
-        supall.adjust_time(day=15)
-        if not supall._is_monthly():
-            raise ValueError('Monthly timecycle expected here!')
-        supmean = supall.fldmean()
-
-        #/// return data as a tuple list
-        retval = (supall.time, supmean, supall)
-        del supall
-
-        #/// mask areas without radiation (set to invalid): all data < 1 W/m**2
-        #sup.data = np.ma.array(sis.data,mask=sis.data < 1.)
-
-        return sup, retval
-
-    def get_albedo_data(self, interval='season', **kwargs):
+    def get_albedo(self, interval='season', dic_up=None, dic_down=None):
         """
         calculate albedo as ratio of upward and downwelling fluxes
         first the monthly mean fluxes are used to calculate the albedo,
+
+        As the usage of different variables requires knowledge of the configuration of
+        the input streams, these need to be provided in addition
+
+        Parameters
+        ----------
+        dic_up : dict
+            dictionary for get_surface_shortwave_radiation_up() as specified in model_data_routines.json
+        dic_down : dict
+            dictionary for get_surface_shortwave_radiation_down() as specified in model_data_routines.json
         """
+
+        assert dic_up is not None, 'ERROR: dic_up needed'
+        assert dic_down is not None, 'ERROR: dic_down needed'
 
         force_calc = False
 
         # read land-sea mask
-        ls_mask = get_T63_landseamask(self.shift_lon)
+        #~ ls_mask = get_T63_landseamask(self.shift_lon)
+
+        #~ target grid  ??? valid mask ????
+
+        def _extract_dict_from_routine_name(k, s):
+            # extract dictionary name from routine name in model_data_routines.json
+            res = ast.literal_eval(s[k].split('**')[1].rstrip()[:-1])
+            #~ print res, type(res)
+            return res
+
+        # extract coniguration dictionaries for flues from model_data_routines
+        kw_up = _extract_dict_from_routine_name('surface_upward_flux', dic_up)
+        kw_down = _extract_dict_from_routine_name('sis', dic_down)
 
         if self.start_time is None:
             raise ValueError('Start time needs to be specified')
@@ -528,24 +295,25 @@ class CMIP5Data(Model):
             raise ValueError('Stop time needs to be specified')
 
         # get fluxes
-        Fu = self.get_surface_shortwave_radiation_up(interval=interval)
+        Fu = self.get_surface_shortwave_radiation_up(interval=interval, **kw_up)
         if Fu is None:
             print 'File not existing for UPWARD flux!: ', self.name
             return None
         else:
             Fu_i = Fu[0]
         lab = Fu_i._get_label()
-        Fd = self.get_surface_shortwave_radiation_down(interval=interval, **{'CMIP5': {'valid_mask': 'land'}, 'CMIP5RAW': {'valid_mask': 'land'}, 'CMIP5RAWSINGLE': {'valid_mask': 'land'}})  # todo: take routine name from the configuration setup in JSON file !!!!
+
+        Fd = self.get_surface_shortwave_radiation_down(interval=interval, **kw_down)
         if Fd is None:
             print 'File not existing for DOWNWARD flux!: ', self.name
             return None
         else:
             Fd_i = Fd[0]
 
-        #albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
+        # albedo for chosen interval as caluclated as ratio of means of fluxes in that interval (e.g. season, months)
         Fu_i.div(Fd_i, copy=False)
         del Fd_i  # Fu contains now the albedo
-        Fu_i._apply_mask(ls_mask.data)
+        #~ Fu_i._apply_mask(ls_mask.data)
 
         #albedo for monthly data (needed for global mean plots )
         Fu_m = Fu[1][2]
@@ -555,7 +323,7 @@ class CMIP5Data(Model):
 
         Fu_m.div(Fd_m, copy=False)
         del Fd_m
-        Fu_m._apply_mask(ls_mask.data)
+        #~ Fu_m._apply_mask(ls_mask.data)
         Fu_m._set_valid_range(0., 1.)
         Fu_m.label = lab + ' albedo'
         Fu_i.label = lab + ' albedo'
@@ -588,7 +356,16 @@ class CMIP5RAWData(CMIP5Data):
         self.type = 'CMIP5RAW'
         self._unique_name = self._get_unique_name()
 
-    def _get_ensemble_filename(self, the_variable):
+    def get_raw_filename(self, varname, **kwargs):
+        mip = kwargs[self.type].pop('mip', None)
+        assert mip is not None, 'ERROR: <mip> needs to be provided (CMIP5RAWSINGLE)'
+
+        realm = kwargs[self.type].pop('realm')
+        assert realm is not None, 'ERROR: <realm> needs to be provided (CMIP5RAWSINGLE)'
+
+        return self._get_ensemble_filename(varname, mip, realm)
+
+    def _get_ensemble_filename(self, the_variable, mip, realm):
         """
         get filename of ensemble mean file
         if required, then all pre-processing steps are done
@@ -600,7 +377,7 @@ class CMIP5RAWData(CMIP5Data):
 
         Returns
         -------
-        returns filename of file with multiensemble means
+        returns filename of file with multi-ensemble means
         """
 
         # use model parser to generate a list of available institutes and
@@ -617,7 +394,7 @@ class CMIP5RAWData(CMIP5Data):
         model = self.model.split(':')[1]
 
         # TODO why is the institute not in the model output name ???
-        output_file = get_temporary_directory() + the_variable + '_Amon_' + model + '_' + self.experiment + '_ensmean.nc'
+        output_file = get_temporary_directory() + the_variable + '_' + mip + '_' + model + '_' + self.experiment + '_ensmean.nc'
 
         if institute not in model_list.keys():
             raise ValueError('Data for this institute is not existing: %s' % institute)
@@ -627,12 +404,16 @@ class CMIP5RAWData(CMIP5Data):
         C5PP = preprocessor.CMIP5Preprocessor(data_dir, output_file,
                                               the_variable, model,
                                               self.experiment,
-                                              institute=institute)
-        res_file = C5PP.ensemble_mean(delete=False,
+                                              institute=institute, mip=mip, realm=realm)
+
+        # calculate the ensemble mean and store as file
+        # also the STDV is calculated on the fly calculated
+        # resulting filenames are available by C5PP.outfile_ensmean and C5PP.outfile_ensstd
+        C5PP.ensemble_mean(delete=False,
                                       start_time=self.start_time,
                                       stop_time=self.stop_time)
 
-        return res_file
+        return C5PP.outfile_ensmean
 
 
 class CMIP5RAW_SINGLE(CMIP5RAWData):
@@ -676,7 +457,21 @@ class CMIP5RAW_SINGLE(CMIP5RAWData):
         self.type = 'CMIP5RAWSINGLE'
         self._unique_name = self._get_unique_name()
 
-    def get_single_ensemble_file(self, variable, mip='Amon', realm='atmos', temporal_resolution='mon'):
+    def get_raw_filename(self, variable, **kwargs):
+        """
+        return RAW filename for class CMIP5RAWSINGLE
+        """
+
+        # information comes from model_data_routines.json
+        mip = kwargs[self.type].pop('mip', None)
+        assert mip is not None, 'ERROR: <mip> needs to be provided (CMIP5RAWSINGLE)'
+
+        realm = kwargs[self.type].pop('realm')
+        assert realm is not None, 'ERROR: <realm> needs to be provided (CMIP5RAWSINGLE)'
+
+        temporal_resolution = kwargs[self.type].pop('temporal_resolution')
+        assert temporal_resolution is not None, 'ERROR: <temporal_resolution> needs to be provided (CMIP5RAWSINGLE)'
+
         data_dir = self.data_dir
         if data_dir[-1] != os.sep:
             data_dir += os.sep
@@ -700,14 +495,15 @@ class CMIP3Data(CMIP5Data):
     def __init__(self, data_dir, model, experiment, dic_variables, name='', shift_lon=False, **kwargs):
         """
 
-        @param data_dir: directory that specifies the root directory where the data is located
-        @param model: TBD tood
-        @param experiment: specifies the ID of the experiment (str)
-        @param dic_variables:
-        @param name: TBD todo
-        @param shift_lon: specifies if longitudes of data need to be shifted
-        @param kwargs: other keyword arguments
-        @return:
+        Parameters
+        ----------
+        data_dir: directory that specifies the root directory where the data is located
+        model: TBD tood
+        experiment: specifies the ID of the experiment (str)
+        dic_variables:
+        name: TBD todo
+        shift_lon: specifies if longitudes of data need to be shifted
+        kwargs: other keyword arguments
         """
         super(CMIP3Data, self).__init__(data_dir, model, experiment, dic_variables, name=model, shift_lon=shift_lon, **kwargs)
 

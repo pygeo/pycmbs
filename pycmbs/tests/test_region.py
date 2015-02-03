@@ -93,6 +93,19 @@ class TestRegion(unittest.TestCase):
         o.write('[CAM]\n')
         o.write('coordinates=[(11.439, -68.800),(-1.239, -79.729),(28.566, -118.323),(28.566, -90.315)]\n')
         o.write('id=10\n')
+        o.close()
+
+        # rectangular box file
+        self.boxfile = tempfile.mkdtemp() + os.sep + 'test.box'
+        o=open(self.boxfile, 'w')
+        o.write('# This file specifies a region by rectangular lat/lon coordinates\n')
+        o.write('# comments can be always introduced using the hash\n')
+        o.write('Tropics,1,-180.,180.,-30.,30.\n')
+        o.write('Npolar,2,-180.,180.,63.,90.\n')
+        o.write(' # some dummy data\n')  # note that the initial space is by purpose!
+        o.write('Spolar,3,-180.,180.,-90.,-63.\n')
+        o.close()
+
 
     def tearDown(self):
         if os.path.exists(self.file):
@@ -118,6 +131,16 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(R.regions['AMZ'].lat[2], 11.439)
         self.assertEqual(R.regions['AMZ'].lat[3], 11.439)
         self.assertEqual(R.regions['AMZ'].lat[4], -20.)
+
+    def test_regionparser_read_box(self):
+        R = RegionParser(self.boxfile, format='box')
+        self.assertTrue(len(R.regions) == 3)
+        for k in R.regions.keys():
+            self.assertTrue(k in ['Tropics','Spolar','Npolar'])
+            self.assertTrue(isinstance(R.regions[k], RegionBboxLatLon))
+        self.assertEqual(R.regions['Tropics'].id,1)
+        self.assertEqual(R.regions['Npolar'].id,2)
+        self.assertEqual(R.regions['Spolar'].id,3)
 
     def test_RegionPolygon(self):
         lon = np.random.random(10)

@@ -6,12 +6,13 @@ COPYRIGHT.md
 """
 
 import unittest
+import os
 from pycmbs.benchmarking import preprocessor
 
 class TestPreprocessor(unittest.TestCase):
 
     def setUp(self):
-        self.preprocessor = preprocessor.CMIP5Preprocessor('./', 'test_file', 'nc', 'model', 'experiment', institute='MPI')
+        self.preprocessor = preprocessor.CMIP5Preprocessor('.' + os.sep, 'test_file', 'nc', 'model', 'experiment', institute='MPI')
 
     def test_StubTest(self):
         self.assertEqual(1, 1)
@@ -19,4 +20,4 @@ class TestPreprocessor(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-# vim: expandtab shiftwidth=4 softtabstop=4
+

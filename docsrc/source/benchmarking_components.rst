@@ -68,9 +68,4 @@ automatically plot climatology mean values.
 
 
 
-Coming next
-~~~~~~~~~~~
-
-* Regional analysis
-
 
