@@ -29,7 +29,7 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
         self.D._init_sample_object(nt=1000, ny=1, nx=1)
 
         # generate dummy Model object
-        data_dir = './test/'
+        data_dir = '.' + os.sep + 'test' + os.sep
         varmethods = {'albedo':'get_albedo()', 'sis': 'get_sis()'}
         self.model = models.Model(data_dir, varmethods, name='testmodel', intervals='monthly')
 
@@ -102,7 +102,8 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
         self.assertTrue(os.path.exists(testfile))
 
         M = models.CMIP5RAW_SINGLE(data_dir, 'MPI-M:MPI-ESM-LR#1', 'amip', {}, intervals='monthly')
-        f = M.get_single_ensemble_file('ta', mip='Amon', realm='atmos')
+        kwargs = {'CMIP5RAWSINGLE' : {'mip' : 'Amon', 'realm' : 'atmos', 'temporal_resolution' : 'mon'}}
+        f = M.get_raw_filename('ta', **kwargs)
         self.assertTrue(os.path.exists(f))
         self.assertEqual(f, testfile)
 

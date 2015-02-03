@@ -12,7 +12,7 @@ from pycmbs.benchmarking import preprocessor
 class TestPreprocessor(unittest.TestCase):
 
     def setUp(self):
-        self.preprocessor = preprocessor.CMIP5Preprocessor('.' + os.sep, 'test_file', 'nc', 'model', 'experiment', institute='MPI')
+        self.preprocessor = preprocessor.CMIP5Preprocessor('.' + os.sep, 'test_file', 'nc', 'model', 'experiment', institute='MPI', mip='Amon', realm='atmos')
 
     def test_StubTest(self):
         self.assertEqual(1, 1)
