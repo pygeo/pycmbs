@@ -1719,7 +1719,6 @@ class Data(object):
         else:
             return res
 
-
     def correlate(self, Y, pthres=1.01, spearman=False, detrend=False):
         """
         correlate present data on a grid cell basis with another dataset

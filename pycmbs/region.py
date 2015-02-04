@@ -259,7 +259,7 @@ class RegionParser(object):
     def _check(self):
         if not os.path.exists(self.filename):
             raise ValueError('ERROR: Regionfile not existing!')
-        if self.format not in ['ini','box']:
+        if self.format not in ['ini', 'box']:
             raise ValueError('ERROR: invalid format [ini,box]')
 
     def _read(self):
@@ -272,7 +272,7 @@ class RegionParser(object):
 
     def _parse_box_file(self):
         assert os.path.exists(self.filename), 'ERROR: missing file'
-        o = open(self.filename,'r')
+        o = open(self.filename, 'r')
         for l in o.readlines():
             l = l.lstrip()
             if len(l) == 0:
@@ -284,7 +284,8 @@ class RegionParser(object):
                 print l
                 print d
                 raise ValueError('ERROR: some invalid format the line above!')
-            self.regions.update({d[0]: RegionBboxLatLon(int(d[1]), float(d[2]), float(d[3]), float(d[4]), float(d[5]), label=d[0])})
+            self.regions.update({d[0]: RegionBboxLatLon(
+                int(d[1]), float(d[2]), float(d[3]), float(d[4]), float(d[5]), label=d[0])})
         o.close()
 
     def _parse_ini_file(self):
