@@ -44,7 +44,8 @@ class Data(object):
                  mask=None, time_cycle=None, squeeze=False, level=None,
                  verbose=False, cell_area=None, time_var='time',
                  checklat=True, weighting_type='valid', oldtime=False,
-                 warnings=True, calc_cell_area=True):
+                 warnings=True, calc_cell_area=True,
+                 geometry_file=None):
         """
         Constructor for Data class
 
@@ -161,6 +162,9 @@ class Data(object):
             date functions.
         calc_cell_area : bool
                 calculate cell area
+        geometry_file : str
+            name of individual file with coordinates. This can be usefull in the case
+            that no coordinate information is stored within the actual data files
         """
 
         self.weighting_type = weighting_type
@@ -173,6 +177,7 @@ class Data(object):
         self.squeezed = False
         self.detrended = False
         self.verbose = verbose
+        self.geometry_file = geometry_file
         # assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
         self._calc_cell_area = calc_cell_area
@@ -206,6 +211,10 @@ class Data(object):
 
         self.lat = None
         self.lon = None
+
+        if self.geometry_file is not None:
+            assert os.path.exists(self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
+
 
         #/// read data from file ///
         if read:
@@ -1204,7 +1213,7 @@ class Data(object):
         if self.data is None:
             print self.varname
             raise ValueError(
-                'The data in the file %s is not existing. This must not happen!' % self.filename)
+                'The data variable %s in the file %s is not existing. This must not happen!' % (self.varname, self.filename))
         if self.scale_factor is None:
             raise ValueError(
                 'The scale_factor for file %s is NONE, this must not happen!' % self.filename)
@@ -1220,42 +1229,12 @@ class Data(object):
         if self.squeeze:
             self._squeeze()
 
-        # mask data when desired ---
+        # mask data when desired
         if self.inmask is not None:
             self._apply_mask(self.inmask)
 
-        # read lat/lon (try default names)
-        if self.lat_name is None:
-            self.lat_name = 'lat'
-        if self.lon_name is None:
-            self.lon_name = 'lon'
-        if self.lat_name is not None:
-            self.lat = self.read_netcdf(
-                self.lat_name, netcdf_backend=netcdf_backend)
-            # ensure that lat has NOT dimension (1,nlat)
-            if self.lat is not None:
-                if self.lat.ndim == 2:
-                    if self.lat.shape[0] == 1:
-                        self.lat = self.lat[0, :]
-        else:
-            self.lat = None
-
-        if not self.lon_name is None:
-            self.lon = self.read_netcdf(
-                self.lon_name, netcdf_backend=netcdf_backend)
-            # ensure that lon has NOT dimension (1,nlon)
-            if self.lon is not None:
-                if self.lon.ndim == 2:
-                    if self.lon.shape[0] == 1:
-                        self.lon = self.lon[0, :]
-                # shift longitudes such that -180 < lon < 180
-            if shift_lon:
-                self._shift_lon()
-        else:
-            self.lon = None
-
-        if self.lat is None:
-            print('*** WARNING!!! No coordinates available!')
+        # read lat/lon
+        self._read_coordinates(shift_lon, netcdf_backend=netcdf_backend)
 
         # read time
         if self.time_var is not None:
@@ -1283,9 +1262,6 @@ class Data(object):
             if self.verbose:
                 print '        WARNING: No lat/lon mesh was generated!'
 
-        # check if cell_area is already existing. if not,
-        # try to calculate from coordinates
-        self._set_cell_area()
 
         #  check if latitude in decreasing order (N ... S)?
         if checklat:
@@ -1301,6 +1277,11 @@ class Data(object):
                     else:
                         print 'WARNING: latitudes not in systematic order! Might cause trouble with zonal statistics!'
                         self._latitudecheckok = False
+
+
+        # check if cell_area is already existing. if not,
+        # try to calculate from coordinates
+        self._set_cell_area()
 
         # calculate climatology from ORIGINAL (full dataset)
         if hasattr(self, 'time_cycle'):
@@ -1325,6 +1306,91 @@ class Data(object):
                     self._set_timecycle()
             else:
                 self._set_timecycle()
+
+
+    def _read_coordinates(self, shift_lon, netcdf_backend=None):
+        """
+        read coordinates from file. If no explictit names are given, then
+        try some default names
+        """
+
+        assert netcdf_backend is not None, 'ERROR: netcdf backend needs to be specified'
+
+        if self.geometry_file is None:
+            filename = self.filename
+        else:
+            filename = self.geometry_file
+        assert os.path.exists(filename), 'ERROR: no valid name for coordinate file: ' + filename
+
+        lat_defaults = ['lat', 'latitude']
+        lon_defaults = ['lon', 'longitude']
+
+        def _get_default_name(F, defaults):
+            variables = F.get_variable_keys()
+            res = None
+            cnt = 0
+            for k in defaults:
+                if k in variables:
+                    res = k
+                    cnt += 1
+            if cnt == 0:
+                res = None
+            elif cnt == 1:
+                res = res
+            else:
+                raise ValueError('ERROR: more than one valid geometry field found! Can not handle this. Please provide explicit names for lat/lon fields!')
+
+            return res
+
+
+        F = NetCDFHandler(netcdf_backend=netcdf_backend)
+        F.open_file(filename, 'r')
+
+        # read lat field
+        if self.lat_name is None:
+            self.lat_name = _get_default_name(F, lat_defaults)
+        if self.lat_name is None:
+            self.lat = None
+        else:
+            self.lat = F.get_variable(self.lat_name)
+            # ensure that lat has NOT dimension (1,nlat)
+        if self.lat is not None:
+            if self.lat.ndim == 2:
+                if self.lat.shape[0] == 1:
+                    self.lat = self.lat[0, :]
+
+        # read lon field
+        if self.lon_name is None:
+            self.lon_name = _get_default_name(F, lon_defaults)
+        if self.lon_name is None:
+            self.lon = None
+        else:
+             self.lon = F.get_variable(self.lon_name)
+            # ensure that lon has NOT dimension (1,nlon)
+        if self.lon is not None:
+            if self.lon.ndim == 2:
+                if self.lon.shape[0] == 1:
+                    self.lon = self.lon[0, :]
+            # shift longitudes such that -180 < lon < 180
+        if shift_lon:
+            self._shift_lon()
+
+        F.close()
+
+        if self.lon is not None:
+            if self.lon.ndim > 1:
+                if self.lon.shape != self.lat.shape:
+                    print 'ERROR: geometries of lat/lon fields dont match'
+                    print self.lon.shape, self.lat.shape
+                    assert False
+                if self.nx != self.lon.shape[1]:
+                    raise ValueError('ERROR: Geometry of coordinate file inconsistent with data geometry!')
+                if self.ny != self.lon.shape[0]:
+                    raise ValueError('ERROR: Geometry of coordinate file inconsistent with data geometry!')
+
+        if self.lat is None:
+            print('*** WARNING!!! No coordinates available!')
+
 
     def _get_binary_filehandler(self, mode='r'):
         """
@@ -2672,18 +2738,25 @@ class Data(object):
         else:
             pass
 
-    def read_netcdf(self, varname, netcdf_backend='netCDF4'):
+    def read_netcdf(self, varname, netcdf_backend='netCDF4', filename=None):
         """
         read data from netCDF file
 
         varname : str
             name of variable to be read
+        filename : str
+            specifies the name of the file to read. If this is not provided, then
+            self.filename is used
         """
+
+        if filename is None:
+            filename = self.filename
+
         File = NetCDFHandler(netcdf_backend=netcdf_backend)
-        File.open_file(self.filename, 'r')
+        File.open_file(filename, 'r')
 
         if self.verbose:
-            print 'Reading file ', self.filename
+            print 'Reading file ', filename
         if not varname in File.get_variable_keys():
             if self.verbose:
                 self._log_warning(
