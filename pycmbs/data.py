@@ -410,7 +410,8 @@ class Data(object):
         This routine takes care of different time units
         """
 
-        print('This routine is depreciated!')  # TODO
+        assert False, 'This routine is depreciated (oldtimeoffset)!'
+
 
         if not hasattr(self, 'time_str'):
             raise ValueError('ERROR: time offset can not be determined!')
@@ -3695,7 +3696,7 @@ class Data(object):
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-    def adjust_time(self, day=None, month=None, year=None):
+    def adjust_time(self, day=None, month=None, year=None, hour=None):
         """
         correct all timestamps and assign same day and/or month
         for all timesteps
@@ -3710,6 +3711,9 @@ class Data(object):
             all timestamps
         year : int
             if specified then the argument will be used as year for
+            all timestamps
+        hour : int
+            if specified then the argument will be used as hour for
             all timestamps
 
         Test
@@ -3727,6 +3731,8 @@ class Data(object):
                 s = s[0:5] + str(month).zfill(2) + s[7:]  # replace month
             if year is not None:
                 s = str(year).zfill(4) + s[4:]
+            if hour is not None:
+                s = s[0:11] + str(hour).zfill(2) + s[13:]
 
             # convert str. a number and then again to a datetime object
             # to allow to employ specific time conversion of data object
@@ -3735,7 +3741,8 @@ class Data(object):
         o = np.asarray(o)
         self.time = o.copy()
 
-#-----------------------------------------------------------------------
+
+
 
     def timsort(self, return_object=False):
         """
