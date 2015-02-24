@@ -5,6 +5,8 @@
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
 
+[![Join the chat at https://gitter.im/pygeo/pycmbs](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pygeo/pycmbs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 ## Authors and Contact
 Check `AUTHORS.md` file
