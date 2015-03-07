@@ -24,13 +24,18 @@ from netCDF4 import netcdftime
 # in newer versions of netcdftime, the date2num and num2date functions are part of utime. It is tried
 # here to handle newer and older versions
 try :
-    netcdftime_date2num = netcdftime.date2num
+    xxx = netcdftime.date2num
+    old_netcdftime = True
 except:
-    netcdftime_date2num = netcdftime.utime.date2num
+    old_netcdftime = False
+
 try:
-    netcdftime_num2date = netcdftime.num2date
+    xxx = netcdftime.num2date
+    old_netcdftime = True
 except:
-    netcdftime_num2date = netcdftime.utime.num2date
+    old_netcdftime = False
+
+del xxx
 
 from calendar import monthrange
 from cdo import Cdo
@@ -466,8 +471,24 @@ class Data(object):
         if self.time_str is None:
             raise ValueError('num2date can not work without timestr!')
         else:
-            return netcdftime_num2date(t + offset, self.time_str,
+            return self._netcdftime_num2date(t + offset, self.time_str,
                                        calendar=self.calendar)
+
+    def _netcdftime_num2date(self, t , time_str, calendar=None):
+        assert calendar is not None
+        if old_netcdftime:
+            return netcdftime.num2date(t, time_str, calendar=self.calendar)
+        else:
+            tmp = netcdftime.utime(time_str, calendar=calendar)
+            return tmp.num2date(t)
+
+    def _netcdftime_date2num(self, t, time_str, calendar=None):
+        assert calendar is not None
+        if old_netcdftime:
+            return netcdftime.date2num(t, time_str, calendar=calendar)
+        else:
+            tmp = netcdftime.utime(time_str, calendar=calendar)
+            return tmp.date2num(t)
 
     def date2num(self, t):
         """
@@ -497,7 +518,7 @@ class Data(object):
         if self.time_str is None:
             raise ValueError('date2num can not work without timestr!')
         else:
-            return netcdftime_date2num(t, self.time_str,
+            return self._netcdftime_date2num(t, self.time_str,
                                        calendar=self.calendar) - offset
 
 
