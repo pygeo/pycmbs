@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import netCDF4 as nc
@@ -18,10 +18,10 @@ usage: ./burstJch.py clisccp.nc outputdir
 '''
 
 def get_ncdata(ifilename):
-    
+
     nfile = nc.Dataset(ifilename)
     cli = nfile.variables['clisccp']
-    
+
     time = nfile.variables['time']
     lat = nfile.variables['lat']
     lon = nfile.variables['lon']
@@ -53,13 +53,13 @@ def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192),varname='clis
     set_attrs(olat,lat)
     set_attrs(olon,lon)
     #set_attrs(oclisccp,cli)
-    
+
     ## quick fix
     #oclisccp._FillValue = float(cli._FillValue)
     oclisccp.long_name = "%s cloud fraction" % ( varname.split("_")[0].title())
     oclisccp.units = "%"
     oclisccp.valid_range = 0.,100.
-    
+
     otime[:] = time[:]
     oclisccp[:] = clisccp
     olat[:] = lat[:]
@@ -69,7 +69,7 @@ def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192),varname='clis
 
 
 def burst_9_types(filename,ldict,outputdir="."):
-    
+
     cli,time,lat,lon = get_ncdata(filename)
 
     for key in ldict.keys():
@@ -97,7 +97,7 @@ def main():
 
     tlow = [0,3]; tmid = [3,5]; thigh = [5,7]
     plow = [0,2]; pmid = [2,4]; phigh = [4,7]
-    
+
     ldict = {
         'ci': [ tlow ,  phigh ],
         'cs': [ tmid ,  phigh ],

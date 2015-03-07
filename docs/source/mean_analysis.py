@@ -1,3 +1,9 @@
+"""
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
+"""
+
 from pycmbs.data import Data
 from pycmbs.examples import download
 import matplotlib.pyplot as plt

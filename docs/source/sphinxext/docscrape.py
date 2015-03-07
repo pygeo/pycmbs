@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
+"""
+
 """Extract reference documentation from the NumPy source tree.
 
 """
@@ -185,7 +191,7 @@ class NumpyDocString(object):
 
         return params
 
-    
+
     _name_rgx = re.compile(r"^\s*(:(?P<role>\w+):`(?P<name>[a-zA-Z0-9_.-]+)`|"
                            r" (?P<name2>[a-zA-Z0-9_.-]+))\s*", re.X)
     def _parse_see_also(self, content):
@@ -218,7 +224,7 @@ class NumpyDocString(object):
 
         current_func = None
         rest = []
-        
+
         for line in content:
             if not line.strip(): continue
 
@@ -260,7 +266,7 @@ class NumpyDocString(object):
             if len(line) > 2:
                 out[line[1]] = strip_each_in(line[2].split(','))
         return out
-    
+
     def _parse_summary(self):
         """Grab signature (if given) and summary"""
         if self._is_at_section():
@@ -277,7 +283,7 @@ class NumpyDocString(object):
 
         if not self._is_at_section():
             self['Extended Summary'] = self._read_to_next_section()
-    
+
     def _parse(self):
         self._doc.reset()
         self._parse_summary()
@@ -442,7 +448,7 @@ class FunctionDoc(NumpyDocString):
         else:
             func = self._f
         return func, func_name
-            
+
     def __str__(self):
         out = ''
 

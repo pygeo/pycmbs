@@ -6,9 +6,9 @@ import numpy as np
 import os,sys
 
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 
@@ -22,7 +22,7 @@ def rebin_mean(a, shape):
 
 
 def get_ncdata(jch_filename,cfc_filename):
-    
+
     nfile = nc.Dataset(jch_filename)
 
     jliq = nfile.variables['jch_liq']
@@ -37,7 +37,7 @@ def get_ncdata(jch_filename,cfc_filename):
     cnobs = cfile.variables['cfc_day_nobs'][0,:,:]
     cnobs_rs = rebin_sum(cnobs,shape=(jall.shape[-2],jall.shape[-1]))
 
-    
+
     return jall,cnobs_rs,time,lat,lon
 
 
@@ -77,7 +77,7 @@ def create_ofile(ofilename,time,lat,lon,cli,clisccp,shape=(96,192)):
 
 
 def burst_9_types(jchFilename,cfcFilename,ldict,outputdir="."):
-    
+
     cli,cnobs,time,lat,lon = get_ncdata(jchFilename,cfcFilename)
     print cli.sum(),cnobs.sum()
 
@@ -102,7 +102,7 @@ def main():
 
     tlow = [0,5]; tmid = [5,9]; thigh = [9,13]
     plow = [10,14]; pmid = [6,10]; phigh = [0,6]
-    
+
     ldict = {
         'ci': [ tlow ,  phigh ],
         'cs': [ tmid ,  phigh ],
@@ -117,7 +117,7 @@ def main():
 
     jchFile = sys.argv[1]
     cfcFile = sys.argv[2]
-    
+
     burst_9_types(jchFile,cfcFile,ldict,outputdir=sys.argv[3])
 
 

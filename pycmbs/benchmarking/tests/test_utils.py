@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import unittest
@@ -36,7 +36,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(p, os.getcwd())
 
     def test_PoolDirectory_SetToCwd(self):
-        os.environ.pop('SEP') 
+        os.environ.pop('SEP')
         local_dir = os.getcwd() + os.sep
         pool_dir = utils.get_data_pool_directory()
         self.assertEqual(pool_dir, local_dir)
