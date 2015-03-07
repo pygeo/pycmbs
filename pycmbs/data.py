@@ -18,7 +18,11 @@ import numpy as np
 from matplotlib import pylab as plt
 import matplotlib.pylab as pl
 from scipy import stats
+
 from netCDF4 import netcdftime
+# define module functions here as they are defined in different ways in different versions of netcdftime
+netcdftime_date2num = netcdftime.date2num
+netcdftime_num2date = netcdftime.num2date
 
 from calendar import monthrange
 from cdo import Cdo
@@ -454,7 +458,7 @@ class Data(object):
         if self.time_str is None:
             raise ValueError('num2date can not work without timestr!')
         else:
-            return netcdftime.num2date(t + offset, self.time_str,
+            return netcdftime_num2date(t + offset, self.time_str,
                                        calendar=self.calendar)
 
     def date2num(self, t):
@@ -485,8 +489,11 @@ class Data(object):
         if self.time_str is None:
             raise ValueError('date2num can not work without timestr!')
         else:
-            return netcdftime.date2num(t, self.time_str,
+            return netcdftime_date2num(t, self.time_str,
                                        calendar=self.calendar) - offset
+
+
+
 
     def save(self, filename, varname=None, format='nc',
              delete=False, mean=False, timmean=False, compress=True):
