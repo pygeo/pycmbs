@@ -21,8 +21,16 @@ from scipy import stats
 
 from netCDF4 import netcdftime
 # define module functions here as they are defined in different ways in different versions of netcdftime
-netcdftime_date2num = netcdftime.date2num
-netcdftime_num2date = netcdftime.num2date
+# in newer versions of netcdftime, the date2num and num2date functions are part of utime. It is tried
+# here to handle newer and older versions
+try :
+    netcdftime_date2num = netcdftime.date2num
+except:
+    netcdftime_date2num = netcdftime.utime.date2num
+try:
+    netcdftime_num2date = netcdftime.num2date
+except:
+    netcdftime_num2date = netcdftime.utime.num2date
 
 from calendar import monthrange
 from cdo import Cdo
