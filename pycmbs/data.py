@@ -26,16 +26,16 @@ from netCDF4 import netcdftime
 try :
     xxx = netcdftime.date2num
     old_netcdftime = True
+    del xxx
 except:
     old_netcdftime = False
 
 try:
     xxx = netcdftime.num2date
     old_netcdftime = True
+    del xxx
 except:
     old_netcdftime = False
-
-del xxx
 
 from calendar import monthrange
 from cdo import Cdo
