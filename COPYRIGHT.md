@@ -3,7 +3,7 @@ pyCMBS license
 
 The pyCMBS programm code is provided under the following license:
 
-Copyright (c) 2012-2014 Alexander Loew (author), Max-Planck-Institute for Meteorology (MPI-M)
+Copyright (c) 2012- Alexander Loew (author), Max-Planck-Institute for Meteorology (MPI-M), University of Munich (LMU)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

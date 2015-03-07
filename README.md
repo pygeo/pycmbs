@@ -2,9 +2,10 @@
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.14588.svg)](http://dx.doi.org/10.5281/zenodo.14588)
 
+[![Documentation Status](https://readthedocs.org/projects/pycmbs/badge/?version=latest)](https://readthedocs.org/projects/pycmbs/?badge=latest)
+
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
-
 
 ## Authors and Contact
 Check `AUTHORS.md` file
@@ -33,10 +34,7 @@ installation details.
 Documentation
 -------------
 
-pyCMBS documentation is at the moment available on the following website:
-    https://code.zmaw.de/projects/pycmbs
-Additional documentation is provided as part of the source code in /docsrc
-
+Most recent pyCMBS documentation is available on [ReadTheDocs](http://pycmbs.readthedocs.org/en/latest/)
 
 Latest source code
 ------------------
