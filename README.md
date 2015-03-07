@@ -1,6 +1,6 @@
-[![Coverage Status](https://coveralls.io/repos/pygeo/pycmbs/badge.png)](https://coveralls.io/r/pygeo/pycmbs) [![Build Status](https://travis-ci.org/pygeo/pycmbs.png?branch=master)](https://travis-ci.org/pygeo/pycmbs) [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.14588.svg)](http://dx.doi.org/10.5281/zenodo.14588)
+[![Coverage Status](https://coveralls.io/repos/pygeo/pycmbs/badge.png)](https://coveralls.io/r/pygeo/pycmbs) [![Build Status](https://travis-ci.org/pygeo/pycmbs.png?branch=master)](https://travis-ci.org/pygeo/pycmbs) [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.14588.svg)](http://dx.doi.org/10.5281/zenodo.14588) [![Documentation Status](https://readthedocs.org/projects/pycmbs/badge/?version=latest)](https://readthedocs.org/projects/pycmbs/?badge=latest)
 
-[![Documentation Status](https://readthedocs.org/projects/pycmbs/badge/?version=latest)](https://readthedocs.org/projects/pycmbs/?badge=latest)
+
 
 pyCMBS - python Climate Model Benchmarking Suite
 ================================================
