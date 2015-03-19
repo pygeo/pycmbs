@@ -783,6 +783,8 @@ class SingleMap(MapPlotGeneric):
 
         if self.show_unit:
             self.pax.set_title(unit, loc='right', size=fontsize - 2)
+        if self.show_statistic:
+            self.pax.set_title(stat, loc='left', size=fontsize - 2)
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean
