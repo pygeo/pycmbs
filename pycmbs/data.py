@@ -4005,7 +4005,7 @@ class Data(object):
         else:
             raise ValueError('Unsupported dimension!')
 
-    def get_valid_data(self, return_mask=False, mode='all'):
+    def get_valid_data(self, return_mask=False, mode='all', thres=-99):
         """
         this routine calculates from the masked array
         only the valid data and returns it together with its
@@ -4019,10 +4019,16 @@ class Data(object):
             specifies if the mask applied to the original data should
             be returned as well
         mode : str
-            analysis mode ['all','one']
+            analysis mode ['all','one','thres']
             'all': all timestamps need to be valid
             'one': at least a single dataset needs to be valid
+            'thres' : number of valid timesteps needs to be abovt a threshold
+        thres : int
+            threshold for minimum number of valid values (needed when mode=='thres')
         """
+
+        if mode == 'thres':
+            assert thres > 0, 'Threshold needs to be > 0!'
 
         if hasattr(self, 'lon'):
             if self.lon is not None:
@@ -4056,6 +4062,8 @@ class Data(object):
             elif mode == 'one':
                 # identify ONE grid cell where all timesteps are valid
                 msk = np.sum(~data.mask, axis=0) > 0
+            elif mode == 'thres':
+                msk = np.sum(~data.mask, axis=0) > thres
             else:
                 raise ValueError('Invalid option in get_valid_data() %s' %
                                  mode)
@@ -4792,7 +4800,7 @@ class Data(object):
             raise ValueError('Expect masked array as input in corr_single')
 
         # get data with at least one valid value
-        lo, la, dat, msk = self.get_valid_data(return_mask=True, mode='one')
+        lo, la, dat, msk = self.get_valid_data(return_mask=True, mode='thres', thres=3)
         xx, n = dat.shape
         if self.verbose:
             print('   Number of grid points: ', n)
@@ -4812,6 +4820,17 @@ class Data(object):
         print 'Calculating correlation ...'
         if method == 'pearson':
             res = [stats.mstats.linregress(x, dat[:, i]) for i in xrange(n)]
+            #~ res = np.ones(n)*np.nan
+            #~ for i in xrange(n):
+                #~ try:
+                    #~ yy = stats.mstats.linregress(x, dat[:, i])
+
+                #res[i] = stats.mstats.linregress(x, dat[:, i])
+                #~ except:
+                    #~ print x
+                    #~ print dat[:,i]
+                    #~ stop
+
             res = np.asarray(res)
             slope = res[:, 0]
             intercept = res[:, 1]
