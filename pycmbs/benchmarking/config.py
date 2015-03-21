@@ -159,7 +159,7 @@ class ConfigFile(object):
         os.environ.update({'CDOTEMPDIR': self.options['tempdir']})
 
     def __read_var_block(self):
-        # read header of variable plot
+        """ read header of variable plot """
         vars = []
         vars_interval = {}
         l = self.__read_header()
@@ -180,6 +180,7 @@ class ConfigFile(object):
                         vars_interval.update({r: interval})
             else:
                 l = ' '
+
 
         return vars, vars_interval
 
