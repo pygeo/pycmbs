@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 from pycmbs.data import Data
@@ -241,13 +241,19 @@ class Geostatistic(object):
 
         # get flattened data
         lon, lat, data = self.x.get_valid_data()
+                
+        
+        if type(data) is np.ma.core.MaskedArray:
+            # convert to ndarray
+            msk = ~data.mask
+            if type(lon) is not np.ma.core.MaskedArray:
+                lon = np.ma.array(lon, mask=lon!=lon)
+            if type(lat) is not np.ma.core.MaskedArray:
+                lat = np.ma.array(lat, mask=lat!=lat)
 
-        # convert to ndarray
-        msk = ~data.mask
-
-        lon = lon.data[msk]
-        lat = lat.data[msk]
-        data = data.data[msk]
+            lon = lon.data[msk]
+            lat = lat.data[msk]
+            data = data.data[msk]
 
         # estimate experimental variogram
         if model == 'spherical':
