@@ -35,12 +35,16 @@ Basic data analysis
 Temporal mean
 ~~~~~~~~~~~~~
 
-TBD
+Calculating the temporal mean field of a variable is as simple as::
+
+    air.timmean()
 
 Spatial mean
 ~~~~~~~~~~~~
 
-TBD
+The (area weighted) spatial mean is obtained as::
+
+    air.fldmean()
 
 Masking an area
 ~~~~~~~~~~~~~~~
@@ -53,8 +57,14 @@ You probably want to work only on particular regions. The following script shows
 Temporal slicing
 ~~~~~~~~~~~~~~~~
 
-TBD
+If you want to perform a temporal subsetting of the data, this can be done as follows::
 
+    # temporal subsetting using existing start/stop dates
+    import datetime.datetime
+
+    start_date = datetime(2001,05,01)
+    stop_date = datetime(2010,04,15)
+    air.apply_temporal_subsetting(start_date, stop_date):
 
 Working with multiple datasets
 ------------------------------
@@ -66,19 +76,6 @@ Simple arithmetic operations
   :include-source:
 
 
-More complex data analysis
---------------------------
-
-TBD EOF (still needs implementation of logplot option in map_plot)
-
-##.. plot:: ../../pycmbs/examples/04_EOF_analysis.py
-##   :include-source:
-
-
-
-TBD SVD
-
-TBD slice correlation
 
 
 

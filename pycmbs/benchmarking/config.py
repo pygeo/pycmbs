@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import os
@@ -159,7 +159,7 @@ class ConfigFile(object):
         os.environ.update({'CDOTEMPDIR': self.options['tempdir']})
 
     def __read_var_block(self):
-        # read header of variable plot
+        """ read header of variable plot """
         vars = []
         vars_interval = {}
         l = self.__read_header()
@@ -180,6 +180,7 @@ class ConfigFile(object):
                         vars_interval.update({r: interval})
             else:
                 l = ' '
+
 
         return vars, vars_interval
 
@@ -699,68 +700,6 @@ class PlotOptions(object):
         if cerr > 0:
             raise ValueError('There were errors in the initialization \
                               of plotting options!')
-
-
-class xxxxxxxxxAnalysisRegions():
-    """
-    Class to handle information about regions to analyze in the framework
-    """
-
-    def __init__(self, dir='.' + os.sep + 'regions' + os.sep):
-        """
-        read regions
-
-        dir : str
-            directory where to search for region specification
-        """
-        self.dir = dir
-        self.regions = []
-        self.read()
-
-    def read(self):
-        files = glob.glob(self.dir + '*.reg')
-        for f in files:
-            self._read_region_file(f)
-
-        print '--------'
-        print 'Regions:'
-        print '--------'
-        for r in self.regions:
-            print r.label
-
-    def _read_region_file(self, file):
-        """
-        read a single file specifying regions. A file can contain
-        more than one region. Results will be stored in self.regions
-
-        Parameters
-        ----------
-        file : str
-            filename
-        """
-        if not os.path.exists(file):
-            return
-
-        f = open(file, 'r')
-        for line in f.readlines():
-            l = line.lstrip()
-            if l[0] == '#':
-                continue
-            else:
-                tmp = l.split(',')
-                if len(tmp) != 5:
-                    raise ValueError("Error in REGION file: %s" % file)
-                else:
-                    # interpret data
-                    label = tmp[0]
-                    lon1 = tmp[1]
-                    lon2 = tmp[2]
-                    lat1 = tmp[3]
-                    lat2 = tmp[4]
-                    # set region
-                    self.regions.append(Region(lon1, lon2, lat1,
-                                               lat2, label,
-                                               type='latlon'))
 
 
 class CFGWriter(object):

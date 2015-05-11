@@ -28,4 +28,5 @@ recursive-exclude tests devdirs
 recursive-exclude emd.py
 graft doc
 include COPYRIGHT.md
+include LICENSE
 include COPYING_netCDF4

@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 
 """
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
+"""
+
+"""
 Defines a docutils directive for inserting inheritance diagrams.
 
 Provide the directive with one or more classes or modules (separated
@@ -48,7 +54,7 @@ def my_import(name):
     """Module importer - taken from the python documentation.
 
     This function allows importing names with dots in them."""
-    
+
     mod = __import__(name)
     components = name.split('.')
     for comp in components[1:]:
@@ -103,7 +109,7 @@ class InheritanceGraph(object):
             # second call will force the equivalent of 'import a.b' to happen
             # after the top-level import above.
             my_import(fullname)
-            
+
         except ImportError:
             raise ValueError(
                 "Could not import class or module '%s' specified for inheritance diagram" % name)

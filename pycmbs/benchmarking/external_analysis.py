@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import os
@@ -55,7 +55,7 @@ class ExternalAnalysis():
         for k in self.tags.keys():
             if not isinstance(self.tags[k], str):
                 print self.tags[k]
-                raise ValueError('ERROR: all tags are required to be strings!')
+                print('WARNING: all tags should be strings!')
 
     def _create_script(self):
         """
@@ -80,7 +80,7 @@ class ExternalAnalysis():
         for l in f.readlines():
             d = l
             for k in self.tags.keys():  # replace all tags
-                d = d.replace('<' + k + '>', self.tags[k])
+                d = d.replace('<' + k + '>', str(self.tags[k]))
             s.append(d)
         f.close()
 

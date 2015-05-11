@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 from cdo import Cdo
@@ -84,20 +84,21 @@ class Model(Data):
             if isinstance(self.variables[k], tuple):
                 pass
             else:
-                self.variables[k].save(directory + prefix + '_' + k.strip().upper() + '.nc', varname=k.strip().lower(), delete=True, mean=False, timmean=False)
+                if self.variables[k] is not None:
+                    self.variables[k].save(directory + prefix + '_' + k.strip().upper() + '.nc', varname=k.strip().lower(), delete=True, mean=False, timmean=False)
 
     def get_data(self):
         """
         central routine to extract data for all variables
         using functions specified in derived class
         """
-
         self.variables = {}
         for k in self.dic_vars.keys():
             self._actplot_options = self.plot_options.options[k]['OPTIONS']  # set variable specific options (needed for interpolation when reading the data)
 
             routine = self.dic_vars[k]  # get name of routine to perform data extraction
             interval = self.intervals[k]
+
             cmd = 'dat = self.' + routine
 
             if hasattr(self, routine[0:routine.index('(')]):  # check if routine name is there
@@ -106,10 +107,10 @@ class Model(Data):
 
                 # if a tuple is returned, then it is the data + a tuple for the original global mean field
                 if 'tuple' in str(type(dat)):
-                    self.variables.update({k: dat[0]})  # update field with data
+                    self.variables.update({k : dat[0]})  # update field with data
                     self.variables.update({k + '_org': dat[1]})  # (time, meanfield, originalfield)
                 else:
-                    self.variables.update({k: dat})  # update field with data
+                    self.variables.update({k : dat})  # update field with data
             else:
                 print k
                 print self.dic_vars

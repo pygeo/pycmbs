@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import os
 import glob
+import tempfile
 
 
 class EnsemblePreprocessor(object):
@@ -20,7 +21,7 @@ class EnsemblePreprocessor(object):
     exclusively done using the CDO's
     """
 
-    def __init__(self, data_dir, outfile):
+    def __init__(self, data_dir, outfile, **kwargs):
         """
         Parameters
         ----------
@@ -52,20 +53,50 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
     already for a particular version and that the version directory
     has been removed from the overall path.
     """
-    def __init__(self, data_dir, outfile, variable, model, experiment,
-                 mip='Amon', realm='atmos', institute=None):
-        super(CMIP5Preprocessor, self).__init__(data_dir, outfile)
-        if institute is None:
-            raise ValueError('An institute name needs to be provided!')
-        self.institute = institute
+    def __init__(self, data_dir, outfile, variable, model, experiment, **kwargs):
+        """
+        Parameters
+        ----------
+
+        data_dir : str
+            root directory where the data is located; stored in the hierarcy like in the CMIP5 archive
+        outfile : str
+            name of output file
+        variable : str
+            cmor variable (e.g. 'pr' for precipitation)
+        model : str
+            name of model (e.g. MPI-ESM-LR)
+        experiment : str
+            experiment tag (e.g. 'amip')
+
+        Within kwargs, the following parameters are mandatory
+        mip : str
+            specifies the MIP (e.g. 'Amon')
+        realm : str
+            specifies the domain (e.g. 'atmos')
+        institute : str
+            specifies the institute (e.g. MPI-M)
+        """
+        self.institute = kwargs.pop('institute', None)
+        self.mip = kwargs.pop('mip', None)
+        self.realm = kwargs.pop('realm', None)
+
+        super(CMIP5Preprocessor, self).__init__(data_dir, outfile, **kwargs)
         self.variable = variable
         self.model = model
         self.experiment = experiment
-        self.mip = mip
-        self.realm = realm
+
+        self._check()
+
+    def _check(self):
+        assert self.mip is not None, 'ERROR: a MIP needs to be provided'
+        assert self.realm is not None, 'ERROR: a REALM needs to be provided'
+        assert self.institute is not None, 'ERROR: a INSTITUTE needs to be provided'
 
     def _filelist(self, l):
-        """ generate a filelist as single string (e.g. for cdo usage """
+        """
+        generate a filelist as single string (e.g. for cdo usage
+        """
         r = ''
         for x in l:
             r += x + ' '
@@ -128,7 +159,7 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             cmd = 'cdo -f nc mergetime ' + fstr + ' ' + ofile
         else:
             # merge first and the select time (not the most performant way to do it)
-            tmpfile = ofile + '.tmp.nc'
+            tmpfile = tempfile.mktemp(suffix='.nc')
             if os.path.exists(tmpfile):
                 os.remove(tmpfile)
             cmd1 = 'cdo -f nc mergetime ' + fstr + ' ' + tmpfile
@@ -155,8 +186,6 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         if os.path.exists(ofile):  # just ensure that everything wen well
             self.mergetime_files.append(ofile)
 
-        if os.path.exists(tmpfile):
-            os.remove(tmpfile)
 
     def get_ensemble_files(self, maxens=50):
         """
@@ -216,9 +245,10 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
         ofile = os.path.splitext(ofile)[0]
         if start_time is not None:
             ofile += '_' + str(start_time)[0:10] + '_' + str(stop_time)[0:10]
-        ofile += '.nc'
+        #~ ofile += '.nc'
         self.outfile = ofile
-        cmd = 'cdo -f nc ensmean ' + fstr + ' ' + ofile
+        self.outfile_ensmean = self.outfile + '_ensmean.nc'
+        cmd = 'cdo -f nc ensmean ' + fstr + ' ' + self.outfile_ensmean
         if os.path.exists(ofile):
             if delete:
                 os.remove(ofile)
@@ -229,18 +259,16 @@ class CMIP5Preprocessor(EnsemblePreprocessor):
             os.system(cmd)
 
         # ensemble standard deviation
-        ofilestd = self.outfile.replace('_ensmean', '_ensstd')
-        cmd = 'cdo -f nc ensstd ' + fstr + ' ' + ofilestd
-        if os.path.exists(ofilestd):
+        self.outfile_ensstd = self.outfile_ensmean.replace('_ensmean', '_ensstd')
+        cmd = 'cdo -f nc ensstd ' + fstr + ' ' + self.outfile_ensstd
+        if os.path.exists(self.outfile_ensstd):
             if delete:
-                os.remove(ofilestd)
+                os.remove(self.outfile_ensstd)
                 os.system(cmd)
             else:
                 print('File already existing ... no processing is done')
         else:
             os.system(cmd)
-
-        return ofile
 
 
 class CMIP5ModelParser(object):

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import numpy
@@ -12,8 +12,8 @@ from pycmbs import anova
 class TestAnova1(unittest.TestCase):
     def setUp(self):
         x_2d_array = numpy.ones((10, 10))
-        self.anova = anova.Anova1(x_2d_array) 
-    
+        self.anova = anova.Anova1(x_2d_array)
+
     def test_AnovaImportWorks(self):
         self.assertEqual(1,1)
 

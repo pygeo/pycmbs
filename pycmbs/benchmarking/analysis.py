@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 from cdo import Cdo
@@ -521,12 +521,6 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
     #### IDENTIFY AREAS WHERE THERE IS AT LEAST SOME VALID DATA ####
     valid_obs = ((~obs_orig.data.mask).sum(axis=0)) > 0  # find all data where there is at least SOME data
 
-    #~ plt.close('all')
-    #~ plt.imshow(valid_obs)
-    #~ plt.show()
-#~
-    #~ stop
-
     obs_orig._apply_mask(valid_obs)
     obs_monthly._apply_mask(valid_obs)
 
@@ -858,13 +852,14 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             # user needs to ensure that geometry matches!
             regions_for_stat = Data(region_file, region_file_varname, read=True)
 
-            REGSTAT = RegionalAnalysis(obs_orig, model_data, regions_for_stat)
+            REGSTAT = RegionalAnalysis(obs_orig, model_data, regions_for_stat, report=report)
             REGSTAT.calculate()  # after that we have the regional statistics already calculated for the current model
 
             # save results
             sprefix = obs_type.upper() + '_' + obs_name.upper() + '_' + model._unique_name
             REGSTAT.save(prefix=sprefix, dir=report.outdir, format='pkl')
             REGSTAT.save(prefix=sprefix, dir=report.outdir, format='txt')
+            REGSTAT.save(prefix=sprefix, dir=report.outdir, format='tex')
 
             del REGSTAT
 

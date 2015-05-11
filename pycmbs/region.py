@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import os
@@ -79,8 +79,10 @@ class RegionGeneric(object):
 
     def _check_bbox_validity(self, x1, x2, y1, y2):
         if x2 < x1:
+            print x1, x2
             raise ValueError('Invalid X boundaries for region')
         if y2 < y1:
+            print y1, y2
             raise ValueError('Invalid Y boundaries for region')
 
     def _get_label(self):
@@ -214,10 +216,10 @@ class RegionBboxLatLon(RegionPolygon):
 
     def __init__(self, id, x1, x2, y1, y2, label=None):
         self._check_bbox_validity(x1, x2, y1, y2)
-        self.latmin = y1
-        self.latmax = y2
-        self.lonmin = x1
-        self.lonmax = x2
+        self.latmin = float(y1)
+        self.latmax = float(y2)
+        self.lonmin = float(x1)
+        self.lonmax = float(x2)
         lon, lat = self._bbox_to_points()  # create vector with coordinates
         super(RegionBboxLatLon, self).__init__(id, lon, lat, label=label)
 
@@ -257,14 +259,34 @@ class RegionParser(object):
     def _check(self):
         if not os.path.exists(self.filename):
             raise ValueError('ERROR: Regionfile not existing!')
-        if self.format not in ['ini']:
-            raise ValueError('ERROR: Format not correctly specified!')
+        if self.format not in ['ini', 'box']:
+            raise ValueError('ERROR: invalid format [ini,box]')
 
     def _read(self):
         if self.format == 'ini':
             self._parse_ini_file()
+        elif self.format == 'box':
+            self._parse_box_file()
         else:
             raise ValueError('ERROR: invalid format!')
+
+    def _parse_box_file(self):
+        assert os.path.exists(self.filename), 'ERROR: missing file'
+        o = open(self.filename, 'r')
+        for l in o.readlines():
+            l = l.lstrip()
+            if len(l) == 0:
+                continue
+            if l[0] == '#':  # skip comments
+                continue
+            d = l.split(',')
+            if len(d) != 6:
+                print l
+                print d
+                raise ValueError('ERROR: some invalid format the line above!')
+            self.regions.update({d[0]: RegionBboxLatLon(
+                int(d[1]), float(d[2]), float(d[3]), float(d[4]), float(d[5]), label=d[0])})
+        o.close()
 
     def _parse_ini_file(self):
         """

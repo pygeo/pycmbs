@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import os
@@ -18,7 +18,24 @@ import numpy as np
 from matplotlib import pylab as plt
 import matplotlib.pylab as pl
 from scipy import stats
+
 from netCDF4 import netcdftime
+# define module functions here as they are defined in different ways in different versions of netcdftime
+# in newer versions of netcdftime, the date2num and num2date functions are part of utime. It is tried
+# here to handle newer and older versions
+try :
+    xxx = netcdftime.date2num
+    old_netcdftime = True
+    del xxx
+except:
+    old_netcdftime = False
+
+try:
+    xxx = netcdftime.num2date
+    old_netcdftime = True
+    del xxx
+except:
+    old_netcdftime = False
 
 from calendar import monthrange
 from cdo import Cdo
@@ -44,7 +61,8 @@ class Data(object):
                  mask=None, time_cycle=None, squeeze=False, level=None,
                  verbose=False, cell_area=None, time_var='time',
                  checklat=True, weighting_type='valid', oldtime=False,
-                 warnings=True, calc_cell_area=True):
+                 warnings=True, calc_cell_area=True,
+                 geometry_file=None):
         """
         Constructor for Data class
 
@@ -161,6 +179,9 @@ class Data(object):
             date functions.
         calc_cell_area : bool
                 calculate cell area
+        geometry_file : str
+            name of individual file with coordinates. This can be usefull in the case
+            that no coordinate information is stored within the actual data files
         """
 
         self.weighting_type = weighting_type
@@ -173,6 +194,7 @@ class Data(object):
         self.squeezed = False
         self.detrended = False
         self.verbose = verbose
+        self.geometry_file = geometry_file
         # assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
         self._calc_cell_area = calc_cell_area
@@ -206,6 +228,10 @@ class Data(object):
 
         self.lat = None
         self.lon = None
+
+        if self.geometry_file is not None:
+            assert os.path.exists(self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
+
 
         #/// read data from file ///
         if read:
@@ -355,7 +381,7 @@ class Data(object):
         """return the number of days per month in Data timeseries (unittest)"""
         return [float(calendar.monthrange(d.year, d.month)[1]) for d in self.date]
 
-    def _log_warning(self, s):
+    def _log_warning(self, s, write_log=False):
         """
         log warnings for class in a logfile
 
@@ -363,7 +389,12 @@ class Data(object):
         ----------
         s : str
             string with warning message
+        write_log : bool
+            do actual data loging (default = False to avoid unnecessary generation of log file)
         """
+
+        if not write_log:
+            return
 
         if 'DATA_WARNING_FILE' in os.environ.keys():
             file = os.environ['DATA_WARNING_FILE']
@@ -396,7 +427,8 @@ class Data(object):
         This routine takes care of different time units
         """
 
-        print('This routine is depreciated!')  # TODO
+        assert False, 'This routine is depreciated (oldtimeoffset)!'
+
 
         if not hasattr(self, 'time_str'):
             raise ValueError('ERROR: time offset can not be determined!')
@@ -439,8 +471,24 @@ class Data(object):
         if self.time_str is None:
             raise ValueError('num2date can not work without timestr!')
         else:
-            return netcdftime.num2date(t + offset, self.time_str,
+            return self._netcdftime_num2date(t + offset, self.time_str,
                                        calendar=self.calendar)
+
+    def _netcdftime_num2date(self, t , time_str, calendar=None):
+        assert calendar is not None
+        if old_netcdftime:
+            return netcdftime.num2date(t, time_str, calendar=self.calendar)
+        else:
+            tmp = netcdftime.utime(time_str, calendar=calendar)
+            return tmp.num2date(t)
+
+    def _netcdftime_date2num(self, t, time_str, calendar=None):
+        assert calendar is not None
+        if old_netcdftime:
+            return netcdftime.date2num(t, time_str, calendar=calendar)
+        else:
+            tmp = netcdftime.utime(time_str, calendar=calendar)
+            return tmp.date2num(t)
 
     def date2num(self, t):
         """
@@ -470,8 +518,11 @@ class Data(object):
         if self.time_str is None:
             raise ValueError('date2num can not work without timestr!')
         else:
-            return netcdftime.date2num(t, self.time_str,
+            return self._netcdftime_date2num(t, self.time_str,
                                        calendar=self.calendar) - offset
+
+
+
 
     def save(self, filename, varname=None, format='nc',
              delete=False, mean=False, timmean=False, compress=True):
@@ -1199,7 +1250,7 @@ class Data(object):
         if self.data is None:
             print self.varname
             raise ValueError(
-                'The data in the file %s is not existing. This must not happen!' % self.filename)
+                'The data variable %s in the file %s is not existing. This must not happen!' % (self.varname, self.filename))
         if self.scale_factor is None:
             raise ValueError(
                 'The scale_factor for file %s is NONE, this must not happen!' % self.filename)
@@ -1215,42 +1266,12 @@ class Data(object):
         if self.squeeze:
             self._squeeze()
 
-        # mask data when desired ---
+        # mask data when desired
         if self.inmask is not None:
             self._apply_mask(self.inmask)
 
-        # read lat/lon (try default names)
-        if self.lat_name is None:
-            self.lat_name = 'lat'
-        if self.lon_name is None:
-            self.lon_name = 'lon'
-        if self.lat_name is not None:
-            self.lat = self.read_netcdf(
-                self.lat_name, netcdf_backend=netcdf_backend)
-            # ensure that lat has NOT dimension (1,nlat)
-            if self.lat is not None:
-                if self.lat.ndim == 2:
-                    if self.lat.shape[0] == 1:
-                        self.lat = self.lat[0, :]
-        else:
-            self.lat = None
-
-        if not self.lon_name is None:
-            self.lon = self.read_netcdf(
-                self.lon_name, netcdf_backend=netcdf_backend)
-            # ensure that lon has NOT dimension (1,nlon)
-            if self.lon is not None:
-                if self.lon.ndim == 2:
-                    if self.lon.shape[0] == 1:
-                        self.lon = self.lon[0, :]
-                # shift longitudes such that -180 < lon < 180
-            if shift_lon:
-                self._shift_lon()
-        else:
-            self.lon = None
-
-        if self.lat is None:
-            print('*** WARNING!!! No coordinates available!')
+        # read lat/lon
+        self._read_coordinates(shift_lon, netcdf_backend=netcdf_backend)
 
         # read time
         if self.time_var is not None:
@@ -1278,9 +1299,6 @@ class Data(object):
             if self.verbose:
                 print '        WARNING: No lat/lon mesh was generated!'
 
-        # check if cell_area is already existing. if not,
-        # try to calculate from coordinates
-        self._set_cell_area()
 
         #  check if latitude in decreasing order (N ... S)?
         if checklat:
@@ -1296,6 +1314,11 @@ class Data(object):
                     else:
                         print 'WARNING: latitudes not in systematic order! Might cause trouble with zonal statistics!'
                         self._latitudecheckok = False
+
+
+        # check if cell_area is already existing. if not,
+        # try to calculate from coordinates
+        self._set_cell_area()
 
         # calculate climatology from ORIGINAL (full dataset)
         if hasattr(self, 'time_cycle'):
@@ -1320,6 +1343,91 @@ class Data(object):
                     self._set_timecycle()
             else:
                 self._set_timecycle()
+
+
+    def _read_coordinates(self, shift_lon, netcdf_backend=None):
+        """
+        read coordinates from file. If no explictit names are given, then
+        try some default names
+        """
+
+        assert netcdf_backend is not None, 'ERROR: netcdf backend needs to be specified'
+
+        if self.geometry_file is None:
+            filename = self.filename
+        else:
+            filename = self.geometry_file
+        assert os.path.exists(filename), 'ERROR: no valid name for coordinate file: ' + filename
+
+        lat_defaults = ['lat', 'latitude']
+        lon_defaults = ['lon', 'longitude']
+
+        def _get_default_name(F, defaults):
+            variables = F.get_variable_keys()
+            res = None
+            cnt = 0
+            for k in defaults:
+                if k in variables:
+                    res = k
+                    cnt += 1
+            if cnt == 0:
+                res = None
+            elif cnt == 1:
+                res = res
+            else:
+                raise ValueError('ERROR: more than one valid geometry field found! Can not handle this. Please provide explicit names for lat/lon fields!')
+
+            return res
+
+
+        F = NetCDFHandler(netcdf_backend=netcdf_backend)
+        F.open_file(filename, 'r')
+
+        # read lat field
+        if self.lat_name is None:
+            self.lat_name = _get_default_name(F, lat_defaults)
+        if self.lat_name is None:
+            self.lat = None
+        else:
+            self.lat = F.get_variable(self.lat_name)
+            # ensure that lat has NOT dimension (1,nlat)
+        if self.lat is not None:
+            if self.lat.ndim == 2:
+                if self.lat.shape[0] == 1:
+                    self.lat = self.lat[0, :]
+
+        # read lon field
+        if self.lon_name is None:
+            self.lon_name = _get_default_name(F, lon_defaults)
+        if self.lon_name is None:
+            self.lon = None
+        else:
+             self.lon = F.get_variable(self.lon_name)
+            # ensure that lon has NOT dimension (1,nlon)
+        if self.lon is not None:
+            if self.lon.ndim == 2:
+                if self.lon.shape[0] == 1:
+                    self.lon = self.lon[0, :]
+            # shift longitudes such that -180 < lon < 180
+        if shift_lon:
+            self._shift_lon()
+
+        F.close()
+
+        if self.lon is not None:
+            if self.lon.ndim > 1:
+                if self.lon.shape != self.lat.shape:
+                    print 'ERROR: geometries of lat/lon fields dont match'
+                    print self.lon.shape, self.lat.shape
+                    assert False
+                if self.nx != self.lon.shape[1]:
+                    raise ValueError('ERROR: Geometry of coordinate file inconsistent with data geometry!')
+                if self.ny != self.lon.shape[0]:
+                    raise ValueError('ERROR: Geometry of coordinate file inconsistent with data geometry!')
+
+        if self.lat is None:
+            print('*** WARNING!!! No coordinates available!')
+
 
     def _get_binary_filehandler(self, mode='r'):
         """
@@ -1646,8 +1754,6 @@ class Data(object):
         else:
             return years, res
 
-#-----------------------------------------------------------------------
-
     def partial_correlation(self, Y, Z, ZY=None, pthres=1.01, return_object=True):
         """
         perform partial correlation analysis.
@@ -1715,8 +1821,6 @@ class Data(object):
             return r
         else:
             return res
-
-#-----------------------------------------------------------------------
 
     def correlate(self, Y, pthres=1.01, spearman=False, detrend=False):
         """
@@ -2671,18 +2775,25 @@ class Data(object):
         else:
             pass
 
-    def read_netcdf(self, varname, netcdf_backend='netCDF4'):
+    def read_netcdf(self, varname, netcdf_backend='netCDF4', filename=None):
         """
         read data from netCDF file
 
         varname : str
             name of variable to be read
+        filename : str
+            specifies the name of the file to read. If this is not provided, then
+            self.filename is used
         """
+
+        if filename is None:
+            filename = self.filename
+
         File = NetCDFHandler(netcdf_backend=netcdf_backend)
-        File.open_file(self.filename, 'r')
+        File.open_file(filename, 'r')
 
         if self.verbose:
-            print 'Reading file ', self.filename
+            print 'Reading file ', filename
         if not varname in File.get_variable_keys():
             if self.verbose:
                 self._log_warning(
@@ -3621,7 +3732,7 @@ class Data(object):
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-    def adjust_time(self, day=None, month=None, year=None):
+    def adjust_time(self, day=None, month=None, year=None, hour=None):
         """
         correct all timestamps and assign same day and/or month
         for all timesteps
@@ -3636,6 +3747,9 @@ class Data(object):
             all timestamps
         year : int
             if specified then the argument will be used as year for
+            all timestamps
+        hour : int
+            if specified then the argument will be used as hour for
             all timestamps
 
         Test
@@ -3653,6 +3767,8 @@ class Data(object):
                 s = s[0:5] + str(month).zfill(2) + s[7:]  # replace month
             if year is not None:
                 s = str(year).zfill(4) + s[4:]
+            if hour is not None:
+                s = s[0:11] + str(hour).zfill(2) + s[13:]
 
             # convert str. a number and then again to a datetime object
             # to allow to employ specific time conversion of data object
@@ -3661,7 +3777,8 @@ class Data(object):
         o = np.asarray(o)
         self.time = o.copy()
 
-#-----------------------------------------------------------------------
+
+
 
     def timsort(self, return_object=False):
         """
@@ -3888,7 +4005,7 @@ class Data(object):
         else:
             raise ValueError('Unsupported dimension!')
 
-    def get_valid_data(self, return_mask=False, mode='all'):
+    def get_valid_data(self, return_mask=False, mode='all', thres=-99):
         """
         this routine calculates from the masked array
         only the valid data and returns it together with its
@@ -3902,10 +4019,16 @@ class Data(object):
             specifies if the mask applied to the original data should
             be returned as well
         mode : str
-            analysis mode ['all','one']
+            analysis mode ['all','one','thres']
             'all': all timestamps need to be valid
             'one': at least a single dataset needs to be valid
+            'thres' : number of valid timesteps needs to be abovt a threshold
+        thres : int
+            threshold for minimum number of valid values (needed when mode=='thres')
         """
+
+        if mode == 'thres':
+            assert thres > 0, 'Threshold needs to be > 0!'
 
         if hasattr(self, 'lon'):
             if self.lon is not None:
@@ -3939,6 +4062,8 @@ class Data(object):
             elif mode == 'one':
                 # identify ONE grid cell where all timesteps are valid
                 msk = np.sum(~data.mask, axis=0) > 0
+            elif mode == 'thres':
+                msk = np.sum(~data.mask, axis=0) > thres
             else:
                 raise ValueError('Invalid option in get_valid_data() %s' %
                                  mode)
@@ -4675,7 +4800,7 @@ class Data(object):
             raise ValueError('Expect masked array as input in corr_single')
 
         # get data with at least one valid value
-        lo, la, dat, msk = self.get_valid_data(return_mask=True, mode='one')
+        lo, la, dat, msk = self.get_valid_data(return_mask=True, mode='thres', thres=3)
         xx, n = dat.shape
         if self.verbose:
             print('   Number of grid points: ', n)
@@ -4695,6 +4820,17 @@ class Data(object):
         print 'Calculating correlation ...'
         if method == 'pearson':
             res = [stats.mstats.linregress(x, dat[:, i]) for i in xrange(n)]
+            #~ res = np.ones(n)*np.nan
+            #~ for i in xrange(n):
+                #~ try:
+                    #~ yy = stats.mstats.linregress(x, dat[:, i])
+
+                #res[i] = stats.mstats.linregress(x, dat[:, i])
+                #~ except:
+                    #~ print x
+                    #~ print dat[:,i]
+                    #~ stop
+
             res = np.asarray(res)
             slope = res[:, 0]
             intercept = res[:, 1]

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 """
@@ -148,10 +147,9 @@ class hovmoeller:
         myhov.plot(title='Test Hovmoeller plot',ylabel='lat',xlabel='days',origin='lower',xtickrotation=30,climits=[-1.,1.])
         show()
 
-
         Another example, that does NOT calculate the hovmoeller plot by itself, but uses functionality from pyCMBS Data object
 
-        file='/home/m300028/shared/dev/svn/pyCMBS/example/wachmos_sm_1978-2010_int_monthly_t63.nc'
+        file='wachmos_sm_1978-2010_int_monthly_t63.nc'
         D = Data(file,'var100',read=True)
 
         myhov = hovmoeller(num2date(D.time),None,rescaley=20,rescalex=20)

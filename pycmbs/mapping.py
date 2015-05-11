@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 """
@@ -28,7 +28,6 @@ try:
 except:
     print(
         'WARNING: BASEMAP seems not to be installed and can therefore not be used as plotting backend')
-
 
 try:
     from matplotlib import pyplot as plt
@@ -784,6 +783,8 @@ class SingleMap(MapPlotGeneric):
 
         if self.show_unit:
             self.pax.set_title(unit, loc='right', size=fontsize - 2)
+        if self.show_statistic:
+            self.pax.set_title(stat, loc='left', size=fontsize - 2)
 
     def _get_statistics_str(self):
         tmp_xm = self.x.timmean(return_object=True)  # from temporal mean

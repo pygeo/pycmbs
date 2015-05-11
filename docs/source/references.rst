@@ -2,6 +2,12 @@
 References
 ==========
 
+Project website
+---------------
+
+ * `pyCMBS on github (public development project) <https://github.com/pygeo/pycmbs>`_
+
+
 Publications where pyCMBS has been used
 ---------------------------------------
 
@@ -17,5 +23,6 @@ Publications where pyCMBS has been used
 Projects where pyCMBS has been used
 -----------------------------------
 
+ * `ESA GlobAlbedo <http://www.globalbedo.org>`_
  * EvaCliMod (German Weather Service)
  * ESA Climate Change Initiative (European Space Agency)

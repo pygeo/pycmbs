@@ -1,3 +1,8 @@
+"""
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
+"""
 # -*- coding: utf-8 -*-
 import numpy as np
 from matplotlib import pyplot as plt

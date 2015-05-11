@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of pyCMBS. (c) 2012-2014
-For COPYING and LICENSE details, please refer to the file
-COPYRIGHT.md
+This file is part of pyCMBS.
+(c) 2012- Alexander Loew
+For COPYING and LICENSE details, please refer to the LICENSE file
 """
 
 import numpy as np
 
 
 def get_albedo_colortable():
-    '''
+    """
     colors(*,i)=[0,     0, 050] & boundary[i]=0.000 & i=i+1
     colors(*,i)=[0,     0, 200] & boundary[i]=0.020 & i=i+1  ; 0.020
     colors(*,i)=[0,     0, 255] & boundary[i]=0.040 & i=i+1  ; 0.040
@@ -39,7 +39,7 @@ def get_albedo_colortable():
     colors(*,i)=[230, 253, 200] & boundary[i]=0.750 & i=i+1  ; 0.700
 
     which means for instance that the interval 0.18 - 0.20 is coded with the RGB value [139,123,0]. Missing values (255) are coded in white. If you multiply these intervals by 254 you have the equivalent intervals directly in the way the albedo product is coded.
-    '''
+    """
     ct = [[0, 0, 050],
           [0, 0, 200],
           [0, 0, 255],
@@ -103,7 +103,7 @@ def get_albedo_colortable():
 
 
 def get_albedo_colortable1():
-    '''
+    """
     colors(*,i)=[0,     0, 050] & boundary[i]=0.000 & i=i+1
     colors(*,i)=[0,     0, 200] & boundary[i]=0.020 & i=i+1  ; 0.020
     colors(*,i)=[0,     0, 255] & boundary[i]=0.040 & i=i+1  ; 0.040
@@ -133,7 +133,7 @@ def get_albedo_colortable1():
     colors(*,i)=[230, 253, 200] & boundary[i]=0.750 & i=i+1  ; 0.700
 
     which means for instance that the interval 0.18 - 0.20 is coded with the RGB value [139,123,0]. Missing values (255) are coded in white. If you multiply these intervals by 254 you have the equivalent intervals directly in the way the albedo product is coded.
-    '''
+    """
     ct = [[0, 0, 050],
           [0, 0, 200],
           [0, 0, 255],

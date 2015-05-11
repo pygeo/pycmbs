@@ -1,4 +1,3 @@
-===========================================
 Customizing pyCMBS benchmarking environment
 ===========================================
 
@@ -84,23 +83,23 @@ Adding a new observation is as simple as copy/paste an already existing section 
 Recepies for handling problems
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In 80% of the cases, pyCMBS will handle your new data smoothly. However, it might happen that your file(s) are different from the files pyCMBS was tested so far with. For these cases the following steps might help to solve your problem:
+In 80% of the cases, `pycmbs` will handle your new data smoothly. However, it might happen that your file(s) are different from the files pyCMBS was tested so far with. For these cases the following steps might help to solve your problem:
 
 Is the file o.k?
 
  * Have a look at the file with other tools like e.g. ncview or panoply
- * make also an "ncdump -h" to check the metadata of the file
+ * make also an `ncdump -h` to check the metadata of the file
 
 Can *cdo's* work with the file?
 
 The preprocessing capabilities of pyCMBS largely rely on the usage of the climate data operators (cdo). If the *cdo's* can not work with your file, then pyCMBS will most likely have also problems.
 
- * check if *cdo's* can in general read the file: *cdo sinfo <filename>*
- * check if grid of the file is recognized by trying to remap the file manually using *cdo remapcon,t63grid <infile> nothing.nc*
+ * check if *cdo's* can in general read the file: `cdo sinfo <filename>`
+ * check if grid of the file is recognized by trying to remap the file manually using `cdo remapcon,t63grid <infile> nothing.nc`
 
 If one of the two tests above fail, then your file is missing some essential metadata or has a strange grid or grid description that is not automatically recognized.
 In these cases, it would be best, if you try to figure out, why the *cdo's* are not capable to work with your dataset.
-Try to pose your question to the `cdo's help forum <https://code.zmaw.de/projects/cdo/boards>`_ (don't forget to provide details about your file; e.g. by sending the results of *ncdump -h*)
+Try to pose your question to the `cdo's help forum <https://code.zmaw.de/projects/cdo/boards>`_ (don't forget to provide details about your file; e.g. by sending the results of `ncdump -h`)
 
 
 
@@ -111,7 +110,7 @@ To add new variables in pyCMBS implies the following steps:
 
 1. **Define I/O routine:** Implement for each model class that shall support the new variable a routine
 that allows to read the data. Let's say you have a variable *sis*, then you
-would need e.g. to implement a routine *get_sis()* for the CMIP5 model class.
+would need e.g. to implement a routine *get_sis()* for the CMIP5RAW model class.
 Note that there is already a routine which can be used for generic I/O.
 
 2. **Register I/O routine**: After you have implemented the routine to read the
@@ -119,35 +118,29 @@ data, you need to let the program know about it. All data is read using a
 routine called *get_data()*. This routine gets the information which
 subroutines to call from details provided in a configuration file. The
 configuration file is found in::
+
     ./configuration/model_data_routines.json
 
 The file is a simple JSON dictionary. Make yourself a bit familar with the
 structure and it should not be a problem to implement your new routine there.
 
 3. **Analysis script:** Now you have the analysis script that can be used to
-read the data. However, you still need to tell pyCMBS how to make use of this
+read the data. However, you still need to tell `pycmbs` how to make use of this
 new information. This you do by implementing an analysis routine in
 *analysis.py*. For most variables supported so far, this analysis routine is
 just a wrapper which is calling a very generic analysis routine that basically
-does everything you tell it to do. What to do is specified in the INI files for
+does everything you tell it to do. What to do is specified in the *INI files* for
 each variable. Note however, that you are free to do what you want and you can
 implement a new analysis routine which is doing right the thing you want it to
 do.
 
-
-
-????>>>>>
-model_data_routines.json
-
-specify routines and aprameters how to read data for a certain variable and model
-here it is sufficient to specify the routine that are implemented in some master class as the child
-classes all herit the corresponding routines
-
-e.g. JSBACH_RAW2 routine are also available in JSBACH_SPECIAL !!!!
-
-4. **Last step** is to tell pyCMBS that the analysis script you implemented is
+4. **Last step** is to tell `pycmbs` that the analysis script you implemented is
 existing. This is again done, by simply registering it in the following file::
+
     ./configuration/analysis_scripts.json
+
+5. [optional] **Test environment** As a best practice, you should then also integrate a unittest for this new variable. Details are specified in the section :ref:`bench-testing`.
+
 
 
 How to add a new model format?

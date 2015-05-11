@@ -1,3 +1,9 @@
+version 1.0.10
+==============
+
+o implemented option to read coordinates from separate file
+
+
 version 1.0.9
 =============
 Major further developments and improvements have been made. No full tracking of changes was done. Additional features include e.g.
