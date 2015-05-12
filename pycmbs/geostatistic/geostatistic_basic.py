@@ -338,7 +338,7 @@ class Geostatistic(object):
             if not isinstance(refobj.lon, np.ma.core.MaskedArray):
                 refobj.lon = np.ma.array(refobj.lon, mask = refobj.lon != refobj.lon)
             if not isinstance(refobj.lat, np.ma.core.MaskedArray):
-                refobj.lon = np.ma.array(refobj.lat, mask = refobj.lat != refobj.lat)
+                refobj.lat = np.ma.array(refobj.lat, mask = refobj.lat != refobj.lat)
 
             if not isinstance(refobj.lon, np.ma.core.MaskedArray):
                 print 'lon', refobj.lon
