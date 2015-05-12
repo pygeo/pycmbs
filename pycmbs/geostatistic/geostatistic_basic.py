@@ -241,8 +241,8 @@ class Geostatistic(object):
 
         # get flattened data
         lon, lat, data = self.x.get_valid_data()
-                
-        
+
+
         if type(data) is np.ma.core.MaskedArray:
             # convert to ndarray
             msk = ~data.mask
@@ -335,7 +335,14 @@ class Geostatistic(object):
                 raise ValueError('Oversampling factor needs to be > 1!')
             refobj = self.x.copy()
 
-            assert isinstance(refobj.lon, np.ma.core.MaskedArray), 'ERROR: longitudes are expected to be masked arrays!'
+            if not isinstance(refobj.lon, np.ma.core.MaskedArray):
+                refobj.lon = np.ma.array(refobj.lon, mask = refobj.lon != refobj.lon)
+            if not isinstance(refobj.lat, np.ma.core.MaskedArray):
+                refobj.lon = np.ma.array(refobj.lat, mask = refobj.lat != refobj.lat)
+
+            assert isinstance(refobj.lon, np.ma.core.MaskedArray), 'ERROR: longitudes are expected to be masked arrays!  get_coordinates'
+            assert isinstance(refobj.lat, np.ma.core.MaskedArray), 'ERROR: latitudes are expected to be masked arrays! get_coordinates'
+
             ny = int(refobj.ny * oversampling_factor)
             nx = int(refobj.nx * oversampling_factor)
 
