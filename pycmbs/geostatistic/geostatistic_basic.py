@@ -340,8 +340,14 @@ class Geostatistic(object):
             if not isinstance(refobj.lat, np.ma.core.MaskedArray):
                 refobj.lon = np.ma.array(refobj.lat, mask = refobj.lat != refobj.lat)
 
-            assert isinstance(refobj.lon, np.ma.core.MaskedArray), 'ERROR: longitudes are expected to be masked arrays!  get_coordinates'
-            assert isinstance(refobj.lat, np.ma.core.MaskedArray), 'ERROR: latitudes are expected to be masked arrays! get_coordinates'
+            if not isinstance(refobj.lon, np.ma.core.MaskedArray):
+                print 'lon', refobj.lon
+                print type(refobj.lon)
+                assert False, 'ERROR: longitudes are expected to be masked arrays!  get_coordinates'
+            if not isinstance(refobj.lat, np.ma.core.MaskedArray):
+                print 'lat', refobj.lat
+                print type(refobj.lat)
+                assert False, 'ERROR: latitudes are expected to be masked arrays! get_coordinates'
 
             ny = int(refobj.ny * oversampling_factor)
             nx = int(refobj.nx * oversampling_factor)
