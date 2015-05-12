@@ -60,11 +60,11 @@ def get_sample_file(name='air', return_object=True):
     if name not in files.keys():
         raise ValueError('Invalid sample file')
 
-    fname = get_example_data_directory() + files[name]['name']
+    tdir = get_example_data_directory()
+    fname = tdir + files[name]['name']
 
     # download data if not existing yet
     if not os.path.exists(fname):
-        tdir = get_example_data_directory()
         url = files[name]['url']
         _download_file(url, tdir)
         if not os.path.exists(fname):
