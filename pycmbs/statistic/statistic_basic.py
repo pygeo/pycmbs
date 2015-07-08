@@ -29,6 +29,10 @@ def get_significance(correlation, n, pthres=1.01):
     Returns
     -------
     ndarray : returns the p-value
+
+    References
+    ----------
+    e.g. Bahrenberg et al., 2010
     """
 
     nf = n - 2  # degree of freedom
