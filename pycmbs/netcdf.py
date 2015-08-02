@@ -33,6 +33,7 @@ class NetCDFHandler(object):
         if self.type.lower() == 'netcdf4':
             import netCDF4 as Cdf
         else:
+            print 'Chosen backend: ', self.type.lower()
             raise ValueError('Invalid netCDF backend!')
         self.handler = Cdf
 

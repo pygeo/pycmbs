@@ -12,6 +12,9 @@ For COPYING and LICENSE details, please refer to the LICENSE file
 from setuptools import setup
 from distutils.core import setup as setup_dist  # todo use only one setup
 
+import os
+import glob
+
 # the setuptools are supposed to be used as a standard. Thats why we ommit
 # usage of distutils here
 

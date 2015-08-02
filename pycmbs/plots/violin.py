@@ -23,7 +23,7 @@ class ViolinPlot(object):
     """
 
     def __init__(self, data, data2=None, labels=None, ax=None,
-                 boxplot=True, figsize=(10, 6)):
+                 boxplot=True, figsize=(10, 6), sortlabels=False):
         """
         Parameters
         ----------
@@ -42,6 +42,8 @@ class ViolinPlot(object):
             plot boxplot
         figsize : tuple
             figure size
+        sortlabels : bool
+            sort labels in ascending order
         """
         self.data = data
         self.data2 = data2
@@ -49,6 +51,8 @@ class ViolinPlot(object):
             self.labels = range(len(self.data))
         else:
             self.labels = labels
+        if sortlabels:
+            self.labels.sort()
 
         if ax is None:
             fig = plt.figure(figsize=figsize)

@@ -888,6 +888,7 @@ def generic_analysis(plot_options, model_list, obs_type, obs_name,
             report.newpage()
 
             hstackfile = report.outdir + 'Climate_mean_timeseries_correlations_' + obs_type.upper() + '_' + obs_orig.label.upper().replace(' ', '') + '.png'
+            hstackfile = hstackfile.replace('#','-').replace(' ', '_')
             PC_plot.figure.savefig(hstackfile, dpi=200)
 
             plt.close(PC_plot.figure.number)
@@ -1366,6 +1367,7 @@ def main_analysis(model_list, interval='season', GP=None, shift_lon=False,
         report.figure(GM_HT_clim.figure, caption='Global means climatology for ' + thelabel, bbox_inches=None)
 
         hstackfile = report.outdir + 'Climate_mean_timeseries_' + thevar.upper() + '.png'
+        hstackfile = hstackfile.replace('#','-').replace(' ', '_')
         GM_HT_clim.figure.savefig(hstackfile, dpi=200)
 
         plt.close(GM_HT_clim.figure.number)

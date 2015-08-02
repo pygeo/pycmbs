@@ -79,6 +79,7 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
             os.remove(albfile)
         os.system('rm -rf ' + odir)
 
+    @unittest.skip('Becnchmarking tests still pending')
     def test_cmip5_init_singlemember(self):
         data_dir = tempfile.mkdtemp()
 
@@ -92,6 +93,7 @@ class TestPycmbsBenchmarkingModels(unittest.TestCase):
         self.assertEqual(M1.ens_member, 1)
         self.assertEqual(M2.ens_member, 728)
 
+    @unittest.skip('Becnchmarking tests still pending')
     def test_cmip5_singlemember_filename(self):
         data_dir = tempfile.mkdtemp()
 

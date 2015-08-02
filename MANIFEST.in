@@ -13,6 +13,7 @@ graft tests
 graft logo
 graft configuration
 graft docsrc
+graft docs
 prune build
 prune test_eof
 prune example

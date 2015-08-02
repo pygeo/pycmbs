@@ -117,6 +117,7 @@ class Model(Data):
                 print routine
                 print('WARNING: unknown function to read data (skip!), variable: %s ' % k)
                 self.variables.update({k: None})
+                assert False
 
 
 class MedianModel(Model):

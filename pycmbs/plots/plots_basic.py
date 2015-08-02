@@ -1345,7 +1345,7 @@ class ZonalPlot(object):
         else:
             self.ax = ax
 
-    def plot(self, x, xlim=None, timmean=False, show_ylabel=True, label=''):
+    def plot(self, x, xlim=None, timmean=False, show_ylabel=True, label='', **kwargs):
         """
         plot zonal plot
 
@@ -1396,7 +1396,7 @@ class ZonalPlot(object):
 
         # plot zonal statistics
         if dat.ndim == 1:
-            self.ax.plot(dat, x.lat[:, 0], label=label)
+            self.ax.plot(dat, x.lat[:, 0], label=label, **kwargs)
         elif dat.ndim == 2:
             for i in range(len(dat)):
                 self.ax.plot(dat[i, :], x.lat[:, 0], label='time=' + str(i))

@@ -2317,6 +2317,8 @@ class Data(object):
             self._convert_time()
         if self.time_str == 'day as YYYYMMDD':
             self._convert_time_YYYYMMDD()
+        elif self.time_str == 'day as YYYYMMDDhhmm':
+            self._convert_time_YYYYMMDDhhmm()
         elif self.time_str == 'month as %Y%m.%f':
             self._convert_timeYYYYMM()
         elif self.time_str == 'year as %Y.%f':
@@ -2837,14 +2839,14 @@ class Data(object):
             data = np.ma.array(data, mask=np.zeros(data.shape).astype('bool'))
             self.fill_value = -99999.
 
-        #--- scale factor
+        # scale factor
         scal = File._get_scale_factor(varname)
         self._scale_factor_netcdf = scal * 1.
 
         offset = File._get_add_offset(varname)
         self._add_offset_netcdf = offset * 1.
 
-        #data = data * scal + offset
+        # data = data * scal + offset
         data *= scal
         data += offset
 
@@ -3688,6 +3690,28 @@ class Data(object):
         self.time_str = 'days since 0001-01-01 00:00:00'
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
+
+    def _convert_time_YYYYMMDDhhmm(self):
+        """
+        convert time that was given as YYYYMMDDhhmm
+        and set time variable of Data object
+        """
+        s = map(str, self.time)
+        T = []
+        for t in s:
+            y = t[0:4]
+            m = t[4:6]
+            d = t[6:8]  # always the first day is used as default
+            h = t[8:10]
+            mi = t[10:12]
+            tn = y + '-' + m + '-' + d + ' ' + h + ':' + mi
+            T.append(tn)
+        T = np.asarray(T)
+        self.calendar = 'gregorian'
+        self.time_str = 'days since 0001-01-01 00:00:00'
+        # convert first to datetime object and then use own function !!!
+        self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
+
 
     def _convert_timeYYYYMM(self):
         """
