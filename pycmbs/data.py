@@ -23,7 +23,7 @@ from netCDF4 import netcdftime
 # define module functions here as they are defined in different ways in different versions of netcdftime
 # in newer versions of netcdftime, the date2num and num2date functions are part of utime. It is tried
 # here to handle newer and older versions
-try :
+try:
     xxx = netcdftime.date2num
     old_netcdftime = True
     del xxx
@@ -230,7 +230,8 @@ class Data(object):
         self.lon = None
 
         if self.geometry_file is not None:
-            assert os.path.exists(self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
+            assert os.path.exists(
+                self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
 
         #/// read data from file ///
         if read:
@@ -470,9 +471,9 @@ class Data(object):
             raise ValueError('num2date can not work without timestr!')
         else:
             return self._netcdftime_num2date(t + offset, self.time_str,
-                                       calendar=self.calendar)
+                                             calendar=self.calendar)
 
-    def _netcdftime_num2date(self, t , time_str, calendar=None):
+    def _netcdftime_num2date(self, t, time_str, calendar=None):
         assert calendar is not None
         if old_netcdftime:
             return netcdftime.num2date(t, time_str, calendar=self.calendar)
@@ -517,10 +518,7 @@ class Data(object):
             raise ValueError('date2num can not work without timestr!')
         else:
             return self._netcdftime_date2num(t, self.time_str,
-                                       calendar=self.calendar) - offset
-
-
-
+                                             calendar=self.calendar) - offset
 
     def save(self, filename, varname=None, format='nc',
              delete=False, mean=False, timmean=False, compress=True):
@@ -1297,7 +1295,6 @@ class Data(object):
             if self.verbose:
                 print '        WARNING: No lat/lon mesh was generated!'
 
-
         #  check if latitude in decreasing order (N ... S)?
         if checklat:
             if hasattr(self, 'lat'):
@@ -1312,7 +1309,6 @@ class Data(object):
                     else:
                         print 'WARNING: latitudes not in systematic order! Might cause trouble with zonal statistics!'
                         self._latitudecheckok = False
-
 
         # check if cell_area is already existing. if not,
         # try to calculate from coordinates
@@ -1342,7 +1338,6 @@ class Data(object):
             else:
                 self._set_timecycle()
 
-
     def _read_coordinates(self, shift_lon, netcdf_backend=None):
         """
         read coordinates from file. If no explictit names are given, then
@@ -1355,7 +1350,8 @@ class Data(object):
             filename = self.filename
         else:
             filename = self.geometry_file
-        assert os.path.exists(filename), 'ERROR: no valid name for coordinate file: ' + filename
+        assert os.path.exists(
+            filename), 'ERROR: no valid name for coordinate file: ' + filename
 
         lat_defaults = ['lat', 'latitude']
         lon_defaults = ['lon', 'longitude']
@@ -1373,10 +1369,10 @@ class Data(object):
             elif cnt == 1:
                 res = res
             else:
-                raise ValueError('ERROR: more than one valid geometry field found! Can not handle this. Please provide explicit names for lat/lon fields!')
+                raise ValueError(
+                    'ERROR: more than one valid geometry field found! Can not handle this. Please provide explicit names for lat/lon fields!')
 
             return res
-
 
         F = NetCDFHandler(netcdf_backend=netcdf_backend)
         F.open_file(filename, 'r')
@@ -1400,7 +1396,7 @@ class Data(object):
         if self.lon_name is None:
             self.lon = None
         else:
-             self.lon = F.get_variable(self.lon_name)
+            self.lon = F.get_variable(self.lon_name)
             # ensure that lon has NOT dimension (1,nlon)
         if self.lon is not None:
             if self.lon.ndim == 2:
@@ -1419,13 +1415,14 @@ class Data(object):
                     print self.lon.shape, self.lat.shape
                     assert False
                 if self.nx != self.lon.shape[1]:
-                    raise ValueError('ERROR: Geometry of coordinate file inconsistent with data geometry!')
+                    raise ValueError(
+                        'ERROR: Geometry of coordinate file inconsistent with data geometry!')
                 if self.ny != self.lon.shape[0]:
-                    raise ValueError('ERROR: Geometry of coordinate file inconsistent with data geometry!')
+                    raise ValueError(
+                        'ERROR: Geometry of coordinate file inconsistent with data geometry!')
 
         if self.lat is None:
             print('*** WARNING!!! No coordinates available!')
-
 
     def _get_binary_filehandler(self, mode='r'):
         """
@@ -3710,7 +3707,6 @@ class Data(object):
         # convert first to datetime object and then use own function !!!
         self.time = self.date2num(plt.num2date(plt.datestr2num(T)))
 
-
     def _convert_timeYYYYMM(self):
         """
         convert time that was given as YYYYMM.f
@@ -3798,9 +3794,6 @@ class Data(object):
 
         o = np.asarray(o)
         self.time = o.copy()
-
-
-
 
     def timsort(self, return_object=False):
         """
@@ -4822,7 +4815,8 @@ class Data(object):
             raise ValueError('Expect masked array as input in corr_single')
 
         # get data with at least one valid value
-        lo, la, dat, msk = self.get_valid_data(return_mask=True, mode='thres', thres=3)
+        lo, la, dat, msk = self.get_valid_data(
+            return_mask=True, mode='thres', thres=3)
         xx, n = dat.shape
         if self.verbose:
             print('   Number of grid points: ', n)
