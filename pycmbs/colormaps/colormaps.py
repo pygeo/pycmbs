@@ -197,6 +197,7 @@ def get_albedo_colortable1():
 
 
 class ColorMapGenerator(object):
+
     """
     Generate colormaps from RGB value lists
     """
@@ -238,7 +239,8 @@ class ColorMapGenerator(object):
         import numpy as np
 
         if len(lbound) != len(rgb):
-            raise ValueError('Inconsistent geometries for boundaries and RGB table')
+            raise ValueError(
+                'Inconsistent geometries for boundaries and RGB table')
 
         lbound = np.asarray(lbound)
         # check that boundaries in ascending order
@@ -264,8 +266,10 @@ class ColorMapGenerator(object):
         red_list = []
         green_list = []
         blue_list = []
-        if bmax == bmin:  # in case of homogeneous colors, generate a tuple with 0 and 1 (see: http://stackoverflow.com/questions/16267143/matplotlib-single-colored-colormap-with-saturation)
-            for xx in [0.,1.]:
+        # in case of homogeneous colors, generate a tuple with 0 and 1 (see:
+        # http://stackoverflow.com/questions/16267143/matplotlib-single-colored-colormap-with-saturation)
+        if bmax == bmin:
+            for xx in [0., 1.]:
                 red_list.append((xx, R[i], R[i]))
                 green_list.append((xx, G[i], G[i]))
                 blue_list.append((xx, B[i], B[i]))

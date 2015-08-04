@@ -62,7 +62,12 @@ dependencies : clean
 pep8 :
 	$(PEP) *.py
 	$(PEP) ./pycmbs/*.py
-	$(PEP) ./pycmbs/benchmarking/*.py
+	#$(PEP) ./pycmbs/benchmarking/*.py
+	$(PEP) ./pycmbs/colormaps/*.py
+	$(PEP) ./pycmbs/geostatistic/*.py
+	$(PEP) ./pycmbs/diagnostic/*.py
+	$(PEP) ./pycmbs/plots/*.py
+	$(PEP) ./pycmbs/statistic/*.py
 
 
 
