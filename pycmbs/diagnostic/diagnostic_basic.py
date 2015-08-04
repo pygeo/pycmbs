@@ -25,6 +25,7 @@ from pycmbs.data import Data
 from pycmbs.anova import *
 from pycmbs.taylor import Taylor
 
+
 class DiagnosticMaster(object):
     """
     a master class for diganostics

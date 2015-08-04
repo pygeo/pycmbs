@@ -31,10 +31,12 @@ from pycmbs.plots.violin import ViolinPlot
 
 
 class RegionalAnalysis(object):
+
     """
     a class to perform comparisons between two datasets on a regional basis
     """
-    def __init__(self, x, y, region, f_correlation=True, f_statistic=True,  f_aggregated_violin=False, report=None):
+
+    def __init__(self, x, y, region, f_correlation=True, f_statistic=True, f_aggregated_violin=False, report=None):
         """
 
         Parameters
@@ -64,7 +66,7 @@ class RegionalAnalysis(object):
         self.f_statistic = f_statistic
         self.f_aggregated_violin = f_aggregated_violin
         self.statistics = {}
-        self.report=report
+        self.report = report
 
         if x is not None:
             if not isinstance(x, Data):
@@ -135,7 +137,6 @@ class RegionalAnalysis(object):
             raise ValueError('ERROR: RegionalAnalyis - \
                                inconsistent geometries!')
 
-
     def _get_correlation(self, pthres=1.01):
         """
         calculate correlation between two fields
@@ -156,7 +157,7 @@ class RegionalAnalysis(object):
         if (self.x is None) or (self.y is None):
             return {'analysis_A': None, 'analysis_B': None, 'analysis_C': None}
 
-        #=======================================================================
+        #======================================================================
         # A) calculate once correlation and then calculate regional statistics
         RO, PO = self.x.correlate(self.y, pthres=pthres,
                                   spearman=False, detrend=False)
@@ -178,11 +179,13 @@ class RegionalAnalysis(object):
             x = self._get_masked_data(self.x, v)
             y = self._get_masked_data(self.y, v)
 
-            #=======================================================================
-            # B) calculate regional statistics based on entire dataset for a region
+            #==================================================================
+            # B) calculate regional statistics based on entire dataset for a
+            # region
             xvec = x.data.flatten()
             yvec = y.data.flatten()
-            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(xvec, yvec)
+            slope, intercept, r_value, p_value, std_err = stats.mstats.linregress(
+                xvec, yvec)
             ids.append(v)
             slopes.append(slope)
             correlations.append(r_value)
@@ -192,7 +195,7 @@ class RegionalAnalysis(object):
             stdy.append(yvec.std())
             del xvec, yvec, slope, intercept, r_value, p_value, std_err
 
-            #=======================================================================
+            #==================================================================
             # C) fldmean() for each region and then correlate
             xm = x.fldmean(return_data=True)
             ym = y.fldmean(return_data=True)
@@ -200,20 +203,26 @@ class RegionalAnalysis(object):
             if xm.ndim != 3:
                 raise ValueError('Invalid shape: %s' % sh)
             if sh[0] != xm.nt:
-                raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
+                raise ValueError(
+                    'Timeseries should be of dimension [nt,1,1], %s' % str(sh))
             if sh[1] != 1:
-                raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
+                raise ValueError(
+                    'Timeseries should be of dimension [nt,1,1], %s' % str(sh))
             if sh[2] != 1:
-                raise ValueError('Timeseries should be of dimension [nt,1,1], %s' % str(sh))
-            slope1, intercept1, r_value1, p_value1, std_err1 = stats.mstats.linregress(xm.data[:, 0, 0],
-                                                                                       ym.data[:, 0, 0])
+                raise ValueError(
+                    'Timeseries should be of dimension [nt,1,1], %s' % str(sh))
+            slope1, intercept1, r_value1, p_value1, std_err1 = stats.mstats.linregress(
+                xm.data[:, 0, 0],
+                ym.data[:, 0, 0])
 
             slopes1.append(slope1)
             correlations1.append(r_value1)
             pvalues1.append(p_value1)
             intercepts1.append(intercept1)
 
-            print('TODO: how to deal with area weighting in global correlation analyis ????')  # TODO
+            # TODO
+            print(
+                'TODO: how to deal with area weighting in global correlation analyis ????')
 
             del x, y, xm, ym
         ids = np.asarray(ids)
@@ -233,9 +242,10 @@ class RegionalAnalysis(object):
             r = {}
             for i in xrange(len(d['id'])):
                 id = d['id'][i]
-                r.update({id: {'slope': d['slope'][i], 'intercept': d['intercept'][i],
-                               'correlation': d['correlation'][i], 'pvalue': d['pvalue'][i]}})
-                #stdx, stdy are not remapped at the moment
+                r.update(
+                    {id: {'slope': d['slope'][i], 'intercept': d['intercept'][i],
+                          'correlation': d['correlation'][i], 'pvalue': d['pvalue'][i]}})
+                # stdx, stdy are not remapped at the moment
             return r
 
         corrstat2 = {'id': vals, 'slope': slopes,
@@ -316,10 +326,10 @@ class RegionalAnalysis(object):
             y = self._get_masked_data(self.y, v)
             x.label = x._get_label() + '-' + ' Region ' + str(v).zfill(5)
             y.label = y._get_label() + '-' + ' Region ' + str(v).zfill(5)
-            pdf = PDFAnalysis(x, Y=y, report=self.report, qq=False, labels=None)
+            pdf = PDFAnalysis(x, Y=y, report=self.report,
+                              qq=False, labels=None)
             pdf.plot()
             del pdf
-
 
     def _calc_global_violin(self):
         """
@@ -327,11 +337,10 @@ class RegionalAnalysis(object):
         for all regions
         """
 
-        assert False # not finally implemented
-
+        assert False  # not finally implemented
 
         xdata = []
-        labels=[]
+        labels = []
         if self.y is not None:
             ydata = []
         else:
@@ -341,7 +350,8 @@ class RegionalAnalysis(object):
         for v in vals:
             x = self._get_masked_data(self.x, v)
             xdata.append(x.data.flatten())
-            labels.append(str(v).zfill(5))  # todo replace by original region labels
+            # todo replace by original region labels
+            labels.append(str(v).zfill(5))
             del x
 
             if self.y is not None:
@@ -353,10 +363,10 @@ class RegionalAnalysis(object):
         V = ViolinPlot(xdata, ydata, labels=labels)
         V.plot()
 
-
         print 'Done !'
         if self.report is not None:
-            self.report.figure(V.ax.figure, caption='Violin plot for ' + self.variable.upper())
+            self.report.figure(
+                V.ax.figure, caption='Violin plot for ' + self.variable.upper())
             plt.close(V.ax.figure.number)
         del V
 
@@ -373,8 +383,6 @@ class RegionalAnalysis(object):
 #~ that plots a vilon plot for each region
 #~
 #~ In best case the CTRL and EXPERIMENT data is plotted together in the Violin plot!
-
-
 
     def _calc_general_statistic(self):
         """
@@ -393,8 +401,9 @@ class RegionalAnalysis(object):
         """
         calculate correlation between X and Y in different ways
         """
-        ### TODO weighting when calculating correlation
-        self.statistics.update({'corrstat': self._get_correlation(pthres=pthres)})
+        # TODO weighting when calculating correlation
+        self.statistics.update(
+            {'corrstat': self._get_correlation(pthres=pthres)})
 
     def save(self, prefix='', format='txt', dir=None):
         """
@@ -411,7 +420,8 @@ class RegionalAnalysis(object):
         """
 
         if format not in ['txt', 'pkl', 'tex']:
-            raise ValueError('Invalid format for output [txt,pkl]: %s' % format)
+            raise ValueError('Invalid format for output [txt,pkl]: %s' %
+                             format)
         else:
             self.format = format
         if dir is None:
@@ -419,7 +429,8 @@ class RegionalAnalysis(object):
         if not os.path.exists(dir):
             os.makedirs(dir)  # try to generate directory
         if not os.path.exists(dir):
-            raise ValueError('ERROR: output directory not existing and it also can not be created!')
+            raise ValueError(
+                'ERROR: output directory not existing and it also can not be created!')
         if dir[-1] != os.sep:
             dir += os.sep
 
@@ -429,10 +440,14 @@ class RegionalAnalysis(object):
                 os.remove(oname)
             pickle.dump(self.statistics, open(oname, 'w'))
         elif format in ['txt', 'tex']:
-            self._save_standard_statistics(dir + prefix + '_regional_statistics_standard.' + format)
-            self._save_correlation_statistics_A(dir + prefix + '_regional_statistics_correlation_A.' + format)
-            self._save_correlation_statistics_B(dir + prefix + '_regional_statistics_correlation_B.' + format)
-            self._save_correlation_statistics_C(dir + prefix + '_regional_statistics_correlation_C.' + format)
+            self._save_standard_statistics(
+                dir + prefix + '_regional_statistics_standard.' + format)
+            self._save_correlation_statistics_A(
+                dir + prefix + '_regional_statistics_correlation_A.' + format)
+            self._save_correlation_statistics_B(
+                dir + prefix + '_regional_statistics_correlation_B.' + format)
+            self._save_correlation_statistics_C(
+                dir + prefix + '_regional_statistics_correlation_C.' + format)
         else:
             raise ValueError('Unsupported output format!')
 
@@ -460,7 +475,8 @@ class RegionalAnalysis(object):
             if self.report is not None:
                 self.report.open_table()
             o.write('\\begin{tabular}{lcccc}' + eol)
-        o.write('id' + sep + 'slope' + sep + 'intercept' + sep + 'correlation' + sep + 'pvalue' + eol)
+        o.write('id' + sep + 'slope' + sep + 'intercept' +
+                sep + 'correlation' + sep + 'pvalue' + eol)
         # data
         corrstat = self.statistics['corrstat']['analysis_' + tok]
         for k in corrstat.keys():
@@ -473,7 +489,8 @@ class RegionalAnalysis(object):
         if self.format == 'tex':
             if self.report is not None:
                 self.report.write('    \\input{' + fname + '}')
-                self.report.close_table(caption='Regional statistics, correlation ' + tok)
+                self.report.close_table(
+                    caption='Regional statistics, correlation ' + tok)
             o.write('\end{tabular}')
             if self.report is not None:
                 self.report.barrier()
@@ -515,7 +532,8 @@ class RegionalAnalysis(object):
             if self.report is not None:
                 self.report.open_table()
             o.write('\\begin{tabular}{lccccc}' + eol)
-        o.write('id' + sep + 'r-mean' + sep + 'r-std' + sep + 'r-sum' + sep + 'r-min' + sep + 'r-max' + eol)
+        o.write('id' + sep + 'r-mean' + sep + 'r-std' + sep +
+                'r-sum' + sep + 'r-min' + sep + 'r-max' + eol)
 
         # data
         corrstat = self.statistics['corrstat']['analysis_A']
@@ -530,11 +548,11 @@ class RegionalAnalysis(object):
         if self.format == 'tex':
             if self.report is not None:
                 self.report.write('    \\input{' + fname + '}')
-                self.report.close_table(caption='Regional statistics, correlation A')
+                self.report.close_table(
+                    caption='Regional statistics, correlation A')
             o.write('\end{tabular}')
             if self.report is not None:
                 self.report.barrier()
-
 
         o.close()
 
@@ -575,7 +593,8 @@ class RegionalAnalysis(object):
                 if self.report is not None:
                     self.report.open_table()
                 o.write('\\begin{tabular}{lcccccccc}' + eol)
-            o.write('time' + sep + 'xmean' + sep + 'ymean' + sep + 'xstd' + sep + 'ystd' + sep + 'xmin' + sep + 'ymin' + sep + 'xmax' + sep +'ymax' + eol)
+            o.write('time' + sep + 'xmean' + sep + 'ymean' + sep + 'xstd' + sep +
+                    'ystd' + sep + 'xmin' + sep + 'ymin' + sep + 'xmax' + sep + 'ymax' + eol)
 
             # data
             for i in xrange(len(self.statistics['xstat'][id]['mean'])):
@@ -592,7 +611,8 @@ class RegionalAnalysis(object):
             if self.format == 'tex':
                 if self.report is not None:
                     self.report.write('    \\input{' + fname + '}')
-                    self.report.close_table(caption='General regional statistics')
+                    self.report.close_table(
+                        caption='General regional statistics')
                 o.write('\end{tabular}')
                 if self.report is not None:
                     self.report.barrier()
@@ -635,7 +655,8 @@ class RegionalAnalysis(object):
                 raise ValueError('Provided argument is no taylor class! ')
             else:
                 tay = dia
-                tay.stdmax = max(max(ratio.max() * 1.2, 2.), dia.stdmax)  # preserve stdmax information when possible
+                # preserve stdmax information when possible
+                tay.stdmax = max(max(ratio.max() * 1.2, 2.), dia.stdmax)
 
         sid = map(str, self.statistics['corrstat']['corrstat2']['id'])
         tay.plot(r, ratio, labels=sid, color=color)
