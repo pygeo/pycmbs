@@ -17,7 +17,8 @@ try:
     scipy_011 = True
 except:
     print 'WARNING: could not import mimimize (requires scipy > 0.11), try alternative'
-    from scipy import fmin as minimize  #http://stackoverflow.com/questions/11128070/cannot-import-minimize-in-scipy
+    # http://stackoverflow.com/questions/11128070/cannot-import-minimize-in-scipy
+    from scipy import fmin as minimize
 from scipy import stats
 
 from variogram_base import Variogram
@@ -57,23 +58,30 @@ class SphericalVariogram(Variogram):
         self._gamma = gamma[msk]
 
         if len(self._gamma) < 1:
-            self.model_parameters = {'sill': np.nan, 'range': np.nan, 'nugget': np.nan, 'fit_success': False, 'r_value' : np.nan}
+            self.model_parameters = {'sill': np.nan, 'range': np.nan,
+                                     'nugget': np.nan, 'fit_success': False, 'r_value': np.nan}
             return self.model_parameters
 
-        x0 = self._get_initial_parameters(sill=self._gamma.max(), range=self._h[np.argmax(self._gamma)])
+        x0 = self._get_initial_parameters(
+            sill=self._gamma.max(), range=self._h[np.argmax(self._gamma)])
 
         if scipy_011:
             res = minimize(self.cost, x0, method='nelder-mead',
-                       options={'xtol': 1e-8, 'disp': True})
+                           options={'xtol': 1e-8, 'disp': True})
         else:
             res = minimize(self.cost, x0, xtol=1e-8)  # for scipy < 0.11
 
-        self.model_parameters = {'sill': res.x[1], 'range': res.x[2], 'nugget': res.x[0], 'fit_success': res['success']}
+        self.model_parameters = {'sill': res.x[1], 'range': res.x[
+            2], 'nugget': res.x[0], 'fit_success': res['success']}
 
-        # calculate correlation parameters between model fit and experimental data
-        yfit = self.model(self._h, self.model_parameters['sill'] , self.model_parameters['nugget'], self.model_parameters['range'] )
-        slope, intercept, r_value, p_value, std_err = stats.linregress(self._gamma, yfit)
-        self.model_parameters.update({'r_value' : r_value, 'slope' : slope, 'intercept' : intercept, 'p_value' : p_value})
+        # calculate correlation parameters between model fit and experimental
+        # data
+        yfit = self.model(self._h, self.model_parameters['sill'], self.model_parameters[
+                          'nugget'], self.model_parameters['range'])
+        slope, intercept, r_value, p_value, std_err = stats.linregress(
+            self._gamma, yfit)
+        self.model_parameters.update(
+            {'r_value': r_value, 'slope': slope, 'intercept': intercept, 'p_value': p_value})
 
         return self.model_parameters
 
@@ -99,7 +107,8 @@ class SphericalVariogram(Variogram):
         a = range
 
         if np.any(h < 0.):
-            raise ValueError('Distances are not allowed to be smaller than zero!')
+            raise ValueError(
+                'Distances are not allowed to be smaller than zero!')
 
         gamma = c0 + c * (1.5 * h / a - 0.5 * ((h / a) ** 3.))
         gamma[h > a] = c0 + c
@@ -121,8 +130,10 @@ class SphericalVariogram(Variogram):
         ax.set_ylabel('$\gamma$')
         ax.set_xlabel('$lag distance [km]$')
 
-        if self.model_parameters['fit_success']:  # if variogram fitting was not sucessfull it is not fitted!
+        # if variogram fitting was not sucessfull it is not fitted!
+        if self.model_parameters['fit_success']:
             lab = 'r=' + str(np.round(self.model_parameters['r_value'], 2))
-            gmodel = self.model(h, self.model_parameters['sill'], self.model_parameters['nugget'], self.model_parameters['range'])
+            gmodel = self.model(h, self.model_parameters['sill'], self.model_parameters[
+                                'nugget'], self.model_parameters['range'])
             ax.plot(h, gmodel, '-', color=color, label=lab)
-            ax.legend(prop={'size' : 8})
+            ax.legend(prop={'size': 8})

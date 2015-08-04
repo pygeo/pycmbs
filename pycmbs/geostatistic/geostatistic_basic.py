@@ -14,6 +14,7 @@ import numpy as np
 
 
 class Geostatistic(object):
+
     def __init__(self, x, lags=None, maxdist=None):
         """
         Geostatistical calculations on a data object
@@ -45,7 +46,8 @@ class Geostatistic(object):
         """
 
         # calculate distance
-        d = self.x.distance(self.lon_center, self.lat_center, earth_radius=6371.) / 1000.
+        d = self.x.distance(self.lon_center, self.lat_center,
+                            earth_radius=6371.) / 1000.
         msk = d < self.maxdist
         x = self.x.copy()
         del self.x
@@ -90,8 +92,10 @@ class Geostatistic(object):
         get indices of position of center coordinate within grid
         """
         if not hasattr(self, 'lon_center'):
-            raise ValueError('ERROR: You need to specify first the center position!')
-        d = np.abs((self.x.lon - self.lon_center) ** 2. + (self.x.lat - self.lat_center) ** 2.)
+            raise ValueError(
+                'ERROR: You need to specify first the center position!')
+        d = np.abs((self.x.lon - self.lon_center) ** 2. +
+                   (self.x.lat - self.lat_center) ** 2.)
         dmin = d.min()
         m = d == dmin
 
@@ -99,7 +103,8 @@ class Geostatistic(object):
         i = idx[0][m][0]
         j = idx[1][m][0]
 
-        if (np.abs(1. - self.x.lon[i, j] / self.lon_center) > 0.05) or (np.abs(1. - self.x.lat[i, j] / self.lat_center) > 0.05):  # at least 5% acc.
+        # at least 5% acc.
+        if (np.abs(1. - self.x.lon[i, j] / self.lon_center) > 0.05) or (np.abs(1. - self.x.lat[i, j] / self.lat_center) > 0.05):
             print 'lon: ', self.x.lon[i, j], self.lon_center
             print 'lat: ', self.x.lat[i, j], self.lat_center
             i = None
@@ -135,7 +140,8 @@ class Geostatistic(object):
                 print sigma
                 print 'Parameters: ', param
                 print param['fit_success']
-            V.plot(V._h, V._gamma, ax=ax)  # plots experimental variogram and fitted model
+            # plots experimental variogram and fitted model
+            V.plot(V._h, V._gamma, ax=ax)
         else:
             if logy:
                 ax.semilogy(r, sigma, 'x', color=color)
@@ -242,14 +248,13 @@ class Geostatistic(object):
         # get flattened data
         lon, lat, data = self.x.get_valid_data()
 
-
         if type(data) is np.ma.core.MaskedArray:
             # convert to ndarray
             msk = ~data.mask
             if type(lon) is not np.ma.core.MaskedArray:
-                lon = np.ma.array(lon, mask=lon!=lon)
+                lon = np.ma.array(lon, mask=lon != lon)
             if type(lat) is not np.ma.core.MaskedArray:
-                lat = np.ma.array(lat, mask=lat!=lat)
+                lat = np.ma.array(lat, mask=lat != lat)
 
             lon = lon.data[msk]
             lat = lat.data[msk]
@@ -262,7 +267,8 @@ class Geostatistic(object):
             raise ValueError('Invalid variogram type')
         dlag = self.lags[1] - self.lags[0]  # assume equal lag binning
 
-        r, v = V.semivariogram(data.astype('float'), lon.astype('float'), lat.astype('float'), self.lags.astype('float'), dlag)
+        r, v = V.semivariogram(data.astype('float'), lon.astype(
+            'float'), lat.astype('float'), self.lags.astype('float'), dlag)
 
         # store results
         o = {'r': np.asarray(r), 'sigma': np.asarray(v)}
@@ -288,7 +294,8 @@ class Geostatistic(object):
             if given, then this object is taken for distance calculations instead of self.x
         """
         if not hasattr(self, 'lon_center'):
-            raise ValueError('ERROR: You need to specify first the center position!')
+            raise ValueError(
+                'ERROR: You need to specify first the center position!')
         if data is None:
             ref = self.x
         else:
@@ -336,9 +343,11 @@ class Geostatistic(object):
             refobj = self.x.copy()
 
             if not isinstance(refobj.lon, np.ma.core.MaskedArray):
-                refobj.lon = np.ma.array(refobj.lon, mask = refobj.lon != refobj.lon)
+                refobj.lon = np.ma.array(
+                    refobj.lon, mask=refobj.lon != refobj.lon)
             if not isinstance(refobj.lat, np.ma.core.MaskedArray):
-                refobj.lat = np.ma.array(refobj.lat, mask = refobj.lat != refobj.lat)
+                refobj.lat = np.ma.array(
+                    refobj.lat, mask=refobj.lat != refobj.lat)
 
             if not isinstance(refobj.lon, np.ma.core.MaskedArray):
                 print 'lon', refobj.lon
@@ -352,7 +361,8 @@ class Geostatistic(object):
             ny = int(refobj.ny * oversampling_factor)
             nx = int(refobj.nx * oversampling_factor)
 
-            # in case that no valid coordinates available, no analysis will be made
+            # in case that no valid coordinates available, no analysis will be
+            # made
             if np.sum(~refobj.lon.mask) < 1:
                 print 'No proper coordinates found! (get_coordinates_at_distance) A'
                 return None, None
