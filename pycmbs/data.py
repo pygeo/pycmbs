@@ -232,7 +232,6 @@ class Data(object):
         if self.geometry_file is not None:
             assert os.path.exists(self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
 
-
         #/// read data from file ///
         if read:
             self.read(shift_lon, start_time=start_time, stop_time=stop_time,
@@ -428,7 +427,6 @@ class Data(object):
         """
 
         assert False, 'This routine is depreciated (oldtimeoffset)!'
-
 
         if not hasattr(self, 'time_str'):
             raise ValueError('ERROR: time offset can not be determined!')
