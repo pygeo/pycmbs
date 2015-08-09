@@ -5,4 +5,6 @@ This file is part of pyCMBS.
 For COPYING and LICENSE details, please refer to the LICENSE file
 """
 from diagnostic_basic import *
+from anova import *
+from koeppen import *
 from regional_analysis import RegionalAnalysis
