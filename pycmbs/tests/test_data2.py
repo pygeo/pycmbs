@@ -14,7 +14,7 @@ from unittest import TestCase
 import unittest
 
 from pycmbs.data import Data
-from pycmbs.examples import download
+from pycmbs.utils import download
 
 import os
 import matplotlib.pylab as pl
