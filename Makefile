@@ -7,7 +7,8 @@
 PEP = pep8 --ignore=E501
 TDIR = ./tmp
 VERSION = 1.0.0-dev
-TESTDIRS = pycmbs/benchmarking/tests pycmbs/tests
+#TESTDIRS = pycmbs/benchmarking/tests pycmbs/tests
+TESTDIRS = pycmbs/tests
 
 
 clean :
@@ -33,7 +34,8 @@ ship : dist
 	tar -C $(TDIR) -xvf $(TDIR)/pycmbs-$(VERSION).tar.gz
 
 coverage: dependencies
-	nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs $(TESTDIRS) --cover-html
+	#nosetests --with-coverage --cover-package=benchmarking --cover-package=pycmbs $(TESTDIRS) --cover-html
+	nosetests --with-coverage --cover-package=pycmbs $(TESTDIRS) --cover-html
 
 tests: dependencies
 	nosetests $(TESTDIRS)
