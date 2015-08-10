@@ -146,7 +146,6 @@ with the user name you registered with github)::
 
    git clone https://github.com/your_user_name/pycmbs.git
 
-=======
 *Compilation*
 
 Some sub-modules are written in cython to speed up processing. These modules need to be compiled prior to the final installation. This is done by just executing the following command::

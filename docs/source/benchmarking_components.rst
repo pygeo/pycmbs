@@ -13,7 +13,7 @@ Map season
 Creates a figure with seasonal or monthly climatological means of the
 investigated variables.
 
-.. plot:: ./figures/fig_map_season.py
+xxx.. plot:: ./figures/fig_map_season.py
 
 
 
@@ -23,14 +23,14 @@ Map difference
 Create a plot of temporal mean fields of observations and models and their
 absolute and relative differences.
 
-.. plot:: ./figures/fig_map_difference.py
+xxx.. plot:: ./figures/fig_map_difference.py
 
 Hovmoeller plot
 ~~~~~~~~~~~~~~~
 
 Generates a standard Hovmoeller plot (= time-latitude plot) of the variable.
 
-.. plot:: ./figures/fig_hovmoeller.py
+xxx.. plot:: ./figures/fig_hovmoeller.py
 
 
 
@@ -42,7 +42,7 @@ models and observations can be vizualized in differnt ways. For each month or
 season the spatial correlation coefficient is estimated and vizualized as a
 timeline.
 
-.. plot:: ./figures/fig_pattern_correlation.py
+xxx.. plot:: ./figures/fig_pattern_correlation.py
 
 
 Portraet diagram
@@ -54,7 +54,7 @@ comparisons against different observations. While the original Portraet diagram
 supports only two different observations, pyCMBS supports up to four different
 datasets for each variable.
 
-.. plot:: ./figures/fig_portraet.py
+xxx.. plot:: ./figures/fig_portraet.py
 
 
 Global Mean Plot
@@ -64,7 +64,7 @@ Global mean timeseries of a specific variable. The global mean values are
 estimated using proper area weighting. The plot object also allows to
 automatically plot climatology mean values.
 
-.. plot:: ./figures/fig_globalmean.py
+xxx.. plot:: ./figures/fig_globalmean.py
 
 
 
