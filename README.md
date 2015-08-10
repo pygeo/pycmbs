@@ -26,7 +26,7 @@ pyCMBS can be installed in various ways:
 2. stable versions using pip
 3. developer version: https://github.com/pygeo/pycmbs
 
-The installation is easy, but not yet automatized. See INSTALL.md for further
+The installation is easy, but not yet fully automatized. See the documentation for further
 installation details.
 
 Documentation
