@@ -10,7 +10,7 @@ from nose.tools import assert_raises
 from unittest import TestCase
 import unittest
 from cdo import Cdo
-from pycmbs.examples import download
+from pycmbs.utils import download
 import os
 
 import tempfile
