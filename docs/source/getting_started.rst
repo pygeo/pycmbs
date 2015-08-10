@@ -12,6 +12,8 @@ The `demo` folder contains a set of ipython notebooks with code examples. If you
 * `pyCMBS basics <http://nbviewer.ipython.org/github/pygeo/pycmbs/blob/master/demo/pyCMBS-Basics.ipynb>`_
 * `Analysis of the global temperature record <http://nbviewer.ipython.org/github/pygeo/pycmbs/blob/master/demo/global_temperature.ipynb>`_
 * `Comparison of two dataset <http://nbviewer.ipython.org/github/pygeo/pycmbs/blob/master/demo/dataset_comparison.ipynb>`_
+* `Example of plotting a portraet diagram <http://nbviewer.ipython.org/github/pygeo/pycmbs/blob/master/demo/example_portreat_diagram.ipynb>`_
+
 
 Gallery
 -------
