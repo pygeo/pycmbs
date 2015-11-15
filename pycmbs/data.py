@@ -3657,8 +3657,13 @@ class Data(object):
             m = t[4:6]
             d = t[6:8]
             h = t[8:]
-            h = str(int(float(h) * 24.))
-            tn = y + '-' + m + '-' + d + ' ' + h + ':00'
+            h = int(float(h) * 24.)
+            mi = str(int(((float(t[8:]) * 24. - h)*60.)))
+            h = str(int(h))
+            tn = y + '-' + m + '-' + d + ' ' + h + ':' + mi
+
+            #~ print t, h, mi
+
             T.append(tn)
         T = np.asarray(T)
         self.calendar = 'gregorian'
