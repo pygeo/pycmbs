@@ -48,21 +48,16 @@ import tempfile
 import struct
 import gzip
 
+from geoval.core.data import GeoData
 
-class Data(object):
+
+class Data(GeoData):
 
     """
     Data class: main class
     """
 
-    def __init__(self, filename, varname, lat_name=None, lon_name=None,
-                 read=False, scale_factor=1., label=None, unit=None,
-                 shift_lon=False, start_time=None, stop_time=None,
-                 mask=None, time_cycle=None, squeeze=False, level=None,
-                 verbose=False, cell_area=None, time_var='time',
-                 checklat=True, weighting_type='valid', oldtime=False,
-                 warnings=True, calc_cell_area=True,
-                 geometry_file=None):
+    def __init__(self, filename, varname, **kwargs):
         """
         Constructor for Data class
 
@@ -184,29 +179,49 @@ class Data(object):
             that no coordinate information is stored within the actual data files
         """
 
-        self.weighting_type = weighting_type
-        self.filename = filename
-        self.varname = varname
-        self.scale_factor = scale_factor
-        self.lat_name = lat_name
-        self.lon_name = lon_name
-        self.squeeze = squeeze
+        super(Data, self).__init__(filename, varname, **kwargs)
+
+        read=kwargs.pop('read', True)
+
+        self.weighting_type = kwargs.pop('weighting_type', 'valid')
+        self.scale_factor = kwargs.pop('scale_factor', 1.)
+        self.lat_name = kwargs.pop('lat_name', None)
+        self.lon_name = kwargs.pop('lon_name', None)
+        label = kwargs.pop('label', None)
+        unit = kwargs.pop('unit', None)
+
+        self.squeeze = kwargs.pop('squeeze', False)
         self.squeezed = False
         self.detrended = False
-        self.verbose = verbose
-        self.geometry_file = geometry_file
+
+        self.verbose = kwargs.pop('verbose', False)
+
+        time_cycle=kwargs.pop('time_cycle', None)
+
+        shift_lon=kwargs.pop('shift_lon', False)
+        start_time=kwargs.pop('start_time', None)
+        stop_time=kwargs.pop('stop_time', None)
+
+        time_var=kwargs.pop('time_var', 'time')
+        checklat=kwargs.pop('checklat', True)
+
+        self.geometry_file = kwargs.pop('geometry_file', None)
+
+
         # assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
-        self._calc_cell_area = calc_cell_area
+        self._calc_cell_area = kwargs.pop('calc_cell_area', True)
 
-        self.inmask = mask
-        self.level = level
+        self.inmask = kwargs.pop('mask', None)
+        self.level = kwargs.pop('level', None)
         self.gridtype = None
-        self._oldtime = oldtime
+        self._oldtime = kwargs.pop('oldtime', False)
+        if self._oldtime:
+            print('WARNING: the option _oldtime is depreciated and will be removed in future versions')
         # specifies if latitudes have been checked for increasing order
         #(required for zonal plot)
         self._latitudecheckok = False
-        self.warnings = warnings
+        self.warnings = kwargs.pop('warnings', True)
 
         if label is None:
             if self.filename is None:
@@ -224,7 +239,7 @@ class Data(object):
         if time_cycle is not None:
             self.time_cycle = time_cycle
 
-        self.cell_area = cell_area  # [m**2]
+        self.cell_area = kwargs.pop('cell_area', None)  # [m**2]
 
         self.lat = None
         self.lon = None
