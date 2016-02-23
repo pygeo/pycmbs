@@ -181,7 +181,7 @@ class Data(GeoData):
 
         super(Data, self).__init__(filename, varname, **kwargs)
 
-        read=kwargs.pop('read', True)
+        read=kwargs.pop('read', False)
 
         self.weighting_type = kwargs.pop('weighting_type', 'valid')
         self.scale_factor = kwargs.pop('scale_factor', 1.)
@@ -206,7 +206,6 @@ class Data(GeoData):
         checklat=kwargs.pop('checklat', True)
 
         self.geometry_file = kwargs.pop('geometry_file', None)
-
 
         # assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
