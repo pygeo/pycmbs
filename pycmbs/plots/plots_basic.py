@@ -88,7 +88,6 @@ def rotate_ticks(ax, angle):
     for t in ts:
         t.label.set_rotation(angle)
 
-#-----------------------------------------------------------------------
 
 
 class HstackTimeseries(object):
