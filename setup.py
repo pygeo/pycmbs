@@ -44,13 +44,13 @@ def get_current_version():
 install_requires = ["numpy>0.1", "cdo>1.2", "netCDF4", "pytz",
                     "matplotlib", 'shapely', 'cartopy', 'cython', 'scipy']
 
-ext_polygon_utils = Extension('polygon_utils',
-                              sources=['.' + os.sep + 'pycmbs' +
-                                       os.sep + 'polygon_utils.pyx'],
-                              # this is needed to get proper information on
-                              # numpy headers
-                              include_dirs=[np.get_include()]
-                              )
+#~ ext_polygon_utils = Extension('polygon_utils',
+                              #~ sources=['.' + os.sep + 'pycmbs' +
+                                       #~ os.sep + 'polygon_utils.pyx'],
+                              #~ # this is needed to get proper information on
+                              #~ # numpy headers
+                              #~ include_dirs=[np.get_include()]
+                              #~ )
 
 # in case of a compilation error, one should look that the name is the same as the extension sources
 # see here:
@@ -145,7 +145,7 @@ setup(name='pycmbs',
           'Programming Language :: Python :: 2.7'
       ],
 
-      ext_modules=[ext_polygon_utils, ext_variogramm],
+      ext_modules=[ext_variogramm],
       cmdclass={'build_ext': build_ext}
       )
 
