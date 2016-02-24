@@ -36,7 +36,7 @@ try:
 except:
     old_netcdftime = False
 
-from calendar import monthrange
+
 from cdo import Cdo
 import datetime
 import pytz
@@ -161,16 +161,13 @@ class Data(GeoData):
 
         super(Data, self).__init__(filename, varname, **kwargs)
 
-        self.weighting_type = kwargs.pop('weighting_type', 'valid')
-
         self.detrended = False
 
-        time_cycle=kwargs.pop('time_cycle', None)
+
 
         # assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
         self._calc_cell_area = kwargs.pop('calc_cell_area', True)
-
 
         self.level = kwargs.pop('level', None)
         self.gridtype = None
@@ -180,17 +177,12 @@ class Data(GeoData):
         self._latitudecheckok = False
         self.warnings = kwargs.pop('warnings', True)
 
-
-        if time_cycle is not None:
-            self.time_cycle = time_cycle
-
         self.lat = None
         self.lon = None
 
         if self.geometry_file is not None:
             assert os.path.exists(
                 self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
-
 
         # check if longitudes are from 0 ... 360
         if self.lon is not None:
@@ -209,169 +201,6 @@ class Data(GeoData):
                 print 'WARNING: plotting etc not supported for longitudes which are not equal to 0 ... 360'
 
 
-    def _save_ascii(self, filename, varname=None, delete=False):
-        """
-        saves the data object to an ASCII file as follows
-
-        time  lon lat value
-
-        Parameters
-        ----------
-        filename : str
-            filename of output file
-        varname : str
-            name of output variable; this explicitely overwrites
-            self.varname, which is tried to be used in first place
-        delete : bool
-            delete file if existing without further asking
-
-        Test
-        ----
-        unittest implemented
-        """
-
-        #/// check if output file already there
-        if os.path.exists(filename):
-            if delete:
-                os.remove(filename)
-            else:
-                raise ValueError(
-                    'File already existing. Please delete manually or use DELETE option: %s' % filename)
-
-        if hasattr(self, 'time'):
-            if self.time is None:
-                notime = True
-            else:
-                notime = False
-        else:
-            notime = True
-
-        F = open(filename, 'w')
-        if notime:
-            if self.ndim == 2:
-                F.write(self._arr2string(self.data, prefix=''))
-            else:
-                raise ValueError(
-                    'Saving ASCII not implemented for data without time yet!')
-        else:
-
-            if self.ndim == 2:  # temporal mean field assumed
-                F.write(self._arr2string(self.data, prefix='timmean'))
-            elif self.ndim == 3:
-                for i in xrange(len(self.time)):
-                    F.write(
-                        self._arr2string(self.data[i, :, :], prefix=str(self.date[i])))
-            else:
-                raise ValueError('Invalid geometry!')
-
-        F.close()
-
-    def _arr2string(self, a, prefix='', sep='\t'):
-        """
-        convert a 2D numpy array to an ASCII list
-        this routine is supposed to be used to convert the 2D field
-        of a timestep and return a list as follows
-
-        prefix  lon1  lat1  value1
-        prefix  lon2  lat2  value2
-        ...
-
-        Parameters
-        ----------
-        a : ndarray (2D)
-            numpy array with data; needs to have geometry ny, nx
-        prefix : str
-            prefix to be appended
-        """
-
-        ny, nx = a.shape
-
-        assert (self.ny == ny)
-        assert (self.nx == nx)
-
-        s = ''
-        sep = '\t'
-        eol = '\n'
-
-        if len(prefix) > 0:
-            prefix += sep
-
-        for i in xrange(ny):
-            for j in xrange(nx):
-                if a.mask[i, j]:  # in case of masked values
-                    pass
-                else:
-                    s += prefix + \
-                        str(self.lon[i, j]) + sep + \
-                        str(self.lat[i, j]) + sep + str(a[i, j]) + eol
-
-        return s
-
-
-    def get_bounding_box(self):
-        """
-        estimates bounding box of valid data. It returns the indices
-        of the bounding box which frames all valid data
-
-        CAUTION
-        note that the indices can not be used directly for array slicing!
-        One typically needs to add '1' to the last index
-
-        Returns
-        -------
-        r : list
-            returns indices for bounding box [i1,i2,j1,j2]
-
-        Test
-        ----
-        unittest implemented
-        """
-
-        # return mask where all timesteps are valid!
-        msk = self.get_valid_mask()  # gives a 2D mask
-
-        # estimate boundary box indices
-        xb = msk.sum(axis=0)
-        yb = msk.sum(axis=1)
-
-        j1 = -99
-        for i in xrange(len(xb)):
-            if j1 > 0:
-                continue
-            if (xb[i] > 0) & (j1 == -99):
-                j1 = i
-
-        j2 = -99
-        for i in xrange(len(xb) - 1, -1, -1):
-            if j2 > 0:
-                continue
-            if (xb[i] > 0) & (j2 == -99):
-                j2 = i
-
-        i1 = -99
-        for i in xrange(len(yb)):
-            if i1 > 0:
-                continue
-            if (yb[i] > 0) & (i1 == -99):
-                i1 = i
-
-        i2 = -99
-        for i in xrange(len(yb) - 1, -1, -1):
-            if i2 > 0:
-                continue
-            if (yb[i] > 0) & (i2 == -99):
-                i2 = i
-        return i1, i2, j1, j2
-
-    def _squeeze(self):
-        """
-        remove singletone dimensions in data variable
-        """
-
-
-        if self.data.ndim > 2:
-            self.data = self.data.squeeze()
-            self.squeezed = True
 
 
     def get_zonal_mean(self, return_object=False):
@@ -760,74 +589,6 @@ class Data(GeoData):
         else:
             return years, res
 
-    def partial_correlation(self, Y, Z, ZY=None, pthres=1.01, return_object=True):
-        """
-        perform partial correlation analysis.
-
-        This function calculates the partial correlation between
-        variables (self) and Y, removing the effect of variable Z before
-        (condition). The partial correlation represents the correlation
-        between X and Y, when the common effect, related to Z has been
-        removed.
-
-        The function allows to have two datasets used as a condition
-        (Z,ZY). Lets say, you have two datasets which were generated
-        with a two different forcings which you want to remove from
-        X/Y before analyzing their relationship, then this is the
-        right choice to specify a second independent variable ZY
-
-        REFERENCES
-        ----------
-        [1] http://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
-
-
-        Parameters
-        ----------
-
-        Y : Data
-            variable to calculate with
-        Z : Data
-            condition for either both variables or if ZY is given,
-            then Z is used for SELF only
-        pthres : float
-            threshold to flag insignificant correlations
-        return_object : bool
-            specifies if a C{Data} object shall be returned
-
-        Returns
-        -------
-        r : Data
-            returns C{Data} objects with partial correlation parameters
-        """
-
-        assert isinstance(Y, Data)
-        assert isinstance(Z, Data)
-
-        # if a second condition is given, use it ...
-        if ZY is not None:
-            assert isinstance(ZY, Data)
-        else:
-            ZY = Z
-
-        # calculate correlations
-        rxy, pxy = self.correlate(Y, pthres=pthres)
-        rxz, pxz = self.correlate(Z, pthres=pthres)
-        rzy, pzy = ZY.correlate(Y, pthres=pthres)
-
-        # calculate partial correlation coefficients
-        res = (rxy.data - (rxz.data * rzy.data)) / (
-            np.sqrt(1. - rxz.data * rxz.data) * np.sqrt(1. - rzy.data * rzy.data))
-
-        if return_object:
-            r = self.copy()
-            r.time = None
-            r.unit = ''
-            r.data = res
-            r.label = 'partial correlation coefficient'
-            return r
-        else:
-            return res
-
 
 
     def set_time(self):
@@ -866,59 +627,7 @@ class Data(GeoData):
             # be handled by self.num2date() in all subsequent subroutines
             # to properly handle difference in different calendars.
 
-    def _get_date_from_month(self, nmonths):
-        """
-        calculate a datetime object for a time given in 'months since'
-        a basedate. The routine increments itteratively the number of
-        months and returns a datetime object.
 
-        This is done for a *single* timestep!
-
-        Parameters
-        ----------
-        nmonths : int, float
-            time as numeric value (number of months since basedate)
-
-        Returns
-        -------
-        d : datetime
-            datetime object with actual date
-        """
-
-        if not 'months since' in self.time_str:
-            print(self.time_str)
-            raise ValueError(
-                'This routine is only for conversion of monthly data!')
-
-        basedate = self.time_str.split('since')[1].lstrip()
-
-        # start date
-        start_date = pl.datestr2num(basedate)
-        act_date = start_date * 1.
-
-        for i in xrange(int(nmonths)):  # increment months
-            d = pl.num2date(act_date)
-            # number of days in current month
-            ndays = monthrange(d.year, d.month)[1]
-            act_date += ndays
-
-        return pl.num2date(act_date)
-
-    def _convert_monthly_timeseries(self):
-        """
-        convert monthly timeseries to a daily timeseries
-        """
-        if self.calendar not in ['standard', 'gregorian', None]:
-            print self.calendar
-            raise ValueError('Not sure if monthly timeseries conversion \
-                                works with this calendar!')
-
-        newtime = [self._get_date_from_month(t)
-                   for t in self.time]  # ... estimate new time
-        self.calendar = 'standard'
-        self.time_str = 'days since 0001-01-01 00:00:00'
-        # plus one because of the num2date() basedate definition
-        self.time = pl.date2num(newtime) + 1.
 
     def apply_temporal_subsetting(self, start_date, stop_date):
         """
@@ -977,182 +686,6 @@ class Data(GeoData):
             self.data = self.data[i1:i2]
         else:
             raise ValueError('Error temporal subsetting: invalid dimension!')
-
-    def align(self, y, base=None):
-        """
-        Temporal alignment of two Data objects.
-        The datasets need to have a similar time stepping. The desired timestepping is explicitely specified
-        by the user in the *base* argument. It is obligatory to provide this argument.write
-
-        Parameters
-        ----------
-        y : Data
-            Data object that should be aligned with current data
-        base : str
-            specifies the temporal basis for the alignment. Data needs to have been preprocessed already with such
-            a time stepping. Currently supported values: ['month','day']
-
-        Returns
-        -------
-        x, y : Data
-            returns two dataobjects which are aligned to eacht other
-        """
-
-        assert (isinstance(y, Data))
-        if base is None:
-            raise ValueError(
-                'You need to specify the base for the alignment [month,day] !')
-
-        # ensure ascending time order
-        x = self.copy()
-
-        if not x._is_sorted():
-            raise ValueError('Time series in X is not sorted ascending!')
-        if not y._is_sorted():
-            raise ValueError('Time series in Y is not sorted ascending!')
-
-        if base == 'month':
-            if not x._is_monthly():
-                print x.date
-                raise ValueError('Dataset X is not monthly data!')
-            if not y._is_monthly():
-                print y.date
-                raise ValueError('Dataset Y is not monthly data!')
-        elif base == 'day':
-            if not x._is_daily():
-                print x.date
-                raise ValueError('Dataset X is not daily data!')
-            if not y._is_daily():
-                print y.date
-                raise ValueError('Dataset Y is not daily data!')
-        else:
-            raise ValueError('Unsupported base for alignment!')
-
-        # min/max dates
-        ymin = y._get_mindate(base=base)
-        ymax = y._get_maxdate(base=base)
-        xmin = x._get_mindate(base=base)
-        xmax = x._get_maxdate(base=base)
-
-        start = None
-        stop = None
-
-        # search first for the dataset which starts first
-        if xmin <= ymin:
-            xfirst = True
-        else:
-            xfirst = False
-
-        # check if overlap at all
-        err = 0
-        if xfirst:
-            if xmax < ymin:
-                err += 1  # no overlap
-        else:
-            if ymax < xmin:
-                err += 1
-        if err > 0:
-            return None, None
-
-        # from here onwards we know that there is an overlap
-        start = max(xmin, ymin)
-        stop = min(xmax, ymax)
-
-        x1, x2 = x._get_time_indices(start, stop)
-        y1, y2 = y._get_time_indices(start, stop)
-
-        x._temporal_subsetting(x1, x2)
-        y._temporal_subsetting(y1, y2)
-
-        return x, y
-
-
-
-    def hp_filter(self, lam, return_object=True):
-        """
-        implements the Hodrick-Prescott filter
-
-        Todo
-        ----
-        - use more efficient implementation from statsmodels
-        - support HP filter for multidimensional data
-        - implement unittests
-        - how to handle gaps ???
-
-        Parameters
-        ----------
-        lam : float
-            lambda parameter of HP filter. The larger it is, the smoother
-            the resulting trend timeseries will be
-        return_object : bool
-            return a Data object if True
-
-        References
-        ----------
-        http://python4econ.blogspot.de/2012/05/hodrick-prescott-filter.html
-        """
-        from scipy import linalg as la
-        from scipy import sparse
-        import scipy as sp
-
-        def _hp_filter(y, w):
-            # make sure the inputs are the right shape
-            m, n = y.shape
-            if m < n:
-                y = y.T
-                m = n
-            a = sp.array([w, -4 * w, ((6 * w + 1) / 2.)])
-            d = sp.tile(a, (m, 1))
-
-            d[0, 1] = -2. * w
-            d[m - 2, 1] = -2. * w
-            d[0, 2] = (1 + w) / 2.
-            d[m - 1, 2] = (1 + w) / 2.
-            d[1, 2] = (5 * w + 1) / 2.
-            d[m - 2, 2] = (5 * w + 1) / 2.
-
-            B = sparse.spdiags(d.T, [-2, -1, 0], m, m)
-            B = B + B.T
-            # report the filtered series, s
-            return sp.dot(la.inv(B.todense()), y)
-
-        if self.ndim != 1:
-            if self.ndim == 3:
-                if (self.shape[1] == 1) and (self.shape[2] == 1):
-                    pass
-                else:
-                    print self.shape
-                    raise ValueError(
-                        'HP filter currently only implemented for 1D data! (A)')
-            else:
-                print self.shape
-                raise ValueError(
-                    'HP filter currently only implemented for 1D data! (B)')
-
-        if lam < 0.:
-            raise ValueError('HP filter needs lambda>0. as input!')
-
-        # the HP filter is based on the log() of the data
-        # avoid therefore negative numbers
-        dmin = self.data.min()
-        x = self.data.flatten() - dmin + 1.
-        # work only on valid data; note that this approech is probably not the
-        # best one!
-        msk = x.mask
-        hp = _hp_filter(np.log(np.asarray([x[~msk]])), lam)  # 2D input needed
-        y = np.ones_like(x) * np.nan
-        y[~msk] = np.exp(hp)
-        y += dmin - 1.
-        y[msk] = np.nan
-
-        if return_object:
-            r = self.copy()
-            tmp = np.ones((self.nt, 1, 1)) * np.nan
-            tmp[:, 0, 0] = y[:]
-            r.data = np.ma.array(tmp, mask=np.isnan(tmp))
-            return r
-        else:
-            return y
 
 
     def get_aoi(self, region):
@@ -1216,91 +749,6 @@ class Data(GeoData):
         msk = msk_lat & msk_lon & msk_region  # valid area
         self._apply_mask(msk)
 
-
-    def _apply_mask(self, msk1, keep_mask=True):
-        """
-        apply a mask to C{Data}. All data where mask==True
-        will be masked. Former data and mask will be stored.
-
-        When a Data object is provided as a mask, the mask
-        attribute of the data field will be used for mask identification
-
-        Parameters
-        ----------
-        msk1 : ndarray or Data object
-            mask to be applied to data. Needs to have same geometry as
-            data.
-        keep_mask : bool
-            keep old mask
-        """
-
-        if isinstance(msk1, Data):
-            msk = msk1.data.mask
-        else:
-            msk = msk1
-
-        self.__oldmask = self.data.mask.copy()
-        self.__olddata = self.data.data.copy()
-        if hasattr(self, 'std'):
-            if self.data.shape != self.std.shape:
-                raise ValueError(
-                    'Standard deviation has different geometry than data!')
-            self.__oldstd = self.std.data.copy()
-
-        if self.data.ndim == 2:
-            # convert to float to allow for nan support
-            tmp1 = self.data.copy().astype('float')
-            tmp1[~msk] = np.nan
-
-            if hasattr(self, 'std'):
-                tmps = self.std.copy().astype('float')
-
-            if keep_mask:
-                if self.__oldmask.ndim > 0:
-                    tmp1[self.__oldmask] = np.nan
-                    if hasattr(self, 'std'):
-                        tmps[self.__oldmask] = np.nan
-
-            self.data = np.ma.array(tmp1, mask=np.isnan(tmp1))
-            if hasattr(self, 'std'):
-                self.std = np.ma.array(tmps, mask=np.isnan(tmps))
-                del tmps
-            del tmp1
-
-        elif self.data.ndim == 3:
-            for i in xrange(self.nt):
-                tmp = self.data[i, :, :].copy()
-                tmp[~msk] = np.nan
-                self.data[i, :, :] = tmp[:, :] * 1.
-                del tmp
-
-                if hasattr(self, 'std'):
-                    tmps = self.std[i, :, :].copy()
-                    tmps[~msk] = np.nan
-                    self.std[i, :, :] = tmps
-                    del tmps
-
-            if keep_mask:
-                if self.__oldmask.ndim > 0:
-                    self.data.data[self.__oldmask] = np.nan
-                    if hasattr(self, 'std'):
-                        self.std.data[self.__oldmask] = np.nan
-
-            self.data = np.ma.array(
-                self.data.data, mask=np.isnan(self.data.data))
-            if hasattr(self, 'std'):
-                self.std = np.ma.array(
-                    self.std.data, mask=np.isnan(self.std.data))
-        else:
-            print np.shape(self.data)
-            raise ValueError('Unsupported geometry _apply_mask')
-
-        if hasattr(self, '_climatology_raw'):
-            for i in range(len(self._climatology_raw)):
-                tmp = self._climatology_raw[i, :, :].copy()
-                tmp[~msk] = np.nan
-                self._climatology_raw[i, :, :] = tmp[:, :]
-                del tmp
 
     def shift_x(self, nx):
         """
@@ -1496,107 +944,6 @@ class Data(GeoData):
 
 
 
-    def distance(self, lon_deg, lat_deg, earth_radius=6371.):
-        """
-        calculate distance of all grid points to a given coordinate
-        Note, that calculations are only approximate, as earth is approximated
-        as sphere!
-
-        Parameters
-        ----------
-        lon : float
-            longitude [deg]
-        lat : float
-            latitude [deg]
-        earth_radius : float
-            earth radius [km]
-
-        Returns
-        -------
-        returns distance [m]
-        """
-        from pycmbs.grid import Grid
-        assert hasattr(self, 'lat')
-        assert hasattr(self, 'lon')
-        if not isinstance(self.lat, np.ndarray):
-            raise ValueError('Numpy array required!')
-        if not isinstance(self.lon, np.ndarray):
-            raise ValueError('Numpy array required!')
-        G = Grid(np.deg2rad(self.lat), np.deg2rad(self.lon),
-                 sphere_radius=earth_radius * 1000.)
-        d = G.orthodrome(np.deg2rad(self.lon), np.deg2rad(self.lat),
-                         np.deg2rad(lon_deg), np.deg2rad(lat_deg))
-        return d
-
-    def _get_center_position(self):
-        """
-        returns indices of center position in data array
-        in case of odd array sizes, the actual center position is
-        returned. Otherwise (equal numbers), the center position - 1 is
-        returned. Now interpolation is performed. Thus it is always
-        ensured that some real data is returned which is close to the
-        center
-
-        Returns
-        -------
-        indices of center position [i,j]
-        """
-
-        if (self.ny % 2) == 0:  # equal numbers
-            ipos = (self.ny - 1) / 2
-        else:  # odd numbers
-            ipos = (self.ny - 1) / 2
-
-        if (self.nx % 2) == 0:
-            jpos = (self.nx - 1) / 2
-        else:
-            jpos = (self.nx - 1) / 2
-
-        return ipos, jpos
-
-    def get_center_data(self, return_object=False, flatten=False):
-        """
-        returns data for center position
-
-        Parameters
-        ----------
-        return_object : bool
-            return the results as a Data object
-        flatten : bool
-            if True, then the resulting array will be flatteneds
-        """
-        i, j = self._get_center_position()
-        if i is None:
-            return None
-        if j is None:
-            return None
-
-        if self.ndim == 2:
-            res = self.data[i, j]
-        elif self.ndim == 3:
-            res = self.data[:, i, j]
-        else:
-            assert False
-
-        if return_object:
-            r = self.copy()
-            if self.ndim == 2:
-                res = np.asarray([[res]])
-            elif self.ndim == 3:
-                res = res.reshape((len(res), 1, 1))
-            else:
-                assert False
-            if flatten:
-                res = res.flatten()
-            r.data = res
-            r.cell_area = np.ones((1, 1))
-            return r
-        else:
-            if flatten:
-                return res.flatten()
-            else:
-                return res
-
     def _rasterize(self, lon, lat, radius=None, return_object=True):
         """
         rasterize data to a target grid specified by the input arguments
@@ -1731,26 +1078,3 @@ class Data(GeoData):
                 return A, B, R, PV
             else:
                 return A, B
-
-    def get_area(self, valid=True, frac=1.):
-        """
-        calculate area
-
-        Parameters
-        ----------
-        valid : bool
-            return area for valid pixels only; if false, the area from
-            all grid cells is returned
-        frac : float
-            in case that temporal varying data is used, this parameter
-            can define the fraction of timesteps that need to be
-            valid to define a cell as valid
-        """
-        assert hasattr(self, 'cell_area')
-
-        if valid:
-            return self.cell_area[self.get_valid_mask(frac=frac)].sum()
-        else:
-            assert type(
-                self.cell_area) == np.ndarray, 'Only numpy arrays for cell_area supported at the moment for this function'
-            return self.cell_area.sum()
