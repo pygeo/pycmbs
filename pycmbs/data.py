@@ -11,8 +11,7 @@ import sys
 
 #~ from geoval.statistic import get_significance, ttest_ind
 from pycmbs.netcdf import NetCDFHandler
-from pycmbs.polygon import Raster
-from pycmbs.polygon import Polygon as pycmbsPolygon
+
 
 import numpy as np
 from matplotlib import pylab as plt
@@ -41,7 +40,7 @@ from calendar import monthrange
 from cdo import Cdo
 import datetime
 import pytz
-import pickle
+#~ import pickle
 import datetime
 
 import tempfile
@@ -128,8 +127,6 @@ class Data(GeoData):
         level : int
             specify level to work with (needed for 4D data)
 
-        verbose : bool
-            verbose mode for printing
 
         cell_area : numpy array (ny,nx)
             area size [m**2] of each grid cell. These weights are uses
@@ -154,24 +151,7 @@ class Data(GeoData):
            one would get the change in the global mean of the LAND
            fluxes only!
 
-        oldtime : bool
-            if True, then the old definition for time is used, which is
-            compliant with the pylab time definition, as *x* is a float
-            value which gives the number of days (fraction part
-            represents hours, minutes, seconds) since
-            0001-01-01 00:00:00 UTC *plus* *one*.
 
-            NOTE that there is a *PLUS ONE*. The actual data object
-            supports different calendars, while this is not possible
-            using the pylab num2date/date2num functions. (Un)fortunately,
-            the new routine, which is implemented in self.num2date(),
-            self.date2num() *performs correctly* the calculations. Thus
-            there is *NO* *PLUS ONE* needed. As a consequence, all files
-            that have been written with older versions of pyCMBS have a
-            wrong time variable included in the file. To allow for
-            backwards compliance, the option oldtime=True can be used
-            which will then mimic a similar behaviour as the pylab
-            date functions.
         calc_cell_area : bool
                 calculate cell area
         geometry_file : str
@@ -181,64 +161,28 @@ class Data(GeoData):
 
         super(Data, self).__init__(filename, varname, **kwargs)
 
-        read=kwargs.pop('read', False)
-
         self.weighting_type = kwargs.pop('weighting_type', 'valid')
-        self.scale_factor = kwargs.pop('scale_factor', 1.)
-        self.lat_name = kwargs.pop('lat_name', None)
-        self.lon_name = kwargs.pop('lon_name', None)
-        label = kwargs.pop('label', None)
-        unit = kwargs.pop('unit', None)
 
-        self.squeeze = kwargs.pop('squeeze', False)
-        self.squeezed = False
         self.detrended = False
 
-        self.verbose = kwargs.pop('verbose', False)
-
         time_cycle=kwargs.pop('time_cycle', None)
-
-        shift_lon=kwargs.pop('shift_lon', False)
-        start_time=kwargs.pop('start_time', None)
-        stop_time=kwargs.pop('stop_time', None)
-
-        time_var=kwargs.pop('time_var', 'time')
-        checklat=kwargs.pop('checklat', True)
-
-        self.geometry_file = kwargs.pop('geometry_file', None)
 
         # assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
         self._calc_cell_area = kwargs.pop('calc_cell_area', True)
 
-        self.inmask = kwargs.pop('mask', None)
+
         self.level = kwargs.pop('level', None)
         self.gridtype = None
-        self._oldtime = kwargs.pop('oldtime', False)
-        if self._oldtime:
-            print('WARNING: the option _oldtime is depreciated and will be removed in future versions')
+
         # specifies if latitudes have been checked for increasing order
         #(required for zonal plot)
         self._latitudecheckok = False
         self.warnings = kwargs.pop('warnings', True)
 
-        if label is None:
-            if self.filename is None:
-                self.label = ''
-            else:
-                self.label = self.filename
-        else:
-            self.label = label
-
-        if unit is None:
-            self.unit = None
-        else:
-            self.unit = unit
 
         if time_cycle is not None:
             self.time_cycle = time_cycle
-
-        self.cell_area = kwargs.pop('cell_area', None)  # [m**2]
 
         self.lat = None
         self.lon = None
@@ -247,10 +191,6 @@ class Data(GeoData):
             assert os.path.exists(
                 self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
 
-        #/// read data from file ///
-        if read:
-            self.read(shift_lon, start_time=start_time, stop_time=stop_time,
-                      time_var=time_var, checklat=checklat)
 
         # check if longitudes are from 0 ... 360
         if self.lon is not None:
@@ -268,81 +208,6 @@ class Data(GeoData):
                 print self.lon.min(), self.lon.max()
                 print 'WARNING: plotting etc not supported for longitudes which are not equal to 0 ... 360'
 
-
-    def _oldtimeoffset(self):
-        """
-        return offset to convert to old time
-        offset is one day *PLUS ONE* following pylab documentation
-        This routine takes care of different time units
-        """
-
-        assert False, 'This routine is depreciated (oldtimeoffset)!'
-
-        if not hasattr(self, 'time_str'):
-            raise ValueError('ERROR: time offset can not be determined!')
-
-        if 'hours' in self.time_str:
-            return 1. * 24.
-        elif 'seconds' in self.time_str:
-            return 1. * 86400.
-        elif 'days' in self.time_str:
-            return 1.
-        else:
-            print self.time_str
-            raise ValueError(
-                'ERROR: Invalid timestring: conversion not possible!')
-
-    def save(self, filename, varname=None, format='nc',
-             delete=False, mean=False, timmean=False, compress=True):
-        """
-        saves the data object to a file
-
-        Parameters
-        ----------
-        filename : str
-            filename the file should be saved too
-        varname : str
-            variable name in output file. If *None*, then
-            the variables are just named like var001 ...
-        format : str
-            output format ['nc','ascii','nc3','nc4']
-        delete : bool
-            delete file if existing without asking. If *False*, and the
-            file is existing already, then an error is raised
-        mean : bool
-            save spatial mean field only instead of the full field
-        timmean : bool
-            save temporal mean field
-        compress : bool
-            compress resulting file if supported by library
-        """
-
-        map_formats = {'nc': 'NETCDF4', 'nc3':
-                       'NETCDF3_CLASSIC', 'nc4': 'NETCDF4'}
-
-        if mean and timmean:
-            raise ValueError(
-                'Only the MEAN or the TIMMEAN option can be given, but not together!')
-
-        # either store full field or just spatial mean field
-        if mean:
-            print('Saving MEAN FIELD of object in file %s' % filename)
-            tmp = self.fldmean(return_data=True)
-        elif timmean:
-            tmp = self.timmean(return_object=True)
-        else:
-            print('Saving object in file %s' % filename)
-            tmp = self
-
-        # store data now ...
-        if format in ['nc', 'nc3', 'nc4']:
-            tmp._save_netcdf(
-                filename, varname=varname, delete=delete, compress=compress,
-                format=map_formats[format])
-        elif format == 'ascii':
-            tmp._save_ascii(filename, varname=varname, delete=delete)
-        else:
-            raise ValueError('This output format is not defined yet!')
 
     def _save_ascii(self, filename, varname=None, delete=False):
         """
@@ -503,15 +368,11 @@ class Data(GeoData):
         remove singletone dimensions in data variable
         """
 
-        if self.verbose:
-            print 'SQUEEZING data ... ', self.data.ndim, self.data.shape
 
         if self.data.ndim > 2:
             self.data = self.data.squeeze()
             self.squeezed = True
 
-        if self.verbose:
-            print 'AFTER SQUEEZING data ... ', self.data.ndim, self.data.shape
 
     def get_zonal_mean(self, return_object=False):
         """
@@ -1587,9 +1448,6 @@ class Data(GeoData):
         d = Data(None, None)
         return self._copy_all_attributes(d)
 
-
-
-
     def _pad_timeseries(self, fill_value=-99.):
 
         import numpy as np
@@ -1738,60 +1596,6 @@ class Data(GeoData):
                 return res.flatten()
             else:
                 return res
-
-    def _init_sample_object(self, nt=None, ny=20, nx=10):
-        """
-        initialize the current object as a samle object
-        this is in particular usefull for testing
-
-        use this e.g. as
-        x = Data(None, None)
-        x._init_sample_object(nt=100, ny=500, nx=200)
-
-        Parameters
-        ----------
-        nt : int
-            number of timesteps
-        ny : int
-            number of rows
-        nx : int
-            number of cols
-        """
-
-        if nt is None:
-            data = np.random.random((ny, nx))
-        else:
-            if ny is None:
-                if nx is not None:
-                    raise ValueError(
-                        'When only timeseries is provided, then nx and ny need to be None!')
-                    data
-                else:
-                    data = np.random.random(nt)
-            else:
-                data = np.random.random((nt, ny, nx))
-
-        self.data = np.ma.array(data, mask=data != data)
-        self.verbose = True
-        self.unit = 'myunit'
-        self.label = 'testlabel'
-        self.filename = 'testinputfilename.nc'
-        self.varname = 'testvarname'
-        self.long_name = 'This is the longname'
-        if nt is not None:
-            self.time = np.arange(nt) + plt.datestr2num('2001-01-01')
-        self.time_str = "days since 0001-01-01 00:00:00"
-        self.calendar = 'gregorian'
-        self.oldtime = False
-        if ny is None:
-            self.cell_area = 1.
-            self.lon = None
-            self.lat = None
-        else:
-            self.cell_area = np.ones((ny, nx))
-            lat = np.linspace(-90., 90., ny)
-            lon = np.linspace(-180., 180., nx)
-            self.lon, self.lat = np.meshgrid(lon, lat)
 
     def _rasterize(self, lon, lat, radius=None, return_object=True):
         """
