@@ -13,7 +13,7 @@ from unittest import TestCase
 from pycmbs.data import Data
 from pycmbs.diagnostic import PatternCorrelation, RegionalAnalysis, EOF, Koeppen
 from pycmbs.plots import GlecklerPlot
-from pycmbs.region import RegionIndex
+from geoval.region import RegionIndex
 import scipy as sc
 from scipy import stats
 import matplotlib.pylab as pl
