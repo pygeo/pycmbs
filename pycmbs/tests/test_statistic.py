@@ -6,7 +6,7 @@ For COPYING and LICENSE details, please refer to the LICENSE file
 """
 from unittest import TestCase
 
-from pycmbs.statistic import *
+from geoval.statistic import *
 from pycmbs.data import Data
 
 import numpy as np

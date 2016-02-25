@@ -20,7 +20,7 @@ import numpy
 
 setup(
     ext_modules=cythonize(
-        ["./pycmbs/polygon_utils.pyx", "./pycmbs/geostatistic/variogram_base.pyx"]),
+        ["./pycmbs/geostatistic/variogram_base.pyx"]),
     # this is needed to get proper information on numpy headers
     include_dirs=[numpy.get_include()]
 )

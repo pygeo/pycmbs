@@ -1014,7 +1014,7 @@ class Data(GeoData):
             minimum fraction of valid data needed for timesteps to perform calculation
             This is done also for performance improvement!
         """
-        from pycmbs.statistic import lomb_scargle_periodogram
+        from geoval.statistic import lomb_scargle_periodogram
 
         if self.ndim != 3:
             raise ValueError('Only 3D geometry supported!')
