@@ -8,7 +8,7 @@ branches:
         - master
 
 before_install:
-- sudo sh ./install-geoval.sh
+
 
 
 # todo
@@ -60,6 +60,9 @@ before_install:
 - sudo pip install six
 - sudo pip install cython
 - sudo pip install cartopy
+
+# install geoval library from source
+- sudo sh ./install-geoval.sh
 
 # do actual installation
 - sudo /usr/bin/python setup.py install
