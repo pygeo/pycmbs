@@ -8,7 +8,7 @@ branches:
         - master
 
 before_install:
-- sudo ./install-geoval.sh
+- sudo sh ./install-geoval.sh
 
 
 # todo
