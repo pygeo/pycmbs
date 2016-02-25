@@ -46,7 +46,7 @@ from matplotlib.collections import PatchCollection
 
 from pycmbs.data import Data
 from pycmbs.plots import ZonalPlot
-from pycmbs.polygon_utils import Polygon
+from geoval.polygon.polygon_utils import Polygon
 
 
 class MapPlotGeneric(object):
