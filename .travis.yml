@@ -6,7 +6,11 @@ virtualenv:
 branches:
     only:
         - master
+
 before_install:
+  - ./install-geoval.sh
+
+
 
 # todo
 # do we really need the sudo commands ???
