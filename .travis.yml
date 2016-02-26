@@ -62,7 +62,8 @@ before_install:
 - sudo pip install cartopy
 
 # install geoval library from source
-- sudo sh ./install-geoval.sh
+#- sudo sh ./install-geoval.sh
+- sudo pip install geoval
 
 # do actual installation
 - sudo /usr/bin/python setup.py install
