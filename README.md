@@ -46,7 +46,7 @@ Issues and Bug reports
 
 Bug reports, ideas, wishes are very welcome. Please report any issues using the github project website
         https://github.com/pygeo/pycmbs
-Any active contribution to the further development are highly welcome.
+Any active contribution to the further development are highly welcome. Please contact the author if questions.
 
 History
 -------
