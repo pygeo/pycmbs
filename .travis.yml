@@ -71,7 +71,9 @@ before_install:
 - sudo sh compile_extensions.sh
 
 script:
-- nosetests --with-coverage --cover-package=pycmbs
+- echo $PYTHONPATH
+- python -c "from geoval.polygon.polygon_utils import *"
+#- nosetests --with-coverage --cover-package=pycmbs
 
 after_success:
 - coveralls

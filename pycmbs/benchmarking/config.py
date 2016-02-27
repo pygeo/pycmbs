@@ -16,7 +16,7 @@ from pycmbs.data import Data
 
 from geoval.region import Region, RegionParser
 from geoval.polygon import Raster
-from geoal.polygon import Polygon as pycmbsPolygon
+from geoval.polygon import Polygon as pycmbsPolygon
 
 from pycmbs.benchmarking.utils import get_data_pool_directory
 from pycmbs.benchmarking.utils import get_generic_landseamask, get_T63_landseamask
