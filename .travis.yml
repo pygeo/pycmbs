@@ -63,7 +63,9 @@ before_install:
 
 # install geoval library from source
 #- sudo sh ./install-geoval.sh
-- sudo pip install geoval
+#- sudo pip install geoval --global-option=build_ext --global-option="--inplace"
+# http://stackoverflow.com/questions/15725869/pass-build-ext-options-to-pip-install
+- sudo pip build_ext --inplace install geoval
 
 # do actual installation
 - sudo /usr/bin/python setup.py install
@@ -71,7 +73,7 @@ before_install:
 - sudo sh compile_extensions.sh
 
 script:
-- python -c "from geoval import *"
+- python -c "from geoval.polygon.polygon_utils import *"
 #- nosetests --with-coverage --cover-package=pycmbs
 
 after_success:
