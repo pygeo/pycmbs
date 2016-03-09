@@ -167,7 +167,7 @@ class Data(GeoData):
 
         # assume that coordinates are always in 0 < lon < 360
         self._lon360 = True
-        self._calc_cell_area = kwargs.pop('calc_cell_area', True)
+
 
         self.level = kwargs.pop('level', None)
         self.gridtype = None
