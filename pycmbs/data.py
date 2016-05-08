@@ -203,66 +203,6 @@ class Data(GeoData):
 
 
 
-    def get_zonal_mean(self, return_object=False):
-        """
-        calculate zonal mean statistics of the data for each timestep
-        returns zonal statistics [time,ny]
-
-        uses area weighting of data
-        gives exact same results as function 'zonmean' in cdo's
-
-        Parameters
-        ----------
-        return_object : bool
-            if True, then returns a Data object
-
-        Returns
-        -------
-        r : ndarray, Data
-            array with zonal statistics
-        """
-
-        # TODO implement check if latitudes in y-axis direction are all the
-        # same! Otherwise the routine does not make sense
-
-        if self.cell_area is None:
-            self._log_warning(
-                'WARNING: no cell area given, zonal means are based on equal weighting!')
-            w = np.ones(self.data.shape)
-        else:
-            w = self._get_weighting_matrix()
-
-        #/// weight data
-        dat = self.data * w
-
-        #/// calculate zonal mean
-        if dat.ndim == 2:
-            r = dat.sum(axis=1) / w.sum(axis=1)  # zonal mean
-        elif dat.ndim == 3:
-            nt, ny, nx = dat.shape
-            r = np.ones((nt, ny)) * np.nan
-            W = np.ones((nt, ny)) * np.nan
-
-            for i in xrange(nt):
-                # weighted sum, normalized by valid data why ???
-                r[i] = dat[i, :, :].sum(axis=1) / w[i, :, :].sum(axis=1)
-                W[i] = w[i, :, :].sum(axis=1)
-            r = np.ma.array(r, mask=W == 0.)
-
-        else:
-            print dat.shape
-            raise ValueError('Unsupported geometry')
-
-        if return_object:
-            res = self.copy()
-            res.label = self.label + ' zonal mean'
-            res.data = r.T  # [lat,time]
-            res.lat = self.lat[:, 0]  # latitudes as a vector
-        else:
-            res = r
-        return res
-
-
 
     def _get_binary_filehandler(self, mode='r'):
         """

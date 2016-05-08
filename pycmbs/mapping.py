@@ -724,7 +724,7 @@ class SingleMap(MapPlotGeneric):
         X : Data
             Data object with data to plot
         """
-        assert(isinstance(x, Data))
+        #~ assert(isinstance(x, Data))
         super(SingleMap, self).__init__(**kwargs)
         self.x = x
 
