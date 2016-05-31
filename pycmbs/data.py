@@ -158,6 +158,8 @@ class Data(GeoData):
             name of individual file with coordinates. This can be usefull in the case
             that no coordinate information is stored within the actual data files
         """
+        self.lat = None
+        self.lon = None
 
         super(Data, self).__init__(filename, varname, **kwargs)
 
@@ -174,15 +176,14 @@ class Data(GeoData):
 
         # specifies if latitudes have been checked for increasing order
         #(required for zonal plot)
-        self._latitudecheckok = False
-        self.warnings = kwargs.pop('warnings', True)
+        #~ self._latitudecheckok = False
+        #~ self.warnings = kwargs.pop('warnings', True)
+#~
 
-        self.lat = None
-        self.lon = None
-
-        if self.geometry_file is not None:
-            assert os.path.exists(
-                self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
+#~
+        #~ if self.geometry_file is not None:
+            #~ assert os.path.exists(
+                #~ self.geometry_file), 'ERROR: geometry filename provided, but file not existing! ' + self.geometry_file
 
         # check if longitudes are from 0 ... 360
         if self.lon is not None:
